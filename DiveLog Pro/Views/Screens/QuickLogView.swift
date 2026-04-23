@@ -54,13 +54,20 @@ struct QuickLogView: View {
                 }
             }
             .sheet(isPresented: $showingDiveCreate) {
-                // TODO (Task 28): DiveFormView-Init erweitern, sodass selectedStudents
-                //                 + empfohlenes Modul vorausgefüllt werden.
-                DiveFormView()
+                // Pre-fill: selected students + inferred course type from the
+                // first student's first logged dive (fallback OWD). The form's
+                // own suggestedNextSlot picks the best starting module.
+                DiveFormView(
+                    mode: .new,
+                    prefillStudents: selectedStudents,
+                    prefillCourseType: selectedStudents.first?.dives?.first?.courseType ?? "OWD"
+                )
             }
             .sheet(isPresented: $showingPoolCreate) {
-                // TODO (Task 28): PoolSessionCreateView ebenso pre-fillen.
-                PoolSessionCreateView()
+                PoolSessionCreateView(
+                    prefillStudents: selectedStudents,
+                    prefillCourseType: "OWD"
+                )
             }
         }
     }

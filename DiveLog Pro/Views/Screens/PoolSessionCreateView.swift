@@ -2,6 +2,11 @@ import SwiftUI
 import SwiftData
 
 struct PoolSessionCreateView: View {
+    // Optional pre-fill from QuickLogView.
+    var prefillStudents: [Student] = []
+    var prefillCourseType: String? = nil
+    var prefillSlotCode: String? = nil
+
     @Environment(\.modelContext) private var ctx
     @Environment(\.dismiss) private var dismiss
 
@@ -71,6 +76,40 @@ struct PoolSessionCreateView: View {
                         .onDisappear { dismiss() }
                 }
             }
+            .onAppear(perform: applyPrefill)
         }
+    }
+
+    /// Apply QuickLog pre-fill when a prefillStudents group was provided.
+    /// Next pool-module heuristic: most-conservative first not-yet-mastered
+    /// pool slot (CW1…CW5) across the group.
+    private func applyPrefill() {
+        guard !prefillStudents.isEmpty else { return }
+        students = prefillStudents
+        if let t = prefillCourseType { courseType = t }
+        if let c = prefillSlotCode {
+            slotCode = c
+        } else {
+            slotCode = suggestedNextPoolSlot(forStudents: prefillStudents, courseType: courseType)
+        }
+    }
+
+    private func suggestedNextPoolSlot(forStudents students: [Student], courseType: String) -> String {
+        let slots = PADIStandards.shared.slots(for: courseType).filter { $0.type == .pool }
+        guard !slots.isEmpty else { return "CW1" }
+
+        var minIndex = slots.count - 1
+        for student in students {
+            var lastMasteredIdx = -1
+            for (idx, slot) in slots.enumerated() {
+                let anyMastered = slot.skills.contains {
+                    student.currentStatus(for: $0.code) == .mastered
+                }
+                if anyMastered { lastMasteredIdx = idx }
+            }
+            let next = min(lastMasteredIdx + 1, slots.count - 1)
+            minIndex = min(minIndex, next)
+        }
+        return slots[max(0, minIndex)].code
     }
 }

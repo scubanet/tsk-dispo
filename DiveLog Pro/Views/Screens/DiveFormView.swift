@@ -6,6 +6,14 @@ enum DiveFormMode { case new; case edit(Dive) }
 
 struct DiveFormView: View {
     let mode: DiveFormMode
+
+    // Optional pre-fill from QuickLogView. When prefillStudents is non-empty
+    // the form opens in course-training mode, students are pre-selected, and
+    // courseSlot defaults to the most-conservative "next module" across them.
+    var prefillStudents: [Student] = []
+    var prefillCourseType: String? = nil
+    var prefillCourseSlot: String? = nil
+
     @Environment(\.modelContext) private var ctx
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \Dive.number, order: .reverse) private var existingDives: [Dive]
@@ -526,6 +534,40 @@ struct DiveFormView: View {
             cylinderType = last.cylinderType; cylinderSize = String(last.cylinderSizeLiters); gas = last.gas
             tankStart = String(last.tankStartBar); diveCenterName = last.diveCenterName
         }
+
+        // Apply QuickLog pre-fill (only in .new mode — edit always wins).
+        if case .new = mode, !prefillStudents.isEmpty {
+            isCourseTraining = true
+            students = prefillStudents
+            if let t = prefillCourseType { courseType = t }
+            if let slot = prefillCourseSlot {
+                courseSlot = slot
+            } else {
+                courseSlot = suggestedNextSlot(forStudents: prefillStudents, courseType: courseType)
+            }
+        }
+    }
+
+    /// Most-conservative "next module" across a group of students for an
+    /// open-water course. For each student: find the highest ocean slot with
+    /// any mastered skill, the next slot is their candidate. Group pick = min.
+    private func suggestedNextSlot(forStudents students: [Student], courseType: String) -> String {
+        let slots = PADIStandards.shared.slots(for: courseType).filter { $0.type == .ocean }
+        guard !slots.isEmpty else { return "OW1" }
+
+        var minIndex = slots.count - 1
+        for student in students {
+            var lastMasteredIdx = -1
+            for (idx, slot) in slots.enumerated() {
+                let anyMastered = slot.skills.contains {
+                    student.currentStatus(for: $0.code) == .mastered
+                }
+                if anyMastered { lastMasteredIdx = idx }
+            }
+            let next = min(lastMasteredIdx + 1, slots.count - 1)
+            minIndex = min(minIndex, next)
+        }
+        return slots[max(0, minIndex)].code
     }
 
     /// Called when the user taps the close button without saving. Any photos
