@@ -193,7 +193,7 @@ struct DiveFormView: View {
                         Text("OWD").tag("OWD")
                         Text("AOWD").tag("AOWD")
                     }
-                    Picker(L10n.currentLanguage == "de" ? "Slot" : "Slot", selection: $courseSlot) {
+                    Picker(L10n.currentLanguage == "de" ? "Modul" : "Module", selection: $courseSlot) {
                         ForEach(PADIStandards.shared.slots(for: courseType)
                                     .filter { $0.type == .ocean }, id: \.code) { slot in
                             Text(slot.code).tag(slot.code)

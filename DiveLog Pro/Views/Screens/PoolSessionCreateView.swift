@@ -23,7 +23,7 @@ struct PoolSessionCreateView: View {
                         Text("OWD").tag("OWD")
                         Text("AOWD").tag("AOWD")
                     }
-                    Picker(L10n.currentLanguage == "de" ? "Slot" : "Slot", selection: $slotCode) {
+                    Picker(L10n.currentLanguage == "de" ? "Modul" : "Module", selection: $slotCode) {
                         ForEach(PADIStandards.shared.slots(for: courseType)
                                     .filter { $0.type == .pool }, id: \.code) { slot in
                             Text(slot.code).tag(slot.code)

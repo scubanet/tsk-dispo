@@ -146,14 +146,14 @@ struct NewStudentSheet: View {
                         Text("OWD").tag("OWD")
                         Text("AOWD").tag("AOWD")
                     }
-                    Picker(L10n.currentLanguage == "de" ? "Aktueller Slot" : "Current slot",
+                    Picker(L10n.currentLanguage == "de" ? "Aktuelles Modul" : "Current module",
                            selection: $courseSlot) {
                         ForEach(PADIStandards.shared.slots(for: courseType), id: \.code) { slot in
                             Text(slot.code).tag(slot.code)
                         }
                     }
                 }
-                Section(L10n.currentLanguage == "de" ? "Vorherige Slots?" : "Prior slots?") {
+                Section(L10n.currentLanguage == "de" ? "Vorherige Module?" : "Prior modules?") {
                     Picker("Seed", selection: $seedChoice) {
                         Text(L10n.currentLanguage == "de" ? "Alles gemeistert" : "All mastered")
                             .tag(SeedChoice.allMastered)
