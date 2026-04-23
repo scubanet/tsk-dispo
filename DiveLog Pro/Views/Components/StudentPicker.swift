@@ -200,10 +200,10 @@ struct NewStudentSheet: View {
             let codes = Set(prior.flatMap { $0.skills.map(\.code) })
             ctx.seedStudent(student, priorMastery: codes)
         case .partial:
-            // Partial seed sheet opens after create in DiveCreate flow — for inline new-student
-            // here we skip the partial-picker UI and just keep it unseeded. A follow-up seed can
-            // be triggered from the Student Profile view.
-            break
+            // Defer to PriorMasterySeedSheet — the inline new-student flow doesn't host the
+            // skill-picker; instead, mark the student as "seed pending" so the Student Profile
+            // view can offer the sheet and the instructor can work through it deliberately.
+            UserDefaults.standard.set(true, forKey: "seedPending.\(student.persistentModelID)")
         case .skip:
             break
         }
