@@ -453,6 +453,23 @@ struct DiveDetailView: View {
                      : "\(course) · \(slot) · \(students.count) students")
                     .font(.system(size: 14, weight: .semibold))
             }
+            // "Profil öffnen"-Chip for the currently selected student — works
+            // for both the single- and multi-student cases (picker appears
+            // below when count > 1).
+            if let selected = students.first(where: { $0.id == selectedStudentID }) ?? students.first {
+                NavigationLink {
+                    StudentProfileView(student: selected)
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "person.crop.circle.badge.questionmark")
+                        Text(L10n.currentLanguage == "de"
+                             ? "Profil: \(selected.fullName)"
+                             : "Profile: \(selected.fullName)")
+                    }
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.appAccent)
+                }
+            }
             if students.count > 1 {
                 Picker("", selection: $selectedStudentID) {
                     ForEach(students) { s in
