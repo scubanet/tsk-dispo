@@ -6,5 +6,20 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>DiveLog Pro uses your location to capture dive site coordinates and auto-load weather conditions.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>DiveLog Pro uses the camera to scan a buddy's QR code for quick identity transfer when signing dives.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.weckherlin.DiveLogPro</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>divelogpro</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
