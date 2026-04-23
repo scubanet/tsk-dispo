@@ -54,7 +54,10 @@ struct DiveLogProApp: App {
             DiverProfile.self,
             DiveSite.self,
             Buddy.self,
-            DiveSignature.self
+            DiveSignature.self,
+            Student.self,
+            PoolSession.self,
+            SkillCompletion.self
         ])
 
         // Try CloudKit-backed first; fall back to a local-only container if
