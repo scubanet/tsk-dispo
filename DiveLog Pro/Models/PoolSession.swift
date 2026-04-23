@@ -10,7 +10,7 @@ final class PoolSession {
     var location: String = ""
     var notes: String = ""
 
-    @Relationship(deleteRule: .nullify, inverse: \Student.poolSessions)
+    @Relationship(deleteRule: .nullify)
     var students: [Student]? = []
 
     @Relationship(deleteRule: .cascade, inverse: \SkillCompletion.poolSession)

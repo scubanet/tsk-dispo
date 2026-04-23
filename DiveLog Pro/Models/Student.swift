@@ -12,7 +12,7 @@ final class Student {
     var notes: String = ""
 
     // All relationships optional with array defaults.
-    @Relationship(deleteRule: .nullify, inverse: \Dive.students)
+    @Relationship(deleteRule: .nullify)
     var dives: [Dive]? = []
 
     @Relationship(deleteRule: .nullify, inverse: \PoolSession.students)
