@@ -55,7 +55,13 @@ struct DiveFormView: View {
     @State private var marineInput = ""
     @State private var photoFilenames: [String] = []
     @State private var importedPhotosOnThisSession: [String] = []
-    
+
+    // Course training fields
+    @State private var isCourseTraining = false
+    @State private var courseType = "OWD"
+    @State private var courseSlot = "OW1"
+    @State private var students: [Student] = []
+
     private let suggestions = ["Sea Turtle", "Clownfish", "Manta Ray", "Whale Shark", "Nudibranch",
         "Moray Eel", "Barracuda", "Lionfish", "Octopus", "Seahorse", "Reef Shark",
         "Eagle Ray", "Frogfish", "Cuttlefish", "Giant Clam", "Dolphin"]
@@ -173,7 +179,35 @@ struct DiveFormView: View {
                     }
                 }
             }
-            
+
+            // Course & Students
+            VStack(alignment: .leading, spacing: 8) {
+                Text((L10n.currentLanguage == "de" ? "Kurs & Schüler" : "Course & Students").uppercased())
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .tracking(1.2)
+                Toggle(L10n.currentLanguage == "de" ? "Kurs-Tauchgang" : "Course dive",
+                       isOn: $isCourseTraining)
+                if isCourseTraining {
+                    Picker(L10n.currentLanguage == "de" ? "Kurs" : "Course", selection: $courseType) {
+                        Text("OWD").tag("OWD")
+                        Text("AOWD").tag("AOWD")
+                    }
+                    Picker(L10n.currentLanguage == "de" ? "Slot" : "Slot", selection: $courseSlot) {
+                        ForEach(PADIStandards.shared.slots(for: courseType)
+                                    .filter { $0.type == .ocean }, id: \.code) { slot in
+                            Text(slot.code).tag(slot.code)
+                        }
+                    }
+                    StudentPicker(selected: $students)
+                    if !students.isEmpty {
+                        ForEach(students) { student in
+                            PreDivePreviewCard(student: student, slotCode: courseSlot, courseType: courseType)
+                        }
+                    }
+                }
+            }
+
             HStack(spacing: 12) {
                 FormField(label: L10n.maxDepth + " (m)", text: $maxDepth, placeholder: "12", keyboard: .decimalPad)
                 FormField(label: L10n.bottomTime + " (min)", text: $bottomTime, placeholder: "45", keyboard: .numberPad)
@@ -482,6 +516,10 @@ struct DiveFormView: View {
             feeling = d.feeling; rating = d.rating; isHighlight = d.isHighlight
             buddyNames = d.buddyNames; notes = d.notes; marineLife = d.marineLife
             photoFilenames = d.photoFilenames
+            isCourseTraining = d.courseType != nil
+            courseType = d.courseType ?? "OWD"
+            courseSlot = d.courseSlot ?? "OW1"
+            students = d.students ?? []
         } else if let last = existingDives.first {
             // Smart Defaults from last dive
             suit = last.suit; weightKg = String(last.weightKg); weightFeel = last.weightFeel
@@ -528,6 +566,15 @@ struct DiveFormView: View {
             let profileMissing = d.depthProfile.isEmpty
 
             d.siteName = siteName; d.siteLocation = siteLocation; d.diveType = diveType
+            if isCourseTraining {
+                d.courseType = courseType
+                d.courseSlot = courseSlot
+                d.students = students
+            } else {
+                d.courseType = nil
+                d.courseSlot = nil
+                d.students = []
+            }
             if let lat = latitude { d.latitude = lat }
             if let lon = longitude { d.longitude = lon }
             d.maxDepth = md; d.avgDepth = md * 0.7; d.bottomTime = bt; d.totalTime = tt
@@ -562,6 +609,11 @@ struct DiveFormView: View {
                 buddyNames: buddyNames, marineLife: marineLife,
                 depthProfile: SampleData.generateProfile(maxDepth: md, duration: tt)
             )
+            if isCourseTraining {
+                dive.courseType = courseType
+                dive.courseSlot = courseSlot
+                dive.students = students
+            }
             dive.photoFilenames = photoFilenames
             ctx.insert(dive)
         }
