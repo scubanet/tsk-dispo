@@ -17,6 +17,7 @@ struct DiveDetailView: View {
     @State private var showingSignatureCapture = false
     @State private var showingExport = false
     @State private var showingDeleteConfirm = false
+    @State private var selectedStudentID: PersistentIdentifier? = nil
 
     private var tabs: [String] {
         [L10n.overview, L10n.journal, L10n.profile, L10n.stats, L10n.gear]
@@ -70,7 +71,17 @@ struct DiveDetailView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 20).padding(.top, 12)
-                    
+
+                    // Schüler section (if course + students exist)
+                    if dive.courseType != nil && (dive.students?.count ?? 0) > 0 {
+                        studentsSection
+                            .padding(16)
+                            .background(Color.surfaceCard)
+                            .cornerRadius(16)
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                    }
+
                     // Tabs
                     PillTabBar(selected: activeTabBinding, tabs: tabs)
                         .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 8)
@@ -424,6 +435,43 @@ struct DiveDetailView: View {
                 .background(RoundedRectangle(cornerRadius: 16).fill(Color.surfaceCard))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.hairline, lineWidth: 1))
             }
+        }
+    }
+
+    // MARK: - Schüler Section
+    @ViewBuilder
+    private var studentsSection: some View {
+        let students = dive.students ?? []
+        let slot = dive.courseSlot ?? ""
+        let course = dive.courseType ?? "OWD"
+
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "graduationcap.fill").foregroundStyle(Color.appAccent)
+                Text(L10n.currentLanguage == "de"
+                     ? "\(course) · \(slot) · \(students.count) Schüler"
+                     : "\(course) · \(slot) · \(students.count) students")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            if students.count > 1 {
+                Picker("", selection: $selectedStudentID) {
+                    ForEach(students) { s in
+                        Text(s.fullName).tag(Optional(s.id))
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+            if let selected = students.first(where: { $0.id == selectedStudentID }) ?? students.first {
+                SkillAssessmentGrid(
+                    student: selected,
+                    slotCode: slot,
+                    courseType: course,
+                    context: .dive(dive)
+                )
+            }
+        }
+        .onAppear {
+            if selectedStudentID == nil { selectedStudentID = students.first?.id }
         }
     }
 }
