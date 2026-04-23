@@ -86,10 +86,94 @@
       "skills": [
         {
           "code": "OW1.1",
-          "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "title": "Handzeichen im Briefing erkennen",
+          "description": "Erkennt im Briefing die Handzeichen für 'ok', 'Problem', 'Ohrenproblem', 'wenig Luft', 'auftauchen/Tauchgang beenden', 'beim Buddy bleiben' sowie die hörbaren (oder fühlbaren) und visuellen Signale für 'schau auf mich'.",
+          "category": "communication",
+          "performanceStandard": "Alle Standard-Handzeichen und das 'Schau auf mich'-Signal korrekt identifizieren."
+        },
+        {
+          "code": "OW1.2",
+          "title": "Ausrüstung anlegen und anpassen",
+          "description": "Legt die Ausrüstung an und passt sie an. Verwendet dabei angemessene Techniken zum Hochheben der Ausrüstung.",
           "category": "preparation",
-          "performanceStandard": "TBD"
+          "performanceStandard": "Korrekte Hebetechnik, alles angepasst und gesichert."
+        },
+        {
+          "code": "OW1.3",
+          "title": "Pre-Dive Safety Check (BWRAF)",
+          "description": "Führt vor dem Tauchgang einen Sicherheitscheck durch.",
+          "category": "preparation",
+          "performanceStandard": "BWRAF vollständig und eigenständig vor dem Einstieg."
+        },
+        {
+          "code": "OW1.4",
+          "title": "Einstieg mit positivem Auftrieb",
+          "description": "Steigt ins Wasser mit aufgeblasenem Tarierjacket ein, um positiven Auftrieb zu haben.",
+          "category": "surface",
+          "performanceStandard": "BCD deutlich aufgeblasen, sicherer Einstieg ohne zu sinken."
+        },
+        {
+          "code": "OW1.5",
+          "title": "Tarierung kontrollieren und ausbleien",
+          "description": "Kontrolliert die Tarierung und bleit sich aus.",
+          "category": "buoyancy",
+          "performanceStandard": "Korrekt ausgebleit: neutral in Augenhöhe mit leerem BCD und halb vollem Tank."
+        },
+        {
+          "code": "OW1.6",
+          "title": "Kontrollierter Abstieg mit Referenz",
+          "description": "Taucht kontrolliert auf eine Tiefe von maximal 12 Metern / 40 Fuß ab; verwendet dabei als Referenz ein Abstiegsseil oder den schräg abfallenden Grund.",
+          "category": "descent",
+          "performanceStandard": "Kontrollierter Abstieg mit Druckausgleich; Tiefe ≤ 12 m."
+        },
+        {
+          "code": "OW1.7",
+          "title": "Trimmungscheck",
+          "description": "Nimmt an einem Check der Trimmung teil.",
+          "category": "buoyancy",
+          "performanceStandard": "Aktive Teilnahme am Trim-Check; Korrekturen wahrnehmen."
+        },
+        {
+          "code": "OW1.8",
+          "title": "Teilweise geflutete Maske ausblasen",
+          "description": "Bläst die teilweise geflutete Maske aus.",
+          "category": "skills",
+          "performanceStandard": "Maske ohne Abbruch freiblasen, Atemkontrolle beibehalten."
+        },
+        {
+          "code": "OW1.9",
+          "title": "Atemregler wiedererlangen und ausblasen",
+          "description": "Erlangt in der Tiefe den Atemregler wieder und bläst ihn aus.",
+          "category": "skills",
+          "performanceStandard": "Atemregler unter Wasser finden, einsetzen, korrekt ausblasen (Ausatmen oder Purge)."
+        },
+        {
+          "code": "OW1.10",
+          "title": "Tauchplatz erkunden",
+          "description": "Erkundet den Tauchplatz.",
+          "category": "navigation",
+          "performanceStandard": "Aufmerksamer Rundblick, Orientierung beibehalten."
+        },
+        {
+          "code": "OW1.11",
+          "title": "Atemgasvorrat signalisieren",
+          "description": "Signalisiert, wenn der verbleibende Atemgasvorrat nahe beim festgelegten Vorsichtsbereich ist, und/oder zeigt den Atemgasvorrat in bar/psi an.",
+          "category": "monitoring",
+          "performanceStandard": "Proaktive Signalgabe beim Erreichen der vereinbarten Reserve."
+        },
+        {
+          "code": "OW1.12",
+          "title": "Buddy-Kontakt innerhalb 2 Sekunden",
+          "description": "Bleibt nah genug beim Buddy, um innerhalb von zwei Sekunden physischen Kontakt herstellen zu können.",
+          "category": "buddy",
+          "performanceStandard": "Konsistente Buddy-Nähe während des gesamten Tauchgangs."
+        },
+        {
+          "code": "OW1.13",
+          "title": "Aufstieg mit kontrollierter Rate",
+          "description": "Steigt nicht schneller als mit 18 Metern / 60 Fuß pro Minute auf und hält dabei Kontakt zum Buddy. Verwendet die 5-Punkte-Methode (falls Confined Water Tauchgang 3 erfolgt ist).",
+          "category": "ascent",
+          "performanceStandard": "Aufstiegsrate ≤ 18 m/min, Buddy-Kontakt, 5-Punkte-Aufstieg."
         }
       ]
     },
@@ -101,10 +185,122 @@
       "skills": [
         {
           "code": "OW2.1",
-          "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "title": "Tauchgangsplanung",
+          "description": "Plant den Tauchgang einschließlich Atemgasvorrat-Management / Flaschendruck zum Umkehren, Zeitlimits, Ein- und Ausstiege, Verfahren bei Trennung vom Buddy und grundlegende Notfallverfahren.",
           "category": "preparation",
-          "performanceStandard": "TBD"
+          "performanceStandard": "Vollständige Tauchgangsplanung mit Buddy durchgeführt."
+        },
+        {
+          "code": "OW2.2",
+          "title": "Ausrüstung anlegen und stromlinienförmig",
+          "description": "Legt die Ausrüstung an, passt sie an und achtet auf Stromlinienförmigkeit. Verwendet angemessene Hebetechnik.",
+          "category": "preparation",
+          "performanceStandard": "Stromlinienförmige, sichere Ausrüstung."
+        },
+        {
+          "code": "OW2.3",
+          "title": "Pre-Dive Safety Check (BWRAF)",
+          "description": "Führt vor dem Tauchgang einen Sicherheitscheck durch.",
+          "category": "preparation",
+          "performanceStandard": "BWRAF vollständig und eigenständig."
+        },
+        {
+          "code": "OW2.4",
+          "title": "Tarierung und Trimmung anpassen",
+          "description": "Passt Tarierung und Trimmung wie erforderlich an.",
+          "category": "buoyancy",
+          "performanceStandard": "Korrekt ausgebleit und getrimmt."
+        },
+        {
+          "code": "OW2.5",
+          "title": "Positiver Auftrieb an der Oberfläche",
+          "description": "Stellt an der Oberfläche positiven Auftrieb her, lässt die Maske auf und atmet aus Schnorchel oder Atemregler.",
+          "category": "surface",
+          "performanceStandard": "Deutlich positiver Auftrieb, Atemweg sicher."
+        },
+        {
+          "code": "OW2.6",
+          "title": "BCD oral aufblasen",
+          "description": "Entlüftet in Wasser, das zum Stehen zu tief ist, das Tarierjacket und bläst es dann mit dem Mund wieder auf, bis positiver Auftrieb erreicht ist.",
+          "category": "surface",
+          "performanceStandard": "Oral inflation bis positiver Auftrieb, ohne Panik."
+        },
+        {
+          "code": "OW2.7",
+          "title": "Kontrollierter Abstieg (5-Punkte)",
+          "description": "Kontrollierter Abstieg auf eine Tiefe von maximal 12 Metern / 40 Fuß; verwendet dabei als Referenz ein Abstiegsseil oder schräg abfallenden Grund. Verwendet die 5-Punkte-Methode.",
+          "category": "descent",
+          "performanceStandard": "5-Punkte-Abstieg vollständig; Tiefe ≤ 12 m."
+        },
+        {
+          "code": "OW2.8",
+          "title": "Neutrale Tarierung mit Inflator",
+          "description": "Stellt neutrale Tarierung her, indem die Luft im Tarierjacket (oder Trockentauchanzug) mittels Inflator angepasst wird.",
+          "category": "buoyancy",
+          "performanceStandard": "Stabiles Schweben mit feinfühliger Inflator-Nutzung."
+        },
+        {
+          "code": "OW2.9",
+          "title": "Vollständig geflutete Maske ausblasen",
+          "description": "Bläst die vollständig geflutete Maske aus.",
+          "category": "skills",
+          "performanceStandard": "Komplett geflutete Maske kontrolliert freiblasen."
+        },
+        {
+          "code": "OW2.10",
+          "title": "Air-Share stationär (beide Rollen)",
+          "description": "Spielt beide Rollen: In einer stationären Position signalisiert die eine Person 'keine Luft', sichert die alternative Luftversorgung des anderen Tauchers und atmet daraus; der andere Taucher stellt die alternative Luftversorgung zur Verfügung.",
+          "category": "skills",
+          "performanceStandard": "Beide Rollen (Spender + Empfänger) stationär korrekt."
+        },
+        {
+          "code": "OW2.11",
+          "title": "Aufstieg mit alternativer Luftversorgung",
+          "description": "Steigt unter Verwendung einer alternativen Luftversorgung korrekt auf und stellt an der Oberfläche positiven Auftrieb her. Spielt die Rolle des Spenders oder des Empfängers.",
+          "category": "skills",
+          "performanceStandard": "Korrekter Air-Share-Aufstieg; Oberflächen-Auftrieb hergestellt."
+        },
+        {
+          "code": "OW2.12",
+          "title": "Tauchplatz erkunden",
+          "description": "Erkundet den Tauchplatz.",
+          "category": "navigation",
+          "performanceStandard": "Aufmerksame Umgebungswahrnehmung."
+        },
+        {
+          "code": "OW2.13",
+          "title": "Umweltkontakt vermeiden",
+          "description": "Vermeidet Kontakt mit empfindlichen Organismen und dem Grund und sichert Ausrüstung wieder, die sich möglicherweise gelockert hat.",
+          "category": "environmental",
+          "performanceStandard": "Kein Bodenkontakt, keine Berührung von Meereslebewesen."
+        },
+        {
+          "code": "OW2.14",
+          "title": "Buddy-Kontakt innerhalb 2 Sekunden",
+          "description": "Bleibt nah genug beim Buddy, um innerhalb von zwei Sekunden physischen Kontakt herstellen zu können.",
+          "category": "buddy",
+          "performanceStandard": "Konsistente Buddy-Nähe."
+        },
+        {
+          "code": "OW2.15",
+          "title": "Atemgasvorrat-Schätzung (±20 bar)",
+          "description": "Zeigt den verbleibenden Atemgasvorrat mit einer maximalen Abweichung von 20 bar / 300 psi an, ohne zur Kontrolle auf das Finimeter zu schauen.",
+          "category": "monitoring",
+          "performanceStandard": "Schätzung ±20 bar ohne Blick aufs Finimeter."
+        },
+        {
+          "code": "OW2.16",
+          "title": "Regelmäßige Luftanzeige",
+          "description": "Zeigt in regelmäßigen Abständen, die im Rahmen der Tauchgangsplanung vereinbart wurden, den verbleibenden Atemgasvorrat an.",
+          "category": "monitoring",
+          "performanceStandard": "Aktive, regelmäßige Kommunikation des Luftvorrats."
+        },
+        {
+          "code": "OW2.17",
+          "title": "Aufstieg mit 5-Punkte und Safety-Stop",
+          "description": "Steigt nicht schneller als mit 18 Metern / 60 Fuß pro Minute auf und hält dabei Kontakt zum Buddy. Verwendet die 5-Punkte-Methode (es sei denn, es handelt sich um einen Aufstieg mittels alternativer Luftversorgung). Macht einen Sicherheits-Stopp, falls möglich.",
+          "category": "ascent",
+          "performanceStandard": "≤ 18 m/min, 5-Punkte, Safety-Stop falls möglich."
         }
       ]
     },
@@ -116,10 +312,101 @@
       "skills": [
         {
           "code": "OW3.1",
-          "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "title": "Tauchgangsplanung",
+          "description": "Plant den Tauchgang.",
           "category": "preparation",
-          "performanceStandard": "TBD"
+          "performanceStandard": "Vollständige Buddy-Planung vor dem Einstieg."
+        },
+        {
+          "code": "OW3.2",
+          "title": "Ausrüstung anlegen und stromlinienförmig",
+          "description": "Legt die Ausrüstung an, passt sie an und achtet auf Stromlinienförmigkeit. Verwendet angemessene Hebetechnik.",
+          "category": "preparation",
+          "performanceStandard": "Stromlinienförmige, sichere Ausrüstung."
+        },
+        {
+          "code": "OW3.3",
+          "title": "Pre-Dive Safety Check (BWRAF)",
+          "description": "Führt vor dem Tauchgang einen Sicherheitscheck durch.",
+          "category": "preparation",
+          "performanceStandard": "BWRAF vollständig und eigenständig."
+        },
+        {
+          "code": "OW3.4",
+          "title": "Tarierung und Trimmung anpassen",
+          "description": "Passt Tarierung und Trimmung wie erforderlich an.",
+          "category": "buoyancy",
+          "performanceStandard": "Korrekt ausgebleit und getrimmt."
+        },
+        {
+          "code": "OW3.5",
+          "title": "Positiver Auftrieb an der Oberfläche",
+          "description": "Stellt an der Oberfläche positiven Auftrieb her, lässt die Maske auf und atmet aus Schnorchel oder Atemregler.",
+          "category": "surface",
+          "performanceStandard": "Deutlich positiver Auftrieb, Atemweg sicher."
+        },
+        {
+          "code": "OW3.6",
+          "title": "Abstieg mit visueller Referenz (≤ 18 m)",
+          "description": "Taucht mit Hilfe einer visuellen Referenz kontrolliert auf maximal 18 Meter / 60 Fuß ab. Verwendet die 5-Punkte-Methode.",
+          "category": "descent",
+          "performanceStandard": "5-Punkte-Abstieg; Tiefe ≤ 18 m."
+        },
+        {
+          "code": "OW3.7",
+          "title": "Schweben mit oraler BCD-Inflation",
+          "description": "Stellt neutrale Tarierung her und schwebt, indem das Tarierjacket mit dem Mund aufgeblasen wird.",
+          "category": "buoyancy",
+          "performanceStandard": "Stabiles Schweben nach oraler Inflation unter Wasser."
+        },
+        {
+          "code": "OW3.8",
+          "title": "Maske abnehmen, aufsetzen, ausblasen",
+          "description": "Nimmt die Maske ab, setzt sie wieder auf und bläst sie aus.",
+          "category": "skills",
+          "performanceStandard": "Vollständiges Remove-and-Replace mit Maskenausblasen."
+        },
+        {
+          "code": "OW3.9",
+          "title": "Tauchplatz erkunden",
+          "description": "Erkundet den Tauchplatz.",
+          "category": "navigation",
+          "performanceStandard": "Aufmerksame Umgebungswahrnehmung."
+        },
+        {
+          "code": "OW3.10",
+          "title": "Umweltkontakt vermeiden",
+          "description": "Vermeidet Kontakt mit empfindlichen Organismen und dem Grund und sichert Ausrüstung wieder, die sich möglicherweise gelockert hat.",
+          "category": "environmental",
+          "performanceStandard": "Kein Bodenkontakt, keine Berührung von Meereslebewesen."
+        },
+        {
+          "code": "OW3.11",
+          "title": "Buddy-Kontakt innerhalb 2 Sekunden",
+          "description": "Bleibt nah genug beim Buddy, um innerhalb von zwei Sekunden physischen Kontakt herstellen zu können.",
+          "category": "buddy",
+          "performanceStandard": "Konsistente Buddy-Nähe."
+        },
+        {
+          "code": "OW3.12",
+          "title": "Atemgasvorrat-Schätzung (±20 bar)",
+          "description": "Zeigt den verbleibenden Atemgasvorrat mit einer maximalen Abweichung von 20 bar / 300 psi an, ohne zur Kontrolle auf das Finimeter zu schauen.",
+          "category": "monitoring",
+          "performanceStandard": "Schätzung ±20 bar ohne Blick aufs Finimeter."
+        },
+        {
+          "code": "OW3.13",
+          "title": "Regelmäßige Luftanzeige",
+          "description": "Zeigt in regelmäßigen Abständen, die im Rahmen der Tauchgangsplanung vereinbart wurden, den verbleibenden Atemgasvorrat an.",
+          "category": "monitoring",
+          "performanceStandard": "Aktive, regelmäßige Kommunikation des Luftvorrats."
+        },
+        {
+          "code": "OW3.14",
+          "title": "Aufstieg mit 5-Punkte und Safety-Stop",
+          "description": "Steigt nicht schneller als mit 18 Metern / 60 Fuß pro Minute auf und hält dabei Kontakt zum Buddy. Verwendet die 5-Punkte-Methode. Macht einen Sicherheits-Stopp, falls möglich.",
+          "category": "ascent",
+          "performanceStandard": "≤ 18 m/min, 5-Punkte, Safety-Stop falls möglich."
         }
       ]
     },
@@ -131,10 +418,87 @@
       "skills": [
         {
           "code": "OW4.1",
-          "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "title": "Buddy-Team-Planung mit Slate",
+          "description": "Plant als Buddy-Team den Tauchgang. Verwendet dabei die Tafel 'PADI Skill Practice and Dive Planning Slate'.",
           "category": "preparation",
-          "performanceStandard": "TBD"
+          "performanceStandard": "Vollständige Buddy-Team-Planung mit Slate, ohne Instructor-Hilfe."
+        },
+        {
+          "code": "OW4.2",
+          "title": "Ausrüstung anlegen und stromlinienförmig",
+          "description": "Legt die Ausrüstung an, passt sie an und achtet auf Stromlinienförmigkeit. Verwendet angemessene Hebetechnik.",
+          "category": "preparation",
+          "performanceStandard": "Stromlinienförmige, sichere Ausrüstung."
+        },
+        {
+          "code": "OW4.3",
+          "title": "Pre-Dive Safety Check (BWRAF)",
+          "description": "Führt vor dem Tauchgang einen Sicherheitscheck durch.",
+          "category": "preparation",
+          "performanceStandard": "BWRAF vollständig und eigenständig."
+        },
+        {
+          "code": "OW4.4",
+          "title": "Tarierung und Trimmung anpassen",
+          "description": "Passt Tarierung und Trimmung wie erforderlich an.",
+          "category": "buoyancy",
+          "performanceStandard": "Korrekt ausgebleit und getrimmt."
+        },
+        {
+          "code": "OW4.5",
+          "title": "Positiver Auftrieb an der Oberfläche",
+          "description": "Stellt an der Oberfläche positiven Auftrieb her, lässt die Maske auf und atmet aus Schnorchel oder Atemregler.",
+          "category": "surface",
+          "performanceStandard": "Deutlich positiver Auftrieb, Atemweg sicher."
+        },
+        {
+          "code": "OW4.6",
+          "title": "Abstieg ohne visuelle Referenz",
+          "description": "Taucht ohne visuelle Referenz auf maximal 18 Meter / 60 Fuß ab. Verwendet die 5-Punkte-Methode.",
+          "category": "descent",
+          "performanceStandard": "Freier 5-Punkte-Abstieg ohne Seil/Bodenreferenz; Tiefe ≤ 18 m."
+        },
+        {
+          "code": "OW4.7",
+          "title": "Tauchplatz erkunden",
+          "description": "Erkundet den Tauchplatz.",
+          "category": "navigation",
+          "performanceStandard": "Aufmerksame Umgebungswahrnehmung."
+        },
+        {
+          "code": "OW4.8",
+          "title": "Umweltkontakt vermeiden",
+          "description": "Vermeidet Kontakt mit empfindlichen Organismen und dem Grund und sichert Ausrüstung wieder, die sich möglicherweise gelockert hat.",
+          "category": "environmental",
+          "performanceStandard": "Kein Bodenkontakt, keine Berührung von Meereslebewesen."
+        },
+        {
+          "code": "OW4.9",
+          "title": "Buddy-Kontakt innerhalb 2 Sekunden",
+          "description": "Bleibt nah genug beim Buddy, um innerhalb von zwei Sekunden physischen Kontakt herstellen zu können.",
+          "category": "buddy",
+          "performanceStandard": "Konsistente Buddy-Nähe."
+        },
+        {
+          "code": "OW4.10",
+          "title": "Atemgasvorrat-Schätzung (±20 bar)",
+          "description": "Zeigt den verbleibenden Atemgasvorrat mit einer maximalen Abweichung von 20 bar / 300 psi an, ohne zur Kontrolle auf das Finimeter zu schauen.",
+          "category": "monitoring",
+          "performanceStandard": "Schätzung ±20 bar ohne Blick aufs Finimeter."
+        },
+        {
+          "code": "OW4.11",
+          "title": "Umkehr- und Auftauch-Signal (Plan-basiert)",
+          "description": "Signalisiert beim Tauchen mit dem Buddy, wann umgekehrt und wann aufgetaucht wird, basierend auf dem im Rahmen der Tauchgangsplanung festgelegten Atemgasvorrat oder Zeitlimit, und handelt dementsprechend.",
+          "category": "communication",
+          "performanceStandard": "Plan-basierte Umkehr- und Auftauch-Signale eigenständig."
+        },
+        {
+          "code": "OW4.12",
+          "title": "Aufstieg mit 5-Punkte und Safety-Stop",
+          "description": "Steigt nicht schneller als mit 18 Metern / 60 Fuß pro Minute auf und hält dabei Kontakt zum Buddy. Verwendet die 5-Punkte-Methode. Macht einen Sicherheits-Stopp.",
+          "category": "ascent",
+          "performanceStandard": "≤ 18 m/min, 5-Punkte, Safety-Stop obligatorisch."
         }
       ]
     }
