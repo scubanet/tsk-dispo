@@ -5,7 +5,9 @@ struct LogbookTab: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(DeleteUndoManager.self) private var undoManager
     @Query(sort: \Dive.date, order: .reverse) private var dives: [Dive]
-    @State private var showNewDive = false
+    @State private var showingDiveCreate = false
+    @State private var showingPoolCreate = false
+    @State private var showingQuickLog = false
     @State private var searchText = ""
     @State private var diveToDelete: Dive?
 
@@ -91,9 +93,37 @@ struct LogbookTab: View {
 
                     HStack {
                         Spacer()
-                        FABButton(systemImage: "plus") { showNewDive = true }
-                            .padding(.trailing, DSSpacing.xl)
-                            .padding(.bottom, DSSpacing.s)
+                        Menu {
+                            Button {
+                                showingDiveCreate = true
+                            } label: {
+                                Label(L10n.currentLanguage == "de" ? "Tauchgang" : "Dive",
+                                      systemImage: "water.waves")
+                            }
+                            Button {
+                                showingPoolCreate = true
+                            } label: {
+                                Label(L10n.currentLanguage == "de" ? "Pool-Session" : "Pool Session",
+                                      systemImage: "figure.pool.swim")
+                            }
+                            Button {
+                                showingQuickLog = true
+                            } label: {
+                                Label(L10n.currentLanguage == "de" ? "Quick-Log" : "Quick Log",
+                                      systemImage: "bolt.fill")
+                            }
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 56, height: 56)
+                                .background(Circle().fill(Color.appAccent))
+                                .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+                        } primaryAction: {
+                            showingDiveCreate = true   // Short tap = dive
+                        }
+                        .padding(.trailing, DSSpacing.xl)
+                        .padding(.bottom, DSSpacing.s)
                     }
                 }
                 .animation(.spring(response: 0.35, dampingFraction: 0.85),
@@ -105,8 +135,14 @@ struct LogbookTab: View {
             .navigationDestination(for: Dive.self) { dive in
                 DiveDetailView(dive: dive)
             }
-            .sheet(isPresented: $showNewDive) {
+            .sheet(isPresented: $showingDiveCreate) {
                 DiveFormView(mode: .new)
+            }
+            .sheet(isPresented: $showingPoolCreate) {
+                PoolSessionCreateView()
+            }
+            .sheet(isPresented: $showingQuickLog) {
+                QuickLogView()
             }
             .confirmationDialog(
                 L10n.currentLanguage == "de"
