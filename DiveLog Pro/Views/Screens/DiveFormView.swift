@@ -20,6 +20,7 @@ struct DiveFormView: View {
     @State private var step = 0
     
     // ─── Form State ──────────────────────
+    @State private var diveDate: Date = Date()
     @State private var siteName = ""
     @State private var siteLocation = ""
     @State private var diveType = "fun"
@@ -163,6 +164,26 @@ struct DiveFormView: View {
         VStack(spacing: 14) {
             FormField(label: L10n.diveSite, text: $siteName, placeholder: "e.g. Mamutic Island")
             FormField(label: L10n.location, text: $siteLocation, placeholder: "e.g. Kota Kinabalu, Malaysia")
+
+            // Date & Time
+            VStack(alignment: .leading, spacing: 8) {
+                Text((L10n.currentLanguage == "de" ? "Datum & Uhrzeit" : "Date & time").uppercased())
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .tracking(1.2)
+                DatePicker(
+                    "",
+                    selection: $diveDate,
+                    displayedComponents: [.date, .hourAndMinute]
+                )
+                .labelsHidden()
+                .datePickerStyle(.compact)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, DSSpacing.m)
+                .padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: DSRadius.m).fill(Color.surfaceCard))
+                .overlay(RoundedRectangle(cornerRadius: DSRadius.m).stroke(Color.hairline, lineWidth: 0.5))
+            }
 
             // GPS & Auto-Weather
             gpsWeatherBlock
@@ -509,6 +530,7 @@ struct DiveFormView: View {
     
     private func loadDefaults() {
         if case .edit(let d) = mode {
+            diveDate = d.date
             siteName = d.siteName; siteLocation = d.siteLocation; diveType = d.diveType
             if d.latitude != 0 || d.longitude != 0 {
                 latitude = d.latitude
@@ -607,6 +629,7 @@ struct DiveFormView: View {
             let timeChanged  = abs(d.totalTime - tt) > 1
             let profileMissing = d.depthProfile.isEmpty
 
+            d.date = diveDate
             d.siteName = siteName; d.siteLocation = siteLocation; d.diveType = diveType
             if isCourseTraining {
                 d.courseType = courseType
@@ -637,7 +660,7 @@ struct DiveFormView: View {
         } else {
             let num = (existingDives.first?.number ?? 8757) + 1
             let dive = Dive(
-                number: num, diveType: diveType, siteName: siteName, siteLocation: siteLocation,
+                number: num, date: diveDate, diveType: diveType, siteName: siteName, siteLocation: siteLocation,
                 latitude: latitude ?? 0, longitude: longitude ?? 0,
                 diveCenterName: diveCenterName,
                 maxDepth: md, avgDepth: md * 0.7, bottomTime: bt, totalTime: tt,
