@@ -33,6 +33,12 @@ final class DiverProfile {
     var useMetric: Bool = true
     var language: String = "en"    // "de" or "en"
 
+    // Logbook offset — number the very first dive should carry if the
+    // logbook is empty. Once dives exist, new dive numbers increment
+    // from the highest existing dive.number, so this value only seeds
+    // the empty case. Migrating-in default keeps legacy behaviour (8758).
+    var startingDiveNumber: Int = 8758
+
     init(
         name: String = "", padiNumber: String = "", certLevel: String = "OWD",
         isInstructor: Bool = false, email: String = "", phone: String = "",
@@ -40,7 +46,8 @@ final class DiverProfile {
         defaultCylinder: String = "aluminum_12", defaultGas: String = "air",
         defaultDiveCenter: String = "",
         useMetric: Bool = true, language: String = "en",
-        appleUserID: String? = nil
+        appleUserID: String? = nil,
+        startingDiveNumber: Int = 8758
     ) {
         self.name = name; self.padiNumber = padiNumber; self.certLevel = certLevel
         self.isInstructor = isInstructor; self.email = email; self.phone = phone
@@ -50,6 +57,7 @@ final class DiverProfile {
         self.defaultDiveCenter = defaultDiveCenter
         self.useMetric = useMetric; self.language = language
         self.appleUserID = appleUserID
+        self.startingDiveNumber = startingDiveNumber
     }
 }
 

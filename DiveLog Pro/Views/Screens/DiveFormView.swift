@@ -17,6 +17,7 @@ struct DiveFormView: View {
     @Environment(\.modelContext) private var ctx
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \Dive.number, order: .reverse) private var existingDives: [Dive]
+    @Query private var profiles: [DiverProfile]
     @State private var step = 0
     
     // ─── Form State ──────────────────────
@@ -658,7 +659,12 @@ struct DiveFormView: View {
                 d.depthProfile = SampleData.generateProfile(maxDepth: md, duration: tt)
             }
         } else {
-            let num = (existingDives.first?.number ?? 8757) + 1
+            // Fallback for the very first dive uses the user's chosen starting
+            // number (set in Profile → Logbook). After that, new dives always
+            // increment from the current maximum dive.number regardless of
+            // the profile setting, so "9001 → 9002 → 9003 …" works naturally.
+            let startingNumber = profiles.first?.startingDiveNumber ?? 8758
+            let num = (existingDives.first?.number ?? (startingNumber - 1)) + 1
             let dive = Dive(
                 number: num, date: diveDate, diveType: diveType, siteName: siteName, siteLocation: siteLocation,
                 latitude: latitude ?? 0, longitude: longitude ?? 0,
