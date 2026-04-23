@@ -15,11 +15,23 @@ final class PADIStandards {
 
         for course in courses {
             let localised = "\(course).\(lang)"
+
+            // Xcode 15+ PBXFileSystemSynchronizedRootGroup flattens non-Swift resources
+            // into the bundle root, so `subdirectory:` lookups can silently fail.
+            // Try all four plausible locations before giving up.
             let url = Bundle.main.url(forResource: localised, withExtension: "json", subdirectory: "padi-standards")
-                ?? Bundle.main.url(forResource: course, withExtension: "json", subdirectory: "padi-standards")
+                ?? Bundle.main.url(forResource: course,    withExtension: "json", subdirectory: "padi-standards")
+                ?? Bundle.main.url(forResource: localised, withExtension: "json")
+                ?? Bundle.main.url(forResource: course,    withExtension: "json")
 
             guard let url else {
                 print("[PADIStandards] ⚠️ Missing catalog for \(course) (lang=\(lang))")
+                print("[PADIStandards]   tried: padi-standards/\(localised).json, padi-standards/\(course).json, \(localised).json, \(course).json")
+                if let bundlePath = Bundle.main.resourcePath {
+                    let contents = (try? FileManager.default.contentsOfDirectory(atPath: bundlePath)) ?? []
+                    let jsons = contents.filter { $0.hasSuffix(".json") }.sorted()
+                    print("[PADIStandards]   bundle root JSONs: \(jsons)")
+                }
                 continue
             }
 
@@ -27,6 +39,7 @@ final class PADIStandards {
                 let data = try Data(contentsOf: url)
                 let decoded = try JSONDecoder().decode(PADICourse.self, from: data)
                 catalog[decoded.course] = decoded
+                print("[PADIStandards] ✅ Loaded \(decoded.course) (\(decoded.slots.count) slots) from \(url.lastPathComponent)")
             } catch {
                 print("[PADIStandards] ❌ Failed to decode \(course): \(error)")
             }
