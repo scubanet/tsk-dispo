@@ -84,6 +84,17 @@ final class Dive {
     var buddyNames: String = ""        // comma-separated for quick display
     @Relationship var buddies: [Buddy]? = []
 
+    // ─── Instructor / Course ─────────────
+    // Optional — nil = recreational fun dive, not course-related.
+    var courseType: String?        // "OWD", "AOWD"
+    var courseSlot: String?        // "OW1", "OW2", "AOWD-Deep"
+
+    @Relationship(deleteRule: .nullify, inverse: \Student.dives)
+    var students: [Student]? = []
+
+    @Relationship(deleteRule: .cascade, inverse: \SkillCompletion.dive)
+    var skillCompletions: [SkillCompletion]? = []
+
     // ─── Tauchplatz Referenz ─────────────
     @Relationship var diveSite: DiveSite?
     
