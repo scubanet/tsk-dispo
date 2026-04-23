@@ -5,14 +5,14 @@ import Foundation
 
 struct PADICourse: Codable, Hashable {
     let version: String
-    let course: String          // "OW", "AOW"
+    let course: String          // "OWD", "AOWD"
     let language: String        // "en", "de"
     let slots: [PADISlot]
 }
 
 struct PADISlot: Codable, Hashable, Identifiable {
     var id: String { code }
-    let code: String            // "CW1", "OW2", "AOW-Deep"
+    let code: String            // "CW1", "OW2", "AOWD-Deep"
     let title: String
     let type: SlotType          // pool or ocean
     let order: Int

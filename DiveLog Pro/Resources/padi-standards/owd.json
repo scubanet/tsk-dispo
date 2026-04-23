@@ -1,18 +1,18 @@
 {
   "version": "2024.1",
-  "course": "OW",
-  "language": "de",
+  "course": "OWD",
+  "language": "en",
   "slots": [
     {
       "code": "CW1",
-      "title": "Pool-Tauchgang 1",
+      "title": "Confined Water Dive 1",
       "type": "pool",
       "order": 1,
       "skills": [
         {
           "code": "CW1.1",
           "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "description": "TBD — populate from PADI IM",
           "category": "preparation",
           "performanceStandard": "TBD"
         }
@@ -20,14 +20,14 @@
     },
     {
       "code": "CW2",
-      "title": "Pool-Tauchgang 2",
+      "title": "Confined Water Dive 2",
       "type": "pool",
       "order": 2,
       "skills": [
         {
           "code": "CW2.1",
           "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "description": "TBD — populate from PADI IM",
           "category": "preparation",
           "performanceStandard": "TBD"
         }
@@ -35,14 +35,14 @@
     },
     {
       "code": "CW3",
-      "title": "Pool-Tauchgang 3",
+      "title": "Confined Water Dive 3",
       "type": "pool",
       "order": 3,
       "skills": [
         {
           "code": "CW3.1",
           "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "description": "TBD — populate from PADI IM",
           "category": "preparation",
           "performanceStandard": "TBD"
         }
@@ -50,14 +50,14 @@
     },
     {
       "code": "CW4",
-      "title": "Pool-Tauchgang 4",
+      "title": "Confined Water Dive 4",
       "type": "pool",
       "order": 4,
       "skills": [
         {
           "code": "CW4.1",
           "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "description": "TBD — populate from PADI IM",
           "category": "preparation",
           "performanceStandard": "TBD"
         }
@@ -65,14 +65,14 @@
     },
     {
       "code": "CW5",
-      "title": "Pool-Tauchgang 5",
+      "title": "Confined Water Dive 5",
       "type": "pool",
       "order": 5,
       "skills": [
         {
           "code": "CW5.1",
           "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "description": "TBD — populate from PADI IM",
           "category": "preparation",
           "performanceStandard": "TBD"
         }
@@ -80,14 +80,14 @@
     },
     {
       "code": "OW1",
-      "title": "Freiwasser-Tauchgang 1",
+      "title": "Open Water Dive 1",
       "type": "ocean",
       "order": 6,
       "skills": [
         {
           "code": "OW1.1",
           "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "description": "TBD — populate from PADI IM",
           "category": "preparation",
           "performanceStandard": "TBD"
         }
@@ -95,14 +95,14 @@
     },
     {
       "code": "OW2",
-      "title": "Freiwasser-Tauchgang 2",
+      "title": "Open Water Dive 2",
       "type": "ocean",
       "order": 7,
       "skills": [
         {
           "code": "OW2.1",
           "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "description": "TBD — populate from PADI IM",
           "category": "preparation",
           "performanceStandard": "TBD"
         }
@@ -110,14 +110,14 @@
     },
     {
       "code": "OW3",
-      "title": "Freiwasser-Tauchgang 3",
+      "title": "Open Water Dive 3",
       "type": "ocean",
       "order": 8,
       "skills": [
         {
           "code": "OW3.1",
           "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "description": "TBD — populate from PADI IM",
           "category": "preparation",
           "performanceStandard": "TBD"
         }
@@ -125,14 +125,14 @@
     },
     {
       "code": "OW4",
-      "title": "Freiwasser-Tauchgang 4",
+      "title": "Open Water Dive 4",
       "type": "ocean",
       "order": 9,
       "skills": [
         {
           "code": "OW4.1",
           "title": "TBD",
-          "description": "TBD — aus PADI IM übernehmen",
+          "description": "TBD — populate from PADI IM",
           "category": "preparation",
           "performanceStandard": "TBD"
         }

@@ -23,8 +23,8 @@
 - `DiveLog Pro/Models/PADICatalog.swift` — Codable structs (Course, Slot, Skill)
 
 **New Resources:**
-- `DiveLog Pro/Resources/padi-standards/ow.json`, `ow.de.json`
-- `DiveLog Pro/Resources/padi-standards/aow.json`, `aow.de.json`
+- `DiveLog Pro/Resources/padi-standards/owd.json`, `owd.de.json`
+- `DiveLog Pro/Resources/padi-standards/aowd.json`, `aowd.de.json`
 
 **New Utilities:**
 - `DiveLog Pro/Utils/ModelContextExtensions.swift` — `cycleSkill`, `seedStudent`
@@ -198,14 +198,14 @@ import Foundation
 
 struct PADICourse: Codable, Hashable {
     let version: String
-    let course: String          // "OW", "AOW"
+    let course: String          // "OWD", "AOWD"
     let language: String        // "en", "de"
     let slots: [PADISlot]
 }
 
 struct PADISlot: Codable, Hashable, Identifiable {
     var id: String { code }
-    let code: String            // "CW1", "OW2", "AOW-Deep"
+    let code: String            // "CW1", "OW2", "AOWD-Deep"
     let title: String
     let type: SlotType          // pool or ocean
     let order: Int
@@ -239,21 +239,21 @@ git commit -m "feat: add PADICatalog Codable structs"
 
 ---
 
-## Task 3: PADI Standards JSON Content (OW English)
+## Task 3: PADI Standards JSON Content (OWD English)
 
 **Files:**
-- Create: `DiveLog Pro/Resources/padi-standards/ow.json`
+- Create: `DiveLog Pro/Resources/padi-standards/owd.json`
 
-- [ ] **Step 3.1: Create directory and OW English JSON**
+- [ ] **Step 3.1: Create directory and OWD English JSON**
 
-Create `DiveLog Pro/Resources/padi-standards/ow.json` with the full PADI Open Water Course Performance Requirements, taken from the current PADI OW Instructor Manual.
+Create `DiveLog Pro/Resources/padi-standards/owd.json` with the full PADI Open Water Course Performance Requirements, taken from the current PADI OWD Instructor Manual.
 
 **Structure + representative sample (populate all 9 slots in full):**
 
 ```json
 {
   "version": "2024.1",
-  "course": "OW",
+  "course": "OWD",
   "language": "en",
   "slots": [
     {
@@ -352,7 +352,7 @@ Create `DiveLog Pro/Resources/padi-standards/ow.json` with the full PADI Open Wa
 }
 ```
 
-**Populate all 9 slots with the complete Performance Requirements from the PADI OW Instructor Manual** (24 CW skills + 20 OW skills total).
+**Populate all 9 slots with the complete Performance Requirements from the PADI OWD Instructor Manual** (24 CW skills + 20 OWD skills total).
 
 Canonical skill codes for reference:
 - CW1: 4 skills (assembly, BWRAF, entry, regulator breathing)
@@ -368,18 +368,18 @@ Canonical skill codes for reference:
 - [ ] **Step 3.2: Commit**
 
 ```bash
-git add "DiveLog Pro/Resources/padi-standards/ow.json"
-git commit -m "feat: add PADI OW standards catalog (English)"
+git add "DiveLog Pro/Resources/padi-standards/owd.json"
+git commit -m "feat: add PADI OWD standards catalog (English)"
 ```
 
 ---
 
-## Task 4: PADI Standards JSON Content (OW German)
+## Task 4: PADI Standards JSON Content (OWD German)
 
 **Files:**
-- Create: `DiveLog Pro/Resources/padi-standards/ow.de.json`
+- Create: `DiveLog Pro/Resources/padi-standards/owd.de.json`
 
-- [ ] **Step 4.1: Create OW German JSON**
+- [ ] **Step 4.1: Create OWD German JSON**
 
 Translate the English file from Task 3 into German. Preserve all `code` values unchanged (only `title`, `description`, `performanceStandard` translate). Set `"language": "de"`.
 
@@ -397,38 +397,38 @@ Example for CW1.1:
 - [ ] **Step 4.2: Commit**
 
 ```bash
-git add "DiveLog Pro/Resources/padi-standards/ow.de.json"
-git commit -m "feat: add PADI OW standards catalog (German)"
+git add "DiveLog Pro/Resources/padi-standards/owd.de.json"
+git commit -m "feat: add PADI OWD standards catalog (German)"
 ```
 
 ---
 
-## Task 5: PADI Standards JSON Content (AOW English + German)
+## Task 5: PADI Standards JSON Content (AOWD English + German)
 
 **Files:**
-- Create: `DiveLog Pro/Resources/padi-standards/aow.json`
-- Create: `DiveLog Pro/Resources/padi-standards/aow.de.json`
+- Create: `DiveLog Pro/Resources/padi-standards/aowd.json`
+- Create: `DiveLog Pro/Resources/padi-standards/aowd.de.json`
 
-- [ ] **Step 5.1: Create AOW English JSON**
+- [ ] **Step 5.1: Create AOWD English JSON**
 
-Same structure as OW. Include **all AOW specialty dives**:
+Same structure as OWD. Include **all AOWD specialty dives**:
 
-Core (required): `AOW-Deep`, `AOW-Nav`
+Core (required): `AOWD-Deep`, `AOWD-Nav`
 
-Electives (include all from current PADI AOW manual):
-`AOW-Night`, `AOW-PPB` (Peak Performance Buoyancy), `AOW-UWNav` (Underwater Navigator), `AOW-Wreck`, `AOW-Drift`, `AOW-Boat`, `AOW-SAR` (Search & Recovery), `AOW-FishID`, `AOW-DUP` (Digital Underwater Photographer), `AOW-EANx` (Enriched Air), `AOW-Naturalist`, `AOW-Altitude`, `AOW-DrySuit`, `AOW-DPV` (Diver Propulsion Vehicle), `AOW-Sidemount`, `AOW-SelfReliant`.
+Electives (include all from current PADI AOWD manual):
+`AOWD-Night`, `AOWD-PPB` (Peak Performance Buoyancy), `AOWD-UWNav` (Underwater Navigator), `AOWD-Wreck`, `AOWD-Drift`, `AOWD-Boat`, `AOWD-SAR` (Search & Recovery), `AOWD-FishID`, `AOWD-DUP` (Digital Underwater Photographer), `AOWD-EANx` (Enriched Air), `AOWD-Naturalist`, `AOWD-Altitude`, `AOWD-DrySuit`, `AOWD-DPV` (Diver Propulsion Vehicle), `AOWD-Sidemount`, `AOWD-SelfReliant`.
 
 Each elective slot contains that specialty's Performance Requirements from its current PADI Adventures in Diving manual section (3–5 skills per slot typical).
 
-- [ ] **Step 5.2: Create AOW German translation**
+- [ ] **Step 5.2: Create AOWD German translation**
 
-Translate `aow.json` → `aow.de.json`, preserve codes.
+Translate `aowd.json` → `aowd.de.json`, preserve codes.
 
 - [ ] **Step 5.3: Commit**
 
 ```bash
-git add "DiveLog Pro/Resources/padi-standards/aow.json" "DiveLog Pro/Resources/padi-standards/aow.de.json"
-git commit -m "feat: add PADI AOW standards catalog (EN + DE, all specialties)"
+git add "DiveLog Pro/Resources/padi-standards/aowd.json" "DiveLog Pro/Resources/padi-standards/aowd.de.json"
+git commit -m "feat: add PADI AOWD standards catalog (EN + DE, all specialties)"
 ```
 
 ---
@@ -452,7 +452,7 @@ In Xcode:
 Build the app. Add a temporary print in `DiveLogProApp.init()`:
 
 ```swift
-print("OW JSON URL:", Bundle.main.url(forResource: "ow", withExtension: "json", subdirectory: "padi-standards") as Any)
+print("OWD JSON URL:", Bundle.main.url(forResource: "owd", withExtension: "json", subdirectory: "padi-standards") as Any)
 ```
 
 Run on simulator. Expected: prints a non-nil URL. Remove the print after verifying.
@@ -483,24 +483,24 @@ import Foundation
 
 @Suite("PADIStandards loader")
 struct PADIStandardsTests {
-    @Test("OW catalog loads with 9 slots")
+    @Test("OWD catalog loads with 9 slots")
     func owCatalogHasNineSlots() {
-        let slots = PADIStandards.shared.slots(for: "OW")
+        let slots = PADIStandards.shared.slots(for: "OWD")
         #expect(slots.count == 9)
     }
 
     @Test("CW1 has at least 4 skills")
     func cw1HasSkills() {
-        let skills = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OW")
+        let skills = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OWD")
         #expect(skills.count >= 4)
         #expect(skills.contains { $0.code == "CW1.1" })
     }
 
-    @Test("AOW catalog loads with Deep + Nav as core")
+    @Test("AOWD catalog loads with Deep + Nav as core")
     func aowHasCoreSlots() {
-        let slots = PADIStandards.shared.slots(for: "AOW")
-        #expect(slots.contains { $0.code == "AOW-Deep" })
-        #expect(slots.contains { $0.code == "AOW-Nav" })
+        let slots = PADIStandards.shared.slots(for: "AOWD")
+        #expect(slots.contains { $0.code == "AOWD-Deep" })
+        #expect(slots.contains { $0.code == "AOWD-Nav" })
     }
 
     @Test("slot lookup for unknown course returns empty")
@@ -511,8 +511,8 @@ struct PADIStandardsTests {
 
     @Test("active skills filter excludes deprecated entries")
     func deprecatedFiltered() {
-        let all = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OW", activeOnly: false)
-        let active = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OW", activeOnly: true)
+        let all = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OWD", activeOnly: false)
+        let active = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OWD", activeOnly: true)
         #expect(active.count <= all.count)
         #expect(active.allSatisfy { $0.isActive })
     }
@@ -536,12 +536,12 @@ import Foundation
 final class PADIStandards {
     static let shared = PADIStandards()
 
-    private var catalog: [String: PADICourse] = [:]  // key = course code ("OW", "AOW")
+    private var catalog: [String: PADICourse] = [:]  // key = course code ("OWD", "AOWD")
 
     private init() { load() }
 
     private func load() {
-        let courses = ["ow", "aow"]
+        let courses = ["owd", "aowd"]
         let lang = L10n.currentLanguage  // "de" or "en"
 
         for course in courses {
@@ -783,7 +783,7 @@ struct SkillCompletionTests {
         let ctx = try makeContext()
         let s = Student(); s.firstName = "Maya"
         let d = Dive(number: 1)
-        d.courseType = "OW"
+        d.courseType = "OWD"
         d.courseSlot = "OW2"
         ctx.insert(s); ctx.insert(d)
 
@@ -933,7 +933,7 @@ struct PoolSessionTests {
         let ctx = try makeContext()
         let p = PoolSession()
         p.slotCode = "CW2"
-        p.courseType = "OW"
+        p.courseType = "OWD"
         p.location = "Sutera Pool, KK"
         p.durationMinutes = 45
         ctx.insert(p)
@@ -989,7 +989,7 @@ import SwiftData
 @Model
 final class PoolSession {
     var slotCode: String = "CW1"       // CW1-CW5
-    var courseType: String = "OW"      // OW, AOW (AOW typically doesn't use pool, but allow it)
+    var courseType: String = "OWD"      // OWD, AOWD (AOWD typically doesn't use pool, but allow it)
     var date: Date = Date()
     var durationMinutes: Int = 45
     var location: String = ""
@@ -1036,8 +1036,8 @@ Edit `DiveLog Pro/Models/Dive.swift`. After the `buddies` relationship block (ar
 ```swift
     // ─── Instructor / Course ─────────────
     // Optional — nil = recreational fun dive, not course-related.
-    var courseType: String?        // "OW", "AOW"
-    var courseSlot: String?        // "OW1", "OW2", "AOW-Deep"
+    var courseType: String?        // "OWD", "AOWD"
+    var courseSlot: String?        // "OW1", "OW2", "AOWD-Deep"
 
     @Relationship(deleteRule: .nullify, inverse: \Student.dives)
     var students: [Student]? = []
@@ -1139,7 +1139,7 @@ struct ModelContextExtensionsTests {
     func cycleSkillAppends() throws {
         let ctx = try makeContext()
         let s = Student(); s.firstName = "Maya"
-        let d = Dive(number: 1); d.courseType = "OW"; d.courseSlot = "OW2"
+        let d = Dive(number: 1); d.courseType = "OWD"; d.courseSlot = "OW2"
         ctx.insert(s); ctx.insert(d)
 
         ctx.cycleSkill(student: s, skillCode: "OW2.1", context: .dive(d))
@@ -1760,7 +1760,7 @@ struct NewStudentSheet: View {
     @State private var lastName = ""
     @State private var email = ""
     @State private var padiID = ""
-    @State private var courseType = "OW"
+    @State private var courseType = "OWD"
     @State private var courseSlot = "OW1"
     @State private var seedChoice: SeedChoice = .skip
     @State private var showingSeedSheet = false
@@ -1782,8 +1782,8 @@ struct NewStudentSheet: View {
                 }
                 Section(L10n.currentLanguage == "de" ? "Kurs" : "Course") {
                     Picker("Kurs", selection: $courseType) {
-                        Text("OW").tag("OW")
-                        Text("AOW").tag("AOW")
+                        Text("OWD").tag("OWD")
+                        Text("AOWD").tag("AOWD")
                     }
                     Picker(L10n.currentLanguage == "de" ? "Aktueller Slot" : "Current slot",
                            selection: $courseSlot) {
@@ -1955,7 +1955,7 @@ struct PoolSessionCreateView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var slotCode = "CW1"
-    @State private var courseType = "OW"
+    @State private var courseType = "OWD"
     @State private var date = Date()
     @State private var durationMinutes: Int = 45
     @State private var location: String = ""
@@ -1969,8 +1969,8 @@ struct PoolSessionCreateView: View {
             Form {
                 Section(L10n.currentLanguage == "de" ? "Session" : "Session") {
                     Picker("Kurs", selection: $courseType) {
-                        Text("OW").tag("OW")
-                        Text("AOW").tag("AOW")
+                        Text("OWD").tag("OWD")
+                        Text("AOWD").tag("AOWD")
                     }
                     Picker(L10n.currentLanguage == "de" ? "Slot" : "Slot", selection: $slotCode) {
                         ForEach(PADIStandards.shared.slots(for: courseType)
@@ -2136,7 +2136,7 @@ In `DiveFormView.swift`, near other `@State` declarations, add:
 
 ```swift
 @State private var isCourseTraining = false
-@State private var courseType = "OW"
+@State private var courseType = "OWD"
 @State private var courseSlot = "OW1"
 @State private var students: [Student] = []
 ```
@@ -2149,8 +2149,8 @@ Section {
            isOn: $isCourseTraining)
     if isCourseTraining {
         Picker(L10n.currentLanguage == "de" ? "Kurs" : "Course", selection: $courseType) {
-            Text("OW").tag("OW")
-            Text("AOW").tag("AOW")
+            Text("OWD").tag("OWD")
+            Text("AOWD").tag("AOWD")
         }
         Picker(L10n.currentLanguage == "de" ? "Slot" : "Slot", selection: $courseSlot) {
             ForEach(PADIStandards.shared.slots(for: courseType)
@@ -2338,7 +2338,7 @@ At the end of the `DiveDetailView` struct (before the closing brace), add:
 private var studentsSection: some View {
     let students = dive.students ?? []
     let slot = dive.courseSlot ?? ""
-    let course = dive.courseType ?? "OW"
+    let course = dive.courseType ?? "OWD"
 
     VStack(alignment: .leading, spacing: 12) {
         HStack {
@@ -2577,7 +2577,7 @@ import SwiftData
 
 struct StudentProfileView: View {
     @Bindable var student: Student
-    @State private var courseType = "OW"
+    @State private var courseType = "OWD"
     @State private var showingSeedSheet = false
 
     private var progress: (mastered: Int, total: Int) {
@@ -2645,8 +2645,8 @@ struct StudentProfileView: View {
 
     private var coursePicker: some View {
         Picker("", selection: $courseType) {
-            Text("OW").tag("OW")
-            Text("AOW").tag("AOW")
+            Text("OWD").tag("OWD")
+            Text("AOWD").tag("AOWD")
         }
         .pickerStyle(.segmented)
     }
@@ -2975,13 +2975,13 @@ In `QuickLogView.swift`, replace the sheet contents:
 .sheet(isPresented: $showingDiveCreate) {
     DiveFormView(
         prefillStudents: selectedStudents,
-        prefillCourseType: selectedStudents.first?.dives?.first?.courseType ?? "OW"
+        prefillCourseType: selectedStudents.first?.dives?.first?.courseType ?? "OWD"
     )
 }
 .sheet(isPresented: $showingPoolCreate) {
     PoolSessionCreateView(
         prefillStudents: selectedStudents,
-        prefillCourseType: "OW"
+        prefillCourseType: "OWD"
     )
 }
 ```
@@ -3078,7 +3078,7 @@ Work through this checklist on a clean simulator install:
 - [ ] Create Student via QuickLog → appears in active list
 - [ ] Create Pool Session CW2 with 2 students → appears in Student Profile, NOT in Logbook
 - [ ] Logbook counter still reflects only Dive records
-- [ ] Create Dive, toggle "Kurs-Tauchgang", pick OW + OW2 + 2 students
+- [ ] Create Dive, toggle "Kurs-Tauchgang", pick OWD + OW2 + 2 students
 - [ ] Pre-Dive-Preview shows correct counts per student
 - [ ] Tap skills in Dive-Detail → status cycles, haptic on mastered
 - [ ] Long-press skill → sheet with picker + notes + history
@@ -3135,7 +3135,7 @@ git commit -m "docs: mark instructor skill-assessment plan complete"
 - ✅ FAB menu (Dive / Pool / QuickLog) — Task 18
 - ✅ DE + EN from day 1 — Tasks 3, 4, 5 (both languages shipped)
 - ✅ firstName + lastName as two fields — Task 8
-- ✅ All AOW specialties — Task 5
+- ✅ All AOWD specialties — Task 5
 - ✅ Accessibility — Task 30
 
 **Placeholder scan:** ✅ no "TBD", no "fill in details". Task 3 / 4 / 5 refer the populator to the PADI Instructor Manual as canonical source — this is legitimate (PADI content is proprietary and Dominik as Course Director is the expert).

@@ -4,24 +4,24 @@ import Foundation
 
 @Suite("PADIStandards loader")
 struct PADIStandardsTests {
-    @Test("OW catalog loads with 9 slots")
-    func owCatalogHasNineSlots() {
-        let slots = PADIStandards.shared.slots(for: "OW")
+    @Test("OWD catalog loads with 9 slots")
+    func owdCatalogHasNineSlots() {
+        let slots = PADIStandards.shared.slots(for: "OWD")
         #expect(slots.count == 9)
     }
 
     @Test("CW1 has at least one skill (skeleton placeholder or filled content)")
     func cw1HasSkills() {
-        let skills = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OW")
+        let skills = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OWD")
         #expect(skills.count >= 1)
         #expect(skills.contains { $0.code == "CW1.1" })
     }
 
-    @Test("AOW catalog loads with Deep + Nav as core")
-    func aowHasCoreSlots() {
-        let slots = PADIStandards.shared.slots(for: "AOW")
-        #expect(slots.contains { $0.code == "AOW-Deep" })
-        #expect(slots.contains { $0.code == "AOW-Nav" })
+    @Test("AOWD catalog loads with Deep + Nav as core")
+    func aowdHasCoreSlots() {
+        let slots = PADIStandards.shared.slots(for: "AOWD")
+        #expect(slots.contains { $0.code == "AOWD-Deep" })
+        #expect(slots.contains { $0.code == "AOWD-Nav" })
     }
 
     @Test("slot lookup for unknown course returns empty")
@@ -32,8 +32,8 @@ struct PADIStandardsTests {
 
     @Test("active skills filter excludes deprecated entries")
     func deprecatedFiltered() {
-        let all = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OW", activeOnly: false)
-        let active = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OW", activeOnly: true)
+        let all = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OWD", activeOnly: false)
+        let active = PADIStandards.shared.skills(forSlot: "CW1", courseType: "OWD", activeOnly: true)
         #expect(active.count <= all.count)
         #expect(active.allSatisfy { $0.isActive })
     }

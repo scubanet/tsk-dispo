@@ -1,16 +1,16 @@
 {
   "version": "2024.1",
-  "course": "AOW",
+  "course": "AOWD",
   "language": "en",
   "slots": [
     {
-      "code": "AOW-Deep",
+      "code": "AOWD-Deep",
       "title": "Deep Adventure Dive",
       "type": "ocean",
       "order": 1,
       "skills": [
         {
-          "code": "AOW-Deep.1",
+          "code": "AOWD-Deep.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -19,13 +19,13 @@
       ]
     },
     {
-      "code": "AOW-Nav",
+      "code": "AOWD-Nav",
       "title": "Navigation Adventure Dive",
       "type": "ocean",
       "order": 2,
       "skills": [
         {
-          "code": "AOW-Nav.1",
+          "code": "AOWD-Nav.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -34,13 +34,13 @@
       ]
     },
     {
-      "code": "AOW-Night",
+      "code": "AOWD-Night",
       "title": "Night Adventure Dive",
       "type": "ocean",
       "order": 3,
       "skills": [
         {
-          "code": "AOW-Night.1",
+          "code": "AOWD-Night.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -49,13 +49,13 @@
       ]
     },
     {
-      "code": "AOW-PPB",
+      "code": "AOWD-PPB",
       "title": "Peak Performance Buoyancy Adventure Dive",
       "type": "ocean",
       "order": 4,
       "skills": [
         {
-          "code": "AOW-PPB.1",
+          "code": "AOWD-PPB.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -64,13 +64,13 @@
       ]
     },
     {
-      "code": "AOW-UWNav",
+      "code": "AOWD-UWNav",
       "title": "Underwater Navigator Adventure Dive",
       "type": "ocean",
       "order": 5,
       "skills": [
         {
-          "code": "AOW-UWNav.1",
+          "code": "AOWD-UWNav.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -79,13 +79,13 @@
       ]
     },
     {
-      "code": "AOW-Wreck",
+      "code": "AOWD-Wreck",
       "title": "Wreck Adventure Dive",
       "type": "ocean",
       "order": 6,
       "skills": [
         {
-          "code": "AOW-Wreck.1",
+          "code": "AOWD-Wreck.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -94,13 +94,13 @@
       ]
     },
     {
-      "code": "AOW-Drift",
+      "code": "AOWD-Drift",
       "title": "Drift Adventure Dive",
       "type": "ocean",
       "order": 7,
       "skills": [
         {
-          "code": "AOW-Drift.1",
+          "code": "AOWD-Drift.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -109,13 +109,13 @@
       ]
     },
     {
-      "code": "AOW-Boat",
+      "code": "AOWD-Boat",
       "title": "Boat Adventure Dive",
       "type": "ocean",
       "order": 8,
       "skills": [
         {
-          "code": "AOW-Boat.1",
+          "code": "AOWD-Boat.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -124,13 +124,13 @@
       ]
     },
     {
-      "code": "AOW-SAR",
+      "code": "AOWD-SAR",
       "title": "Search and Recovery Adventure Dive",
       "type": "ocean",
       "order": 9,
       "skills": [
         {
-          "code": "AOW-SAR.1",
+          "code": "AOWD-SAR.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -139,13 +139,13 @@
       ]
     },
     {
-      "code": "AOW-FishID",
+      "code": "AOWD-FishID",
       "title": "Fish Identification Adventure Dive",
       "type": "ocean",
       "order": 10,
       "skills": [
         {
-          "code": "AOW-FishID.1",
+          "code": "AOWD-FishID.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -154,13 +154,13 @@
       ]
     },
     {
-      "code": "AOW-DUP",
+      "code": "AOWD-DUP",
       "title": "Digital Underwater Photographer Adventure Dive",
       "type": "ocean",
       "order": 11,
       "skills": [
         {
-          "code": "AOW-DUP.1",
+          "code": "AOWD-DUP.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -169,13 +169,13 @@
       ]
     },
     {
-      "code": "AOW-EANx",
+      "code": "AOWD-EANx",
       "title": "Enriched Air Adventure Dive",
       "type": "ocean",
       "order": 12,
       "skills": [
         {
-          "code": "AOW-EANx.1",
+          "code": "AOWD-EANx.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -184,13 +184,13 @@
       ]
     },
     {
-      "code": "AOW-Naturalist",
+      "code": "AOWD-Naturalist",
       "title": "Naturalist Adventure Dive",
       "type": "ocean",
       "order": 13,
       "skills": [
         {
-          "code": "AOW-Naturalist.1",
+          "code": "AOWD-Naturalist.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -199,13 +199,13 @@
       ]
     },
     {
-      "code": "AOW-Altitude",
+      "code": "AOWD-Altitude",
       "title": "Altitude Adventure Dive",
       "type": "ocean",
       "order": 14,
       "skills": [
         {
-          "code": "AOW-Altitude.1",
+          "code": "AOWD-Altitude.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -214,13 +214,13 @@
       ]
     },
     {
-      "code": "AOW-DrySuit",
+      "code": "AOWD-DrySuit",
       "title": "Dry Suit Adventure Dive",
       "type": "ocean",
       "order": 15,
       "skills": [
         {
-          "code": "AOW-DrySuit.1",
+          "code": "AOWD-DrySuit.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -229,13 +229,13 @@
       ]
     },
     {
-      "code": "AOW-DPV",
+      "code": "AOWD-DPV",
       "title": "Diver Propulsion Vehicle Adventure Dive",
       "type": "ocean",
       "order": 16,
       "skills": [
         {
-          "code": "AOW-DPV.1",
+          "code": "AOWD-DPV.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -244,13 +244,13 @@
       ]
     },
     {
-      "code": "AOW-Sidemount",
+      "code": "AOWD-Sidemount",
       "title": "Sidemount Adventure Dive",
       "type": "ocean",
       "order": 17,
       "skills": [
         {
-          "code": "AOW-Sidemount.1",
+          "code": "AOWD-Sidemount.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",
@@ -259,13 +259,13 @@
       ]
     },
     {
-      "code": "AOW-SelfReliant",
+      "code": "AOWD-SelfReliant",
       "title": "Self-Reliant Adventure Dive",
       "type": "ocean",
       "order": 18,
       "skills": [
         {
-          "code": "AOW-SelfReliant.1",
+          "code": "AOWD-SelfReliant.1",
           "title": "TBD",
           "description": "TBD — populate from PADI IM",
           "category": "preparation",

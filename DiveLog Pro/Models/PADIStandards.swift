@@ -5,12 +5,12 @@ import Foundation
 final class PADIStandards {
     static let shared = PADIStandards()
 
-    private var catalog: [String: PADICourse] = [:]  // key = course code ("OW", "AOW")
+    private var catalog: [String: PADICourse] = [:]  // key = course code ("OWD", "AOWD")
 
     private init() { load() }
 
     private func load() {
-        let courses = ["ow", "aow"]
+        let courses = ["owd", "aowd"]
         let lang = L10n.currentLanguage  // "de" or "en"
 
         for course in courses {
