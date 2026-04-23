@@ -5,8 +5,10 @@ import SwiftData
 /// "add historical progress" prompt for unseeded drop-ins.
 struct StudentProfileView: View {
     @Bindable var student: Student
+    @Environment(\.dismiss) private var dismiss
     @State private var courseType = "OWD"
     @State private var showingSeedSheet = false
+    @State private var showingEditSheet = false
 
     private var progress: (mastered: Int, total: Int) {
         student.masteryProgress(courseType: courseType)
@@ -50,12 +52,28 @@ struct StudentProfileView: View {
         }
         .navigationTitle(student.fullName)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showingEditSheet = true
+                } label: {
+                    Image(systemName: "pencil")
+                }
+                .accessibilityLabel(L10n.currentLanguage == "de" ? "Schüler bearbeiten" : "Edit student")
+            }
+        }
         .sheet(isPresented: $showingSeedSheet) {
             PriorMasterySeedSheet(
                 student: student,
                 courseType: courseType,
                 upToSlotOrder: Int.max
             )
+        }
+        .sheet(isPresented: $showingEditSheet) {
+            StudentEditSheet(student: student, onDelete: {
+                // Student deleted — pop back to the students list.
+                dismiss()
+            })
         }
     }
 
