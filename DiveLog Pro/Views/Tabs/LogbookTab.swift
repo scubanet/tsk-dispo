@@ -145,9 +145,7 @@ struct LogbookTab: View {
                 QuickLogView()
             }
             .confirmationDialog(
-                L10n.currentLanguage == "de"
-                    ? "Tauchgang löschen?"
-                    : "Delete dive?",
+                confirmTitle(for: diveToDelete),
                 isPresented: Binding(
                     get: { diveToDelete != nil },
                     set: { if !$0 { diveToDelete = nil } }
@@ -172,9 +170,7 @@ struct LogbookTab: View {
                     diveToDelete = nil
                 }
             } message: { dive in
-                Text(L10n.currentLanguage == "de"
-                     ? "\(dive.siteName) vom \(dive.formattedDate) wird unwiderruflich gelöscht. Das synct auch auf all deine Geräte."
-                     : "\(dive.siteName) on \(dive.formattedDate) will be permanently deleted. This also syncs to all your devices.")
+                Text(confirmMessage(for: dive))
             }
             // Seed-Code absichtlich deaktiviert. In einer CloudKit-Umgebung
             // bedeutet `dives.isEmpty` beim App-Start oft nur "Sync hat noch
@@ -339,6 +335,26 @@ struct LogbookTab: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, DSSpacing.xxl)
         .padding(.top, 80)
+    }
+
+    // MARK: - Delete confirmation helpers
+    private func confirmTitle(for dive: Dive?) -> String {
+        guard let dive else { return "" }
+        return L10n.currentLanguage == "de" ? "Tauchgang löschen?" : "Delete dive?"
+    }
+
+    private func confirmMessage(for dive: Dive) -> String {
+        let assessments = dive.skillCompletions?.count ?? 0
+        let studentCount = dive.students?.count ?? 0
+        let isDE = L10n.currentLanguage == "de"
+        if assessments > 0 {
+            return isDE
+                ? "\(dive.siteName) vom \(dive.formattedDate) wird unwiderruflich gelöscht. Das synct auch auf all deine Geräte.\n\n\(assessments) Skill-Assessments für \(studentCount) Schüler werden ebenfalls gelöscht."
+                : "\(dive.siteName) on \(dive.formattedDate) will be permanently deleted. This also syncs to all your devices.\n\n\(assessments) skill assessments for \(studentCount) students will also be deleted."
+        }
+        return isDE
+            ? "\(dive.siteName) vom \(dive.formattedDate) wird unwiderruflich gelöscht. Das synct auch auf all deine Geräte."
+            : "\(dive.siteName) on \(dive.formattedDate) will be permanently deleted. This also syncs to all your devices."
     }
 
 }
