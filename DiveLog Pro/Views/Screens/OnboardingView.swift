@@ -740,9 +740,13 @@ struct OnboardingView: View {
     }
 
     private func persistAll() {
-        // Get or create the DiverProfile
+        // Get or create the DiverProfile — prefer the one matching our Apple ID
+        // (may have synced from another device via CloudKit).
         let profile: DiverProfile
-        if let existing = profiles.first {
+        let uid = AppleSignInService.shared.currentUserID
+        if let uid, let match = profiles.first(where: { $0.appleUserID == uid }) {
+            profile = match
+        } else if let existing = profiles.first {
             profile = existing
         } else {
             let p = DiverProfile()

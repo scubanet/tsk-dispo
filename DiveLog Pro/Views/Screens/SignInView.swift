@@ -149,7 +149,9 @@ struct SignInView: View {
     //
     private func seedProfile(from cred: AppleCredential) {
         let profile: DiverProfile
-        if let existing = profiles.first {
+        if let match = profiles.first(where: { $0.appleUserID == cred.userID }) {
+            profile = match
+        } else if let existing = profiles.first {
             profile = existing
         } else {
             let new = DiverProfile()

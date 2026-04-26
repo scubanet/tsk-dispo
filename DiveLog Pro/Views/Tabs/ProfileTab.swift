@@ -21,7 +21,15 @@ struct ProfileTab: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("appLanguage") private var language = "en"
 
-    private var profile: DiverProfile? { profiles.first }
+    private var profile: DiverProfile? {
+        guard !profiles.isEmpty else { return nil }
+        if profiles.count > 1 { deduplicateProfiles() }
+        let uid = AppleSignInService.shared.currentUserID
+        if let uid, let match = profiles.first(where: { $0.appleUserID == uid }) {
+            return match
+        }
+        return profiles.first
+    }
 
     var body: some View {
         NavigationStack {
@@ -606,6 +614,31 @@ struct ProfileTab: View {
             language: language
         )
         ctx.insert(p)
+    }
+
+    private func deduplicateProfiles() {
+        guard profiles.count > 1 else { return }
+        let uid = AppleSignInService.shared.currentUserID
+        let primary = profiles.first(where: {
+            $0.appleUserID == uid && !$0.name.trimmingCharacters(in: .whitespaces).isEmpty
+        }) ?? profiles.first(where: {
+            !$0.name.trimmingCharacters(in: .whitespaces).isEmpty
+        }) ?? profiles.first!
+
+        for p in profiles where p.persistentModelID != primary.persistentModelID {
+            if primary.name.trimmingCharacters(in: .whitespaces).isEmpty,
+               !p.name.trimmingCharacters(in: .whitespaces).isEmpty {
+                primary.name = p.name
+            }
+            if primary.padiNumber.isEmpty, !p.padiNumber.isEmpty { primary.padiNumber = p.padiNumber }
+            if primary.email.isEmpty, !p.email.isEmpty { primary.email = p.email }
+            if primary.phone.isEmpty, !p.phone.isEmpty { primary.phone = p.phone }
+            if primary.profileImageData == nil { primary.profileImageData = p.profileImageData }
+            if primary.stampImageData == nil { primary.stampImageData = p.stampImageData }
+            if primary.appleUserID == nil { primary.appleUserID = p.appleUserID }
+            ctx.delete(p)
+        }
+        try? ctx.save()
     }
 
     // ═══════════════════════════════════════

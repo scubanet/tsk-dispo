@@ -11,9 +11,11 @@ final class SkillCompletion {
 
     // Context relationships — exactly one of dive/poolSession is set,
     // OR both nil for seed records (historical mastery).
-    var student: Student?
-    var dive: Dive?
-    var poolSession: PoolSession?
+    // Inverse is declared on the other side; @Relationship here ensures
+    // CloudKit mirrors these as proper CKReference fields.
+    @Relationship var student: Student?
+    @Relationship var dive: Dive?
+    @Relationship var poolSession: PoolSession?
 
     init() {}
 
