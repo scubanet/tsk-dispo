@@ -88,6 +88,7 @@ final class Dive {
     // Optional — nil = recreational fun dive, not course-related.
     var courseType: String?        // "OWD", "AOWD"
     var courseSlot: String?        // "OW1", "OW2", "AOWD-Deep"
+    var extraSkillCodesRaw: String = ""  // pipe-separated extra skill codes from other slots/courses
 
     @Relationship(deleteRule: .nullify, inverse: \Student.dives)
     var students: [Student]? = []
@@ -113,6 +114,11 @@ final class Dive {
     var photoFilenames: [String] {
         get { photoFilenamesRaw.isEmpty ? [] : photoFilenamesRaw.components(separatedBy: "||") }
         set { photoFilenamesRaw = newValue.joined(separator: "||") }
+    }
+
+    var extraSkillCodes: [String] {
+        get { extraSkillCodesRaw.isEmpty ? [] : extraSkillCodesRaw.components(separatedBy: "||") }
+        set { extraSkillCodesRaw = newValue.joined(separator: "||") }
     }
     
     var depthProfile: [Double] {

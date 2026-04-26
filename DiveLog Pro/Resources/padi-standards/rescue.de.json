@@ -1,0 +1,115 @@
+{
+  "version": "2024.1",
+  "course": "RESCUE",
+  "language": "de",
+  "slots": [
+    {
+      "code": "RD-EX",
+      "title": "Rettungsübungen",
+      "type": "ocean",
+      "order": 1,
+      "skills": [
+        {
+          "code": "RD-EX.1",
+          "title": "Ermüdeter Taucher",
+          "description": "Anzeichen eines ermüdeten Tauchers an der Oberfläche erkennen, Auftrieb herstellen und den Taucher in Sicherheit schleppen.",
+          "category": "rescue",
+          "performanceStandard": "Ermüdung erkannt, positiver Auftrieb hergestellt, kontrolliertes Schleppen zum Ausstiegspunkt."
+        },
+        {
+          "code": "RD-EX.2",
+          "title": "Panischer Taucher",
+          "description": "Auf einen panischen Taucher an der Oberfläche reagieren: sich verteidigend annähern, Kontakt herstellen, den Taucher kontrollieren und beruhigen, in Sicherheit schleppen.",
+          "category": "rescue",
+          "performanceStandard": "Verteidigende Annäherung, wirksame Kontrolle des panischen Tauchers, Schleppen in Sicherheit ohne Eigengefährdung."
+        },
+        {
+          "code": "RD-EX.3",
+          "title": "Hilfeleistung vom Ufer",
+          "description": "Rettung eines in Not geratenen Tauchers vom Ufer aus durch Hinlangen, Zuwerfen und Hinwaten.",
+          "category": "rescue",
+          "performanceStandard": "Korrekter Einsatz von Hinlange-, Zuwurf- und Hinwatetechniken; Taucher in Sicherheit gebracht."
+        },
+        {
+          "code": "RD-EX.4",
+          "title": "Probleme unter Wasser",
+          "description": "Einen Taucher mit Schwierigkeiten unter Wasser erkennen und darauf reagieren: Luft teilen, kontrollierten Aufstieg durchführen und den Taucher an die Oberfläche bringen.",
+          "category": "rescue",
+          "performanceStandard": "Problemerkennung, Luftspende eingeleitet, kontrollierter Aufstieg ≤ 9 m/min, Taucher an die Oberfläche gebracht."
+        },
+        {
+          "code": "RD-EX.5",
+          "title": "Vermisster Taucher",
+          "description": "Eine organisierte Unterwassersuche nach einem vermissten Taucher mithilfe eines geeigneten Suchmusters durchführen.",
+          "category": "rescue",
+          "performanceStandard": "Suche innerhalb 1 Minute eingeleitet, systematisches Muster durchgeführt, Gebiet effektiv abgesucht."
+        },
+        {
+          "code": "RD-EX.6",
+          "title": "Nicht reagierenden Taucher hochbringen",
+          "description": "Einen nicht reagierenden Taucher aus der Tiefe kontrolliert an die Oberfläche bringen (kontrollierter Auftriebsaufstieg).",
+          "category": "rescue",
+          "performanceStandard": "Kontrollierter Aufstieg ≤ 9 m/min, Atemwegsmanagement während des gesamten Aufstiegs gewährleistet."
+        },
+        {
+          "code": "RD-EX.7",
+          "title": "Nicht reagierender Taucher an der Oberfläche",
+          "description": "Einen nicht reagierenden Taucher an der Oberfläche versorgen: Auftrieb herstellen, Atemwege freimachen, Atmung prüfen und Rettungsatemspende geben.",
+          "category": "rescue",
+          "performanceStandard": "Positiver Auftrieb hergestellt, Atemwege frei, Atemkontrolle innerhalb 10 Sekunden, Rettungsatemspende durchgeführt."
+        },
+        {
+          "code": "RD-EX.8",
+          "title": "Ausstiege",
+          "description": "Einen nicht reagierenden Taucher mit geeigneter Technik aus dem Wasser bringen (Ufer, Boot oder Plattform).",
+          "category": "rescue",
+          "performanceStandard": "Taucher sicher aus dem Wasser gebracht, Rettungsatemspende nur kurz unterbrochen."
+        },
+        {
+          "code": "RD-EX.9",
+          "title": "Erste Hilfe und Notfall-Sauerstoff",
+          "description": "Einem nicht atmenden Taucher Erste Hilfe, HLW und Notfall-Sauerstoff verabreichen und den Rettungsdienst verständigen.",
+          "category": "rescue",
+          "performanceStandard": "HLW und O₂-Gabe unverzüglich eingeleitet, Rettungsdienst verständigt, Versorgung bis zur Übergabe fortgesetzt."
+        },
+        {
+          "code": "RD-EX.10",
+          "title": "Rettungskoordination",
+          "description": "Rettungsmaßnahmen im Team koordinieren: Ausrüstung vorbereiten, Aufgaben zuweisen und Notfallabläufe einhalten.",
+          "category": "rescue",
+          "performanceStandard": "Aufgaben klar verteilt, Ausrüstung bereitgestellt, Notfallplan ohne Verzögerung umgesetzt."
+        }
+      ]
+    },
+    {
+      "code": "RD-S1",
+      "title": "Szenario 1 — Nicht reagierender Taucher unter Wasser",
+      "type": "ocean",
+      "order": 2,
+      "skills": [
+        {
+          "code": "RD-S1.1",
+          "title": "Szenario: Nicht reagierender Taucher unter Wasser",
+          "description": "Vollständiges Rettungsszenario: Nicht reagierenden Taucher unter Wasser lokalisieren, kontrollierten Auftriebsaufstieg durchführen, Oberflächenversorgung mit Rettungsatemspende, zum Ausstieg schleppen, aus dem Wasser bringen, Erste Hilfe / HLW / Notfall-Sauerstoff leisten und Rettungsdienst verständigen.",
+          "category": "scenario",
+          "performanceStandard": "Gesamtes Szenario ohne Hilfestellung abgeschlossen: Aufstieg, Oberflächenversorgung, Schleppen, Ausstieg, Erste Hilfe — alles innerhalb akzeptabler Zeit- und Technikstandards."
+        }
+      ]
+    },
+    {
+      "code": "RD-S2",
+      "title": "Szenario 2 — Nicht reagierender Taucher an der Oberfläche",
+      "type": "ocean",
+      "order": 3,
+      "skills": [
+        {
+          "code": "RD-S2.1",
+          "title": "Szenario: Nicht reagierender Taucher an der Oberfläche",
+          "description": "Vollständiges Rettungsszenario: Auf einen nicht reagierenden Taucher an der Oberfläche reagieren, Auftrieb herstellen, Atemwege freimachen, Rettungsatemspende geben, zum Ausstieg schleppen, aus dem Wasser bringen, Erste Hilfe / HLW / Notfall-Sauerstoff leisten und Rettungsdienst verständigen.",
+          "category": "scenario",
+          "performanceStandard": "Gesamtes Szenario ohne Hilfestellung abgeschlossen: Oberflächenversorgung, Schleppen, Ausstieg, Erste Hilfe — alles innerhalb akzeptabler Zeit- und Technikstandards."
+        }
+      ]
+    }
+  ]
+}

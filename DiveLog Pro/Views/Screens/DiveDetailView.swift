@@ -18,6 +18,7 @@ struct DiveDetailView: View {
     @State private var showingExport = false
     @State private var showingDeleteConfirm = false
     @State private var selectedStudentID: PersistentIdentifier? = nil
+    @State private var showingExtraSkillPicker = false
 
     private var tabs: [String] {
         [L10n.overview, L10n.journal, L10n.profile, L10n.stats, L10n.gear]
@@ -444,13 +445,14 @@ struct DiveDetailView: View {
         let students = dive.students ?? []
         let slot = dive.courseSlot ?? ""
         let course = dive.courseType ?? "OWD"
+        let slotTitle = PADIStandards.shared.slot(code: slot, courseType: course)?.title ?? slot
 
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "graduationcap.fill").foregroundStyle(Color.appAccent)
                 Text(L10n.currentLanguage == "de"
-                     ? "\(course) · \(slot) · \(students.count) Schüler"
-                     : "\(course) · \(slot) · \(students.count) students")
+                     ? "\(course) · \(slotTitle) · \(students.count) Schüler"
+                     : "\(course) · \(slotTitle) · \(students.count) students")
                     .font(.system(size: 14, weight: .semibold))
             }
             // "Profil öffnen"-Chip for the currently selected student — works
@@ -483,12 +485,33 @@ struct DiveDetailView: View {
                     student: selected,
                     slotCode: slot,
                     courseType: course,
-                    context: .dive(dive)
+                    context: .dive(dive),
+                    extraSkillCodes: dive.extraSkillCodes,
+                    onAddExtra: { showingExtraSkillPicker = true },
+                    onRemoveExtra: { code in
+                        dive.extraSkillCodes.removeAll { $0 == code }
+                        try? modelContext.save()
+                    }
                 )
             }
         }
         .onAppear {
             if selectedStudentID == nil { selectedStudentID = students.first?.id }
+        }
+        .sheet(isPresented: $showingExtraSkillPicker) {
+            let slotSkillCodes = Set(PADIStandards.shared.skills(forSlot: slot, courseType: course).map(\.code))
+            let flexCodes = Set(PADIStandards.shared.flexibleSkills(for: course).map(\.code))
+            let alreadyAdded = slotSkillCodes.union(flexCodes).union(Set(dive.extraSkillCodes))
+            ExtraSkillPickerSheet(
+                courseType: course,
+                currentSlotCode: slot,
+                alreadyAdded: alreadyAdded
+            ) { codes in
+                for code in codes where !dive.extraSkillCodes.contains(code) {
+                    dive.extraSkillCodes.append(code)
+                }
+                try? modelContext.save()
+            }
         }
     }
 }

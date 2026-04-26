@@ -10,7 +10,7 @@ final class PADIStandards {
     private init() { load() }
 
     private func load() {
-        let courses = ["owd", "aowd"]
+        let courses = ["owd", "aowd", "drysuit", "rescue"]
         let lang = L10n.currentLanguage  // "de" or "en"
 
         for course in courses {
@@ -68,13 +68,28 @@ final class PADIStandards {
 
     /// Look up a skill's title by code. Used in UI when referencing historical records.
     func title(forSkillCode code: String) -> String {
+        skill(byCode: code)?.title ?? code
+    }
+
+    /// Look up a single skill by code across all courses.
+    func skill(byCode code: String) -> PADISkill? {
         for course in catalog.values {
             for slot in course.slots {
                 if let skill = slot.skills.first(where: { $0.code == code }) {
-                    return skill.title
+                    return skill
                 }
             }
         }
-        return code
+        return nil
+    }
+
+    /// Flexible skills (FLEX slot) for a course — can be done on any ocean dive.
+    func flexibleSkills(for courseType: String) -> [PADISkill] {
+        slot(code: "FLEX", courseType: courseType)?.skills.filter(\.isActive) ?? []
+    }
+
+    /// All available courses (for cross-course skill picker).
+    var availableCourses: [String] {
+        Array(catalog.keys).sorted()
     }
 }

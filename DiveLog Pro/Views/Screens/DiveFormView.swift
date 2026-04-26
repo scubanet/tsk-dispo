@@ -28,7 +28,7 @@ struct DiveFormView: View {
     @State private var maxDepth = ""
     @State private var bottomTime = ""
     @State private var totalTime = ""
-    @State private var entryType = "boat"
+    @State private var entryType = "shore"
     @State private var weather = "sunny"
     @State private var airTemp = ""
     @State private var waterTempSurface = ""
@@ -163,8 +163,8 @@ struct DiveFormView: View {
     
     private var stepBasics: some View {
         VStack(spacing: 14) {
-            FormField(label: L10n.diveSite, text: $siteName, placeholder: "e.g. Mamutic Island")
-            FormField(label: L10n.location, text: $siteLocation, placeholder: "e.g. Kota Kinabalu, Malaysia")
+            FormField(label: L10n.diveSite, text: $siteName, placeholder: "Horn")
+            FormField(label: L10n.location, text: $siteLocation, placeholder: "Richterswil")
 
             // Date & Time
             VStack(alignment: .leading, spacing: 8) {
@@ -222,11 +222,13 @@ struct DiveFormView: View {
                     Picker(L10n.currentLanguage == "de" ? "Kurs" : "Course", selection: $courseType) {
                         Text("OWD").tag("OWD")
                         Text("AOWD").tag("AOWD")
+                        Text("Dry Suit").tag("DRYSUIT")
+                        Text("Rescue").tag("RESCUE")
                     }
                     Picker(L10n.currentLanguage == "de" ? "Modul" : "Module", selection: $courseSlot) {
                         ForEach(PADIStandards.shared.slots(for: courseType)
                                     .filter { $0.type == .ocean }, id: \.code) { slot in
-                            Text(slot.code).tag(slot.code)
+                            Text(slot.title).tag(slot.code)
                         }
                     }
                     StudentPicker(selected: $students)
@@ -250,11 +252,11 @@ struct DiveFormView: View {
             SegmentPicker(label: L10n.entry, options: [("boat", "🚤 Boat"), ("shore", "🏖 Shore")], selected: $entryType)
             
             HStack(spacing: 12) {
-                FormField(label: L10n.waterTempSurface + " (°C)", text: $waterTempSurface, placeholder: "28", keyboard: .decimalPad)
-                FormField(label: L10n.waterTempBottom + " (°C)", text: $waterTempBottom, placeholder: "26", keyboard: .decimalPad)
+                FormField(label: L10n.waterTempSurface + " (°C)", text: $waterTempSurface, placeholder: "18", keyboard: .decimalPad)
+                FormField(label: L10n.waterTempBottom + " (°C)", text: $waterTempBottom, placeholder: "12", keyboard: .decimalPad)
             }
             HStack(spacing: 12) {
-                FormField(label: L10n.airTempLabel + " (°C)", text: $airTemp, placeholder: "30", keyboard: .decimalPad)
+                FormField(label: L10n.airTempLabel + " (°C)", text: $airTemp, placeholder: "22", keyboard: .decimalPad)
                 FormField(label: L10n.visibilityLabel + " (m)", text: $visibility, placeholder: "15", keyboard: .numberPad)
             }
             

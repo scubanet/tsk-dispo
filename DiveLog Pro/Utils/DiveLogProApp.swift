@@ -1,5 +1,8 @@
 import SwiftUI
 import SwiftData
+import os
+
+private let logger = Logger(subsystem: "com.weckherlin.DiveLogPro", category: "CloudKit")
 
 @main
 struct DiveLogProApp: App {
@@ -31,24 +34,11 @@ struct DiveLogProApp: App {
     // ═══════════════════════════════════════
     // MARK: - ModelContainer (SwiftData + CloudKit)
     // ═══════════════════════════════════════
-    //
-    // Sync is enabled via `cloudKitDatabase: .automatic`. SwiftData will mirror
-    // all @Model types to the user's private CloudKit database. Requirements:
-    //
-    //   1. CloudKit capability enabled in Xcode → Signing & Capabilities.
-    //   2. iCloud container identifier (e.g. iCloud.com.weckherlin.DiveLogPro).
-    //   3. Push Notifications + Background Modes (Remote notifications) — used
-    //      for silent sync pushes.
-    //
-    // See ICLOUD_SETUP.md at the project root for the full checklist.
-    //
-    // Schema constraints we already satisfy:
-    //   • Every property has a default value or is optional.
-    //   • No @Attribute(.unique) constraints.
-    //   • All relationships have an inverse; to-many relationships initialise
-    //     to [] in the @Model init.
-    //
-    let sharedModelContainer: ModelContainer = {
+
+    static let isCloudKitAvailable: Bool = _isCloudKitAvailable
+    static let cloudKitError: String? = _cloudKitError
+
+    private static let (_container, _isCloudKitAvailable, _cloudKitError): (ModelContainer, Bool, String?) = {
         let schema = Schema([
             Dive.self,
             DiverProfile.self,
@@ -60,11 +50,6 @@ struct DiveLogProApp: App {
             SkillCompletion.self
         ])
 
-        // Try CloudKit-backed first; fall back to a local-only container if
-        // CloudKit is unavailable (simulator without signed-in iCloud, unit
-        // tests, misconfigured entitlements, etc.). Without the fallback a
-        // user with a broken iCloud setup would see an empty app instead of a
-        // working offline logbook.
         let cloudConfig = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
@@ -72,24 +57,29 @@ struct DiveLogProApp: App {
         )
 
         do {
-            return try ModelContainer(for: schema, configurations: [cloudConfig])
+            let container = try ModelContainer(for: schema, configurations: [cloudConfig])
+            logger.info("CloudKit ModelContainer created successfully")
+            return (container, true, nil)
         } catch {
-            #if DEBUG
-            print("[DiveLogPro] CloudKit ModelContainer failed: \(error)")
-            print("[DiveLogPro] Falling back to local-only store.")
-            #endif
+            let msg = "\(error)"
+            logger.error("CloudKit ModelContainer failed: \(msg)")
+            logger.error("Falling back to local-only store — data will NOT sync!")
+
             let localConfig = ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: false,
                 cloudKitDatabase: .none
             )
             do {
-                return try ModelContainer(for: schema, configurations: [localConfig])
+                let container = try ModelContainer(for: schema, configurations: [localConfig])
+                return (container, false, msg)
             } catch {
                 fatalError("Could not create local ModelContainer: \(error)")
             }
         }
     }()
+
+    let sharedModelContainer: ModelContainer = _container
 
     // ═══════════════════════════════════════
 
@@ -150,6 +140,11 @@ struct DiveLogProApp: App {
                 RemoteSignatureLandingView(token: wrapper.id)
             }
             .animation(.easeInOut(duration: 0.25), value: appleSignIn.isSignedIn)
+            .overlay(alignment: .top) {
+                if !Self.isCloudKitAvailable {
+                    cloudKitWarningBanner
+                }
+            }
             .environment(deleteUndoManager)
             .onChange(of: scenePhase) { _, newPhase in
                 // Don't let a pending delete hang around across app
@@ -161,6 +156,31 @@ struct DiveLogProApp: App {
             }
         }
         .modelContainer(sharedModelContainer)
+    }
+
+    private var cloudKitWarningBanner: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 6) {
+                Image(systemName: "exclamationmark.icloud.fill")
+                    .font(.system(size: 14))
+                Text(L10n.currentLanguage == "de"
+                     ? "iCloud-Sync fehlgeschlagen — lokaler Modus"
+                     : "iCloud sync failed — local mode")
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            if let err = Self.cloudKitError {
+                Text(err)
+                    .font(.system(size: 10))
+                    .lineLimit(2)
+                    .opacity(0.8)
+            }
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+        .background(Color.red.opacity(0.9))
+        .padding(.top, 50)
     }
 }
 

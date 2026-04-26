@@ -501,6 +501,77 @@
           "performanceStandard": "≤ 18 m/min, 5-point, mandatory safety stop."
         }
       ]
+    },
+    {
+      "code": "FLEX",
+      "title": "Flexible Skills (any OW dive)",
+      "type": "ocean",
+      "order": 99,
+      "skills": [
+        {
+          "code": "FLEX.1",
+          "title": "Cramp release (self and buddy)",
+          "description": "Demonstrates releasing a simulated cramp on yourself and on your buddy.",
+          "category": "surface",
+          "performanceStandard": "Correct cramp release technique on self and buddy while maintaining positive buoyancy."
+        },
+        {
+          "code": "FLEX.2",
+          "title": "Tired diver tow or push (25 m)",
+          "description": "Tows or pushes a tired diver wearing full scuba equipment for 25 metres / yards at the surface.",
+          "category": "surface",
+          "performanceStandard": "Sustained tow/push ≥ 25 m, tired diver's airway managed."
+        },
+        {
+          "code": "FLEX.3",
+          "title": "Deploy inflatable signal device",
+          "description": "Inflates a signal tube at the surface, or deploys a delayed surface marker buoy (DSMB) from underwater.",
+          "category": "surface",
+          "performanceStandard": "Signal device clearly visible at the surface; controlled deployment if done underwater."
+        },
+        {
+          "code": "FLEX.4",
+          "title": "Straight-line compass swim (50 m)",
+          "description": "Snorkels face-down in a straight line for 50 metres / yards using only the compass as a directional reference.",
+          "category": "surface",
+          "performanceStandard": "Straight course maintained for ≥ 50 m using compass only."
+        },
+        {
+          "code": "FLEX.5",
+          "title": "Snorkel / regulator exchange",
+          "description": "Clears the snorkel and resumes breathing from it without removing it from the mouth. Alternatively, alternates breathing between snorkel and regulator without lifting the face from the water; at least two exchanges.",
+          "category": "surface",
+          "performanceStandard": "Smooth exchange without lifting face; at least two full exchanges."
+        },
+        {
+          "code": "FLEX.6",
+          "title": "Remove and replace weight system and scuba unit at surface",
+          "description": "In water too deep to stand, removes and replaces the weight system. In water too deep to stand, removes and replaces the scuba unit.",
+          "category": "surface",
+          "performanceStandard": "Controlled removal and replacement of both weight system and scuba unit with positive buoyancy."
+        },
+        {
+          "code": "FLEX.7",
+          "title": "Emergency weight drop (quick release)",
+          "description": "In confined or open water too deep to stand, with the BCD deflated, uses the quick-release mechanism to remove sufficient weight to achieve positive buoyancy. Pulls the weight clear of the body and drops it.",
+          "category": "surface",
+          "performanceStandard": "Quick release used correctly; weight pulled clear and dropped; positive buoyancy achieved."
+        },
+        {
+          "code": "FLEX.8",
+          "title": "Underwater compass navigation (reciprocal course)",
+          "description": "Swims a straight reciprocal course underwater using a compass. Each diver navigates out and back. Only in Dive 2, 3 or 4.",
+          "category": "underwater",
+          "performanceStandard": "Compass reciprocal course; each diver navigates independently."
+        },
+        {
+          "code": "FLEX.9",
+          "title": "Controlled Emergency Swimming Ascent (CESA)",
+          "description": "Performs a Controlled Emergency Swimming Ascent from a depth of 6–9 metres / 20–30 feet and establishes positive buoyancy at the surface. Only in Dive 2, 3 or 4.",
+          "category": "underwater",
+          "performanceStandard": "Continuous exhalation, controlled rate, positive buoyancy at surface. Depth 6–9 m."
+        }
+      ]
     }
   ]
 }

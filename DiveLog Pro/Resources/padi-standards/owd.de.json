@@ -501,6 +501,77 @@
           "performanceStandard": "≤ 18 m/min, 5-Punkte, Safety-Stop obligatorisch."
         }
       ]
+    },
+    {
+      "code": "FLEX",
+      "title": "Flexible Skills (beliebiger OW-TG)",
+      "type": "ocean",
+      "order": 99,
+      "skills": [
+        {
+          "code": "FLEX.1",
+          "title": "Krampf lösen (selbst und Buddy)",
+          "description": "Führe bei dir selbst und beim Buddy das Lösen eines simulierten Krampfes durch.",
+          "category": "surface",
+          "performanceStandard": "Korrekte Krampflösetechnik bei sich selbst und beim Buddy mit positiver Tarierung."
+        },
+        {
+          "code": "FLEX.2",
+          "title": "Ermüdeten Taucher schleppen/schieben (25 m)",
+          "description": "Schleppe oder schiebe einen ermüdeten Taucher in Tauchausrüstung 25 Meter/Yards an der Oberfläche.",
+          "category": "surface",
+          "performanceStandard": "Abschleppen/Schieben ≥ 25 m, Atemwege des ermüdeten Tauchers gesichert."
+        },
+        {
+          "code": "FLEX.3",
+          "title": "Einsatz einer aufblasbaren Signalboje",
+          "description": "Blase an der Oberfläche eine Signalboje auf, oder lasse von unter Wasser eine Markierungsboje (DSMB-Boje) an die Oberfläche.",
+          "category": "surface",
+          "performanceStandard": "Signalboje deutlich sichtbar an der Oberfläche; kontrollierter Einsatz bei UW-Deployment."
+        },
+        {
+          "code": "FLEX.4",
+          "title": "Gerade Kompassstrecke schwimmen (50 m)",
+          "description": "Schnorchle mit dem Gesicht im Wasser eine gerade Strecke von 50 Metern/Yards, verwende dabei nur den Kompass als Richtungsreferenz.",
+          "category": "surface",
+          "performanceStandard": "Gerader Kurs ≥ 50 m nur mit Kompass als Referenz."
+        },
+        {
+          "code": "FLEX.5",
+          "title": "Wechsel Schnorchel/Atemregler",
+          "description": "Blase deinen Schnorchel aus und nimm das Atmen daraus wieder auf, ohne den Schnorchel aus dem Mund zu nehmen. Als Alternative atme abwechselnd aus deinem Schnorchel bzw. Lungenautomaten, ohne das Gesicht aus dem Wasser zu nehmen; mindestens zwei Wechsel.",
+          "category": "surface",
+          "performanceStandard": "Fließender Wechsel ohne Gesicht aus dem Wasser; mindestens zwei vollständige Wechsel."
+        },
+        {
+          "code": "FLEX.6",
+          "title": "Gewichtssystem und Tauchgerät an der Oberfläche ab-/anlegen",
+          "description": "Lege in Wasser, das zum Stehen zu tief ist, das Gewichtssystem ab und wieder an. Lege in Wasser, das zum Stehen zu tief ist, das Tauchgerät ab und wieder an.",
+          "category": "surface",
+          "performanceStandard": "Kontrolliertes Ab- und Anlegen von Gewichtssystem und Tauchgerät mit positiver Tarierung."
+        },
+        {
+          "code": "FLEX.7",
+          "title": "Abwerfen von Bleigewichten im Notfall (Quick Release)",
+          "description": "Verwende in begrenztem Freiwasser oder Freiwasser, das zum Stehen zu tief ist, bei entlüftetem Tarierjacket den Schnellabwurf des Gewichtssystems, um genügend Bleigewicht zu entfernen, vom Körper wegzuziehen und abzuwerfen, um positiven Auftrieb zu bekommen.",
+          "category": "surface",
+          "performanceStandard": "Schnellabwurf korrekt verwendet; Gewicht klar vom Körper entfernt und abgeworfen; positiver Auftrieb erreicht."
+        },
+        {
+          "code": "FLEX.8",
+          "title": "Kompassnavigation unter Wasser (Umkehrkurs)",
+          "description": "Schwimme einen geraden Umkehrkurs mittels Kompass unter Wasser. Jeder Taucher navigiert hin und zurück. Nur in Tauchgang 2, 3 oder 4.",
+          "category": "underwater",
+          "performanceStandard": "Kompass-Reziprokurs; jeder Taucher navigiert selbstständig."
+        },
+        {
+          "code": "FLEX.9",
+          "title": "Kontrollierter, schwimmender Notaufstieg (CESA)",
+          "description": "Führe aus einer Tiefe von 6–9 Metern / 20–30 Fuß einen kontrollierten, schwimmenden Notaufstieg durch und stelle an der Oberfläche positiven Auftrieb her. Nur in Tauchgang 2, 3 oder 4.",
+          "category": "underwater",
+          "performanceStandard": "Kontinuierliche Ausatmung, kontrollierte Geschwindigkeit, positiver Auftrieb an der Oberfläche. Tiefe 6–9 m."
+        }
+      ]
     }
   ]
 }

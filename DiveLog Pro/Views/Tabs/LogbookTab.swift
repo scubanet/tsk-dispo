@@ -339,7 +339,7 @@ struct LogbookTab: View {
 
     // MARK: - Delete confirmation helpers
     private func confirmTitle(for dive: Dive?) -> String {
-        guard let dive else { return "" }
+        guard dive != nil else { return "" }
         return L10n.currentLanguage == "de" ? "Tauchgang löschen?" : "Delete dive?"
     }
 
