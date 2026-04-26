@@ -1,9 +1,11 @@
 import Foundation
 import UIKit
+import SwiftData
 
-/// Stores dive photos as JPEG files in the app's documents directory.
-/// Dive objects reference photos by filename; actual bytes live on disk so the
-/// SwiftData store stays small and iCloud-syncable.
+/// Stores dive photos as JPEG files on disk (local cache) **and** in DivePhoto
+/// records (CloudKit sync). On save both locations are written. On load the
+/// disk cache is checked first; if missing the DivePhoto record is used and
+/// the file is re-cached locally.
 enum PhotoStore {
 
     // MARK: - Paths
@@ -24,11 +26,8 @@ enum PhotoStore {
         photosDirectory.appendingPathComponent(filename)
     }
 
-    // MARK: - Save
+    // MARK: - Save (local only — legacy callers)
 
-    /// Compress an image to JPEG and persist it. Returns the generated filename
-    /// on success. Down-samples to max 2000 px on the long edge to keep storage
-    /// reasonable — dive photos rarely need full-resolution.
     @discardableResult
     static func save(image: UIImage, quality: CGFloat = 0.82) -> String? {
         let resized = downsample(image: image, maxDimension: 2000)
@@ -48,10 +47,41 @@ enum PhotoStore {
         }
     }
 
+    // MARK: - Save (local + CloudKit)
+
+    @discardableResult
+    static func save(image: UIImage, toDive dive: Dive, context: ModelContext, quality: CGFloat = 0.82) -> String? {
+        let resized = downsample(image: image, maxDimension: 2000)
+        guard let data = resized.jpegData(compressionQuality: quality) else { return nil }
+        guard let filename = save(jpegData: data) else { return nil }
+
+        let photo = DivePhoto()
+        photo.filename = filename
+        photo.imageData = data
+        photo.dive = dive
+        context.insert(photo)
+
+        return filename
+    }
+
     // MARK: - Load
 
     static func load(filename: String) -> UIImage? {
         UIImage(contentsOfFile: url(for: filename).path)
+    }
+
+    static func load(filename: String, from dive: Dive) -> UIImage? {
+        if let local = load(filename: filename) {
+            return local
+        }
+        guard let photos = dive.photos,
+              let record = photos.first(where: { $0.filename == filename }),
+              !record.imageData.isEmpty,
+              let image = UIImage(data: record.imageData) else {
+            return nil
+        }
+        try? record.imageData.write(to: url(for: filename), options: .atomic)
+        return image
     }
 
     // MARK: - Delete
@@ -62,6 +92,29 @@ enum PhotoStore {
 
     static func deleteAll(filenames: [String]) {
         filenames.forEach { delete(filename: $0) }
+    }
+
+    static func delete(filename: String, from dive: Dive, context: ModelContext) {
+        delete(filename: filename)
+        if let photos = dive.photos,
+           let record = photos.first(where: { $0.filename == filename }) {
+            context.delete(record)
+        }
+    }
+
+    // MARK: - Migration
+
+    static func migrateLocalPhotosToCloudKit(dive: Dive, context: ModelContext) {
+        let existingRecordNames = Set((dive.photos ?? []).map(\.filename))
+        for filename in dive.photoFilenames {
+            guard !existingRecordNames.contains(filename) else { continue }
+            guard let data = try? Data(contentsOf: url(for: filename)) else { continue }
+            let photo = DivePhoto()
+            photo.filename = filename
+            photo.imageData = data
+            photo.dive = dive
+            context.insert(photo)
+        }
     }
 
     // MARK: - Helpers
