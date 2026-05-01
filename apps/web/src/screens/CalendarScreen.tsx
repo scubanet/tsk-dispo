@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import {
   addDays,
   addMonths,
@@ -20,6 +20,8 @@ import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { SegmentedControl } from '@/components/SegmentedControl'
 import { fetchCoursesInRange, fetchAssignmentsForCourses, type CourseRow } from '@/lib/queries'
+import { CourseEditSheet } from './CourseEditSheet'
+import type { OutletCtx } from '@/layout/AppShell'
 
 type Mode = 'week' | 'month'
 
@@ -59,10 +61,14 @@ function coursesOnDay(all: CourseRow[], day: Date): CourseRow[] {
 
 export function CalendarScreen() {
   const navigate = useNavigate()
+  const { user } = useOutletContext<OutletCtx>()
+  const isDispatcher = user.role === 'dispatcher'
   const [mode, setMode] = useState<Mode>('month')
   const [anchor, setAnchor] = useState<Date>(new Date())
   const [courses, setCourses] = useState<CourseRow[]>([])
   const [hauptByCourse, setHauptByCourse] = useState<Set<string>>(new Set())
+  const [editOpen, setEditOpen] = useState(false)
+  const [refreshTick, setRefreshTick] = useState(0)
 
   const range = useMemo(() => {
     if (mode === 'week') {
@@ -86,7 +92,7 @@ export function CalendarScreen() {
       )
       setHauptByCourse(withHaupt)
     })
-  }, [range])
+  }, [range, refreshTick])
 
   function prev() {
     setAnchor((d) => (mode === 'week' ? subWeeks(d, 1) : subMonths(d, 1)))
@@ -114,7 +120,19 @@ export function CalendarScreen() {
         <button className="btn-icon" onClick={prev}><Icon name="chevron-left" size={14} /></button>
         <button className="btn-secondary btn" onClick={today}>Heute</button>
         <button className="btn-icon" onClick={next}><Icon name="chevron-right" size={14} /></button>
+        {isDispatcher && (
+          <button className="btn" onClick={() => setEditOpen(true)}>
+            <Icon name="plus" size={14} /> Neuer Kurs
+          </button>
+        )}
       </Topbar>
+
+      <CourseEditSheet
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        onSaved={() => setRefreshTick((t) => t + 1)}
+        courseId={null}
+      />
 
       <div className="scroll" style={{ flex: 1, padding: 16, overflow: 'auto' }}>
         {mode === 'week' ? (
