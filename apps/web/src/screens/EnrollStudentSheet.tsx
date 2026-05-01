@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { Chip } from '@/components/Chip'
 import { supabase } from '@/lib/supabase'
 import { fetchStudents, type Student } from '@/lib/queries'
 
