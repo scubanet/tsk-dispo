@@ -28,6 +28,7 @@ export function TodayScreen() {
 
 function DispatcherToday() {
   const { user } = useOutletContext<OutletCtx>()
+  const navigate = useNavigate()
   const [kpis, setKpis] = useState<Kpis | null>(null)
   /** All candidate courses (start_date in [today-60d .. today+7d]) — filtered client-side. */
   const [candidates, setCandidates] = useState<CourseRow[]>([])
@@ -173,7 +174,14 @@ function DispatcherToday() {
               <div className="timeline">
                 {today.map((c) => {
                   const a = assignments.filter((x) => x.course_id === c.id)
-                  return <Session key={c.id} course={c} assignments={a} />
+                  return (
+                    <Session
+                      key={c.id}
+                      course={c}
+                      assignments={a}
+                      onClick={() => navigate(`/kurse/${c.id}`)}
+                    />
+                  )
                 })}
               </div>
             )}
@@ -193,12 +201,18 @@ function DispatcherToday() {
                   return (
                   <div
                     key={c.id}
+                    onClick={() => navigate(`/kurse/${c.id}`)}
                     style={{
                       display: 'flex',
                       gap: 10,
-                      padding: '6px 0',
+                      padding: '6px 4px',
                       borderBottom: '0.5px solid var(--separator)',
+                      cursor: 'pointer',
+                      borderRadius: 6,
+                      transition: 'background .12s',
                     }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0,0,0,.04)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
                     <div className="mono caption" style={{ width: 50, flexShrink: 0 }}>
                       {relevantDate ? format(relevantDate, 'd. MMM', { locale: de }) : '—'}
@@ -367,7 +381,15 @@ function InstructorToday() {
   )
 }
 
-function Session({ course, assignments }: { course: CourseRow; assignments: AssignmentRow[] }) {
+function Session({
+  course,
+  assignments,
+  onClick,
+}: {
+  course: CourseRow
+  assignments: AssignmentRow[]
+  onClick?: () => void
+}) {
   const tone =
     course.status === 'cancelled' ? 'red' :
     course.status === 'tentative' ? 'orange' :
@@ -375,7 +397,11 @@ function Session({ course, assignments }: { course: CourseRow; assignments: Assi
   return (
     <>
       <div className="tl-time">{course.course_type?.code ?? '—'}</div>
-      <div className="tl-event">
+      <div
+        className="tl-event"
+        onClick={onClick}
+        style={onClick ? { cursor: 'pointer' } : undefined}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600, fontSize: 14 }}>{course.title}</div>
