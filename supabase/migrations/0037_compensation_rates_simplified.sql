@@ -3,9 +3,10 @@
 --   CHF 28/h — OWSI, MSDT, IDC Staff, MI, CD
 -- 'Andere' bleibt bei CHF 1/h (nominaler Eintrag).
 
--- Sicherstellen dass für alle aktiven Levels eine comp_rate existiert
+-- Sicherstellen dass für alle aktiven Levels eine comp_rate existiert.
+-- Cast nötig weil padi_level ein ENUM-Typ ist (nicht TEXT).
 INSERT INTO comp_rates (level, hourly_rate_chf)
-SELECT v.level, v.rate
+SELECT v.level::padi_level, v.rate
 FROM (VALUES
   ('DM',         20.00),
   ('AI',         20.00),
@@ -19,7 +20,7 @@ FROM (VALUES
 ) AS v(level, rate)
 WHERE NOT EXISTS (
   SELECT 1 FROM comp_rates cr
-  WHERE cr.level = v.level AND cr.valid_to IS NULL
+  WHERE cr.level = v.level::padi_level AND cr.valid_to IS NULL
 );
 
 -- Bestehende Sätze aktualisieren
