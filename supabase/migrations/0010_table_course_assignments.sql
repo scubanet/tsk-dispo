@@ -11,9 +11,7 @@ CREATE TABLE course_assignments (
   CHECK (jsonb_typeof(assigned_for_dates) = 'array')
 );
 
-COMMENT ON TABLE course_assignments IS
-  'Which instructor on which course in which role. ' ||
-  'assigned_for_dates can be empty array meaning "all dates of the course".';
+COMMENT ON TABLE course_assignments IS 'Which instructor on which course in which role. assigned_for_dates can be empty array meaning "all dates of the course".';
 
 CREATE INDEX idx_assignments_course     ON course_assignments(course_id);
 CREATE INDEX idx_assignments_instructor ON course_assignments(instructor_id);

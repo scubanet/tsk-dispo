@@ -13,9 +13,7 @@ CREATE TABLE course_types (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-COMMENT ON TABLE course_types IS
-  'Catalog of course types with their unit-hour breakdown. ' ||
-  'Sourced initially from Excel "3 (Kurs-)Entschädigungen".';
+COMMENT ON TABLE course_types IS 'Catalog of course types with their unit-hour breakdown. Sourced initially from Excel "3 (Kurs-)Entschädigungen".';
 
 -- Seed: derived from Excel "3 (Kurs-)Entschädigungen"
 -- Note: total hours are derived (theory + pool + lake) where applicable.
