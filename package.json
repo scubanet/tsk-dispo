@@ -1,0 +1,14 @@
+{
+  "name": "tsk-dispo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "npm -w @tsk/web run dev",
+    "build": "npm -w @tsk/web run build",
+    "test": "npm -w @tsk/web run test",
+    "test:e2e": "npm -w @tsk/web run test:e2e",
+    "typecheck": "npm -w @tsk/web run typecheck",
+    "lint": "npm -w @tsk/web run lint"
+  }
+}

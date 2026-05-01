@@ -98,18 +98,22 @@ iOS/Mac-Apps, Buchhaltungs-Vollintegration.
 │   Hosting: Vercel EU-Edge                                │
 │   Custom Domain: dispo.course-director.ch                │
 │                                                          │
-│   /heute       Dashboard für Dispatcher / Instructor     │
-│   /kalender    Wochen/Monatsansicht aller Kurse          │
+│   Geteilte Routen (Inhalt rolle-abhängig gefiltert):     │
+│   /heute       Dashboard (Dispatcher: alles · TL/DM: meins) │
+│   /kalender    Wochen/Monatsansicht                      │
+│                                                          │
+│   Nur Dispatcher:                                        │
 │   /kurse       Kursliste 2026 (Master-Detail)            │
-│   /tldm        TL/DM-Liste + Detail (nur Dispatcher)     │
-│   /skills      Skill-Matrix (nur Dispatcher)             │
-│   /pool        Hallenbad Möösli/Langnau (nur Dispatcher) │
-│   /saldi       Übersicht alle Saldi (nur Dispatcher)     │
-│   /einstellungen  Vergütungssätze, Import (nur Disp.)    │
-│   /me          "Mein Account" (nur Instructor)           │
-│   /einsaetze   Meine Einsätze (nur Instructor)           │
-│   /saldo       Mein Saldo + Journal (nur Instructor)     │
-│   /profil      Mein Profil + Verfügbarkeit (nur Instr.)  │
+│   /tldm        TL/DM-Liste + Detail                      │
+│   /skills      Skill-Matrix                              │
+│   /pool        Hallenbad Möösli/Langnau                  │
+│   /saldi       Übersicht aller Saldi                     │
+│   /einstellungen  Vergütungssätze, Import, User          │
+│                                                          │
+│   Nur Instructor:                                        │
+│   /einsaetze   Meine Einsätze 2026                       │
+│   /saldo       Mein Saldo + Journal                      │
+│   /profil      Mein Profil + Verfügbarkeit               │
 └──────────────────────┬───────────────────────────────────┘
                        │   HTTPS / WebSocket
 ┌──────────────────────┴───────────────────────────────────┐
@@ -501,7 +505,8 @@ Mapping als Seed in die Stufe-2-Auswahl.
 Vergütung = Σ (Stunden pro Einheit) × Stundensatz nach PADI-Level
 
   Stunden    = comp_units (theory_h + pool_h + lake_h) für Kursart × Rolle
-  Stundensatz = comp_rates für PADI-Level (Instructor=28, DM=20, Shop=20)
+  Stundensatz = comp_rates für PADI-Level
+                (Instructor=28, DM=20, Shop Staff=20, Andere Funktion=1)
 ```
 
 **Beispiel** (Excel "3 Entschädigungen", Zeile 8):
@@ -809,7 +814,7 @@ v2 (post-Pitch): dev/staging/prod-Trennung.
 - Bug-Hunt + Performance-Check (echte 200+ Kurse geladen)
 - Pitch-Skript & Demo-Walkthrough mit Dominik
 - DSG-One-Pager
-- Backup-Test
+- Backup-Test (Restore aus Supabase-Snapshot in leeres Projekt → alle Tabellen + RLS funktionieren; Excel-Export-Funktion liefert valide .xlsx)
 - WhatsApp-Cloud-API-Sandbox-Demo (Tiefe-2-Vorschau, optional)
 - Pitch-Dry-Run
 

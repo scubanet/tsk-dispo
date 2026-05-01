@@ -1,0 +1,18 @@
+{
+  "name": "TSK Dispo",
+  "short_name": "TSK Dispo",
+  "description": "Dispo, Skills und Saldo für TSK ZRH",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f2f1ee",
+  "theme_color": "#0A84FF",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

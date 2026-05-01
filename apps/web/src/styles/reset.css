@@ -1,0 +1,18 @@
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro",
+    ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+button { font: inherit; }
+.scroll { overflow: auto; }
+.scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 4px; }
+.dark .scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); }
+.scroll::-webkit-scrollbar-track { background: transparent; }
