@@ -22,6 +22,7 @@ const ITEMS: NavItem[] = [
   { to: '/kalender',  icon: 'calendar', label: 'Kalender',       roles: ['dispatcher', 'instructor'] },
   { to: '/kurse',     icon: 'book',     label: 'Kurse',          roles: ['dispatcher'] },
   { to: '/tldm',      icon: 'users',    label: 'TL/DM',          roles: ['dispatcher'] },
+  { to: '/schueler',  icon: 'tag',      label: 'Schüler',        roles: ['dispatcher'] },
   { to: '/skills',    icon: 'grid',     label: 'Skill-Matrix',   roles: ['dispatcher'] },
   { to: '/pool',      icon: 'water',    label: 'Pool',           roles: ['dispatcher'] },
   { to: '/saldi',     icon: 'wallet',   label: 'Saldi',          roles: ['dispatcher'] },

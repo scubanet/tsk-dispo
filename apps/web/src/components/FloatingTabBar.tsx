@@ -18,6 +18,7 @@ const DISPATCHER_TABS: Tab[] = [
   { to: '/kurse',     icon: 'book',     label: 'Kurse' },
   { to: '/kalender',  icon: 'calendar', label: 'Kalender' },
   { to: '/tldm',      icon: 'users',    label: 'TL/DM' },
+  { to: '/schueler',  icon: 'tag',      label: 'Schüler' },
   { to: '/saldi',     icon: 'wallet',   label: 'Saldi' },
 ]
 

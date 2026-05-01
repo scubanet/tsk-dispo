@@ -1,0 +1,229 @@
+import { useEffect, useState } from 'react'
+import { Sheet } from '@/components/Sheet'
+import { Icon } from '@/components/Icon'
+import { supabase } from '@/lib/supabase'
+
+interface Form {
+  name: string
+  email: string
+  phone: string
+  birthday: string
+  padi_nr: string
+  notes: string
+  active: boolean
+}
+
+interface Props {
+  open: boolean
+  onClose: () => void
+  onSaved: (newId?: string) => void
+  /** When set, edits an existing student. Otherwise creates new. */
+  studentId?: string | null
+}
+
+const inputStyle = {
+  padding: '8px 10px',
+  borderRadius: 8,
+  border: '0.5px solid var(--hairline)',
+  background: 'var(--surface-strong)',
+  color: 'var(--ink)',
+  font: 'inherit',
+  fontSize: 13.5,
+  width: '100%',
+}
+
+const EMPTY: Form = {
+  name: '',
+  email: '',
+  phone: '',
+  birthday: '',
+  padi_nr: '',
+  notes: '',
+  active: true,
+}
+
+export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
+  const isEdit = !!studentId
+  const [form, setForm] = useState<Form>(EMPTY)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    setError(null)
+    if (studentId) {
+      supabase
+        .from('students')
+        .select('name, email, phone, birthday, padi_nr, notes, active')
+        .eq('id', studentId)
+        .single()
+        .then(({ data }) => {
+          if (!data) return
+          setForm({
+            name: data.name ?? '',
+            email: data.email ?? '',
+            phone: data.phone ?? '',
+            birthday: data.birthday ?? '',
+            padi_nr: data.padi_nr ?? '',
+            notes: data.notes ?? '',
+            active: !!data.active,
+          })
+        })
+    } else {
+      setForm(EMPTY)
+    }
+  }, [open, studentId])
+
+  function set<K extends keyof Form>(k: K, v: Form[K]) {
+    setForm((prev) => ({ ...prev, [k]: v }))
+  }
+
+  async function save() {
+    if (!form.name.trim()) return
+    setSaving(true)
+    setError(null)
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim() || null,
+      phone: form.phone.trim() || null,
+      birthday: form.birthday || null,
+      padi_nr: form.padi_nr.trim() || null,
+      notes: form.notes.trim() || null,
+      active: form.active,
+    }
+    if (isEdit) {
+      const { error: updErr } = await supabase
+        .from('students')
+        .update(payload)
+        .eq('id', studentId!)
+      if (updErr) { setError(updErr.message); setSaving(false); return }
+      setSaving(false); onSaved(); onClose()
+    } else {
+      const { data: created, error: insErr } = await supabase
+        .from('students')
+        .insert(payload)
+        .select('id')
+        .single()
+      if (insErr) { setError(insErr.message); setSaving(false); return }
+      setSaving(false); onSaved(created?.id); onClose()
+    }
+  }
+
+  async function deleteStudent() {
+    if (!isEdit) return
+    if (!confirm('Schüler wirklich löschen? Falls er bereits Kursen zugewiesen ist, wird das Löschen blockiert — markier ihn dann lieber als inaktiv.')) return
+    setSaving(true)
+    const { error: delErr } = await supabase.from('students').delete().eq('id', studentId!)
+    setSaving(false)
+    if (delErr) { setError(delErr.message); return }
+    onSaved()
+    onClose()
+  }
+
+  return (
+    <Sheet open={open} onClose={onClose} title={isEdit ? 'Schüler bearbeiten' : 'Neuer Schüler'} width={520}>
+      <div style={{ display: 'grid', gap: 14 }}>
+        <div>
+          <Label>Name</Label>
+          <input
+            value={form.name}
+            onChange={(e) => set('name', e.target.value)}
+            placeholder="Vor- und Nachname"
+            style={inputStyle}
+          />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <Label>Email</Label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => set('email', e.target.value)}
+              placeholder="name@example.ch"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <Label>Telefon / WhatsApp</Label>
+            <input
+              value={form.phone}
+              onChange={(e) => set('phone', e.target.value)}
+              placeholder="+41 …"
+              style={inputStyle}
+            />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <Label>Geburtstag</Label>
+            <input
+              type="date"
+              value={form.birthday}
+              onChange={(e) => set('birthday', e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <Label>PADI-Nr (falls vorhanden)</Label>
+            <input
+              value={form.padi_nr}
+              onChange={(e) => set('padi_nr', e.target.value)}
+              placeholder="optional"
+              style={inputStyle}
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label>Notizen (medizinisch, Allergien, etc.)</Label>
+          <textarea
+            value={form.notes}
+            onChange={(e) => set('notes', e.target.value)}
+            rows={3}
+            style={{ ...inputStyle, resize: 'vertical' }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            id="active"
+            type="checkbox"
+            checked={form.active}
+            onChange={(e) => set('active', e.target.checked)}
+          />
+          <label htmlFor="active">Aktiv (erscheint in Anmelde-Vorschlägen)</label>
+        </div>
+
+        {error && <div className="chip chip-red">{error}</div>}
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          {isEdit && (
+            <button
+              className="btn-secondary btn"
+              onClick={deleteStudent}
+              disabled={saving}
+              style={{ color: '#FF3B30' }}
+            >
+              <Icon name="x" size={12} /> Löschen
+            </button>
+          )}
+          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button
+            className="btn"
+            onClick={save}
+            disabled={saving || !form.name.trim()}
+            style={{ flex: 1 }}
+          >
+            {saving ? 'Speichere…' : isEdit ? 'Speichern' : 'Anlegen'}
+          </button>
+        </div>
+      </div>
+    </Sheet>
+  )
+}
+
+function Label({ children }: { children: string }) {
+  return <div className="caption-2" style={{ marginBottom: 4 }}>{children.toUpperCase()}</div>
+}

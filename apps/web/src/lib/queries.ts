@@ -182,6 +182,76 @@ export async function fetchMyAvailability(instructorId: string): Promise<Availab
   return (data ?? []) as AvailabilityRow[]
 }
 
+// ============================================================
+// Students
+// ============================================================
+
+export interface Student {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+  birthday: string | null
+  padi_nr: string | null
+  notes: string | null
+  active: boolean
+  created_at: string
+}
+
+export async function fetchStudents(): Promise<Student[]> {
+  const { data, error } = await supabase
+    .from('students')
+    .select('id, name, email, phone, birthday, padi_nr, notes, active, created_at')
+    .order('name')
+  if (error) throw error
+  return (data ?? []) as Student[]
+}
+
+export interface CourseParticipant {
+  id: string
+  course_id: string
+  student_id: string
+  status: 'enrolled' | 'certified' | 'dropped'
+  enrolled_at: string
+  certificate_nr: string | null
+  notes: string | null
+  student?: Student | null
+  course?: {
+    id: string
+    title: string
+    start_date: string
+    status: string
+    course_type: { code: string; label: string } | null
+  } | null
+}
+
+export async function fetchCourseParticipants(courseId: string): Promise<CourseParticipant[]> {
+  const { data, error } = await supabase
+    .from('course_participants')
+    .select(`
+      id, course_id, student_id, status, enrolled_at, certificate_nr, notes,
+      student:students(id, name, email, phone, birthday, padi_nr, notes, active, created_at)
+    `)
+    .eq('course_id', courseId)
+  if (error) throw error
+  return (data ?? []) as unknown as CourseParticipant[]
+}
+
+export async function fetchStudentCourses(studentId: string): Promise<CourseParticipant[]> {
+  const { data, error } = await supabase
+    .from('course_participants')
+    .select(`
+      id, course_id, student_id, status, enrolled_at, certificate_nr, notes,
+      course:courses(id, title, start_date, status, course_type:course_types(code, label))
+    `)
+    .eq('student_id', studentId)
+  if (error) throw error
+  const sorted = (data ?? []).sort((a: any, b: any) =>
+    (b.course?.start_date ?? '').localeCompare(a.course?.start_date ?? ''),
+  )
+  return sorted as unknown as CourseParticipant[]
+}
+
 export async function fetchKpis(): Promise<Kpis> {
   const today = new Date().toISOString().slice(0, 10)
   const [totalRes, confirmedRes, instructorRes] = await Promise.all([

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { format, addDays, isSameDay, startOfDay } from 'date-fns'
+import { useEffect, useMemo, useState } from 'react'
+import { format, addDays, isSameDay, isWithinInterval, startOfDay } from 'date-fns'
 import { de } from 'date-fns/locale'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { Topbar } from '@/components/Topbar'
@@ -29,26 +29,66 @@ export function TodayScreen() {
 function DispatcherToday() {
   const { user } = useOutletContext<OutletCtx>()
   const [kpis, setKpis] = useState<Kpis | null>(null)
-  const [today, setToday] = useState<CourseRow[]>([])
-  const [thisWeek, setThisWeek] = useState<CourseRow[]>([])
+  /** All candidate courses (start_date in [today-60d .. today+7d]) — filtered client-side. */
+  const [candidates, setCandidates] = useState<CourseRow[]>([])
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
 
   useEffect(() => {
-    const todayStr = format(startOfDay(new Date()), 'yyyy-MM-dd')
+    const startStr = format(startOfDay(new Date()), 'yyyy-MM-dd')
     const weekEnd = format(addDays(new Date(), 7), 'yyyy-MM-dd')
     Promise.all([
       fetchKpis(),
-      fetchCoursesInRange(todayStr, todayStr),
-      fetchCoursesInRange(todayStr, weekEnd),
-    ]).then(async ([k, t, w]) => {
+      // Lower bound is widened by 60d inside fetchCoursesInRange, so courses
+      // that started weeks ago but have an additional_date today are included.
+      fetchCoursesInRange(startStr, weekEnd),
+    ]).then(async ([k, all]) => {
       setKpis(k)
-      setToday(t)
-      setThisWeek(w)
-      const ids = [...t, ...w].map((c) => c.id)
+      setCandidates(all)
+      const ids = all.map((c) => c.id)
       const a = await fetchAssignmentsForCourses(ids)
       setAssignments(a)
     })
   }, [])
+
+  const todayDate = startOfDay(new Date())
+  const weekEndDate = addDays(todayDate, 7)
+
+  /** Returns the union of start_date and additional_dates for a course. */
+  function courseDates(c: CourseRow): Date[] {
+    return [c.start_date, ...(c.additional_dates ?? [])]
+      .filter(Boolean)
+      .map((d) => new Date(d))
+  }
+
+  const today = useMemo(
+    () =>
+      candidates
+        .filter((c) => c.status !== 'completed' && c.status !== 'cancelled')
+        .filter((c) => courseDates(c).some((d) => isSameDay(d, todayDate))),
+    [candidates],
+  )
+
+  const thisWeek = useMemo(
+    () =>
+      candidates
+        .filter((c) => c.status !== 'completed' && c.status !== 'cancelled')
+        .filter((c) =>
+          courseDates(c).some((d) =>
+            isWithinInterval(d, { start: todayDate, end: weekEndDate }),
+          ),
+        )
+        // Sort by earliest matching date inside the interval
+        .sort((a, b) => {
+          const aDate = courseDates(a).find((d) =>
+            isWithinInterval(d, { start: todayDate, end: weekEndDate }),
+          )
+          const bDate = courseDates(b).find((d) =>
+            isWithinInterval(d, { start: todayDate, end: weekEndDate }),
+          )
+          return (aDate?.getTime() ?? 0) - (bDate?.getTime() ?? 0)
+        }),
+    [candidates],
+  )
 
   const todayLabel = format(new Date(), 'EEEE, d. MMMM', { locale: de })
   const weekCount = thisWeek.length
@@ -145,7 +185,12 @@ function DispatcherToday() {
               <div className="caption">Keine Kurse die nächsten 7 Tage.</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {thisWeek.slice(0, 8).map((c) => (
+                {thisWeek.slice(0, 8).map((c) => {
+                  // Find the earliest date of this course that falls inside the week interval
+                  const relevantDate = courseDates(c).find((d) =>
+                    isWithinInterval(d, { start: todayDate, end: weekEndDate }),
+                  )
+                  return (
                   <div
                     key={c.id}
                     style={{
@@ -156,13 +201,14 @@ function DispatcherToday() {
                     }}
                   >
                     <div className="mono caption" style={{ width: 50, flexShrink: 0 }}>
-                      {format(new Date(c.start_date), 'd. MMM', { locale: de })}
+                      {relevantDate ? format(relevantDate, 'd. MMM', { locale: de }) : '—'}
                     </div>
                     <div style={{ flex: 1, fontSize: 13 }}>
                       <div style={{ fontWeight: 500 }}>{c.title}</div>
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>

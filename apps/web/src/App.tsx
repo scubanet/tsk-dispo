@@ -14,6 +14,7 @@ import { PoolScreen } from '@/screens/PoolScreen'
 import { SaldiScreen } from '@/screens/SaldiScreen'
 import { CalendarScreen } from '@/screens/CalendarScreen'
 import { SettingsScreen } from '@/screens/SettingsScreen'
+import { StudentsScreen } from '@/screens/StudentsScreen'
 import { MyAssignmentsScreen } from '@/screens/MyAssignmentsScreen'
 import { MySaldoScreen } from '@/screens/MySaldoScreen'
 import { MyProfileScreen } from '@/screens/MyProfileScreen'
@@ -52,6 +53,8 @@ function App() {
           <Route path="/kurse/:id"              element={<CoursesScreen />} />
           <Route path="/tldm"                   element={<InstructorsScreen />} />
           <Route path="/tldm/:id"               element={<InstructorsScreen />} />
+          <Route path="/schueler"               element={<StudentsScreen />} />
+          <Route path="/schueler/:id"           element={<StudentsScreen />} />
           <Route path="/skills"                 element={<SkillMatrixScreen />} />
           <Route path="/pool"                   element={<PoolScreen />} />
           <Route path="/saldi"                  element={<SaldiScreen />} />

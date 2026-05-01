@@ -2,34 +2,50 @@ import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
 import clsx from 'clsx'
-import { useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import { Avatar } from '@/components/Avatar'
 import { Chip } from '@/components/Chip'
 import { Icon } from '@/components/Icon'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { tplNewCourse, tplCancellation, waGroupShareUrl } from '@/lib/whatsapp'
-import { fetchAllCourses, fetchCourseAssignments, type CourseDetail, type AssignmentRow } from '@/lib/queries'
+import {
+  fetchAllCourses,
+  fetchCourseAssignments,
+  fetchCourseParticipants,
+  type CourseDetail,
+  type AssignmentRow,
+  type CourseParticipant,
+} from '@/lib/queries'
+import { initialsFromName } from '@/lib/format'
 import { CourseEditSheet } from './CourseEditSheet'
 import { AssignmentEditSheet } from './AssignmentEditSheet'
+import { EnrollStudentSheet } from './EnrollStudentSheet'
+import { StudentEditSheet } from './StudentEditSheet'
 import type { OutletCtx } from '@/layout/AppShell'
 
-type Tab = 'overview' | 'assignments' | 'notes'
+type Tab = 'overview' | 'assignments' | 'participants' | 'notes'
 
 const TABS: { value: Tab; label: string }[] = [
   { value: 'overview',     label: 'Übersicht' },
-  { value: 'assignments',  label: 'Zuweisungen' },
+  { value: 'assignments',  label: 'TL/DM' },
+  { value: 'participants', label: 'Teilnehmer' },
   { value: 'notes',        label: 'Notizen' },
 ]
 
 export function CourseDetailPanel({ courseId }: { courseId: string }) {
   const { user } = useOutletContext<OutletCtx>()
+  const navigate = useNavigate()
   const isDispatcher = user.role === 'dispatcher'
   const [course, setCourse] = useState<CourseDetail | null>(null)
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
+  const [participants, setParticipants] = useState<CourseParticipant[]>([])
   const [tab, setTab] = useState<Tab>('overview')
   const [editCourseOpen, setEditCourseOpen] = useState(false)
   const [editAssignmentOpen, setEditAssignmentOpen] = useState(false)
   const [editingAssignment, setEditingAssignment] = useState<AssignmentRow | null>(null)
+  const [enrollOpen, setEnrollOpen] = useState(false)
+  const [editingParticipation, setEditingParticipation] = useState<CourseParticipant | null>(null)
+  const [newStudentOpen, setNewStudentOpen] = useState(false)
   const [refreshTick, setRefreshTick] = useState(0)
 
   function refresh() {
@@ -39,6 +55,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   useEffect(() => {
     fetchAllCourses().then((all) => setCourse(all.find((c) => c.id === courseId) ?? null))
     fetchCourseAssignments(courseId).then(setAssignments)
+    fetchCourseParticipants(courseId).then(setParticipants)
   }, [courseId, refreshTick])
 
   if (!course) return <div style={{ padding: 40 }} className="caption">Lade…</div>
@@ -108,6 +125,9 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
             {t.label}
             {t.value === 'assignments' && (
               <span className="caption" style={{ marginLeft: 6 }}>· {assignments.length}</span>
+            )}
+            {t.value === 'participants' && (
+              <span className="caption" style={{ marginLeft: 6 }}>· {participants.length}</span>
             )}
           </button>
         ))}
@@ -195,6 +215,106 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
           )}
         </div>
       )}
+
+      {tab === 'participants' && (
+        <div style={{ display: 'grid', gap: 10 }}>
+          {isDispatcher && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                className="btn"
+                onClick={() => {
+                  setEditingParticipation(null)
+                  setEnrollOpen(true)
+                }}
+              >
+                <Icon name="plus" size={14} /> Schüler anmelden
+              </button>
+              <div className="caption" style={{ alignSelf: 'center' }}>
+                {participants.filter((p) => p.status === 'enrolled').length} angemeldet ·{' '}
+                {participants.filter((p) => p.status === 'certified').length} zertifiziert
+              </div>
+            </div>
+          )}
+
+          {participants.length === 0 ? (
+            <div className="caption">Noch keine Teilnehmer.</div>
+          ) : (
+            participants.map((p) => (
+              <div
+                key={p.id}
+                className="glass-thin"
+                style={{
+                  padding: 12,
+                  borderRadius: 12,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  cursor: isDispatcher ? 'pointer' : 'default',
+                }}
+                onClick={() => {
+                  if (!isDispatcher) return
+                  setEditingParticipation(p)
+                  setEnrollOpen(true)
+                }}
+              >
+                {p.student && (
+                  <Avatar initials={initialsFromName(p.student.name)} color="#34C759" size="sm" />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{ fontWeight: 500, cursor: 'pointer' }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (p.student) navigate(`/schueler/${p.student.id}`)
+                    }}
+                  >
+                    {p.student?.name ?? '—'}
+                  </div>
+                  <div className="caption">
+                    {[p.student?.padi_nr ? `PADI ${p.student.padi_nr}` : null, p.student?.email]
+                      .filter(Boolean)
+                      .join(' · ') || '—'}
+                  </div>
+                </div>
+                {p.certificate_nr && (
+                  <Chip tone="green">Zert: {p.certificate_nr}</Chip>
+                )}
+                <Chip
+                  tone={
+                    p.status === 'certified' ? 'green' :
+                    p.status === 'dropped'   ? 'red' : 'orange'
+                  }
+                >
+                  {p.status === 'enrolled' ? 'angemeldet' :
+                   p.status === 'certified' ? 'zertifiziert' : 'abgebrochen'}
+                </Chip>
+                {isDispatcher && <Icon name="chevron-right" size={14} />}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      <EnrollStudentSheet
+        open={enrollOpen}
+        onClose={() => setEnrollOpen(false)}
+        onSaved={refresh}
+        courseId={courseId}
+        existingParticipation={editingParticipation as any}
+        alreadyEnrolledStudentIds={participants.map((p) => p.student_id)}
+        onNewStudent={() => setNewStudentOpen(true)}
+      />
+
+      <StudentEditSheet
+        open={newStudentOpen}
+        onClose={() => setNewStudentOpen(false)}
+        onSaved={() => {
+          setNewStudentOpen(false)
+          // Re-open the enroll sheet so the dispatcher can finish picking the new student
+          setEnrollOpen(true)
+        }}
+        studentId={null}
+      />
 
       {tab === 'notes' && (
         <div>
