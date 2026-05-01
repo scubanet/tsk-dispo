@@ -4,7 +4,6 @@ import { addDays, format, startOfWeek, addWeeks, subWeeks } from 'date-fns'
 import { de } from 'date-fns/locale'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
-import { Chip } from '@/components/Chip'
 import { supabase } from '@/lib/supabase'
 import { POOL_LOCATIONS, type PoolLocation } from '@/lib/queries'
 
