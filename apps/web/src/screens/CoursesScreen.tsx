@@ -11,12 +11,15 @@ import { fetchAllCourses, type CourseDetail } from '@/lib/queries'
 import { CourseDetailPanel } from './CourseDetailPanel'
 import { CourseEditSheet } from './CourseEditSheet'
 
+type Filter = 'open' | 'confirmed' | 'tentative' | 'completed' | 'cancelled' | 'all'
+
 export function CoursesScreen() {
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const [courses, setCourses] = useState<CourseDetail[]>([])
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'all' | 'confirmed' | 'tentative' | 'cancelled'>('all')
+  // Default 'open' = alles außer 'completed' (abgeschlossene Kurse standardmäßig ausblenden)
+  const [filter, setFilter] = useState<Filter>('open')
   const [editOpen, setEditOpen] = useState(false)
 
   function refetch() {
@@ -26,19 +29,35 @@ export function CoursesScreen() {
   useEffect(() => { refetch() }, [])
 
   const filtered = useMemo(() => {
-    return courses.filter((c) => {
-      if (filter !== 'all' && c.status !== filter) return false
-      if (search) {
-        const q = search.toLowerCase()
-        return (
+    let arr = courses.filter((c) => {
+      switch (filter) {
+        case 'all':       return true
+        case 'open':      return c.status !== 'completed'
+        case 'confirmed': return c.status === 'confirmed'
+        case 'tentative': return c.status === 'tentative'
+        case 'completed': return c.status === 'completed'
+        case 'cancelled': return c.status === 'cancelled'
+      }
+    })
+    if (search) {
+      const q = search.toLowerCase()
+      arr = arr.filter(
+        (c) =>
           c.title.toLowerCase().includes(q) ||
           c.course_type?.code.toLowerCase().includes(q) ||
-          c.course_type?.label.toLowerCase().includes(q)
-        )
-      }
-      return true
-    })
+          c.course_type?.label.toLowerCase().includes(q),
+      )
+    }
+    // Chronologisch nach Startdatum (frühester oben)
+    arr = [...arr].sort((a, b) => a.start_date.localeCompare(b.start_date))
+    return arr
   }, [courses, search, filter])
+
+  const counts = useMemo(() => {
+    const c = { confirmed: 0, tentative: 0, completed: 0, cancelled: 0 }
+    for (const x of courses) c[x.status as keyof typeof c]++
+    return c
+  }, [courses])
 
   const selected = courses.find((c) => c.id === id) ?? null
 
@@ -60,12 +79,13 @@ export function CoursesScreen() {
 
       <div className="master-detail">
         <div className="master">
-          <div style={{ padding: '12px 16px', borderBottom: '0.5px solid var(--separator)' }}>
+          <div style={{ padding: '12px 16px', borderBottom: '0.5px solid var(--separator)', display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div className="seg">
               <button
-                className={clsx(filter === 'all' && 'active')}
-                onClick={() => setFilter('all')}
-              >Alle</button>
+                className={clsx(filter === 'open' && 'active')}
+                onClick={() => setFilter('open')}
+                title="alle außer abgeschlossen"
+              >Aktiv</button>
               <button
                 className={clsx(filter === 'confirmed' && 'active')}
                 onClick={() => setFilter('confirmed')}
@@ -75,9 +95,20 @@ export function CoursesScreen() {
                 onClick={() => setFilter('tentative')}
               >Evtl.</button>
               <button
+                className={clsx(filter === 'completed' && 'active')}
+                onClick={() => setFilter('completed')}
+              >Done</button>
+              <button
                 className={clsx(filter === 'cancelled' && 'active')}
                 onClick={() => setFilter('cancelled')}
               >CXL</button>
+              <button
+                className={clsx(filter === 'all' && 'active')}
+                onClick={() => setFilter('all')}
+              >Alle</button>
+            </div>
+            <div className="caption-2">
+              {filtered.length} sichtbar · {counts.confirmed} sicher · {counts.tentative} evtl. · {counts.completed} done · {counts.cancelled} cxl
             </div>
           </div>
 
@@ -100,8 +131,14 @@ export function CoursesScreen() {
                     {format(new Date(c.start_date), 'dd. MMM', { locale: de })}
                   </div>
                 </div>
-                <Chip tone={c.status === 'confirmed' ? 'green' : c.status === 'tentative' ? 'orange' : 'red'}>
-                  {c.status === 'confirmed' ? 'sicher' : c.status === 'tentative' ? 'evtl.' : 'cxl'}
+                <Chip tone={
+                  c.status === 'confirmed' ? 'green' :
+                  c.status === 'tentative' ? 'orange' :
+                  c.status === 'completed' ? 'purple' : 'red'
+                }>
+                  {c.status === 'confirmed' ? 'sicher' :
+                   c.status === 'tentative' ? 'evtl.' :
+                   c.status === 'completed' ? 'done' : 'cxl'}
                 </Chip>
               </div>
             ))

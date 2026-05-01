@@ -4,7 +4,8 @@ export interface CourseRow {
   id: string
   title: string
   start_date: string
-  status: 'confirmed' | 'tentative' | 'cancelled'
+  additional_dates: string[]
+  status: 'confirmed' | 'tentative' | 'completed' | 'cancelled'
   num_participants: number
   course_type: { code: string; label: string } | null
 }
@@ -28,13 +29,20 @@ export interface AssignmentRow {
 }
 
 export async function fetchCoursesInRange(from: string, to: string): Promise<CourseRow[]> {
+  // Note: we widen the lower bound by 60 days to catch courses whose start_date
+  // is BEFORE the visible range but whose additional_dates fall inside it.
+  // Client-side filtering then matches against the union of [start_date, ...additional_dates].
+  const widened = new Date(from)
+  widened.setDate(widened.getDate() - 60)
+  const widenedFrom = widened.toISOString().slice(0, 10)
+
   const { data, error } = await supabase
     .from('courses')
     .select(`
-      id, title, start_date, status, num_participants,
+      id, title, start_date, additional_dates, status, num_participants,
       course_type:course_types(code, label)
     `)
-    .gte('start_date', from)
+    .gte('start_date', widenedFrom)
     .lte('start_date', to)
     .order('start_date')
   if (error) throw error

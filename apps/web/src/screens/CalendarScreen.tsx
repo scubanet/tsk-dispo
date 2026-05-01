@@ -31,18 +31,35 @@ const TYPE_COLORS: Record<string, string> = {
   DRY: '#30B0C7',
   DM: '#AF52DE',
   EFR: '#FF9500',
+  EFRI: '#FF9500',
   RESC: '#FF3B30',
   EAN: '#5AC8FA',
+  IDC: '#FF2D55',
 }
 
 function colorForType(code?: string): string {
   if (!code) return '#8E8E93'
-  return TYPE_COLORS[code] ?? '#8E8E93'
+  if (TYPE_COLORS[code]) return TYPE_COLORS[code]
+  if (code.startsWith('SPEI_')) return '#AF52DE'   // alle SPEIs in lila
+  if (code.startsWith('SPEC_')) return '#30B0C7'   // alle Specialties in türkis
+  return '#8E8E93'
+}
+
+/** All dates a course occupies (start + zero or more additional). */
+function courseDates(c: CourseRow): string[] {
+  return [c.start_date, ...(c.additional_dates ?? [])]
+}
+
+/** Returns courses whose ANY date matches the given day. */
+function coursesOnDay(all: CourseRow[], day: Date): CourseRow[] {
+  return all.filter((c) =>
+    courseDates(c).some((d) => d && isSameDay(new Date(d), day)),
+  )
 }
 
 export function CalendarScreen() {
   const navigate = useNavigate()
-  const [mode, setMode] = useState<Mode>('week')
+  const [mode, setMode] = useState<Mode>('month')
   const [anchor, setAnchor] = useState<Date>(new Date())
   const [courses, setCourses] = useState<CourseRow[]>([])
 
@@ -134,7 +151,7 @@ function WeekView({
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minHeight: 400 }}>
         {days.map((d) => {
-          const dayCourses = courses.filter((c) => isSameDay(new Date(c.start_date), d))
+          const dayCourses = coursesOnDay(courses, d)
           return (
             <div
               key={d.toISOString()}
@@ -147,27 +164,67 @@ function WeekView({
                 minHeight: 200,
               }}
             >
-              {dayCourses.map((c) => (
-                <div
-                  key={c.id}
-                  onClick={() => onClickCourse(c.id)}
-                  style={{
-                    background: 'var(--surface-strong)',
-                    borderLeft: `3px solid ${colorForType(c.course_type?.code)}`,
-                    borderRadius: 8,
-                    padding: '6px 8px',
-                    fontSize: 11,
-                    cursor: 'pointer',
-                    opacity: c.status === 'cancelled' ? 0.5 : 1,
-                    textDecoration: c.status === 'cancelled' ? 'line-through' : 'none',
-                  }}
-                >
-                  <div style={{ fontWeight: 600 }}>{c.course_type?.code}</div>
-                  <div style={{ fontSize: 10.5, color: 'var(--ink-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {c.title}
+              {dayCourses.map((c) => {
+                const allDates = courseDates(c)
+                const isMultiDay = allDates.length > 1
+                const dayIndex = allDates.findIndex((dt) => dt && isSameDay(new Date(dt), d))
+                return (
+                  <div
+                    key={c.id}
+                    onClick={() => onClickCourse(c.id)}
+                    style={{
+                      background: 'var(--surface-strong)',
+                      borderLeft: `3px solid ${colorForType(c.course_type?.code)}`,
+                      borderRadius: 8,
+                      padding: '6px 8px',
+                      fontSize: 11,
+                      cursor: 'pointer',
+                      opacity: c.status === 'cancelled' ? 0.5 : 1,
+                      textDecoration: c.status === 'cancelled' ? 'line-through' : 'none',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 11.5,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title={c.title}
+                    >
+                      {c.title}
+                    </div>
+                    <div
+                      className="caption-2"
+                      style={{
+                        marginTop: 2,
+                        display: 'flex',
+                        gap: 6,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span
+                        style={{
+                          background: colorForType(c.course_type?.code) + '22',
+                          color: colorForType(c.course_type?.code),
+                          padding: '0 6px',
+                          borderRadius: 4,
+                          fontWeight: 600,
+                          fontSize: 9.5,
+                        }}
+                      >
+                        {c.course_type?.code ?? '—'}
+                      </span>
+                      {isMultiDay && (
+                        <span style={{ fontSize: 9.5, color: 'var(--ink-3)' }}>
+                          Tag {dayIndex + 1}/{allDates.length}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )
         })}
@@ -200,14 +257,14 @@ function MonthView({
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
         {days.map((d) => {
-          const dayCourses = courses.filter((c) => isSameDay(new Date(c.start_date), d))
+          const dayCourses = coursesOnDay(courses, d)
           const inMonth = isSameMonth(d, anchor)
           return (
             <div
               key={d.toISOString()}
               style={{
                 padding: 8,
-                minHeight: 100,
+                minHeight: 110,
                 borderRight: '0.5px solid var(--separator)',
                 borderTop: '0.5px solid var(--separator)',
                 opacity: inMonth ? 1 : 0.4,
@@ -217,30 +274,36 @@ function MonthView({
               <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 4 }}>
                 {format(d, 'd', { locale: de })}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {dayCourses.slice(0, 3).map((c) => (
-                  <div
-                    key={c.id}
-                    onClick={() => onClickCourse(c.id)}
-                    style={{
-                      fontSize: 10,
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                      background: colorForType(c.course_type?.code) + '22',
-                      color: colorForType(c.course_type?.code),
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      fontWeight: 600,
-                      opacity: c.status === 'cancelled' ? 0.5 : 1,
-                    }}
-                  >
-                    {c.course_type?.code}
-                  </div>
-                ))}
-                {dayCourses.length > 3 && (
-                  <div className="caption-2">+{dayCourses.length - 3} mehr</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {dayCourses.slice(0, 4).map((c) => {
+                  const isMultiDay = (c.additional_dates?.length ?? 0) > 0
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => onClickCourse(c.id)}
+                      title={c.title}
+                      style={{
+                        fontSize: 10.5,
+                        padding: '2px 6px',
+                        borderRadius: 4,
+                        background: colorForType(c.course_type?.code) + '22',
+                        color: colorForType(c.course_type?.code),
+                        cursor: 'pointer',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        fontWeight: 500,
+                        opacity: c.status === 'cancelled' ? 0.5 : 1,
+                        textDecoration: c.status === 'cancelled' ? 'line-through' : 'none',
+                        borderLeft: isMultiDay ? `2px solid ${colorForType(c.course_type?.code)}` : undefined,
+                      }}
+                    >
+                      {c.title}
+                    </div>
+                  )
+                })}
+                {dayCourses.length > 4 && (
+                  <div className="caption-2">+{dayCourses.length - 4} mehr</div>
                 )}
               </div>
             </div>

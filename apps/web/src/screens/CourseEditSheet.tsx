@@ -33,6 +33,7 @@ const inputStyle = {
 const STATUSES = [
   { value: 'tentative', label: 'evtl.' },
   { value: 'confirmed', label: 'sicher' },
+  { value: 'completed', label: 'abgeschlossen' },
   { value: 'cancelled', label: 'CXL' },
 ] as const
 
@@ -44,7 +45,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
 
   const [typeId, setTypeId] = useState('')
   const [title, setTitle] = useState('')
-  const [status, setStatus] = useState<'tentative' | 'confirmed' | 'cancelled'>('tentative')
+  const [status, setStatus] = useState<'tentative' | 'confirmed' | 'completed' | 'cancelled'>('tentative')
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10))
   const [additionalDates, setAdditionalDates] = useState<string[]>([])
   const [numParticipants, setNumParticipants] = useState(0)

@@ -324,7 +324,8 @@ function InstructorToday() {
 function Session({ course, assignments }: { course: CourseRow; assignments: AssignmentRow[] }) {
   const tone =
     course.status === 'cancelled' ? 'red' :
-    course.status === 'tentative' ? 'orange' : 'accent'
+    course.status === 'tentative' ? 'orange' :
+    course.status === 'completed' ? 'purple' : 'accent'
   return (
     <>
       <div className="tl-time">{course.course_type?.code ?? '—'}</div>

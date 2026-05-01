@@ -45,7 +45,8 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
 
   const tone =
     course.status === 'cancelled' ? 'red' :
-    course.status === 'tentative' ? 'orange' : 'green'
+    course.status === 'tentative' ? 'orange' :
+    course.status === 'completed' ? 'purple' : 'green'
 
   const haupt = assignments.find((a) => a.role === 'haupt')
   const announceUrl = waGroupShareUrl(
