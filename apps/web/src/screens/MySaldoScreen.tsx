@@ -181,8 +181,8 @@ function BreakdownTable({ breakdown }: { breakdown: Record<string, unknown> }) {
     <table style={{ fontSize: 12, width: '100%' }}>
       <tbody>
         {rows.map(([k, v]) => (
-          <tr key={k as string}>
-            <td className="caption" style={{ padding: '2px 0' }}>{k}</td>
+          <tr key={String(k)}>
+            <td className="caption" style={{ padding: '2px 0' }}>{String(k)}</td>
             <td align="right" className="mono" style={{ padding: '2px 0' }}>{String(v)}</td>
           </tr>
         ))}

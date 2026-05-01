@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
-import { format } from 'date-fns'
-import { de } from 'date-fns/locale'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { Chip } from '@/components/Chip'
 import { supabase } from '@/lib/supabase'
 
 interface CourseType { id: string; code: string; label: string }
