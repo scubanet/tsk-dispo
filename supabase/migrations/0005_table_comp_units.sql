@@ -1,5 +1,5 @@
 CREATE TABLE comp_units (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   course_type_id UUID NOT NULL REFERENCES course_types(id) ON DELETE CASCADE,
   role assignment_role NOT NULL,
   theory_h NUMERIC(5,2) NOT NULL DEFAULT 0,

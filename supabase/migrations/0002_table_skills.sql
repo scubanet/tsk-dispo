@@ -1,5 +1,5 @@
 CREATE TABLE skills (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT NOT NULL UNIQUE,
   label TEXT NOT NULL,
   category TEXT,

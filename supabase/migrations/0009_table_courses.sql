@@ -1,5 +1,5 @@
 CREATE TABLE courses (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   type_id UUID NOT NULL REFERENCES course_types(id),
   title TEXT NOT NULL,
   status course_status NOT NULL DEFAULT 'tentative',

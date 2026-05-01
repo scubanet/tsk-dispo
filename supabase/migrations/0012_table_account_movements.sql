@@ -1,5 +1,5 @@
 CREATE TABLE account_movements (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   instructor_id UUID NOT NULL REFERENCES instructors(id) ON DELETE RESTRICT,
   date DATE NOT NULL,
   amount_chf NUMERIC(10,2) NOT NULL,

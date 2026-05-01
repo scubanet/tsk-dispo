@@ -1,5 +1,5 @@
 CREATE TABLE pool_bookings (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   date DATE NOT NULL,
   time_from TIME,
   time_to   TIME,

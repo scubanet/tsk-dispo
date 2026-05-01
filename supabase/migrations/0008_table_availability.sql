@@ -1,5 +1,5 @@
 CREATE TABLE availability (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   instructor_id UUID NOT NULL REFERENCES instructors(id) ON DELETE CASCADE,
   from_date DATE NOT NULL,
   to_date   DATE NOT NULL,

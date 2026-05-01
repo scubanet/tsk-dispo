@@ -1,5 +1,5 @@
 CREATE TABLE comp_rates (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   level padi_level NOT NULL,
   hourly_rate_chf NUMERIC(8,2) NOT NULL,
   valid_from DATE NOT NULL DEFAULT '2026-01-01',

@@ -1,5 +1,5 @@
 CREATE TABLE import_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   source_filename TEXT NOT NULL,
   storage_path TEXT NOT NULL,
   status TEXT NOT NULL CHECK (status IN ('uploaded', 'mapping', 'dryrun', 'success', 'failed', 'cancelled')),

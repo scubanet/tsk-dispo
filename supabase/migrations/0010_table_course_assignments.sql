@@ -1,5 +1,5 @@
 CREATE TABLE course_assignments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   course_id     UUID NOT NULL REFERENCES courses(id)     ON DELETE CASCADE,
   instructor_id UUID NOT NULL REFERENCES instructors(id) ON DELETE RESTRICT,
   role assignment_role NOT NULL,
