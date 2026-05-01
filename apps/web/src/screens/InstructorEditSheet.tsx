@@ -5,7 +5,7 @@ import { Avatar } from '@/components/Avatar'
 import { supabase } from '@/lib/supabase'
 import { initialsFromName } from '@/lib/format'
 
-const PADI_LEVELS = ['DM', 'AI', 'OWSI', 'MSDT', 'MI', 'CD', 'Shop Staff', 'Andere'] as const
+const PADI_LEVELS = ['DM', 'AI', 'OWSI', 'MSDT', 'IDC Staff', 'MI', 'CD', 'Shop Staff', 'Andere'] as const
 const ROLES = ['instructor', 'dispatcher', 'owner'] as const
 const COLORS = [
   '#0A84FF', '#30B0C7', '#34C759', '#AF52DE', '#FF9500',
