@@ -11,7 +11,9 @@ COMMENT ON COLUMN instructors.excel_saldo_chf IS
 -- Update v_saldo_diff to compare app_balance vs excel_saldo (col 7),
 -- not vs opening_balance (col 3). Diff now means: "movements not yet
 -- replayable in App" (e.g., Guru-Bezüge, manual corrections).
-CREATE OR REPLACE VIEW v_saldo_diff AS
+-- DROP first because Postgres rejects column-rename via CREATE OR REPLACE.
+DROP VIEW IF EXISTS v_saldo_diff;
+CREATE VIEW v_saldo_diff AS
 SELECT
   i.id AS instructor_id,
   i.name,
