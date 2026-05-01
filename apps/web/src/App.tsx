@@ -4,8 +4,19 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { LoginScreen } from '@/screens/LoginScreen'
 import { AuthCallback } from '@/screens/AuthCallback'
-import { HomeShell } from '@/screens/HomeShell'
 import { ImportWizard } from '@/screens/ImportWizard'
+import { AppShell } from '@/layout/AppShell'
+import { TodayScreen } from '@/screens/TodayScreen'
+import { CoursesScreen } from '@/screens/CoursesScreen'
+import { InstructorsScreen } from '@/screens/InstructorsScreen'
+import { SkillMatrixScreen } from '@/screens/SkillMatrixScreen'
+import { PoolScreen } from '@/screens/PoolScreen'
+import { SaldiScreen } from '@/screens/SaldiScreen'
+import { CalendarScreen } from '@/screens/CalendarScreen'
+import { SettingsScreen } from '@/screens/SettingsScreen'
+import { MyAssignmentsScreen } from '@/screens/MyAssignmentsScreen'
+import { MySaldoScreen } from '@/screens/MySaldoScreen'
+import { MyProfileScreen } from '@/screens/MyProfileScreen'
 
 function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -32,15 +43,25 @@ function App() {
           element={session ? <Navigate to="/heute" replace /> : <LoginScreen />}
         />
         <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route
-          path="/heute"
-          element={session ? <HomeShell /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/einstellungen/import"
-          element={session ? <ImportWizard /> : <Navigate to="/login" replace />}
-        />
-        <Route path="*" element={<Navigate to={session ? '/heute' : '/login'} replace />} />
+
+        {/* All authenticated routes wrapped in AppShell */}
+        <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
+          <Route path="/heute"                  element={<TodayScreen />} />
+          <Route path="/kalender"               element={<CalendarScreen />} />
+          <Route path="/kurse"                  element={<CoursesScreen />} />
+          <Route path="/kurse/:id"              element={<CoursesScreen />} />
+          <Route path="/tldm"                   element={<InstructorsScreen />} />
+          <Route path="/tldm/:id"               element={<InstructorsScreen />} />
+          <Route path="/skills"                 element={<SkillMatrixScreen />} />
+          <Route path="/pool"                   element={<PoolScreen />} />
+          <Route path="/saldi"                  element={<SaldiScreen />} />
+          <Route path="/einstellungen"          element={<SettingsScreen />} />
+          <Route path="/einstellungen/import"   element={<ImportWizard />} />
+          <Route path="/einsaetze"              element={<MyAssignmentsScreen />} />
+          <Route path="/saldo"                  element={<MySaldoScreen />} />
+          <Route path="/profil"                 element={<MyProfileScreen />} />
+          <Route path="*"                       element={<Navigate to="/heute" replace />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )
