@@ -24,9 +24,7 @@ CREATE TABLE IF NOT EXISTS student_certifications (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-COMMENT ON TABLE student_certifications IS
-  'Manuell eingetragene Zertifikate des Schülers — auch externe / historische, ' ||
-  'unabhängig davon ob der Kurs bei TSK stattfand.';
+COMMENT ON TABLE student_certifications IS 'Manuell eingetragene Zertifikate des Schülers — auch externe / historische, unabhängig davon ob der Kurs bei TSK stattfand.';
 
 CREATE INDEX IF NOT EXISTS idx_student_certifications_student
   ON student_certifications(student_id);
