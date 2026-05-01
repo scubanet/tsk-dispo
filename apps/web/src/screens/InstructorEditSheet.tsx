@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { Avatar } from '@/components/Avatar'
+import { Chip } from '@/components/Chip'
 import { supabase } from '@/lib/supabase'
 import { initialsFromName } from '@/lib/format'
 
@@ -34,6 +35,13 @@ interface Form {
   role: string
 }
 
+interface Skill {
+  id: string
+  code: string
+  label: string
+  category: string | null
+}
+
 interface Props {
   instructorId: string
   open: boolean
@@ -45,6 +53,9 @@ interface Props {
 export function InstructorEditSheet({ instructorId, open, onClose, onSaved, currentUserAuthId }: Props) {
   const [form, setForm] = useState<Form | null>(null)
   const [authUserId, setAuthUserId] = useState<string | null>(null)
+  const [allSkills, setAllSkills] = useState<Skill[]>([])
+  const [skillSet, setSkillSet] = useState<Set<string>>(new Set())
+  const [skillCategory, setSkillCategory] = useState<string>('all')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -69,7 +80,49 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
         })
         setAuthUserId(data.auth_user_id)
       })
+
+    supabase
+      .from('skills')
+      .select('id, code, label, category')
+      .order('label')
+      .then(({ data }) => setAllSkills((data ?? []) as Skill[]))
+
+    supabase
+      .from('instructor_skills')
+      .select('skill_id')
+      .eq('instructor_id', instructorId)
+      .then(({ data }) =>
+        setSkillSet(new Set((data ?? []).map((d: any) => d.skill_id))),
+      )
   }, [open, instructorId])
+
+  const categories = useMemo(() => {
+    const set = new Set<string>()
+    allSkills.forEach((s) => s.category && set.add(s.category))
+    return ['all', ...Array.from(set).sort()]
+  }, [allSkills])
+
+  const filteredSkills = useMemo(() => {
+    if (skillCategory === 'all') return allSkills
+    return allSkills.filter((s) => s.category === skillCategory)
+  }, [allSkills, skillCategory])
+
+  async function toggleSkill(skillId: string) {
+    const next = new Set(skillSet)
+    if (next.has(skillId)) {
+      next.delete(skillId)
+      await supabase
+        .from('instructor_skills')
+        .delete()
+        .match({ instructor_id: instructorId, skill_id: skillId })
+    } else {
+      next.add(skillId)
+      await supabase
+        .from('instructor_skills')
+        .insert({ instructor_id: instructorId, skill_id: skillId })
+    }
+    setSkillSet(next)
+  }
 
   function set<K extends keyof Form>(k: K, v: Form[K]) {
     setForm((prev) => (prev ? { ...prev, [k]: v } : prev))
@@ -172,13 +225,16 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
             />
           </Field>
 
-          <Field label="Telefon (optional)">
+          <Field label="Telefon / WhatsApp (optional)">
             <input
               value={form.phone}
               onChange={(e) => set('phone', e.target.value)}
-              placeholder="+41 …"
+              placeholder="+41 79 …"
               style={inputStyle}
             />
+            <div className="caption-2" style={{ marginTop: 4 }}>
+              Internationales Format. Aktiviert den "WhatsApp-Direkt"-Button im TL/DM-Detail.
+            </div>
           </Field>
 
           <Field label="Rolle">
@@ -199,6 +255,50 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
               onChange={(e) => set('active', e.target.checked)}
             />
             <label htmlFor="active">Aktiv (erscheint in Dispo-Vorschlägen)</label>
+          </div>
+
+          <div style={{ marginTop: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <div className="caption-2">
+                SKILLS ({skillSet.size}/{allSkills.length})
+              </div>
+              <select
+                value={skillCategory}
+                onChange={(e) => setSkillCategory(e.target.value)}
+                style={{ ...inputStyle, width: 'auto', padding: '4px 8px' }}
+              >
+                {categories.map((c) => (
+                  <option key={c} value={c}>{c === 'all' ? 'Alle' : c}</option>
+                ))}
+              </select>
+            </div>
+            <div className="caption-2" style={{ marginBottom: 8 }}>
+              Klick zum An-/Abwählen. Speichert sofort, kein "Speichern"-Klick nötig.
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 220, overflow: 'auto', padding: 4 }}>
+              {filteredSkills.map((s) => {
+                const has = skillSet.has(s.id)
+                return (
+                  <button
+                    type="button"
+                    key={s.id}
+                    onClick={() => toggleSkill(s.id)}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: 999,
+                      border: 0,
+                      cursor: 'pointer',
+                      fontSize: 11.5,
+                      fontWeight: 500,
+                      background: has ? 'var(--accent-soft)' : 'rgba(0,0,0,.05)',
+                      color: has ? 'var(--accent)' : 'var(--ink-2)',
+                    }}
+                  >
+                    {has ? '✓ ' : ''}{s.label}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {willLockSelfOut && (

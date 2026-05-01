@@ -6,10 +6,13 @@ import { de } from 'date-fns/locale'
 import { Avatar } from '@/components/Avatar'
 import { Chip } from '@/components/Chip'
 import { Icon } from '@/components/Icon'
+import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { supabase } from '@/lib/supabase'
 import { chf } from '@/lib/format'
+import { waDirectUrl, tplDirect } from '@/lib/whatsapp'
 import type { OutletCtx } from '@/layout/AppShell'
 import { InstructorEditSheet } from './InstructorEditSheet'
+import { CorrectionSheet } from './CorrectionSheet'
 
 type Tab = 'overview' | 'skills' | 'assignments' | 'saldo'
 
@@ -27,6 +30,7 @@ interface Instructor {
   color: string
   padi_level: string
   email: string | null
+  phone: string | null
   opening_balance_chf: number
   excel_saldo_chf: number
 }
@@ -39,12 +43,13 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
   const [assignments, setAssignments] = useState<any[]>([])
   const [movements, setMovements] = useState<any[]>([])
   const [editOpen, setEditOpen] = useState(false)
+  const [correctionOpen, setCorrectionOpen] = useState(false)
   const [refreshTick, setRefreshTick] = useState(0)
 
   useEffect(() => {
     supabase
       .from('instructors')
-      .select('id, name, initials, color, padi_level, email, opening_balance_chf, excel_saldo_chf')
+      .select('id, name, initials, color, padi_level, email, phone, opening_balance_chf, excel_saldo_chf')
       .eq('id', instructorId)
       .single()
       .then(({ data }) => setInst(data as Instructor | null))
@@ -86,6 +91,12 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
           <div className="title-1">{inst.name}</div>
           <div className="caption">{inst.padi_level} · {inst.email || '—'}</div>
         </div>
+        {user.role === 'dispatcher' && inst.phone && (
+          <WhatsAppButton
+            url={waDirectUrl(inst.phone, tplDirect({ to_name: inst.name.split(' ')[0], message: '' }))}
+            label="Anschreiben"
+          />
+        )}
         {user.role === 'dispatcher' && (
           <button className="btn-secondary btn" onClick={() => setEditOpen(true)}>
             <Icon name="settings" size={14} /> Bearbeiten
@@ -99,6 +110,13 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
         onClose={() => setEditOpen(false)}
         onSaved={() => setRefreshTick((t) => t + 1)}
         currentUserAuthId={user.authUserId}
+      />
+
+      <CorrectionSheet
+        open={correctionOpen}
+        onClose={() => setCorrectionOpen(false)}
+        onSaved={() => setRefreshTick((t) => t + 1)}
+        defaultInstructorId={instructorId}
       />
 
       <div className="seg" style={{ marginBottom: 20 }}>
@@ -160,14 +178,18 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
 
       {tab === 'saldo' && (
         <>
-          <div
-            className="title-1 mono"
-            style={{
-              marginBottom: 16,
-              color: balance < 0 ? '#FF3B30' : 'var(--ink)',
-            }}
-          >
-            {chf(balance)}
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div
+              className="title-1 mono"
+              style={{ color: balance < 0 ? '#FF3B30' : 'var(--ink)' }}
+            >
+              {chf(balance)}
+            </div>
+            {user.role === 'dispatcher' && (
+              <button className="btn-secondary btn" onClick={() => setCorrectionOpen(true)}>
+                <Icon name="plus" size={14} /> Korrektur buchen
+              </button>
+            )}
           </div>
           <div className="caption" style={{ marginBottom: 12 }}>
             Aktueller berechneter Saldo aus {movements.length} Bewegungen.

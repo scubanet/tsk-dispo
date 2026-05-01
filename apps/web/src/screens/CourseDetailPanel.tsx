@@ -2,9 +2,16 @@ import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
 import clsx from 'clsx'
+import { useOutletContext } from 'react-router-dom'
 import { Avatar } from '@/components/Avatar'
 import { Chip } from '@/components/Chip'
+import { Icon } from '@/components/Icon'
+import { WhatsAppButton } from '@/components/WhatsAppButton'
+import { tplNewCourse, tplCancellation, waGroupShareUrl } from '@/lib/whatsapp'
 import { fetchAllCourses, fetchCourseAssignments, type CourseDetail, type AssignmentRow } from '@/lib/queries'
+import { CourseEditSheet } from './CourseEditSheet'
+import { AssignmentEditSheet } from './AssignmentEditSheet'
+import type { OutletCtx } from '@/layout/AppShell'
 
 type Tab = 'overview' | 'assignments' | 'notes'
 
@@ -15,14 +22,24 @@ const TABS: { value: Tab; label: string }[] = [
 ]
 
 export function CourseDetailPanel({ courseId }: { courseId: string }) {
+  const { user } = useOutletContext<OutletCtx>()
+  const isDispatcher = user.role === 'dispatcher'
   const [course, setCourse] = useState<CourseDetail | null>(null)
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
   const [tab, setTab] = useState<Tab>('overview')
+  const [editCourseOpen, setEditCourseOpen] = useState(false)
+  const [editAssignmentOpen, setEditAssignmentOpen] = useState(false)
+  const [editingAssignment, setEditingAssignment] = useState<AssignmentRow | null>(null)
+  const [refreshTick, setRefreshTick] = useState(0)
+
+  function refresh() {
+    setRefreshTick((t) => t + 1)
+  }
 
   useEffect(() => {
     fetchAllCourses().then((all) => setCourse(all.find((c) => c.id === courseId) ?? null))
     fetchCourseAssignments(courseId).then(setAssignments)
-  }, [courseId])
+  }, [courseId, refreshTick])
 
   if (!course) return <div style={{ padding: 40 }} className="caption">Lade…</div>
 
@@ -30,16 +47,55 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
     course.status === 'cancelled' ? 'red' :
     course.status === 'tentative' ? 'orange' : 'green'
 
+  const haupt = assignments.find((a) => a.role === 'haupt')
+  const announceUrl = waGroupShareUrl(
+    tplNewCourse({
+      type_code: course.course_type?.code ?? '—',
+      title: course.title,
+      start_date: course.start_date,
+      haupt_name: haupt?.instructor?.name,
+      num_participants: course.num_participants,
+      info: course.info,
+    }),
+  )
+  const cancelUrl = waGroupShareUrl(
+    tplCancellation({
+      type_code: course.course_type?.code ?? '—',
+      title: course.title,
+      was_date: course.start_date,
+    }),
+  )
+
+  // Build full date list for assignment editor
+  const allDates = [course.start_date, ...(course.additional_dates ?? [])].filter(Boolean)
+
   return (
     <div className="screen-fade" style={{ padding: '20px 24px 40px' }}>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'baseline', marginBottom: 4 }}>
-        <div className="title-1" style={{ flex: 1 }}>{course.title}</div>
-        <Chip tone={tone}>{course.status}</Chip>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 4 }}>
+        <div style={{ flex: 1 }}>
+          <div className="title-1">{course.title}</div>
+          <div className="caption" style={{ marginTop: 4 }}>
+            {course.course_type?.label ?? '—'} ·{' '}
+            {format(new Date(course.start_date), 'EEEE, d. MMMM yyyy', { locale: de })}
+            {course.additional_dates.length > 0 && (
+              <> · +{course.additional_dates.length} {course.additional_dates.length === 1 ? 'Tag' : 'Tage'}</>
+            )}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+          <Chip tone={tone}>{course.status}</Chip>
+          {isDispatcher && (
+            <button className="btn-secondary btn" onClick={() => setEditCourseOpen(true)}>
+              <Icon name="settings" size={14} /> Bearbeiten
+            </button>
+          )}
+          <WhatsAppButton
+            url={course.status === 'cancelled' ? cancelUrl : announceUrl}
+            label={course.status === 'cancelled' ? 'Storno posten' : 'In Gruppe ankündigen'}
+          />
+        </div>
       </div>
-      <div className="caption" style={{ marginBottom: 20 }}>
-        {course.course_type?.label ?? '—'} ·{' '}
-        {format(new Date(course.start_date), 'EEEE, d. MMMM yyyy', { locale: de })}
-      </div>
+      <div style={{ height: 16 }} />
 
       <div className="seg" style={{ marginBottom: 20 }}>
         {TABS.map((t) => (
@@ -49,6 +105,9 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
             onClick={() => setTab(t.value)}
           >
             {t.label}
+            {t.value === 'assignments' && (
+              <span className="caption" style={{ marginLeft: 6 }}>· {assignments.length}</span>
+            )}
           </button>
         ))}
       </div>
@@ -59,7 +118,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
           <Field label="Startdatum" value={format(new Date(course.start_date), 'd. MMMM yyyy', { locale: de })} />
           {course.additional_dates.length > 0 && (
             <Field
-              label="Zusatzdaten"
+              label={`Zusatzdaten (${course.additional_dates.length})`}
               value={course.additional_dates
                 .map((d) => format(new Date(d), 'd. MMM', { locale: de }))
                 .join(' · ')}
@@ -72,35 +131,66 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
 
       {tab === 'assignments' && (
         <div style={{ display: 'grid', gap: 10 }}>
+          {isDispatcher && (
+            <button
+              className="btn"
+              onClick={() => {
+                setEditingAssignment(null)
+                setEditAssignmentOpen(true)
+              }}
+              style={{ alignSelf: 'flex-start' }}
+            >
+              <Icon name="plus" size={14} /> TL/DM zuweisen
+            </button>
+          )}
+
           {assignments.length === 0 ? (
             <div className="caption">Noch keine Zuweisungen.</div>
           ) : (
-            assignments.map((a) => (
-              <div
-                key={a.id}
-                className="glass-thin"
-                style={{
-                  padding: 12,
-                  borderRadius: 12,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
-              >
-                {a.instructor && (
-                  <Avatar initials={a.instructor.initials} color={a.instructor.color} />
-                )}
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 500 }}>{a.instructor?.name ?? '—'}</div>
-                  <div className="caption">{a.instructor?.padi_level} · {a.role}</div>
+            assignments.map((a) => {
+              const dates = (a as any).assigned_for_dates as string[] | undefined
+              const partial = dates && dates.length > 0
+              return (
+                <div
+                  key={a.id}
+                  className="glass-thin"
+                  style={{
+                    padding: 12,
+                    borderRadius: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    cursor: isDispatcher ? 'pointer' : 'default',
+                  }}
+                  onClick={() => {
+                    if (!isDispatcher) return
+                    setEditingAssignment(a)
+                    setEditAssignmentOpen(true)
+                  }}
+                >
+                  {a.instructor && (
+                    <Avatar initials={a.instructor.initials} color={a.instructor.color} />
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 500 }}>{a.instructor?.name ?? '—'}</div>
+                    <div className="caption" style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                      {a.instructor?.padi_level} · {a.role}
+                      {partial && (
+                        <Chip tone="purple">
+                          {dates!.length}/{allDates.length} Tage
+                        </Chip>
+                      )}
+                    </div>
+                  </div>
+                  {a.confirmed ? (
+                    <Chip tone="green">bestätigt</Chip>
+                  ) : (
+                    <Chip tone="orange">offen</Chip>
+                  )}
+                  {isDispatcher && <Icon name="chevron-right" size={14} />}
                 </div>
-                {a.confirmed ? (
-                  <Chip tone="green">bestätigt</Chip>
-                ) : (
-                  <Chip tone="orange">offen</Chip>
-                )}
-              </div>
-            ))
+              )
+            })
           )}
         </div>
       )}
@@ -117,6 +207,22 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
           </div>
         </div>
       )}
+
+      <CourseEditSheet
+        open={editCourseOpen}
+        onClose={() => setEditCourseOpen(false)}
+        onSaved={refresh}
+        courseId={courseId}
+      />
+
+      <AssignmentEditSheet
+        open={editAssignmentOpen}
+        onClose={() => setEditAssignmentOpen(false)}
+        onSaved={refresh}
+        courseId={courseId}
+        allDates={allDates}
+        existingAssignment={editingAssignment as any}
+      />
     </div>
   )
 }

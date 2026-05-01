@@ -124,7 +124,8 @@ export function CoursesScreen() {
       <CourseEditSheet
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        onCreated={refetch}
+        onSaved={refetch}
+        courseId={null}
       />
     </>
   )
