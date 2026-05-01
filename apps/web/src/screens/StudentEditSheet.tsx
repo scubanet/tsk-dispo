@@ -23,7 +23,7 @@ const LEVELS = [
   'Master Scuba Diver',
   'DM',
   'AI',
-  'Instructor',
+  'OWSI',
   'MSDT',
   'IDC Staff',
   'MI',
