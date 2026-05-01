@@ -19,7 +19,7 @@ import { de } from 'date-fns/locale'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { SegmentedControl } from '@/components/SegmentedControl'
-import { fetchCoursesInRange, type CourseRow } from '@/lib/queries'
+import { fetchCoursesInRange, fetchAssignmentsForCourses, type CourseRow } from '@/lib/queries'
 
 type Mode = 'week' | 'month'
 
@@ -62,6 +62,7 @@ export function CalendarScreen() {
   const [mode, setMode] = useState<Mode>('month')
   const [anchor, setAnchor] = useState<Date>(new Date())
   const [courses, setCourses] = useState<CourseRow[]>([])
+  const [hauptByCourse, setHauptByCourse] = useState<Set<string>>(new Set())
 
   const range = useMemo(() => {
     if (mode === 'week') {
@@ -76,7 +77,15 @@ export function CalendarScreen() {
     fetchCoursesInRange(
       format(range.start, 'yyyy-MM-dd'),
       format(range.end, 'yyyy-MM-dd'),
-    ).then(setCourses)
+    ).then(async (cs) => {
+      setCourses(cs)
+      const ids = cs.map((c) => c.id)
+      const assignments = await fetchAssignmentsForCourses(ids)
+      const withHaupt = new Set(
+        assignments.filter((a) => a.role === 'haupt').map((a) => a.course_id),
+      )
+      setHauptByCourse(withHaupt)
+    })
   }, [range])
 
   function prev() {
@@ -109,10 +118,31 @@ export function CalendarScreen() {
 
       <div className="scroll" style={{ flex: 1, padding: 16, overflow: 'auto' }}>
         {mode === 'week' ? (
-          <WeekView range={range} courses={courses} onClickCourse={(id) => navigate(`/kurse/${id}`)} />
+          <WeekView
+            range={range}
+            courses={courses}
+            hauptByCourse={hauptByCourse}
+            onClickCourse={(id) => navigate(`/kurse/${id}`)}
+          />
         ) : (
-          <MonthView anchor={anchor} courses={courses} onClickCourse={(id) => navigate(`/kurse/${id}`)} />
+          <MonthView
+            anchor={anchor}
+            courses={courses}
+            hauptByCourse={hauptByCourse}
+            onClickCourse={(id) => navigate(`/kurse/${id}`)}
+          />
         )}
+
+        <div className="caption-2" style={{ marginTop: 12, padding: '0 4px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+            <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: '#FF3B3022', borderLeft: '2px solid #FF3B30' }} />
+            ohne Haupt-Instructor
+          </span>
+          <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+            <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: 'var(--accent-soft)' }} />
+            heute
+          </span>
+        </div>
       </div>
     </>
   )
@@ -121,10 +151,12 @@ export function CalendarScreen() {
 function WeekView({
   range,
   courses,
+  hauptByCourse,
   onClickCourse,
 }: {
   range: { start: Date; end: Date }
   courses: CourseRow[]
+  hauptByCourse: Set<string>
   onClickCourse: (id: string) => void
 }) {
   const days = eachDayOfInterval(range)
@@ -168,13 +200,15 @@ function WeekView({
                 const allDates = courseDates(c)
                 const isMultiDay = allDates.length > 1
                 const dayIndex = allDates.findIndex((dt) => dt && isSameDay(new Date(dt), d))
+                const noHaupt = !hauptByCourse.has(c.id) && c.status !== 'cancelled'
+                const baseColor = colorForType(c.course_type?.code)
                 return (
                   <div
                     key={c.id}
                     onClick={() => onClickCourse(c.id)}
                     style={{
-                      background: 'var(--surface-strong)',
-                      borderLeft: `3px solid ${colorForType(c.course_type?.code)}`,
+                      background: noHaupt ? '#FF3B3022' : 'var(--surface-strong)',
+                      borderLeft: `3px solid ${noHaupt ? '#FF3B30' : baseColor}`,
                       borderRadius: 8,
                       padding: '6px 8px',
                       fontSize: 11,
@@ -182,6 +216,7 @@ function WeekView({
                       opacity: c.status === 'cancelled' ? 0.5 : 1,
                       textDecoration: c.status === 'cancelled' ? 'line-through' : 'none',
                     }}
+                    title={noHaupt ? 'Kein Haupt-Instructor zugewiesen' : c.title}
                   >
                     <div
                       style={{
@@ -190,10 +225,10 @@ function WeekView({
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
+                        color: noHaupt ? '#c4302a' : 'inherit',
                       }}
-                      title={c.title}
                     >
-                      {c.title}
+                      {noHaupt && '⚠ '}{c.title}
                     </div>
                     <div
                       className="caption-2"
@@ -206,8 +241,8 @@ function WeekView({
                     >
                       <span
                         style={{
-                          background: colorForType(c.course_type?.code) + '22',
-                          color: colorForType(c.course_type?.code),
+                          background: baseColor + '22',
+                          color: baseColor,
                           padding: '0 6px',
                           borderRadius: 4,
                           fontWeight: 600,
@@ -236,10 +271,12 @@ function WeekView({
 function MonthView({
   anchor,
   courses,
+  hauptByCourse,
   onClickCourse,
 }: {
   anchor: Date
   courses: CourseRow[]
+  hauptByCourse: Set<string>
   onClickCourse: (id: string) => void
 }) {
   const start = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 })
@@ -277,17 +314,19 @@ function MonthView({
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {dayCourses.slice(0, 4).map((c) => {
                   const isMultiDay = (c.additional_dates?.length ?? 0) > 0
+                  const noHaupt = !hauptByCourse.has(c.id) && c.status !== 'cancelled'
+                  const baseColor = colorForType(c.course_type?.code)
                   return (
                     <div
                       key={c.id}
                       onClick={() => onClickCourse(c.id)}
-                      title={c.title}
+                      title={noHaupt ? `${c.title} — kein Haupt-Instructor` : c.title}
                       style={{
                         fontSize: 10.5,
                         padding: '2px 6px',
                         borderRadius: 4,
-                        background: colorForType(c.course_type?.code) + '22',
-                        color: colorForType(c.course_type?.code),
+                        background: noHaupt ? '#FF3B3022' : baseColor + '22',
+                        color: noHaupt ? '#c4302a' : baseColor,
                         cursor: 'pointer',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -295,10 +334,14 @@ function MonthView({
                         fontWeight: 500,
                         opacity: c.status === 'cancelled' ? 0.5 : 1,
                         textDecoration: c.status === 'cancelled' ? 'line-through' : 'none',
-                        borderLeft: isMultiDay ? `2px solid ${colorForType(c.course_type?.code)}` : undefined,
+                        borderLeft: noHaupt
+                          ? `2px solid #FF3B30`
+                          : isMultiDay
+                            ? `2px solid ${baseColor}`
+                            : undefined,
                       }}
                     >
-                      {c.title}
+                      {noHaupt && '⚠ '}{c.title}
                     </div>
                   )
                 })}
