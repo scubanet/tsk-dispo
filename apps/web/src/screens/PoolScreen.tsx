@@ -1,29 +1,31 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { addDays, format, startOfWeek, addWeeks, subWeeks } from 'date-fns'
 import { de } from 'date-fns/locale'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { Chip } from '@/components/Chip'
 import { supabase } from '@/lib/supabase'
+import { POOL_LOCATIONS, type PoolLocation } from '@/lib/queries'
 
-interface Booking {
+interface PoolDateRow {
   id: string
+  course_id: string
   date: string
+  pool_location: PoolLocation
   time_from: string | null
   time_to: string | null
-  location: 'mooesli' | 'langnau'
-  course_id: string | null
-  note: string | null
+  course: {
+    id: string
+    title: string
+    course_type: { code: string } | null
+  } | null
 }
 
-const LOCATIONS: { value: 'mooesli' | 'langnau'; label: string }[] = [
-  { value: 'mooesli', label: 'Möösli' },
-  { value: 'langnau', label: 'Langnau' },
-]
-
 export function PoolScreen() {
+  const navigate = useNavigate()
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }))
-  const [bookings, setBookings] = useState<Booking[]>([])
+  const [rows, setRows] = useState<PoolDateRow[]>([])
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -34,12 +36,17 @@ export function PoolScreen() {
     const from = format(weekStart, 'yyyy-MM-dd')
     const to = format(addDays(weekStart, 6), 'yyyy-MM-dd')
     supabase
-      .from('pool_bookings')
-      .select('id, date, time_from, time_to, location, course_id, note')
+      .from('course_dates')
+      .select(`
+        id, course_id, date, pool_location, time_from, time_to,
+        course:courses(id, title, course_type:course_types(code))
+      `)
+      .eq('type', 'pool')
+      .not('pool_location', 'is', null)
       .gte('date', from)
       .lte('date', to)
       .order('date')
-      .then(({ data }) => setBookings((data ?? []) as Booking[]))
+      .then(({ data }) => setRows((data ?? []) as unknown as PoolDateRow[]))
   }, [weekStart])
 
   return (
@@ -64,7 +71,7 @@ export function PoolScreen() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: '0.5px solid var(--hairline)' }}>
-                <th align="left" style={{ padding: '12px 16px', width: 100 }}></th>
+                <th align="left" style={{ padding: '12px 16px', width: 110 }}></th>
                 {days.map((d) => (
                   <th key={d.toISOString()} align="center" style={{ padding: '12px 8px' }}>
                     <div style={{ fontWeight: 600 }}>
@@ -76,15 +83,15 @@ export function PoolScreen() {
               </tr>
             </thead>
             <tbody>
-              {LOCATIONS.map((loc) => (
+              {POOL_LOCATIONS.map((loc) => (
                 <tr key={loc.value} style={{ borderTop: '0.5px solid var(--separator)' }}>
                   <td style={{ padding: '12px 16px', verticalAlign: 'top', fontWeight: 500 }}>
                     {loc.label}
                   </td>
                   {days.map((d) => {
                     const dateStr = format(d, 'yyyy-MM-dd')
-                    const slots = bookings.filter(
-                      (b) => b.date === dateStr && b.location === loc.value,
+                    const slots = rows.filter(
+                      (r) => r.date === dateStr && r.pool_location === loc.value,
                     )
                     return (
                       <td
@@ -101,10 +108,27 @@ export function PoolScreen() {
                             <div className="caption-2" style={{ color: 'var(--ink-4)' }}>—</div>
                           ) : (
                             slots.map((s) => (
-                              <Chip key={s.id} tone="accent">
-                                {s.time_from?.slice(0, 5) ?? '—'}
-                                {s.time_to ? `–${s.time_to.slice(0, 5)}` : ''}
-                              </Chip>
+                              <div
+                                key={s.id}
+                                onClick={() => s.course && navigate(`/kurse/${s.course.id}`)}
+                                style={{
+                                  cursor: 'pointer',
+                                  background: 'var(--accent-soft)',
+                                  color: 'var(--accent)',
+                                  padding: '4px 6px',
+                                  borderRadius: 6,
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                }}
+                                title={s.course?.title ?? ''}
+                              >
+                                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {s.course?.course_type?.code ?? '—'}
+                                </div>
+                                <div className="caption-2" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {s.course?.title ?? ''}
+                                </div>
+                              </div>
                             ))
                           )}
                         </div>
@@ -118,7 +142,7 @@ export function PoolScreen() {
         </div>
 
         <div className="caption" style={{ marginTop: 12, padding: '0 4px' }}>
-          {bookings.length} Slots in dieser Woche · Hinzufügen + Bearbeiten kommt in v1.5.
+          {rows.length} Pool-Slots in dieser Woche · automatisch aus Kurs-Daten erzeugt (Type "Pool")
         </div>
       </div>
     </>

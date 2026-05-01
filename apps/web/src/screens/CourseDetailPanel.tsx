@@ -12,9 +12,13 @@ import {
   fetchAllCourses,
   fetchCourseAssignments,
   fetchCourseParticipants,
+  fetchCourseDates,
+  POOL_LOCATIONS,
+  COURSE_DATE_TYPES,
   type CourseDetail,
   type AssignmentRow,
   type CourseParticipant,
+  type CourseDate,
 } from '@/lib/queries'
 import { initialsFromName } from '@/lib/format'
 import { CourseEditSheet } from './CourseEditSheet'
@@ -39,6 +43,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   const [course, setCourse] = useState<CourseDetail | null>(null)
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
   const [participants, setParticipants] = useState<CourseParticipant[]>([])
+  const [courseDates, setCourseDates] = useState<CourseDate[]>([])
   const [tab, setTab] = useState<Tab>('overview')
   const [editCourseOpen, setEditCourseOpen] = useState(false)
   const [editAssignmentOpen, setEditAssignmentOpen] = useState(false)
@@ -56,6 +61,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
     fetchAllCourses().then((all) => setCourse(all.find((c) => c.id === courseId) ?? null))
     fetchCourseAssignments(courseId).then(setAssignments)
     fetchCourseParticipants(courseId).then(setParticipants)
+    fetchCourseDates(courseId).then(setCourseDates)
   }, [courseId, refreshTick])
 
   if (!course) return <div style={{ padding: 40 }} className="caption">Lade…</div>
@@ -136,17 +142,46 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       {tab === 'overview' && (
         <div style={{ display: 'grid', gap: 14 }}>
           <Field label="Kurstyp" value={`${course.course_type?.code ?? '—'} · ${course.course_type?.label ?? '—'}`} />
-          <Field label="Startdatum" value={format(new Date(course.start_date), 'd. MMMM yyyy', { locale: de })} />
-          {course.additional_dates.length > 0 && (
-            <Field
-              label={`Zusatzdaten (${course.additional_dates.length})`}
-              value={course.additional_dates
-                .map((d) => format(new Date(d), 'd. MMM', { locale: de }))
-                .join(' · ')}
-            />
-          )}
           <Field label="Teilnehmer" value={String(course.num_participants)} />
-          <Field label="Pool gebucht" value={course.pool_booked ? 'Ja' : 'Nein'} />
+
+          <div>
+            <div className="caption-2">KURSDATEN ({courseDates.length || 1})</div>
+            <div style={{ display: 'grid', gap: 6, marginTop: 6 }}>
+              {(courseDates.length > 0
+                ? courseDates
+                : [{ id: 'fallback', date: course.start_date, type: 'theorie' as const, pool_location: null }] as any
+              ).map((cd: any) => {
+                const typeMeta = COURSE_DATE_TYPES.find((t) => t.value === cd.type)
+                const poolMeta = POOL_LOCATIONS.find((p) => p.value === cd.pool_location)
+                return (
+                  <div
+                    key={cd.id}
+                    style={{
+                      display: 'flex',
+                      gap: 12,
+                      padding: '8px 10px',
+                      background: 'rgba(120,120,128,.08)',
+                      borderRadius: 8,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <span className="mono" style={{ fontSize: 13, fontWeight: 500, minWidth: 110 }}>
+                      {format(new Date(cd.date), 'EEE, d. MMM', { locale: de })}
+                    </span>
+                    <Chip tone={
+                      cd.type === 'pool' ? 'accent' :
+                      cd.type === 'see'  ? 'green'  : 'neutral'
+                    }>
+                      {typeMeta?.emoji} {typeMeta?.label ?? cd.type}
+                    </Chip>
+                    {cd.type === 'pool' && cd.pool_location && (
+                      <Chip tone="purple">🏊 {poolMeta?.label ?? cd.pool_location}</Chip>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </div>
       )}
 

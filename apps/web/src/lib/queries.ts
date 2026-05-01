@@ -75,6 +75,43 @@ export async function fetchAssignmentsForCourses(courseIds: string[]): Promise<A
   return (data ?? []) as unknown as AssignmentRow[]
 }
 
+export type CourseDateType = 'theorie' | 'pool' | 'see'
+export type PoolLocation = 'mooesli' | 'langnau' | 'kloten' | 'uitikon'
+
+export interface CourseDate {
+  id: string
+  course_id: string
+  date: string
+  type: CourseDateType
+  pool_location: PoolLocation | null
+  time_from: string | null
+  time_to: string | null
+  note: string | null
+}
+
+export async function fetchCourseDates(courseId: string): Promise<CourseDate[]> {
+  const { data, error } = await supabase
+    .from('course_dates')
+    .select('id, course_id, date, type, pool_location, time_from, time_to, note')
+    .eq('course_id', courseId)
+    .order('date')
+  if (error) throw error
+  return (data ?? []) as CourseDate[]
+}
+
+export const POOL_LOCATIONS: { value: PoolLocation; label: string }[] = [
+  { value: 'mooesli',  label: 'Möösli' },
+  { value: 'langnau',  label: 'Langnau' },
+  { value: 'kloten',   label: 'Kloten' },
+  { value: 'uitikon',  label: 'Uitikon' },
+]
+
+export const COURSE_DATE_TYPES: { value: CourseDateType; label: string; emoji: string }[] = [
+  { value: 'theorie', label: 'Theorie', emoji: '📚' },
+  { value: 'pool',    label: 'Pool',    emoji: '🏊' },
+  { value: 'see',     label: 'See',     emoji: '🌊' },
+]
+
 export async function fetchCourseAssignments(courseId: string): Promise<(AssignmentRow & { assigned_for_dates: string[] })[]> {
   const { data, error } = await supabase
     .from('course_assignments')

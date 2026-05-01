@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
+import {
+  POOL_LOCATIONS,
+  COURSE_DATE_TYPES,
+  type CourseDateType,
+  type PoolLocation,
+} from '@/lib/queries'
 
 interface CourseType { id: string; code: string; label: string }
 interface Instructor { id: string; name: string; padi_level: string }
@@ -9,6 +15,13 @@ interface Conflict {
   conflicting_course_id: string
   conflicting_course_title: string
   conflicting_role: string
+}
+
+/** Local form-state row representing one date of the course */
+interface DateEntry {
+  date: string
+  type: CourseDateType
+  pool_location: PoolLocation | null
 }
 
 interface Props {
@@ -46,10 +59,10 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
   const [typeId, setTypeId] = useState('')
   const [title, setTitle] = useState('')
   const [status, setStatus] = useState<'tentative' | 'confirmed' | 'completed' | 'cancelled'>('tentative')
-  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10))
-  const [additionalDates, setAdditionalDates] = useState<string[]>([])
+  const [dates, setDates] = useState<DateEntry[]>([
+    { date: new Date().toISOString().slice(0, 10), type: 'theorie', pool_location: null },
+  ])
   const [numParticipants, setNumParticipants] = useState(0)
-  const [poolBooked, setPoolBooked] = useState(false)
   const [info, setInfo] = useState('')
   const [notes, setNotes] = useState('')
 
@@ -71,60 +84,109 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
       .then(({ data }) => setInstructors((data ?? []) as Instructor[]))
 
     if (courseId) {
-      supabase
-        .from('courses')
-        .select('type_id, title, status, start_date, additional_dates, num_participants, pool_booked, info, notes')
-        .eq('id', courseId)
-        .single()
-        .then(({ data }) => {
-          if (!data) return
-          setTypeId(data.type_id)
-          setTitle(data.title)
-          setStatus(data.status as typeof status)
-          setStartDate(data.start_date)
-          setAdditionalDates((data.additional_dates as string[]) ?? [])
-          setNumParticipants(data.num_participants)
-          setPoolBooked(data.pool_booked)
-          setInfo(data.info ?? '')
-          setNotes(data.notes ?? '')
+      Promise.all([
+        supabase
+          .from('courses')
+          .select('type_id, title, status, start_date, additional_dates, num_participants, info, notes')
+          .eq('id', courseId)
+          .single(),
+        supabase
+          .from('course_dates')
+          .select('date, type, pool_location')
+          .eq('course_id', courseId)
+          .order('date'),
+      ]).then(([courseRes, datesRes]) => {
+        const c = courseRes.data
+        if (!c) return
+        setTypeId(c.type_id)
+        setTitle(c.title)
+        setStatus(c.status as typeof status)
+        setNumParticipants(c.num_participants)
+        setInfo(c.info ?? '')
+        setNotes(c.notes ?? '')
+
+        // Combine course_dates rows with start_date + additional_dates as fallback
+        const cdMap = new Map<string, { type: CourseDateType; pool: PoolLocation | null }>()
+        for (const cd of datesRes.data ?? []) {
+          cdMap.set(cd.date, { type: cd.type as CourseDateType, pool: cd.pool_location as PoolLocation | null })
+        }
+
+        const allDateStrings = [c.start_date, ...((c.additional_dates as string[]) ?? [])].filter(Boolean)
+        const merged: DateEntry[] = allDateStrings.map((d) => {
+          const meta = cdMap.get(d)
+          return {
+            date: d,
+            type: meta?.type ?? 'theorie',
+            pool_location: meta?.pool ?? null,
+          }
         })
+
+        setDates(merged.length > 0 ? merged : [
+          { date: c.start_date, type: 'theorie', pool_location: null },
+        ])
+      })
     } else {
       // Reset for create mode
       setTypeId(''); setTitle(''); setStatus('tentative')
-      setStartDate(new Date().toISOString().slice(0, 10))
-      setAdditionalDates([]); setNumParticipants(0); setPoolBooked(false)
+      setDates([{ date: new Date().toISOString().slice(0, 10), type: 'theorie', pool_location: null }])
+      setNumParticipants(0)
       setInfo(''); setNotes(''); setHaupt('')
     }
   }, [open, courseId])
 
   // Conflict check (only for create + when haupt selected)
   useEffect(() => {
-    if (isEdit || !haupt || !startDate) {
+    if (isEdit || !haupt) {
       setConflicts([])
       return
     }
-    const allDates = [startDate, ...additionalDates].filter(Boolean)
+    const allDates = dates.map((d) => d.date).filter(Boolean)
+    if (allDates.length === 0) {
+      setConflicts([])
+      return
+    }
     supabase
       .rpc('conflict_check', { p_instructor_id: haupt, p_dates: allDates })
       .then(({ data }) => setConflicts((data ?? []) as Conflict[]))
-  }, [haupt, startDate, additionalDates, isEdit])
+  }, [haupt, dates, isEdit])
 
   function addDate() {
-    setAdditionalDates((prev) => [...prev, ''])
-  }
-  function setDateAt(idx: number, value: string) {
-    setAdditionalDates((prev) => prev.map((d, i) => (i === idx ? value : d)))
+    setDates((prev) => [
+      ...prev,
+      { date: '', type: 'theorie', pool_location: null },
+    ])
   }
   function removeDateAt(idx: number) {
-    setAdditionalDates((prev) => prev.filter((_, i) => i !== idx))
+    setDates((prev) => prev.filter((_, i) => i !== idx))
+  }
+  function updateDate(idx: number, patch: Partial<DateEntry>) {
+    setDates((prev) =>
+      prev.map((d, i) => {
+        if (i !== idx) return d
+        const next = { ...d, ...patch }
+        // If type changes away from 'pool', clear pool_location
+        if (patch.type && patch.type !== 'pool') next.pool_location = null
+        return next
+      }),
+    )
   }
 
   async function save() {
-    if (!typeId || !title || !startDate) return
+    if (!typeId || !title) return
+    const valid = dates.filter((d) => d.date)
+    if (valid.length === 0) {
+      setError('Mindestens ein Datum erforderlich.')
+      return
+    }
+    // Sort chronologically
+    const sorted = [...valid].sort((a, b) => a.date.localeCompare(b.date))
+    const startDate = sorted[0].date
+    const additional = sorted.slice(1).map((d) => d.date)
+
     setSaving(true)
     setError(null)
 
-    const cleanedDates = additionalDates.filter((d) => d && d !== startDate)
+    let savedCourseId = courseId
 
     if (isEdit) {
       const { error: updErr } = await supabase
@@ -134,9 +196,10 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           title: title.trim(),
           status,
           start_date: startDate,
-          additional_dates: cleanedDates,
+          additional_dates: additional,
           num_participants: numParticipants,
-          pool_booked: poolBooked,
+          // pool_booked is implied by any date with type='pool' — kept for backward compat
+          pool_booked: sorted.some((d) => d.type === 'pool'),
           info: info.trim() || null,
           notes: notes.trim() || null,
         })
@@ -152,9 +215,9 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           title: title.trim(),
           status,
           start_date: startDate,
-          additional_dates: cleanedDates,
+          additional_dates: additional,
           num_participants: numParticipants,
-          pool_booked: poolBooked,
+          pool_booked: sorted.some((d) => d.type === 'pool'),
           info: info.trim() || null,
           notes: notes.trim() || null,
         })
@@ -163,12 +226,33 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
       if (insErr || !course) {
         setError(insErr?.message ?? 'Fehler'); setSaving(false); return
       }
+      savedCourseId = course.id
+
       if (haupt) {
         await supabase.from('course_assignments').insert({
-          course_id: course.id,
+          course_id: savedCourseId,
           instructor_id: haupt,
           role: 'haupt',
         })
+      }
+    }
+
+    // Sync course_dates: delete existing and re-insert (idempotent rebuild)
+    if (savedCourseId) {
+      await supabase.from('course_dates').delete().eq('course_id', savedCourseId)
+      const rows = sorted.map((d) => ({
+        course_id: savedCourseId,
+        date: d.date,
+        type: d.type,
+        pool_location: d.type === 'pool' ? d.pool_location : null,
+      }))
+      if (rows.length > 0) {
+        const { error: cdErr } = await supabase.from('course_dates').insert(rows)
+        if (cdErr) {
+          setError('Datums-Details konnten nicht gespeichert werden: ' + cdErr.message)
+          setSaving(false)
+          return
+        }
       }
     }
 
@@ -177,12 +261,14 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
     onClose()
   }
 
+  const isMultiDay = dates.length > 1
+
   return (
     <Sheet
       open={open}
       onClose={onClose}
       title={isEdit ? 'Kurs bearbeiten' : 'Neuer Kurs'}
-      width={580}
+      width={620}
     >
       <div style={{ display: 'grid', gap: 14 }}>
         <div>
@@ -222,76 +308,83 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         </div>
 
         <div>
-          <Label>Startdatum</Label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            style={inputStyle}
-          />
-        </div>
-
-        <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <Label>Zusatzdaten (Folgetage)</Label>
+            <Label>Kursdaten · Theorie / Pool / See</Label>
             <button type="button" className="btn-ghost btn" onClick={addDate} style={{ padding: '0 8px', height: 24 }}>
               <Icon name="plus" size={12} /> Tag
             </button>
           </div>
-          {additionalDates.length === 0 ? (
-            <div className="caption-2">Eintägiger Kurs — keine Folgetage.</div>
-          ) : (
-            <div style={{ display: 'grid', gap: 6 }}>
-              {additionalDates.map((d, i) => (
-                <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <input
-                    type="date"
-                    value={d}
-                    onChange={(e) => setDateAt(i, e.target.value)}
-                    style={{ ...inputStyle, flex: 1 }}
-                  />
-                  <button
-                    type="button"
-                    className="btn-icon"
-                    onClick={() => removeDateAt(i)}
-                    title="Entfernen"
+          <div className="caption-2" style={{ marginBottom: 8 }}>
+            {isMultiDay ? `${dates.length} Tage` : 'Eintägiger Kurs'} · pro Datum den Typ wählen, bei Pool-Tagen den Pool angeben.
+          </div>
+
+          <div style={{ display: 'grid', gap: 6 }}>
+            {dates.map((d, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 130px 130px 32px',
+                  gap: 6,
+                  alignItems: 'center',
+                }}
+              >
+                <input
+                  type="date"
+                  value={d.date}
+                  onChange={(e) => updateDate(i, { date: e.target.value })}
+                  style={inputStyle}
+                />
+                <select
+                  value={d.type}
+                  onChange={(e) => updateDate(i, { type: e.target.value as CourseDateType })}
+                  style={inputStyle}
+                >
+                  {COURSE_DATE_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.emoji} {t.label}</option>
+                  ))}
+                </select>
+                {d.type === 'pool' ? (
+                  <select
+                    value={d.pool_location ?? ''}
+                    onChange={(e) =>
+                      updateDate(i, {
+                        pool_location: (e.target.value || null) as PoolLocation | null,
+                      })
+                    }
+                    style={inputStyle}
                   >
-                    <Icon name="x" size={12} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          {(additionalDates.length > 0 || true) && (
-            <div className="caption-2" style={{ marginTop: 6 }}>
-              {1 + additionalDates.filter((d) => d).length} Tag(e) gesamt
-            </div>
-          )}
+                    <option value="">Pool wählen</option>
+                    {POOL_LOCATIONS.map((p) => (
+                      <option key={p.value} value={p.value}>{p.label}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="caption-2" style={{ textAlign: 'center', alignSelf: 'center' }}>—</div>
+                )}
+                <button
+                  type="button"
+                  className="btn-icon"
+                  onClick={() => removeDateAt(i)}
+                  title="Tag entfernen"
+                  disabled={dates.length === 1}
+                >
+                  <Icon name="x" size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div>
-            <Label># Teilnehmer</Label>
-            <input
-              type="number"
-              min={0}
-              value={numParticipants}
-              onChange={(e) => setNumParticipants(Math.max(0, Number(e.target.value) || 0))}
-              style={inputStyle}
-            />
-          </div>
-          <div>
-            <Label>Pool gebucht</Label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 36 }}>
-              <input
-                id="pool"
-                type="checkbox"
-                checked={poolBooked}
-                onChange={(e) => setPoolBooked(e.target.checked)}
-              />
-              <label htmlFor="pool">{poolBooked ? 'Ja' : 'Nein'}</label>
-            </div>
-          </div>
+        <div>
+          <Label># Teilnehmer</Label>
+          <input
+            type="number"
+            min={0}
+            value={numParticipants}
+            onChange={(e) => setNumParticipants(Math.max(0, Number(e.target.value) || 0))}
+            style={inputStyle}
+          />
         </div>
 
         <div>
@@ -354,7 +447,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           <button
             className="btn"
             onClick={save}
-            disabled={saving || !typeId || !title || !startDate}
+            disabled={saving || !typeId || !title || dates.filter((d) => d.date).length === 0}
             style={{ flex: 1 }}
           >
             {saving ? 'Speichere…' : isEdit ? 'Änderungen speichern' : 'Anlegen'}
