@@ -8,27 +8,38 @@ import { Icon } from '@/components/Icon'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { supabase } from '@/lib/supabase'
 import { initialsFromName } from '@/lib/format'
-import { fetchStudentCourses, type CourseParticipant, type Student } from '@/lib/queries'
+import {
+  fetchStudentCourses,
+  fetchStudentCertifications,
+  type CourseParticipant,
+  type Student,
+  type StudentCertification,
+} from '@/lib/queries'
 import { waDirectUrl, tplDirect } from '@/lib/whatsapp'
 import type { OutletCtx } from '@/layout/AppShell'
 import { StudentEditSheet } from './StudentEditSheet'
+import { CertificationEditSheet } from './CertificationEditSheet'
 
 export function StudentDetailPanel({ studentId }: { studentId: string }) {
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [student, setStudent] = useState<Student | null>(null)
   const [courses, setCourses] = useState<CourseParticipant[]>([])
+  const [certifications, setCertifications] = useState<StudentCertification[]>([])
   const [editOpen, setEditOpen] = useState(false)
+  const [certOpen, setCertOpen] = useState(false)
+  const [editingCert, setEditingCert] = useState<StudentCertification | null>(null)
   const [refreshTick, setRefreshTick] = useState(0)
 
   useEffect(() => {
     supabase
       .from('students')
-      .select('id, name, email, phone, birthday, padi_nr, notes, active, created_at')
+      .select('id, name, email, phone, birthday, padi_nr, level, notes, active, created_at')
       .eq('id', studentId)
       .single()
       .then(({ data }) => setStudent(data as Student | null))
     fetchStudentCourses(studentId).then(setCourses)
+    fetchStudentCertifications(studentId).then(setCertifications)
   }, [studentId, refreshTick])
 
   if (!student) return <div style={{ padding: 40 }} className="caption">Lade…</div>
@@ -44,8 +55,11 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
       <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
         <Avatar initials={initials} color="#34C759" size="lg" />
         <div style={{ flex: 1 }}>
-          <div className="title-1">{student.name}</div>
-          <div className="caption">
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="title-1">{student.name}</div>
+            <Chip tone="accent">{student.level}</Chip>
+          </div>
+          <div className="caption" style={{ marginTop: 4 }}>
             {student.padi_nr ? `PADI ${student.padi_nr}` : 'Kein PADI'}
             {student.birthday && ` · *${format(new Date(student.birthday), 'd. MMM yyyy', { locale: de })}`}
           </div>
@@ -70,14 +84,81 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
         studentId={studentId}
       />
 
+      <CertificationEditSheet
+        open={certOpen}
+        onClose={() => setCertOpen(false)}
+        onSaved={() => setRefreshTick((t) => t + 1)}
+        studentId={studentId}
+        existing={editingCert}
+      />
+
       <div style={{ display: 'grid', gap: 14, marginBottom: 24 }}>
         <Field label="Email"    value={student.email   || '—'} />
         <Field label="Telefon"  value={student.phone   || '—'} />
         {student.notes && <Field label="Notizen" value={student.notes} />}
       </div>
 
+      {/* Externe / historische Zertifikate */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+          <div className="title-3">
+            Tauchscheine{' '}
+            <span className="caption">· {certifications.length}</span>
+          </div>
+          {isDispatcher && (
+            <button
+              className="btn-secondary btn"
+              onClick={() => {
+                setEditingCert(null)
+                setCertOpen(true)
+              }}
+            >
+              <Icon name="plus" size={12} /> Erfassen
+            </button>
+          )}
+        </div>
+        {certifications.length === 0 ? (
+          <div className="caption">
+            Noch keine Tauchscheine erfasst — auch externe (z.B. OWD aus früheren Schulen) hier eintragen.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: 6 }}>
+            {certifications.map((c) => (
+              <div
+                key={c.id}
+                className="glass-thin"
+                style={{ padding: 12, borderRadius: 12, cursor: isDispatcher ? 'pointer' : 'default' }}
+                onClick={() => {
+                  if (!isDispatcher) return
+                  setEditingCert(c)
+                  setCertOpen(true)
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 500 }}>{c.certification}</div>
+                    <div className="caption" style={{ marginTop: 2 }}>
+                      {[
+                        c.issued_by,
+                        c.issued_date ? format(new Date(c.issued_date), 'd. MMM yyyy', { locale: de }) : null,
+                        c.certificate_nr ? `Nr. ${c.certificate_nr}` : null,
+                      ].filter(Boolean).join(' · ') || '—'}
+                    </div>
+                    {c.notes && (
+                      <div className="caption-2" style={{ marginTop: 2, fontStyle: 'italic' }}>
+                        {c.notes}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="title-3" style={{ marginBottom: 8, display: 'flex', alignItems: 'baseline', gap: 8 }}>
-        Kurs-Historie
+        TSK-Kurs-Historie
         <span className="caption">· {courses.length} insgesamt</span>
       </div>
 

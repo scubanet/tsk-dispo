@@ -4,6 +4,7 @@ import clsx from 'clsx'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { Avatar } from '@/components/Avatar'
+import { Chip } from '@/components/Chip'
 import { EmptyState } from '@/components/EmptyState'
 import { fetchStudents, type Student } from '@/lib/queries'
 import { initialsFromName } from '@/lib/format'
@@ -95,6 +96,7 @@ export function StudentsScreen() {
                     {r.padi_nr ? `PADI ${r.padi_nr}` : (r.email || r.phone || '—')}
                   </div>
                 </div>
+                <Chip tone="accent">{r.level || 'Anfänger'}</Chip>
               </div>
             ))
           )}

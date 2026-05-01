@@ -193,6 +193,7 @@ export interface Student {
   phone: string | null
   birthday: string | null
   padi_nr: string | null
+  level: string
   notes: string | null
   active: boolean
   created_at: string
@@ -201,10 +202,31 @@ export interface Student {
 export async function fetchStudents(): Promise<Student[]> {
   const { data, error } = await supabase
     .from('students')
-    .select('id, name, email, phone, birthday, padi_nr, notes, active, created_at')
+    .select('id, name, email, phone, birthday, padi_nr, level, notes, active, created_at')
     .order('name')
   if (error) throw error
   return (data ?? []) as Student[]
+}
+
+export interface StudentCertification {
+  id: string
+  student_id: string
+  certification: string
+  issued_date: string | null
+  issued_by: string | null
+  certificate_nr: string | null
+  notes: string | null
+  created_at: string
+}
+
+export async function fetchStudentCertifications(studentId: string): Promise<StudentCertification[]> {
+  const { data, error } = await supabase
+    .from('student_certifications')
+    .select('id, student_id, certification, issued_date, issued_by, certificate_nr, notes, created_at')
+    .eq('student_id', studentId)
+    .order('issued_date', { ascending: false, nullsFirst: false })
+  if (error) throw error
+  return (data ?? []) as StudentCertification[]
 }
 
 export interface CourseParticipant {

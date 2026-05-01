@@ -9,9 +9,26 @@ interface Form {
   phone: string
   birthday: string
   padi_nr: string
+  level: string
   notes: string
   active: boolean
 }
+
+const LEVELS = [
+  'Anfänger',
+  'Scuba Diver',
+  'OWD',
+  'AOWD',
+  'Rescue Diver',
+  'Master Scuba Diver',
+  'DM',
+  'AI',
+  'Instructor',
+  'MSDT',
+  'IDC Staff',
+  'MI',
+  'CD',
+] as const
 
 interface Props {
   open: boolean
@@ -38,6 +55,7 @@ const EMPTY: Form = {
   phone: '',
   birthday: '',
   padi_nr: '',
+  level: 'Anfänger',
   notes: '',
   active: true,
 }
@@ -54,7 +72,7 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
     if (studentId) {
       supabase
         .from('students')
-        .select('name, email, phone, birthday, padi_nr, notes, active')
+        .select('name, email, phone, birthday, padi_nr, level, notes, active')
         .eq('id', studentId)
         .single()
         .then(({ data }) => {
@@ -65,6 +83,7 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
             phone: data.phone ?? '',
             birthday: data.birthday ?? '',
             padi_nr: data.padi_nr ?? '',
+            level: data.level ?? 'Anfänger',
             notes: data.notes ?? '',
             active: !!data.active,
           })
@@ -88,6 +107,7 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
       phone: form.phone.trim() || null,
       birthday: form.birthday || null,
       padi_nr: form.padi_nr.trim() || null,
+      level: form.level || 'Anfänger',
       notes: form.notes.trim() || null,
       active: form.active,
     }
@@ -173,6 +193,16 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
               placeholder="optional"
               style={inputStyle}
             />
+          </div>
+        </div>
+
+        <div>
+          <Label>Aktueller Level</Label>
+          <select value={form.level} onChange={(e) => set('level', e.target.value)} style={inputStyle}>
+            {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
+          </select>
+          <div className="caption-2" style={{ marginTop: 4 }}>
+            Der höchste bisher erreichte Tauchschein-Level. Updaten wenn ein neuer Schein erworben wird.
           </div>
         </div>
 
