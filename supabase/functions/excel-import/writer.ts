@@ -31,6 +31,7 @@ export interface InstructorPayload {
   name: string
   padi_level: string
   opening_balance_chf: number
+  excel_saldo_chf: number
   initials: string
 }
 
@@ -98,6 +99,7 @@ export function applyMappingsAndPlan(
     name: row.name,
     padi_level: normalizePadi(row.padi_level),
     opening_balance_chf: row.opening_balance,
+    excel_saldo_chf: row.excel_saldo,
     initials: makeInitials(row.name),
   }))
 

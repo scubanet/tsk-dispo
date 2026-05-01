@@ -9,7 +9,7 @@ interface DiffRow {
   instructor_id: string
   name: string
   app_balance: number | null
-  excel_opening: number | null
+  excel_saldo: number | null
   diff: number | null
 }
 
@@ -69,7 +69,7 @@ export function Stage4Result({ result }: Props) {
                     {Number(d.app_balance ?? 0).toFixed(2)}
                   </td>
                   <td align="right" className="mono" style={{ padding: '6px 4px' }}>
-                    {Number(d.excel_opening ?? 0).toFixed(2)}
+                    {Number(d.excel_saldo ?? 0).toFixed(2)}
                   </td>
                   <td
                     align="right"

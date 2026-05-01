@@ -19,6 +19,33 @@ export interface ParsedInstructor {
   name: string
   padi_level: string
   opening_balance: number
+  excel_saldo: number
+}
+
+/**
+ * Robustly extract a number from an ExcelJS cell value.
+ * Handles plain numbers, strings, formula results ({formula, result}),
+ * and empty/null cells.
+ */
+function cellNumber(cell: any): number {
+  const v = cell?.value
+  if (v === null || v === undefined) return 0
+  if (typeof v === 'number') return v
+  if (typeof v === 'string') {
+    const cleaned = v.replace(/['',]/g, '').trim()
+    const n = parseFloat(cleaned)
+    return isNaN(n) ? 0 : n
+  }
+  if (typeof v === 'object') {
+    if ('result' in v && v.result !== null && v.result !== undefined) {
+      return Number(v.result) || 0
+    }
+    if ('text' in v) {
+      const n = parseFloat(String((v as any).text))
+      return isNaN(n) ? 0 : n
+    }
+  }
+  return 0
 }
 
 export interface ParsedSkillRow {
@@ -86,9 +113,13 @@ export async function parseWorkbook(buffer: Uint8Array): Promise<ParseResult> {
         excel_row: r,
         name,
         padi_level: String(row.getCell(2).value ?? '').trim(),
-        // Excel "Saldo CHF (zu Gunsten TL/DM)" is in column G (index 7).
-        // For the import we use it as opening_balance for 2026.
-        opening_balance: Number(row.getCell(7).value) || 0,
+        // Col C (3): "Eröffnung CHF" — true carry-over from prior year.
+        // We seed account_movements with this so the trigger can compute
+        // 2026 movements on top.
+        opening_balance: cellNumber(row.getCell(3)),
+        // Col G (7): "Saldo CHF" — current Excel saldo (incl. all 2026
+        // movements as Excel sees them). Used for diff reporting only.
+        excel_saldo: cellNumber(row.getCell(7)),
       })
     }
   }
