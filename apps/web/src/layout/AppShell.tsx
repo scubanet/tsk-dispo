@@ -4,7 +4,6 @@ import { Sidebar } from '@/components/Sidebar'
 import { FloatingTabBar } from '@/components/FloatingTabBar'
 import { Wallpaper } from '@/components/Wallpaper'
 import { StatusBar } from '@/components/StatusBar'
-import { TweakPanel } from '@/components/TweakPanel'
 import { useTweaks } from '@/lib/tweaks'
 import { fetchCurrentUser, type CurrentUser } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
@@ -43,7 +42,6 @@ export function AppShell() {
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <Wallpaper />
       <StatusBar />
-      <TweakPanel />
 
       <div
         style={{
