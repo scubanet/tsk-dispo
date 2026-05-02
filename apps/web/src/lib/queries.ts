@@ -176,13 +176,28 @@ export interface MyMovement {
 }
 
 export async function fetchMyMovements(instructorId: string): Promise<MyMovement[]> {
+  // Fetch all movements WITH the linked course's status (via ref_assignment_id → course_assignments → courses).
+  // Then filter: vergütung-Movements zählen nur, wenn der Kurs auf 'completed' steht.
+  // Übertrag/Korrektur haben keine ref_assignment_id und werden immer aufgenommen.
   const { data, error } = await supabase
     .from('account_movements')
-    .select('id, date, amount_chf, kind, description, breakdown_json, ref_assignment_id')
+    .select(`
+      id, date, amount_chf, kind, description, breakdown_json, ref_assignment_id,
+      course_assignments:ref_assignment_id (
+        courses ( status )
+      )
+    `)
     .eq('instructor_id', instructorId)
     .order('date', { ascending: false })
   if (error) throw error
-  return (data ?? []) as unknown as MyMovement[]
+
+  const visible = (data ?? []).filter((m: any) => {
+    if (!m.ref_assignment_id) return true
+    const status = m.course_assignments?.courses?.status
+    return status === 'completed'
+  })
+
+  return visible as unknown as MyMovement[]
 }
 
 export interface MySkill {

@@ -73,10 +73,23 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
 
     supabase
       .from('account_movements')
-      .select('id, date, amount_chf, kind, description, breakdown_json')
+      .select(`
+        id, date, amount_chf, kind, description, breakdown_json, ref_assignment_id,
+        course_assignments:ref_assignment_id (
+          courses ( status )
+        )
+      `)
       .eq('instructor_id', instructorId)
       .order('date', { ascending: false })
-      .then(({ data }) => setMovements(data ?? []))
+      .then(({ data }) => {
+        // Vergütungen nur anzeigen, wenn Kurs auf 'completed'.
+        // Übertrag/Korrektur (ohne ref_assignment_id) immer.
+        const visible = (data ?? []).filter((m: any) => {
+          if (!m.ref_assignment_id) return true
+          return m.course_assignments?.courses?.status === 'completed'
+        })
+        setMovements(visible)
+      })
   }, [instructorId, refreshTick])
 
   if (!inst) return <div style={{ padding: 40 }} className="caption">Lade…</div>
