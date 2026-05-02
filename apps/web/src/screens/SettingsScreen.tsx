@@ -78,33 +78,41 @@ export function SettingsScreen() {
   useEffect(() => { refetch() }, [])
 
   async function saveRate(rateId: string, newValue: number) {
+    // Optimistic update for instant feedback
+    setRates((prev) => prev.map((r) => (r.id === rateId ? { ...r, hourly_rate_chf: newValue } : r)))
     const { error } = await supabase
       .from('comp_rates')
       .update({ hourly_rate_chf: newValue })
       .eq('id', rateId)
     if (error) {
       alert('Fehler beim Speichern: ' + error.message)
-      refetch()
+      refetch()  // revert
       return
     }
     setDirty(true)
   }
 
   async function saveCourseType(id: string, field: 'theory_units' | 'pool_units' | 'lake_units', newValue: number) {
+    // Optimistic update
+    setCourseTypes((prev) => prev.map((c) => (c.id === id ? { ...c, [field]: newValue } : c)))
     const { error } = await supabase
       .from('course_types')
       .update({ [field]: newValue })
       .eq('id', id)
     if (error) {
       alert('Fehler beim Speichern: ' + error.message)
-      refetch()
+      refetch()  // revert
       return
     }
     // Auch comp_units sync für Recalc — gleiche Werte für alle Rollen
-    await supabase
+    const compUnitField = field.replace('_units', '_h')
+    const { error: cuErr } = await supabase
       .from('comp_units')
-      .update({ [field.replace('_units', '_h')]: newValue })
+      .update({ [compUnitField]: newValue })
       .eq('course_type_id', id)
+    if (cuErr) {
+      alert('comp_units Sync Fehler: ' + cuErr.message)
+    }
     setDirty(true)
   }
 
@@ -233,14 +241,18 @@ export function SettingsScreen() {
                   <th align="right" style={{ padding: '6px 4px' }}>Pool</th>
                   <th align="right" style={{ padding: '6px 4px' }}>See</th>
                   <th align="right" style={{ padding: '6px 4px', borderLeft: '0.5px solid var(--hairline)' }}>Total</th>
-                  <th align="right" style={{ padding: '6px 4px' }}>CD-Vergütung</th>
+                  <th align="right" style={{ padding: '6px 4px' }}>Instruktor-Vergütung</th>
                 </tr>
               </thead>
               <tbody>
                 {courseTypes.map((c) => {
                   const total = Number(c.theory_units) + Number(c.pool_units) + Number(c.lake_units)
-                  const cdRate = rates.find((r) => r.level === 'CD')?.hourly_rate_chf ?? 0
-                  const cdComp = total * Number(cdRate)
+                  // Beispiel-Vergütung mit Instruktor-Satz (OWSI/MSDT/MI/CD haben alle 28 CHF)
+                  const instrRate =
+                    rates.find((r) => r.level === 'OWSI')?.hourly_rate_chf ??
+                    rates.find((r) => r.level === 'CD')?.hourly_rate_chf ??
+                    0
+                  const exampleComp = total * Number(instrRate)
                   return (
                     <tr key={c.id} style={{ borderBottom: '0.5px solid var(--hairline)' }}>
                       <td style={{ padding: '6px 4px' }} className="mono">{c.code}</td>
@@ -270,7 +282,7 @@ export function SettingsScreen() {
                         {fmtPoints(total)}
                       </td>
                       <td align="right" className="mono" style={{ padding: '6px 4px', color: 'var(--ink-2)' }}>
-                        {chf(cdComp)}
+                        {chf(exampleComp)}
                       </td>
                     </tr>
                   )
@@ -279,7 +291,7 @@ export function SettingsScreen() {
             </table>
           </div>
           <div className="caption-2" style={{ marginTop: 12, color: 'var(--ink-2)' }}>
-            CD-Vergütung als Beispiel-Rechnung mit aktuellem CD-Satz · andere Levels analog.
+            Instruktor-Vergütung als Beispiel-Rechnung mit aktuellem Instruktor-Satz · DM/AI/Shop Staff analog mit ihrem niedrigeren Satz.
           </div>
         </div>
 
