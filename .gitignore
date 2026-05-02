@@ -13,3 +13,8 @@ test-results/
 supabase/.branches/
 supabase/.temp/
 .turbo/
+
+# Apple Push Notification secrets — NEVER commit
+apps/Apple/
+*.p8
+
