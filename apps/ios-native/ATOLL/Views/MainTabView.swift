@@ -1,26 +1,31 @@
 import SwiftUI
 
 struct MainTabView: View {
-  let user: CurrentUser
+    let user: CurrentUser
 
-  var body: some View {
-    TabView {
-      Tab("Heute", systemImage: "sun.max.fill") {
-        TodayView(user: user)
-      }
-      Tab("Kalender", systemImage: "calendar") {
-        CalendarView(user: user)
-      }
-      Tab("Einsätze", systemImage: "list.bullet.rectangle") {
-        AssignmentsView(user: user)
-      }
-      Tab("Saldo", systemImage: "creditcard.fill") {
-        SaldoView(user: user)
-      }
-      Tab("Profil", systemImage: "person.crop.circle.fill") {
-        ProfileView(user: user)
-      }
+    var body: some View {
+        TabView {
+            TodayView(user: user)
+                .tabItem {
+                    Label("Heute", systemImage: "sun.max.fill")
+                }
+            CalendarView(user: user)
+                .tabItem {
+                    Label("Kalender", systemImage: "calendar")
+                }
+            AssignmentsView(user: user)
+                .tabItem {
+                    Label("Einsätze", systemImage: "list.bullet.rectangle")
+                }
+            SaldoView(user: user)
+                .tabItem {
+                    Label("Saldo", systemImage: "creditcard.fill")
+                }
+            ProfileView(user: user)
+                .tabItem {
+                    Label("Profil", systemImage: "person.crop.circle.fill")
+                }
+        }
+        .tint(.accentColor)
     }
-    .tint(.accentColor)
-  }
 }

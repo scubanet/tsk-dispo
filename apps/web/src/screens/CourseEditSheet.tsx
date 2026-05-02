@@ -171,6 +171,57 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
     )
   }
 
+  async function deleteCourse() {
+    if (!courseId) return
+    if (!confirm(
+      `Kurs wirklich komplett löschen?\n\n• Alle Zuteilungen (TL/DM) werden entfernt\n• Alle Kursdaten + Schüler-Anmeldungen werden entfernt\n• Vergütungs-Buchungen zu diesem Kurs werden gelöscht\n\nDiese Aktion ist NICHT umkehrbar. Falls du den Kurs nur aus der Planung nehmen willst, setze ihn stattdessen auf "CXL" (abgesagt).`
+    )) return
+
+    setSaving(true)
+    setError(null)
+
+    try {
+      // 1. Vergütungs-Bewegungen zu Assignments dieses Kurses löschen
+      //    (sonst bleiben sie als verwaiste Buchungen mit ref_assignment_id=NULL übrig)
+      const { data: assignments } = await supabase
+        .from('course_assignments')
+        .select('id')
+        .eq('course_id', courseId)
+      const assignmentIds = (assignments ?? []).map((a) => a.id)
+
+      if (assignmentIds.length > 0) {
+        const { error: delMovErr } = await supabase
+          .from('account_movements')
+          .delete()
+          .eq('kind', 'vergütung')
+          .in('ref_assignment_id', assignmentIds)
+        if (delMovErr) {
+          setError('Fehler beim Aufräumen der Vergütungs-Buchungen: ' + delMovErr.message)
+          setSaving(false)
+          return
+        }
+      }
+
+      // 2. Kurs löschen — assignments, dates, participants kaskadieren automatisch
+      const { error: delErr } = await supabase
+        .from('courses')
+        .delete()
+        .eq('id', courseId)
+      if (delErr) {
+        setError('Fehler beim Löschen: ' + delErr.message)
+        setSaving(false)
+        return
+      }
+
+      setSaving(false)
+      onSaved()
+      onClose()
+    } catch (e: any) {
+      setError(e?.message || 'Unbekannter Fehler')
+      setSaving(false)
+    }
+  }
+
   async function save() {
     if (!typeId || !title) return
     const valid = dates.filter((d) => d.date)
@@ -443,6 +494,18 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         {error && <div className="chip chip-red">{error}</div>}
 
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          {isEdit && (
+            <button
+              type="button"
+              className="btn-secondary btn"
+              onClick={deleteCourse}
+              disabled={saving}
+              style={{ color: '#FF3B30' }}
+              title="Kurs komplett entfernen"
+            >
+              <Icon name="x" size={12} /> Löschen
+            </button>
+          )}
           <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
           <button
             className="btn"
