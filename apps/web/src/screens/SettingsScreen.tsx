@@ -61,7 +61,8 @@ export function SettingsScreen() {
     supabase
       .from('instructors')
       .select('id, name, email, role, auth_user_id')
-      .order('name')
+      .order('last_name')
+      .order('first_name')
       .then(({ data }) => {
         setUsers(
           (data ?? []).map((d: any) => ({

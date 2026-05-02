@@ -50,7 +50,8 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
       .from('instructors')
       .select('id, name, padi_level')
       .eq('active', true)
-      .order('name')
+      .order('last_name')
+      .order('first_name')
       .then(({ data }) => setInstructors((data ?? []) as Instructor[]))
 
     if (!movementId) {

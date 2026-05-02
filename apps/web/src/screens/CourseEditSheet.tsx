@@ -80,7 +80,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
     supabase.from('course_types').select('id, code, label').eq('active', true).order('code')
       .then(({ data }) => setTypes((data ?? []) as CourseType[]))
 
-    supabase.from('instructors').select('id, name, padi_level').eq('active', true).order('name')
+    supabase.from('instructors').select('id, name, padi_level').eq('active', true).order('last_name').order('first_name')
       .then(({ data }) => setInstructors((data ?? []) as Instructor[]))
 
     if (courseId) {

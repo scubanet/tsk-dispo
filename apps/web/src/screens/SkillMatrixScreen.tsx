@@ -27,7 +27,7 @@ export function SkillMatrixScreen() {
   useEffect(() => {
     Promise.all([
       supabase.from('skills').select('id, code, label, category').order('label'),
-      supabase.from('instructors').select('id, name, padi_level').eq('active', true).order('name'),
+      supabase.from('instructors').select('id, name, padi_level').eq('active', true).order('last_name').order('first_name'),
       supabase.from('instructor_skills').select('instructor_id, skill_id'),
     ]).then(([s, i, m]) => {
       setSkills((s.data ?? []) as Skill[])

@@ -255,7 +255,8 @@ export async function fetchStudents(): Promise<Student[]> {
   const { data, error } = await supabase
     .from('students')
     .select('id, name, email, phone, birthday, padi_nr, level, notes, active, created_at')
-    .order('name')
+    .order('last_name')
+    .order('first_name')
   if (error) throw error
   return (data ?? []) as Student[]
 }

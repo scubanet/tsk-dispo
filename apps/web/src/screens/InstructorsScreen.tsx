@@ -35,7 +35,8 @@ export function InstructorsScreen() {
       supabase
         .from('instructors')
         .select('id, name, padi_level, initials, color, email, active')
-        .order('name'),
+        .order('last_name')
+        .order('first_name'),
       supabase.from('v_instructor_balance').select('instructor_id, balance_chf'),
     ]).then(([i, b]) => {
       const balanceMap = new Map<string, number>()
