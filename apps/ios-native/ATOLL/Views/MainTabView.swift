@@ -8,7 +8,10 @@ struct MainTabView: View {
       Tab("Heute", systemImage: "sun.max.fill") {
         TodayView(user: user)
       }
-      Tab("Einsätze", systemImage: "calendar") {
+      Tab("Kalender", systemImage: "calendar") {
+        CalendarView(user: user)
+      }
+      Tab("Einsätze", systemImage: "list.bullet.rectangle") {
         AssignmentsView(user: user)
       }
       Tab("Saldo", systemImage: "creditcard.fill") {

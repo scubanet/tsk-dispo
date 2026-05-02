@@ -39,22 +39,33 @@ final class AssignmentsStore {
         }
     }
 
+    /// Heutige Einsätze — checkt ALLE Tage des Kurses (start_date + additional_dates),
+    /// damit Mehr-Tages-Kurse wie AOWD an jedem ihrer Termine auftauchen.
     func today() -> [Assignment] {
         let cal = Calendar.current
         return assignments.filter { a in
-            guard let d = a.course?.startDateAsDate else { return false }
-            return cal.isDateInToday(d)
+            (a.course?.allDates ?? []).contains { cal.isDateInToday($0) }
         }
     }
 
+    /// Einsätze in den nächsten 7 Tagen exkl. heute — basierend auf `allDates`,
+    /// sortiert nach nächstem anstehendem Termin.
     func upcomingWeek() -> [Assignment] {
         let cal = Calendar.current
         let tomorrow = cal.startOfDay(for: cal.date(byAdding: .day, value: 1, to: .now)!)
         let weekEnd = cal.date(byAdding: .day, value: 7, to: cal.startOfDay(for: .now))!
-        return assignments.filter { a in
-            guard let d = a.course?.startDateAsDate else { return false }
-            return d >= tomorrow && d < weekEnd
-        }
+        return assignments
+            .filter { a in
+                (a.course?.allDates ?? []).contains { d in
+                    let day = cal.startOfDay(for: d)
+                    return day >= tomorrow && day < weekEnd
+                }
+            }
+            .sorted { a, b in
+                let nextA = a.course?.nextDateOnOrAfter(.now) ?? .distantFuture
+                let nextB = b.course?.nextDateOnOrAfter(.now) ?? .distantFuture
+                return nextA < nextB
+            }
     }
 
     struct MonthGroup {
@@ -72,11 +83,20 @@ final class AssignmentsStore {
             return formatter.string(from: d)
         }
 
+        // Neueste Monate zuerst — innerhalb des Monats neueste Tage zuerst.
         return grouped
             .sorted {
-                ($0.value.first?.course?.startDateAsDate ?? .distantFuture)
-                    < ($1.value.first?.course?.startDateAsDate ?? .distantFuture)
+                ($0.value.first?.course?.startDateAsDate ?? .distantPast)
+                    > ($1.value.first?.course?.startDateAsDate ?? .distantPast)
             }
-            .map { MonthGroup(monthLabel: $0.key, items: $0.value) }
+            .map { (key, items) in
+                MonthGroup(
+                    monthLabel: key,
+                    items: items.sorted {
+                        ($0.course?.startDateAsDate ?? .distantPast)
+                            > ($1.course?.startDateAsDate ?? .distantPast)
+                    }
+                )
+            }
     }
 }

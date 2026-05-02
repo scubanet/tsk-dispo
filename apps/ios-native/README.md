@@ -53,12 +53,65 @@ Erste Compilation lädt die Swift Package Dependencies (Supabase Swift SDK von G
 
 ## Phase-Plan
 
-- **1a — Foundation** (jetzt): Scaffolding, Auth-Flow, leere Tabs ← *aktuell*
-- **1b — Today + Einsätze**: Heute-Screen mit nächsten Kursen, Einsätze-Liste
-- **1c — Saldo + Profil**: Saldo-Screen mit Breakdowns, Profil read-only
-- **1d — Push Notifications**: APNs-Setup, Webhook von Supabase
-- **2 — TestFlight**: Internal Testing für TSK-Crew
-- **3 — App Store**: Submission
+- ✅ **1a — Foundation**: Scaffolding, Auth-Flow, leere Tabs
+- ✅ **1b — Today + Einsätze**: Heute-Screen mit nächsten Kursen, Einsätze-Liste
+- ✅ **1c — Saldo + Profil**: Saldo-Screen mit Breakdowns, Profil mit Skills
+- ⏳ **1d — Push Notifications + Calendar + Polish**: ← *aktuell*
+- ☐ **2 — TestFlight**: Internal Testing für TSK-Crew
+- ☐ **3 — App Store**: Submission
+
+## Push-Notifications Setup
+
+Dauert ~10 Min einmalig. iOS kann Push erst empfangen wenn das alles steht.
+
+### A) Xcode — Capability hinzufügen
+
+1. `apps/ios-native/ATOLL.xcodeproj` öffnen
+2. **Project Navigator** → Target **ATOLL** → Tab **Signing & Capabilities**
+3. **+ Capability** → **Push Notifications** doppelklicken
+4. Nochmal **+ Capability** → **Background Modes** → Häkchen **Remote notifications**
+5. Speichern
+
+### B) Apple Developer Portal — Key erstellen
+
+1. [developer.apple.com/account/resources/authkeys/list](https://developer.apple.com/account/resources/authkeys/list)
+2. **+** → **Apple Push Notifications service (APNs)** → Häkchen
+3. Name: `ATOLL APNs Key` → Continue → Register
+4. **Download** (du kriegst nur EINE Chance — sicher ablegen!)
+5. Notiere dir:
+   - **Key ID** (10 Zeichen, z.B. `ABC123XYZ4`)
+   - **Team ID** (oben rechts in Apple Developer, z.B. `ABCD123456`)
+
+### C) Bundle ID Push aktivieren
+
+1. [developer.apple.com/account/resources/identifiers/list](https://developer.apple.com/account/resources/identifiers/list)
+2. `swiss.atoll.app` öffnen
+3. Scroll zu **Capabilities** → Häkchen bei **Push Notifications**
+4. **Save**
+
+### D) Supabase Edge Function (kommt in Phase 1d-Backend)
+
+Diese 3 Werte werden später als Supabase-Secrets gesetzt:
+
+```bash
+supabase secrets set APNS_AUTH_KEY="$(cat ~/Downloads/AuthKey_ABC123XYZ4.p8 | base64)"
+supabase secrets set APNS_KEY_ID="ABC123XYZ4"
+supabase secrets set APNS_TEAM_ID="ABCD123456"
+supabase secrets set APNS_BUNDLE_ID="swiss.atoll.app"
+```
+
+Die Edge-Function `send-assignment-notification` wird per Database-Webhook auf Insert in `course_assignments` getriggert.
+
+### E) Test
+
+1. App auf einem **echten iPhone** bauen (Push funktioniert nicht im Simulator)
+2. Beim ersten Start nach Login: Permission-Dialog erscheint
+3. *Erlauben* — App registriert sich, Token landet in `device_tokens` Tabelle
+4. In Supabase SQL Editor checken:
+   ```sql
+   SELECT * FROM device_tokens WHERE instructor_id = '<deine instructor_id>';
+   ```
+   Sollte deinen Token zeigen.
 
 ## Folder-Struktur
 

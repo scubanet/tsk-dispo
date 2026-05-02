@@ -1,6 +1,18 @@
 import Foundation
 
 enum AppDate {
+    /// Parser für PostgREST DATE-Strings ("yyyy-MM-dd").
+    static func parseISODate(_ s: String) -> Date? {
+        isoDateFormatter.date(from: s)
+    }
+
+    private static let isoDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
     private static let relativeDateFormatter: RelativeDateTimeFormatter = {
         let f = RelativeDateTimeFormatter()
         f.locale = Locale(identifier: "de_CH")
