@@ -22,7 +22,7 @@ export interface AssignmentRow {
   id: string
   course_id: string
   instructor_id: string
-  role: 'haupt' | 'assist' | 'dmt'
+  role: 'haupt' | 'assist' | 'opfer' | 'dmt'  // 'dmt' nur Legacy
   confirmed: boolean
   course?: CourseRow | null
   instructor: { id: string; name: string; initials: string; color: string; padi_level?: string } | null
@@ -133,7 +133,7 @@ export interface Kpis {
 
 export interface MyAssignment {
   id: string
-  role: 'haupt' | 'assist' | 'dmt'
+  role: 'haupt' | 'assist' | 'opfer' | 'dmt'  // 'dmt' nur Legacy
   confirmed: boolean
   course: {
     id: string

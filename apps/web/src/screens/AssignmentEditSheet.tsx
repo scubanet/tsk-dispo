@@ -12,10 +12,12 @@ interface Conflict {
   conflicting_role: string
 }
 
+type AssignmentRoleValue = 'haupt' | 'assist' | 'opfer'
+
 interface ExistingAssignment {
   id: string
   instructor_id: string
-  role: 'haupt' | 'assist' | 'dmt'
+  role: AssignmentRoleValue | 'dmt'  // 'dmt' nur als Legacy-Wert beim Lesen
   confirmed: boolean
   assigned_for_dates: string[]
 }
@@ -42,18 +44,19 @@ const inputStyle = {
   width: '100%',
 }
 
-const ROLES = [
-  { value: 'haupt',  label: 'Haupt' },
-  { value: 'assist', label: 'Assistent' },
-  { value: 'dmt',    label: 'DMT' },
-] as const
+const BASE_ROLES = [
+  { value: 'haupt' as const,  label: 'Haupt' },
+  { value: 'assist' as const, label: 'Assistent' },
+]
+const OPFER_ROLE = { value: 'opfer' as const, label: 'Opfer (Rescue)' }
 
 export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates, existingAssignment }: Props) {
   const isEdit = !!existingAssignment
 
   const [instructors, setInstructors] = useState<Instructor[]>([])
   const [instructorId, setInstructorId] = useState('')
-  const [role, setRole] = useState<'haupt' | 'assist' | 'dmt'>('assist')
+  const [role, setRole] = useState<AssignmentRoleValue>('assist')
+  const [courseTypeCode, setCourseTypeCode] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   /** Empty array means "all dates" */
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set())
@@ -73,9 +76,23 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
       .order('first_name')
       .then(({ data }) => setInstructors((data ?? []) as Instructor[]))
 
+    // Course-Type-Code laden — bestimmt ob Opfer-Rolle verfügbar ist
+    supabase
+      .from('courses')
+      .select('course_types(code)')
+      .eq('id', courseId)
+      .single()
+      .then(({ data }) => {
+        const code = (data as any)?.course_types?.code ?? null
+        setCourseTypeCode(code)
+      })
+
     if (existingAssignment) {
       setInstructorId(existingAssignment.instructor_id)
-      setRole(existingAssignment.role)
+      // Legacy 'dmt' wird transparent als 'assist' behandelt
+      const r: AssignmentRoleValue =
+        existingAssignment.role === 'dmt' ? 'assist' : existingAssignment.role
+      setRole(r)
       setConfirmed(existingAssignment.confirmed)
       setSelectedDates(new Set(existingAssignment.assigned_for_dates ?? []))
     } else {
@@ -84,7 +101,10 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
       setConfirmed(false)
       setSelectedDates(new Set())
     }
-  }, [open, existingAssignment])
+  }, [open, existingAssignment, courseId])
+
+  const isRescueCourse = courseTypeCode === 'RESC'
+  const availableRoles = isRescueCourse ? [...BASE_ROLES, OPFER_ROLE] : BASE_ROLES
 
   // Conflict-check for selected dates (or all)
   useEffect(() => {
@@ -202,17 +222,22 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
         <div>
           <Label>Rolle</Label>
           <div className="seg">
-            {ROLES.map((r) => (
+            {availableRoles.map((r) => (
               <button
                 key={r.value}
                 type="button"
                 className={role === r.value ? 'active' : undefined}
-                onClick={() => setRole(r.value as typeof role)}
+                onClick={() => setRole(r.value)}
               >
                 {r.label}
               </button>
             ))}
           </div>
+          {isRescueCourse && role === 'opfer' && (
+            <div className="caption-2" style={{ marginTop: 6, color: 'var(--ink-2)' }}>
+              Rescue-Szenario-Opfer · Pauschal 1.5 Punkte Vergütung
+            </div>
+          )}
         </div>
 
         <div>

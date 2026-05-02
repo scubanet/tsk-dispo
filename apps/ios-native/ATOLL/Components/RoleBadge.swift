@@ -16,6 +16,7 @@ struct RoleBadge: View {
         switch role {
         case .haupt: "Haupt"
         case .assist: "Assist"
+        case .opfer: "Opfer"
         case .dmt: "DMT"
         }
     }
@@ -24,6 +25,7 @@ struct RoleBadge: View {
         switch role {
         case .haupt: .blue
         case .assist: .orange
+        case .opfer: .red
         case .dmt: .purple
         }
     }

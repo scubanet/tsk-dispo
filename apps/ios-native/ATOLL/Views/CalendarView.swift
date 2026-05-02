@@ -231,7 +231,7 @@ private struct DayCell: View {
     private var textColor: Color {
         if isSelected { return .white }
         if isToday { return .accentColor }
-        return isCurrentMonth ? .primary : .tertiary
+        return isCurrentMonth ? .primary : Color(.tertiaryLabel)
     }
 }
 

@@ -13,5 +13,6 @@ struct Assignment: Codable, Identifiable, Hashable {
 }
 
 enum AssignmentRole: String, Codable, Hashable {
-    case haupt, assist, dmt
+    case haupt, assist, opfer
+    case dmt  // Legacy — bleibt für Decoding alter Daten, wird nicht mehr neu vergeben
 }
