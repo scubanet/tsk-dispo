@@ -32,8 +32,8 @@ const TYPE_COLORS: Record<string, string> = {
   BUBB: '#34C759',
   DRY: '#30B0C7',
   DM: '#AF52DE',
-  EFR: '#FF9500',
-  EFRI: '#FF9500',
+  EFR: '#FFCC00',
+  EFRI: '#FFCC00',
   RESC: '#FF3B30',
   EAN: '#5AC8FA',
   IDC: '#FF2D55',
@@ -45,6 +45,18 @@ function colorForType(code?: string): string {
   if (code.startsWith('SPEI_')) return '#AF52DE'   // alle SPEIs in lila
   if (code.startsWith('SPEC_')) return '#30B0C7'   // alle Specialties in türkis
   return '#8E8E93'
+}
+
+/** Visuelle Priorität: kein Haupt > tentative > normal. Cancelled wird separat über opacity gehandelt. */
+function statusStyle(c: CourseRow, hasHaupt: boolean, baseColor: string) {
+  const noHaupt = !hasHaupt && c.status !== 'cancelled'
+  if (noHaupt) {
+    return { bg: '#FF3B3022', border: '#FF3B30', text: '#c4302a', prefix: '⚠ ', tooltip: 'Kein Haupt-Instructor zugewiesen' }
+  }
+  if (c.status === 'tentative') {
+    return { bg: '#FF950022', border: '#FF9500', text: '#c47200', prefix: '? ', tooltip: 'Evtl. — noch nicht bestätigt' }
+  }
+  return { bg: baseColor + '22', border: baseColor, text: baseColor, prefix: '', tooltip: '' }
 }
 
 /** All dates a course occupies (start + zero or more additional). */
@@ -154,7 +166,15 @@ export function CalendarScreen() {
         <div className="caption-2" style={{ marginTop: 12, padding: '0 4px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
             <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: '#FF3B3022', borderLeft: '2px solid #FF3B30' }} />
-            ohne Haupt-Instructor
+            ⚠ ohne Haupt-Instructor
+          </span>
+          <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+            <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: '#FF950022', borderLeft: '2px dashed #FF9500' }} />
+            ? evtl. (tentative)
+          </span>
+          <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', textDecoration: 'line-through', opacity: 0.6 }}>
+            <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: 'rgba(0,0,0,.08)' }} />
+            abgesagt
           </span>
           <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
             <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: 'var(--accent-soft)' }} />
@@ -218,15 +238,17 @@ function WeekView({
                 const allDates = courseDates(c)
                 const isMultiDay = allDates.length > 1
                 const dayIndex = allDates.findIndex((dt) => dt && isSameDay(new Date(dt), d))
-                const noHaupt = !hauptByCourse.has(c.id) && c.status !== 'cancelled'
+                const hasHaupt = hauptByCourse.has(c.id)
                 const baseColor = colorForType(c.course_type?.code)
+                const s = statusStyle(c, hasHaupt, baseColor)
+                const isTentative = c.status === 'tentative'
                 return (
                   <div
                     key={c.id}
                     onClick={() => onClickCourse(c.id)}
                     style={{
-                      background: noHaupt ? '#FF3B3022' : 'var(--surface-strong)',
-                      borderLeft: `3px solid ${noHaupt ? '#FF3B30' : baseColor}`,
+                      background: s.prefix ? s.bg : 'var(--surface-strong)',
+                      borderLeft: `3px ${isTentative ? 'dashed' : 'solid'} ${s.border}`,
                       borderRadius: 8,
                       padding: '6px 8px',
                       fontSize: 11,
@@ -234,7 +256,7 @@ function WeekView({
                       opacity: c.status === 'cancelled' ? 0.5 : 1,
                       textDecoration: c.status === 'cancelled' ? 'line-through' : 'none',
                     }}
-                    title={noHaupt ? 'Kein Haupt-Instructor zugewiesen' : c.title}
+                    title={s.tooltip || c.title}
                   >
                     <div
                       style={{
@@ -243,10 +265,10 @@ function WeekView({
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        color: noHaupt ? '#c4302a' : 'inherit',
+                        color: s.prefix ? s.text : 'inherit',
                       }}
                     >
-                      {noHaupt && '⚠ '}{c.title}
+                      {s.prefix}{c.title}
                     </div>
                     <div
                       className="caption-2"
@@ -332,19 +354,22 @@ function MonthView({
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {dayCourses.slice(0, 4).map((c) => {
                   const isMultiDay = (c.additional_dates?.length ?? 0) > 0
-                  const noHaupt = !hauptByCourse.has(c.id) && c.status !== 'cancelled'
+                  const hasHaupt = hauptByCourse.has(c.id)
                   const baseColor = colorForType(c.course_type?.code)
+                  const s = statusStyle(c, hasHaupt, baseColor)
+                  const isTentative = c.status === 'tentative'
+                  const showBorder = !!s.prefix || isMultiDay
                   return (
                     <div
                       key={c.id}
                       onClick={() => onClickCourse(c.id)}
-                      title={noHaupt ? `${c.title} — kein Haupt-Instructor` : c.title}
+                      title={s.tooltip ? `${c.title} — ${s.tooltip}` : c.title}
                       style={{
                         fontSize: 10.5,
                         padding: '2px 6px',
                         borderRadius: 4,
-                        background: noHaupt ? '#FF3B3022' : baseColor + '22',
-                        color: noHaupt ? '#c4302a' : baseColor,
+                        background: s.bg,
+                        color: s.text,
                         cursor: 'pointer',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -352,14 +377,12 @@ function MonthView({
                         fontWeight: 500,
                         opacity: c.status === 'cancelled' ? 0.5 : 1,
                         textDecoration: c.status === 'cancelled' ? 'line-through' : 'none',
-                        borderLeft: noHaupt
-                          ? `2px solid #FF3B30`
-                          : isMultiDay
-                            ? `2px solid ${baseColor}`
-                            : undefined,
+                        borderLeft: showBorder
+                          ? `2px ${isTentative ? 'dashed' : 'solid'} ${s.border}`
+                          : undefined,
                       }}
                     >
-                      {noHaupt && '⚠ '}{c.title}
+                      {s.prefix}{c.title}
                     </div>
                   )
                 })}
