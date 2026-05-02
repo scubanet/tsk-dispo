@@ -44,6 +44,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
   const [movements, setMovements] = useState<any[]>([])
   const [editOpen, setEditOpen] = useState(false)
   const [correctionOpen, setCorrectionOpen] = useState(false)
+  const [editMovementId, setEditMovementId] = useState<string | null>(null)
   const [refreshTick, setRefreshTick] = useState(0)
 
   useEffect(() => {
@@ -127,9 +128,13 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
 
       <CorrectionSheet
         open={correctionOpen}
-        onClose={() => setCorrectionOpen(false)}
+        onClose={() => {
+          setCorrectionOpen(false)
+          setEditMovementId(null)
+        }}
         onSaved={() => setRefreshTick((t) => t + 1)}
         defaultInstructorId={instructorId}
+        movementId={editMovementId}
       />
 
       <div className="seg" style={{ marginBottom: 20 }}>
@@ -208,28 +213,47 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
             Aktueller berechneter Saldo aus {movements.length} Bewegungen.
           </div>
           <div style={{ display: 'grid', gap: 6 }}>
-            {movements.map((m) => (
-              <div
-                key={m.id}
-                className="glass-thin"
-                style={{ padding: 10, borderRadius: 10, display: 'flex', gap: 12 }}
-              >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {m.description || m.kind}
-                  </div>
-                  <div className="caption-2">
-                    {format(new Date(m.date), 'd. MMM yyyy', { locale: de })} · {m.kind}
-                  </div>
-                </div>
+            {movements.map((m) => {
+              const editable = user.role === 'dispatcher' && (m.kind === 'korrektur' || m.kind === 'übertrag')
+              return (
                 <div
-                  className="mono"
-                  style={{ fontWeight: 600, color: Number(m.amount_chf) < 0 ? '#FF3B30' : 'inherit' }}
+                  key={m.id}
+                  className="glass-thin"
+                  style={{
+                    padding: 10,
+                    borderRadius: 10,
+                    display: 'flex',
+                    gap: 12,
+                    alignItems: 'center',
+                    cursor: editable ? 'pointer' : 'default',
+                  }}
+                  onClick={() => {
+                    if (!editable) return
+                    setEditMovementId(m.id)
+                    setCorrectionOpen(true)
+                  }}
+                  title={editable ? 'Klicken zum Bearbeiten' : m.kind === 'vergütung' ? 'Auto-berechnet aus Assignment — nicht editierbar' : ''}
                 >
-                  {chf(m.amount_chf)}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {m.description || m.kind}
+                    </div>
+                    <div className="caption-2">
+                      {format(new Date(m.date), 'd. MMM yyyy', { locale: de })} · {m.kind}
+                    </div>
+                  </div>
+                  <div
+                    className="mono"
+                    style={{ fontWeight: 600, color: Number(m.amount_chf) < 0 ? '#FF3B30' : 'inherit' }}
+                  >
+                    {chf(m.amount_chf)}
+                  </div>
+                  {editable && (
+                    <Icon name="settings" size={14} />
+                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </>
       )}
