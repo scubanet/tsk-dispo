@@ -360,16 +360,19 @@ function BottomGrid({ pipeline, attention }: { pipeline: Pipeline; attention: At
           label="Kurse ohne Haupt-TL"
           value={attention.courses_without_haupt}
           severity={attention.courses_without_haupt > 0 ? 'red' : 'ok'}
+          hint="Kritisch — Kurs kann nicht stattfinden ohne Haupt-Leiter"
         />
         <AttentionRow
-          label="Tentative > 30 Tage"
+          label="Tentative im Monat"
           value={attention.long_tentative}
-          severity={attention.long_tentative > 5 ? 'orange' : 'ok'}
+          severity={attention.long_tentative > 0 ? 'orange' : 'ok'}
+          hint="Noch nicht bestätigte Kurse in den nächsten 30 Tagen"
         />
         <AttentionRow
-          label="TLs > 6 Wochen idle"
+          label="TLs > 6 Wochen ohne Einsatz"
           value={attention.idle_instructors_6w}
-          severity={attention.idle_instructors_6w > 3 ? 'orange' : 'ok'}
+          severity={attention.idle_instructors_6w > 0 ? 'yellow' : 'ok'}
+          hint="Hinweis — diese TLs könnten Einsätze brauchen"
         />
       </div>
     </div>
@@ -388,24 +391,37 @@ function Row({ label, value }: { label: string; value: number }) {
   )
 }
 
-function AttentionRow({ label, value, severity }: {
-  label: string; value: number; severity: 'ok' | 'orange' | 'red'
+function AttentionRow({ label, value, severity, hint }: {
+  label: string
+  value: number
+  severity: 'ok' | 'yellow' | 'orange' | 'red'
+  hint?: string
 }) {
+  // Konsistent mit Calendar-Status-Farben:
+  // red = blockierend, orange = tentative, yellow = Hinweis, green = ok
   const color =
     severity === 'red'    ? '#FF3B30' :
     severity === 'orange' ? '#FF9500' :
+    severity === 'yellow' ? '#FFCC00' :
                             '#34C759'
   return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '8px 0', borderBottom: '0.5px solid var(--hairline)',
-    }}>
+    <div
+      title={hint}
+      style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '8px 0', borderBottom: '0.5px solid var(--hairline)',
+      }}
+    >
       <div style={{ fontSize: 13 }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div className="mono" style={{ fontSize: 18, fontWeight: 600, color: value > 0 ? color : 'var(--ink-2)' }}>
           {value}
         </div>
-        <div style={{ width: 8, height: 8, borderRadius: 999, background: color }} />
+        <div style={{
+          width: 8, height: 8, borderRadius: 999, background: color,
+          // Bei gelb: Border damit's auf weissem Background sichtbar bleibt
+          boxShadow: severity === 'yellow' ? 'inset 0 0 0 0.5px rgba(0,0,0,.15)' : undefined,
+        }} />
       </div>
     </div>
   )
