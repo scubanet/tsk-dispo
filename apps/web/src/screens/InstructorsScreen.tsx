@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import clsx from 'clsx'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
@@ -7,7 +7,9 @@ import { Avatar } from '@/components/Avatar'
 import { EmptyState } from '@/components/EmptyState'
 import { supabase } from '@/lib/supabase'
 import { chf } from '@/lib/format'
+import type { OutletCtx } from '@/layout/AppShell'
 import { InstructorDetailPanel } from './InstructorDetailPanel'
+import { InstructorEditSheet } from './InstructorEditSheet'
 
 interface Row {
   id: string
@@ -23,10 +25,12 @@ interface Row {
 export function InstructorsScreen() {
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
+  const { user } = useOutletContext<OutletCtx>()
   const [rows, setRows] = useState<Row[]>([])
   const [search, setSearch] = useState('')
+  const [createOpen, setCreateOpen] = useState(false)
 
-  useEffect(() => {
+  function refetch() {
     Promise.all([
       supabase
         .from('instructors')
@@ -45,7 +49,9 @@ export function InstructorsScreen() {
         })) as Row[],
       )
     })
-  }, [])
+  }
+
+  useEffect(() => { refetch() }, [])
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {
@@ -58,6 +64,7 @@ export function InstructorsScreen() {
   }, [rows, search])
 
   const selected = rows.find((r) => r.id === id)
+  const isDispatcher = user.role === 'dispatcher'
 
   return (
     <>
@@ -70,6 +77,11 @@ export function InstructorsScreen() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        {isDispatcher && (
+          <button className="btn" onClick={() => setCreateOpen(true)}>
+            <Icon name="plus" size={14} /> Neu
+          </button>
+        )}
       </Topbar>
 
       <div className="master-detail">
@@ -109,6 +121,17 @@ export function InstructorsScreen() {
           )}
         </div>
       </div>
+
+      <InstructorEditSheet
+        instructorId={null}
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSaved={(newId) => {
+          refetch()
+          if (newId) navigate(`/tldm/${newId}`)
+        }}
+        currentUserAuthId={user.authUserId}
+      />
     </>
   )
 }

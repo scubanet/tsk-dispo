@@ -42,14 +42,26 @@ interface Skill {
 }
 
 interface Props {
-  instructorId: string
+  instructorId?: string | null
   open: boolean
   onClose: () => void
-  onSaved: () => void
+  onSaved: (newId?: string) => void
   currentUserAuthId: string | null  // to warn when editing own role
 }
 
+const EMPTY_FORM: Form = {
+  name: '',
+  padi_level: 'OWSI',
+  email: '',
+  phone: '',
+  color: '#0A84FF',
+  initials: '',
+  active: true,
+  role: 'instructor',
+}
+
 export function InstructorEditSheet({ instructorId, open, onClose, onSaved, currentUserAuthId }: Props) {
+  const isEdit = !!instructorId
   const [form, setForm] = useState<Form | null>(null)
   const [authUserId, setAuthUserId] = useState<string | null>(null)
   const [allSkills, setAllSkills] = useState<Skill[]>([])
@@ -60,6 +72,23 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
 
   useEffect(() => {
     if (!open) return
+    setError(null)
+
+    // Load skill catalog (always)
+    supabase
+      .from('skills')
+      .select('id, code, label, category')
+      .order('label')
+      .then(({ data }) => setAllSkills((data ?? []) as Skill[]))
+
+    if (!instructorId) {
+      // Create-Mode: leeres Formular, keine Skills
+      setForm(EMPTY_FORM)
+      setAuthUserId(null)
+      setSkillSet(new Set())
+      return
+    }
+
     supabase
       .from('instructors')
       .select('name, padi_level, email, phone, color, initials, active, role, auth_user_id')
@@ -69,7 +98,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
         if (!data) return
         setForm({
           name: data.name ?? '',
-          padi_level: data.padi_level ?? 'Instructor',
+          padi_level: data.padi_level ?? 'OWSI',
           email: data.email ?? '',
           phone: data.phone ?? '',
           color: data.color ?? '#0A84FF',
@@ -79,12 +108,6 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
         })
         setAuthUserId(data.auth_user_id)
       })
-
-    supabase
-      .from('skills')
-      .select('id, code, label, category')
-      .order('label')
-      .then(({ data }) => setAllSkills((data ?? []) as Skill[]))
 
     supabase
       .from('instructor_skills')
@@ -107,6 +130,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
   }, [allSkills, skillCategory])
 
   async function toggleSkill(skillId: string) {
+    if (!instructorId) return  // create-mode: skills erst nach dem Anlegen
     const next = new Set(skillSet)
     if (next.has(skillId)) {
       next.delete(skillId)
@@ -129,8 +153,43 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
 
   async function save() {
     if (!form) return
+    if (!form.name.trim()) {
+      setError('Name ist Pflicht.')
+      return
+    }
     setSaving(true)
     setError(null)
+
+    const payload = {
+      name: form.name.trim(),
+      padi_level: form.padi_level,
+      email: form.email.trim() || null,
+      phone: form.phone.trim() || null,
+      color: form.color,
+      initials: form.initials.trim().toUpperCase() || initialsFromName(form.name),
+      active: form.active,
+      role: form.role,
+    }
+
+    if (!isEdit) {
+      // CREATE
+      const { data: created, error: insErr } = await supabase
+        .from('instructors')
+        .insert(payload)
+        .select('id')
+        .single()
+      if (insErr) {
+        setError(insErr.message)
+        setSaving(false)
+        return
+      }
+      setSaving(false)
+      onSaved(created?.id)
+      onClose()
+      return
+    }
+
+    // EDIT (existing) — original flow follows
     const { error: updErr } = await supabase
       .from('instructors')
       .update({
@@ -158,7 +217,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
   const willLockSelfOut = isEditingSelf && form?.role !== 'dispatcher'
 
   return (
-    <Sheet open={open} onClose={onClose} title="Person bearbeiten" width={560}>
+    <Sheet open={open} onClose={onClose} title={isEdit ? 'Person bearbeiten' : 'Neuer TL/DM'} width={560}>
       {!form ? (
         <div className="caption">Lade…</div>
       ) : (
@@ -256,49 +315,56 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
             <label htmlFor="active">Aktiv (erscheint in Dispo-Vorschlägen)</label>
           </div>
 
-          <div style={{ marginTop: 6 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-              <div className="caption-2">
-                SKILLS ({skillSet.size}/{allSkills.length})
+          {isEdit ? (
+            <div style={{ marginTop: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <div className="caption-2">
+                  SKILLS ({skillSet.size}/{allSkills.length})
+                </div>
+                <select
+                  value={skillCategory}
+                  onChange={(e) => setSkillCategory(e.target.value)}
+                  style={{ ...inputStyle, width: 'auto', padding: '4px 8px' }}
+                >
+                  {categories.map((c) => (
+                    <option key={c} value={c}>{c === 'all' ? 'Alle' : c}</option>
+                  ))}
+                </select>
               </div>
-              <select
-                value={skillCategory}
-                onChange={(e) => setSkillCategory(e.target.value)}
-                style={{ ...inputStyle, width: 'auto', padding: '4px 8px' }}
-              >
-                {categories.map((c) => (
-                  <option key={c} value={c}>{c === 'all' ? 'Alle' : c}</option>
-                ))}
-              </select>
+              <div className="caption-2" style={{ marginBottom: 8 }}>
+                Klick zum An-/Abwählen. Speichert sofort, kein "Speichern"-Klick nötig.
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 220, overflow: 'auto', padding: 4 }}>
+                {filteredSkills.map((s) => {
+                  const has = skillSet.has(s.id)
+                  return (
+                    <button
+                      type="button"
+                      key={s.id}
+                      onClick={() => toggleSkill(s.id)}
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: 999,
+                        border: 0,
+                        cursor: 'pointer',
+                        fontSize: 11.5,
+                        fontWeight: 500,
+                        background: has ? 'var(--accent-soft)' : 'rgba(0,0,0,.05)',
+                        color: has ? 'var(--accent)' : 'var(--ink-2)',
+                      }}
+                    >
+                      {has ? '✓ ' : ''}{s.label}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-            <div className="caption-2" style={{ marginBottom: 8 }}>
-              Klick zum An-/Abwählen. Speichert sofort, kein "Speichern"-Klick nötig.
+          ) : (
+            <div className="caption" style={{ padding: 12, background: 'rgba(120,120,128,.08)', borderRadius: 8 }}>
+              💡 Skills kannst du nach dem Anlegen vergeben — entweder im TL/DM-Detail "Bearbeiten"
+              oder in der Skill-Matrix.
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 220, overflow: 'auto', padding: 4 }}>
-              {filteredSkills.map((s) => {
-                const has = skillSet.has(s.id)
-                return (
-                  <button
-                    type="button"
-                    key={s.id}
-                    onClick={() => toggleSkill(s.id)}
-                    style={{
-                      padding: '5px 10px',
-                      borderRadius: 999,
-                      border: 0,
-                      cursor: 'pointer',
-                      fontSize: 11.5,
-                      fontWeight: 500,
-                      background: has ? 'var(--accent-soft)' : 'rgba(0,0,0,.05)',
-                      color: has ? 'var(--accent)' : 'var(--ink-2)',
-                    }}
-                  >
-                    {has ? '✓ ' : ''}{s.label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+          )}
 
           {willLockSelfOut && (
             <div
