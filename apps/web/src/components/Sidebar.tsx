@@ -19,21 +19,22 @@ interface NavItem {
 }
 
 const ITEMS: NavItem[] = [
-  { to: '/heute',     icon: 'house',    label: 'Heute',          roles: ['dispatcher', 'instructor'] },
-  { to: '/kalender',  icon: 'calendar', label: 'Kalender',       roles: ['dispatcher', 'instructor'] },
-  { to: '/kurse',     icon: 'book',     label: 'Kurse',          roles: ['dispatcher'] },
-  { to: '/tldm',      icon: 'users',    label: 'TL/DM',          roles: ['dispatcher'] },
-  { to: '/schueler',  icon: 'tag',      label: 'Schüler',        roles: ['dispatcher'] },
-  { to: '/skills',    icon: 'grid',     label: 'Skill-Matrix',   roles: ['dispatcher'] },
-  { to: '/pool',      icon: 'water',    label: 'Pool',           roles: ['dispatcher'] },
-  { to: '/saldi',     icon: 'wallet',   label: 'Saldi',          roles: ['dispatcher'] },
+  { to: '/cockpit',   icon: 'chart',    label: 'Cockpit',        roles: ['dispatcher', 'owner'] },
+  { to: '/heute',     icon: 'house',    label: 'Heute',          roles: ['dispatcher', 'instructor', 'owner'] },
+  { to: '/kalender',  icon: 'calendar', label: 'Kalender',       roles: ['dispatcher', 'instructor', 'owner'] },
+  { to: '/kurse',     icon: 'book',     label: 'Kurse',          roles: ['dispatcher', 'owner'] },
+  { to: '/tldm',      icon: 'users',    label: 'TL/DM',          roles: ['dispatcher', 'owner'] },
+  { to: '/schueler',  icon: 'tag',      label: 'Schüler',        roles: ['dispatcher', 'owner'] },
+  { to: '/skills',    icon: 'grid',     label: 'Skill-Matrix',   roles: ['dispatcher', 'owner'] },
+  { to: '/pool',      icon: 'water',    label: 'Pool',           roles: ['dispatcher', 'owner'] },
+  { to: '/saldi',     icon: 'wallet',   label: 'Saldi',          roles: ['dispatcher', 'owner'] },
   { to: '/einsaetze', icon: 'book',     label: 'Meine Einsätze', roles: ['instructor'] },
   { to: '/saldo',     icon: 'wallet',   label: 'Mein Saldo',     roles: ['instructor'] },
   { to: '/profil',    icon: 'tag',      label: 'Mein Profil',    roles: ['instructor'] },
 ]
 
 const ADMIN: NavItem[] = [
-  { to: '/einstellungen', icon: 'settings', label: 'Einstellungen', roles: ['dispatcher'] },
+  { to: '/einstellungen', icon: 'settings', label: 'Einstellungen', roles: ['dispatcher', 'owner'] },
 ]
 
 export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {

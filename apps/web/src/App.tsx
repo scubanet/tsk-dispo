@@ -18,6 +18,7 @@ import { StudentsScreen } from '@/screens/StudentsScreen'
 import { MyAssignmentsScreen } from '@/screens/MyAssignmentsScreen'
 import { MySaldoScreen } from '@/screens/MySaldoScreen'
 import { MyProfileScreen } from '@/screens/MyProfileScreen'
+import { CockpitScreen } from '@/screens/CockpitScreen'
 
 function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -48,6 +49,7 @@ function App() {
         {/* All authenticated routes wrapped in AppShell */}
         <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
           <Route path="/heute"                  element={<TodayScreen />} />
+          <Route path="/cockpit"                element={<CockpitScreen />} />
           <Route path="/kalender"               element={<CalendarScreen />} />
           <Route path="/kurse"                  element={<CoursesScreen />} />
           <Route path="/kurse/:id"              element={<CoursesScreen />} />
