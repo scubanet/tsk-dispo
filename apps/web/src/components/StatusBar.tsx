@@ -10,7 +10,10 @@ export function StatusBar() {
   return (
     <div className="statusbar">
       <span className="mono" style={{ fontWeight: 600 }}>{formatted}</span>
-      <span className="caption-2">TSK Dispo</span>
+      <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em' }}>ATOLL</span>
+        <span className="caption-2" style={{ opacity: 0.7 }}>· The diving school OS</span>
+      </span>
     </div>
   )
 }

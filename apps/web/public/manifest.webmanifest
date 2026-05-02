@@ -1,7 +1,7 @@
 {
-  "name": "TSK Dispo",
-  "short_name": "TSK Dispo",
-  "description": "Dispo, Skills und Saldo für TSK ZRH",
+  "name": "ATOLL — The diving school OS",
+  "short_name": "ATOLL",
+  "description": "Operations, Disposition und Saldi für PADI-Tauchschulen.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",

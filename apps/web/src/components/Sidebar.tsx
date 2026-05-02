@@ -53,10 +53,12 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
           <Icon name="anchor" size={16} />
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.2, letterSpacing: '-.01em' }}>
-            TSK Dispo
+          <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.1, letterSpacing: '.06em' }}>
+            ATOLL
           </div>
-          <div className="caption-2" style={{ marginTop: 1 }}>2026 · Zürich</div>
+          <div className="caption-2" style={{ marginTop: 2, fontSize: 10.5, opacity: 0.75 }}>
+            The diving school OS
+          </div>
         </div>
       </div>
 

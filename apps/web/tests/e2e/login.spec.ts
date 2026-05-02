@@ -3,8 +3,8 @@ import { test, expect } from '@playwright/test'
 test('login screen renders and accepts email', async ({ page }) => {
   await page.goto('/login')
 
-  await expect(page.getByText('TSK Dispo')).toBeVisible()
-  await expect(page.getByText('Magic-Link an deine Email')).toBeVisible()
+  await expect(page.getByText('ATOLL')).toBeVisible()
+  await expect(page.getByText(/Magic-Link an deine Email/)).toBeVisible()
 
   const input = page.getByPlaceholder('deine@email.ch')
   await input.fill('test@example.com')

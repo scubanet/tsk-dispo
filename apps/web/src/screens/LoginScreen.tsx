@@ -38,8 +38,8 @@ export function LoginScreen() {
         }}
       >
         <div className="glass card" style={{ width: 380, padding: 28 }}>
-          <div className="title-1" style={{ marginBottom: 6 }}>TSK Dispo</div>
-          <div className="caption" style={{ marginBottom: 24 }}>Magic-Link an deine Email</div>
+          <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '.08em', lineHeight: 1 }}>ATOLL</div>
+          <div className="caption" style={{ marginTop: 4, marginBottom: 24 }}>The diving school OS · Magic-Link an deine Email</div>
 
           {status === 'sent' ? (
             <div className="chip chip-green" style={{ marginBottom: 8 }}>
