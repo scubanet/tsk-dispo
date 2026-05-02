@@ -24,7 +24,8 @@ const inputStyle = {
 }
 
 interface Form {
-  name: string
+  first_name: string
+  last_name: string
   padi_level: string
   email: string
   phone: string
@@ -50,7 +51,8 @@ interface Props {
 }
 
 const EMPTY_FORM: Form = {
-  name: '',
+  first_name: '',
+  last_name: '',
   padi_level: 'OWSI',
   email: '',
   phone: '',
@@ -91,13 +93,17 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
 
     supabase
       .from('instructors')
-      .select('name, padi_level, email, phone, color, initials, active, role, auth_user_id')
+      .select('first_name, last_name, name, padi_level, email, phone, color, initials, active, role, auth_user_id')
       .eq('id', instructorId)
       .single()
       .then(({ data }) => {
         if (!data) return
+        // Fallback: falls first/last leer (legacy Daten vor Migration 0042), aus name splitten
+        const first = data.first_name?.trim() || (data.name ?? '').split(' ')[0] || ''
+        const last  = data.last_name?.trim()  || (data.name ?? '').split(' ').slice(1).join(' ') || ''
         setForm({
-          name: data.name ?? '',
+          first_name: first,
+          last_name: last,
           padi_level: data.padi_level ?? 'OWSI',
           email: data.email ?? '',
           phone: data.phone ?? '',
@@ -153,20 +159,22 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
 
   async function save() {
     if (!form) return
-    if (!form.name.trim()) {
-      setError('Name ist Pflicht.')
+    if (!form.first_name.trim()) {
+      setError('Vorname ist Pflicht.')
       return
     }
     setSaving(true)
     setError(null)
 
+    const fullName = `${form.first_name.trim()} ${form.last_name.trim()}`.trim()
     const payload = {
-      name: form.name.trim(),
+      first_name: form.first_name.trim(),
+      last_name: form.last_name.trim(),
       padi_level: form.padi_level,
       email: form.email.trim() || null,
       phone: form.phone.trim() || null,
       color: form.color,
-      initials: form.initials.trim().toUpperCase() || initialsFromName(form.name),
+      initials: form.initials.trim().toUpperCase() || initialsFromName(fullName),
       active: form.active,
       role: form.role,
     }
@@ -189,19 +197,10 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
       return
     }
 
-    // EDIT (existing) — original flow follows
+    // EDIT (existing)
     const { error: updErr } = await supabase
       .from('instructors')
-      .update({
-        name: form.name.trim(),
-        padi_level: form.padi_level,
-        email: form.email.trim() || null,
-        phone: form.phone.trim() || null,
-        color: form.color,
-        initials: form.initials.trim().toUpperCase() || initialsFromName(form.name),
-        active: form.active,
-        role: form.role,
-      })
+      .update(payload)
       .eq('id', instructorId)
     if (updErr) {
       setError(updErr.message)
@@ -224,23 +223,40 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
         <div style={{ display: 'grid', gap: 14 }}>
           {/* Avatar preview */}
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <Avatar initials={form.initials || initialsFromName(form.name)} color={form.color} size="lg" />
+            <Avatar
+              initials={form.initials || initialsFromName(`${form.first_name} ${form.last_name}`.trim())}
+              color={form.color}
+              size="lg"
+            />
             <div className="caption">Vorschau Avatar</div>
           </div>
 
-          <Field label="Name">
-            <input
-              value={form.name}
-              onChange={(e) => set('name', e.target.value)}
-              style={inputStyle}
-            />
-          </Field>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ flex: 1 }}>
+              <Field label="Vorname">
+                <input
+                  value={form.first_name}
+                  onChange={(e) => set('first_name', e.target.value)}
+                  style={inputStyle}
+                />
+              </Field>
+            </div>
+            <div style={{ flex: 1 }}>
+              <Field label="Nachname">
+                <input
+                  value={form.last_name}
+                  onChange={(e) => set('last_name', e.target.value)}
+                  style={inputStyle}
+                />
+              </Field>
+            </div>
+          </div>
 
           <Field label="Initialen (1–4)">
             <input
               value={form.initials}
               onChange={(e) => set('initials', e.target.value.toUpperCase().slice(0, 4))}
-              placeholder={initialsFromName(form.name)}
+              placeholder={initialsFromName(`${form.first_name} ${form.last_name}`.trim())}
               style={inputStyle}
             />
           </Field>
@@ -383,7 +399,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
 
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
             <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
-            <button className="btn" onClick={save} disabled={saving || !form.name} style={{ flex: 1 }}>
+            <button className="btn" onClick={save} disabled={saving || !form.first_name.trim()} style={{ flex: 1 }}>
               {saving ? 'Speichere…' : 'Speichern'}
             </button>
           </div>

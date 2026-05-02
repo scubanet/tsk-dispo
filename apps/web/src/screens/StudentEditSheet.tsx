@@ -4,7 +4,8 @@ import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
 
 interface Form {
-  name: string
+  first_name: string
+  last_name: string
   email: string
   phone: string
   birthday: string
@@ -50,7 +51,8 @@ const inputStyle = {
 }
 
 const EMPTY: Form = {
-  name: '',
+  first_name: '',
+  last_name: '',
   email: '',
   phone: '',
   birthday: '',
@@ -72,13 +74,17 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
     if (studentId) {
       supabase
         .from('students')
-        .select('name, email, phone, birthday, padi_nr, level, notes, active')
+        .select('first_name, last_name, name, email, phone, birthday, padi_nr, level, notes, active')
         .eq('id', studentId)
         .single()
         .then(({ data }) => {
           if (!data) return
+          // Fallback: legacy Daten ohne first/last → aus name splitten
+          const first = (data as any).first_name?.trim() || (data.name ?? '').split(' ')[0] || ''
+          const last  = (data as any).last_name?.trim()  || (data.name ?? '').split(' ').slice(1).join(' ') || ''
           setForm({
-            name: data.name ?? '',
+            first_name: first,
+            last_name: last,
             email: data.email ?? '',
             phone: data.phone ?? '',
             birthday: data.birthday ?? '',
@@ -98,11 +104,12 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
   }
 
   async function save() {
-    if (!form.name.trim()) return
+    if (!form.first_name.trim()) return
     setSaving(true)
     setError(null)
     const payload = {
-      name: form.name.trim(),
+      first_name: form.first_name.trim(),
+      last_name: form.last_name.trim(),
       email: form.email.trim() || null,
       phone: form.phone.trim() || null,
       birthday: form.birthday || null,
@@ -143,14 +150,23 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
   return (
     <Sheet open={open} onClose={onClose} title={isEdit ? 'Schüler bearbeiten' : 'Neuer Schüler'} width={520}>
       <div style={{ display: 'grid', gap: 14 }}>
-        <div>
-          <Label>Name</Label>
-          <input
-            value={form.name}
-            onChange={(e) => set('name', e.target.value)}
-            placeholder="Vor- und Nachname"
-            style={inputStyle}
-          />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <Label>Vorname</Label>
+            <input
+              value={form.first_name}
+              onChange={(e) => set('first_name', e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <Label>Nachname</Label>
+            <input
+              value={form.last_name}
+              onChange={(e) => set('last_name', e.target.value)}
+              style={inputStyle}
+            />
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -243,7 +259,7 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
           <button
             className="btn"
             onClick={save}
-            disabled={saving || !form.name.trim()}
+            disabled={saving || !form.first_name.trim()}
             style={{ flex: 1 }}
           >
             {saving ? 'Speichere…' : isEdit ? 'Speichern' : 'Anlegen'}
