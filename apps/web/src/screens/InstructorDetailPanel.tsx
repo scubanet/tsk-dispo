@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import clsx from 'clsx'
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
@@ -37,6 +37,7 @@ interface Instructor {
 
 export function InstructorDetailPanel({ instructorId }: { instructorId: string }) {
   const { user } = useOutletContext<OutletCtx>()
+  const navigate = useNavigate()
   const [inst, setInst] = useState<Instructor | null>(null)
   const [tab, setTab] = useState<Tab>('overview')
   const [skills, setSkills] = useState<any[]>([])
@@ -176,20 +177,50 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
           {assignments.length === 0 ? (
             <div className="caption">Noch keine Einsätze.</div>
           ) : (
-            assignments.map((a) => (
-              <div key={a.id} className="glass-thin" style={{ padding: 12, borderRadius: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 500 }}>{a.courses?.title ?? '—'}</span>
-                  <Chip tone="accent">{a.role}</Chip>
+            assignments.map((a) => {
+              const courseId = a.courses?.id
+              const clickable = !!courseId
+              return (
+                <div
+                  key={a.id}
+                  className="glass-thin"
+                  role={clickable ? 'button' : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  onClick={() => clickable && navigate(`/kurse/${courseId}`)}
+                  onKeyDown={(e) => {
+                    if (clickable && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault()
+                      navigate(`/kurse/${courseId}`)
+                    }
+                  }}
+                  style={{
+                    padding: 12,
+                    borderRadius: 12,
+                    cursor: clickable ? 'pointer' : 'default',
+                    transition: 'transform 0.08s ease',
+                  }}
+                  onMouseEnter={(e) => clickable && (e.currentTarget.style.transform = 'translateY(-1px)')}
+                  onMouseLeave={(e) => clickable && (e.currentTarget.style.transform = 'translateY(0)')}
+                  title={clickable ? 'Kurs öffnen' : undefined}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 500 }}>{a.courses?.title ?? '—'}</span>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <Chip tone="accent">{a.role}</Chip>
+                      {clickable && (
+                        <Icon name="chevron-right" size={14} className="caption" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="caption" style={{ marginTop: 4, display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {a.courses?.start_date && format(new Date(a.courses.start_date), 'd. MMM yyyy', { locale: de })}
+                    <Chip tone={a.courses?.status === 'confirmed' ? 'green' : a.courses?.status === 'tentative' ? 'orange' : 'red'}>
+                      {a.courses?.status}
+                    </Chip>
+                  </div>
                 </div>
-                <div className="caption" style={{ marginTop: 4, display: 'flex', gap: 8, alignItems: 'center' }}>
-                  {a.courses?.start_date && format(new Date(a.courses.start_date), 'd. MMM yyyy', { locale: de })}
-                  <Chip tone={a.courses?.status === 'confirmed' ? 'green' : a.courses?.status === 'tentative' ? 'orange' : 'red'}>
-                    {a.courses?.status}
-                  </Chip>
-                </div>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
       )}
