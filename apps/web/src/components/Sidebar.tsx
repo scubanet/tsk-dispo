@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { NavLink } from 'react-router-dom'
 import { Icon, type IconName } from './Icon'
+import { Logo } from './Logo'
 import type { Role } from '@/lib/auth'
 
 interface SidebarProps {
@@ -44,13 +45,13 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
       <div style={{ padding: '6px 12px 14px', display: 'flex', gap: 10, alignItems: 'center' }}>
         <div
           style={{
-            width: 30, height: 30, borderRadius: 8,
-            background: 'linear-gradient(135deg, var(--accent), #30B0C7)',
-            display: 'grid', placeItems: 'center', color: 'white', flexShrink: 0,
+            borderRadius: 8,
             boxShadow: '0 1px 2px rgba(0,0,0,.15), inset 0 0 0 .5px rgba(255,255,255,.3)',
+            overflow: 'hidden',
+            flexShrink: 0,
           }}
         >
-          <Icon name="anchor" size={16} />
+          <Logo size={30} />
         </div>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.1, letterSpacing: '.06em' }}>

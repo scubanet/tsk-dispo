@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Wallpaper } from '@/components/Wallpaper'
 import { StatusBar } from '@/components/StatusBar'
+import { Logo } from '@/components/Logo'
 
 export function LoginScreen() {
   const [email, setEmail] = useState('')
@@ -38,8 +39,20 @@ export function LoginScreen() {
         }}
       >
         <div className="glass card" style={{ width: 380, padding: 28 }}>
-          <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '.08em', lineHeight: 1 }}>ATOLL</div>
-          <div className="caption" style={{ marginTop: 4, marginBottom: 24 }}>The diving school OS · Magic-Link an deine Email</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+            <div style={{
+              borderRadius: 14,
+              boxShadow: '0 4px 14px rgba(10,132,255,.25), inset 0 0 0 .5px rgba(255,255,255,.4)',
+              overflow: 'hidden',
+            }}>
+              <Logo size={56} />
+            </div>
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '.08em', lineHeight: 1 }}>ATOLL</div>
+              <div className="caption-2" style={{ marginTop: 4, opacity: 0.75 }}>The diving school OS</div>
+            </div>
+          </div>
+          <div className="caption" style={{ marginBottom: 18 }}>Magic-Link an deine Email</div>
 
           {status === 'sent' ? (
             <div className="chip chip-green" style={{ marginBottom: 8 }}>
