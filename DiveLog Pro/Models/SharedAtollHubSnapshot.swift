@@ -31,6 +31,7 @@ public struct SharedAtollHubSnapshot: Codable, Sendable, Equatable {
 
 // Convenience JSONEncoder + JSONDecoder configured the same way both
 // sides agree on. These MUST match Atoll Hub's helpers byte-for-byte.
+// Scoped to the Atoll Hub bridge wire format — do not repurpose.
 public extension JSONDecoder {
     static func atollBridge() -> JSONDecoder {
         let d = JSONDecoder()
@@ -40,6 +41,7 @@ public extension JSONDecoder {
     }
 }
 
+// Scoped to the Atoll Hub bridge wire format — do not repurpose.
 public extension JSONEncoder {
     static func atollBridge() -> JSONEncoder {
         let e = JSONEncoder()
