@@ -55,10 +55,10 @@ public actor DiveLogBridge {
     // MARK: - Paths
 
     private var diveLogSnapshotURL: URL? {
-        containerURL?.appendingPathComponent(Self.diveLogSnapshotFile)
+        containerURL?.appending(component: Self.diveLogSnapshotFile)
     }
 
     private var atollHubSnapshotURL: URL? {
-        containerURL?.appendingPathComponent(Self.atollHubSnapshotFile)
+        containerURL?.appending(component: Self.atollHubSnapshotFile)
     }
 }
