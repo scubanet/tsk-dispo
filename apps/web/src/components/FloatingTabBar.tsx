@@ -1,6 +1,7 @@
 import clsx from 'clsx'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { Icon, type IconName } from './Icon'
+import { supabase } from '@/lib/supabase'
 import type { Role } from '@/lib/auth'
 
 interface Tab {
@@ -32,6 +33,12 @@ const INSTRUCTOR_TABS: Tab[] = [
 
 export function FloatingTabBar({ role }: Props) {
   const tabs = role === 'dispatcher' || role === 'cd' ? DISPATCHER_TABS : INSTRUCTOR_TABS
+  const navigate = useNavigate()
+
+  async function logout() {
+    await supabase.auth.signOut()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <div className="tabbar glass-strong">
@@ -45,6 +52,16 @@ export function FloatingTabBar({ role }: Props) {
           <span>{t.label}</span>
         </NavLink>
       ))}
+      <button
+        type="button"
+        onClick={logout}
+        className="tb-item"
+        style={{ background: 'transparent', border: 'none', font: 'inherit', cursor: 'pointer', color: 'inherit' }}
+        title="Abmelden"
+      >
+        <Icon name="logout" size={20} />
+        <span>Logout</span>
+      </button>
     </div>
   )
 }

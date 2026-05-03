@@ -118,7 +118,33 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
               <span>{item.label}</span>
             </NavLink>
           ))}
+          <button
+            type="button"
+            onClick={onLogout}
+            className="sb-row"
+            style={{ background: 'transparent', border: 'none', font: 'inherit', textAlign: 'left', cursor: 'pointer', color: 'var(--ink)' }}
+          >
+            <span className="sb-icon">
+              <Icon name="logout" size={17} />
+            </span>
+            <span>Abmelden</span>
+          </button>
         </>
+      )}
+
+      {/* Instructor hat keine Verwaltungs-Sektion → eigener Logout am Ende */}
+      {admin.length === 0 && (
+        <button
+          type="button"
+          onClick={onLogout}
+          className="sb-row"
+          style={{ marginTop: 12, background: 'transparent', border: 'none', font: 'inherit', textAlign: 'left', cursor: 'pointer', color: 'var(--ink)' }}
+        >
+          <span className="sb-icon">
+            <Icon name="logout" size={17} />
+          </span>
+          <span>Abmelden</span>
+        </button>
       )}
 
       <div style={{ marginTop: 'auto', padding: '8px 4px 0' }}>
