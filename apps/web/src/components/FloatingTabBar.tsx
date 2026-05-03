@@ -31,7 +31,7 @@ const INSTRUCTOR_TABS: Tab[] = [
 ]
 
 export function FloatingTabBar({ role }: Props) {
-  const tabs = role === 'dispatcher' ? DISPATCHER_TABS : INSTRUCTOR_TABS
+  const tabs = role === 'dispatcher' || role === 'cd' ? DISPATCHER_TABS : INSTRUCTOR_TABS
 
   return (
     <div className="tabbar glass-strong">

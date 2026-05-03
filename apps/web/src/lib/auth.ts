@@ -1,6 +1,12 @@
 import { supabase } from './supabase'
 
-export type Role = 'dispatcher' | 'instructor' | 'owner'
+export type Role = 'dispatcher' | 'instructor' | 'owner' | 'cd'
+
+// CD ist Superset vom Dispatcher: alle Dispatcher-Funktionen + CD-Module.
+// Owner ist read-only Beobachter.
+export const isPrivileged = (r: Role) => r === 'dispatcher' || r === 'cd' || r === 'owner'
+export const isCD = (r: Role) => r === 'cd'
+export const canEditOps = (r: Role) => r === 'dispatcher' || r === 'cd'
 
 export interface CurrentUser {
   authUserId: string

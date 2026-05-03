@@ -34,7 +34,7 @@ interface UserRow {
 export function SettingsScreen() {
   const navigate = useNavigate()
   const { user } = useOutletContext<OutletCtx>()
-  const isDispatcher = user.role === 'dispatcher'
+  const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
 
   const [rates, setRates] = useState<CompRate[]>([])
   const [courseTypes, setCourseTypes] = useState<CourseType[]>([])
@@ -317,7 +317,7 @@ export function SettingsScreen() {
                     <td style={{ padding: '6px 4px' }}>{u.name}</td>
                     <td style={{ padding: '6px 4px' }} className="caption">{u.email || '—'}</td>
                     <td style={{ padding: '6px 4px' }}>
-                      <Chip tone={u.role === 'dispatcher' ? 'accent' : 'neutral'}>{u.role}</Chip>
+                      <Chip tone={u.role === 'dispatcher' || u.role === 'cd' ? 'accent' : 'neutral'}>{u.role}</Chip>
                     </td>
                     <td align="center" style={{ padding: '6px 4px' }}>
                       {u.auth_linked ? '✓' : '—'}

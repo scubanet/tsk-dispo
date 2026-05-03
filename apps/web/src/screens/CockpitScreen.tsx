@@ -65,7 +65,7 @@ export function CockpitScreen() {
       })
   }, [range.start, range.end])
 
-  const accessAllowed = user.role === 'owner' || user.role === 'dispatcher'
+  const accessAllowed = user.role === 'owner' || user.role === 'dispatcher' || user.role === 'cd'
   if (!accessAllowed) {
     return (
       <>

@@ -19,26 +19,34 @@ interface NavItem {
 }
 
 const ITEMS: NavItem[] = [
-  { to: '/cockpit',   icon: 'chart',    label: 'Cockpit',        roles: ['dispatcher', 'owner'] },
-  { to: '/heute',     icon: 'house',    label: 'Heute',          roles: ['dispatcher', 'instructor', 'owner'] },
-  { to: '/kalender',  icon: 'calendar', label: 'Kalender',       roles: ['dispatcher', 'instructor', 'owner'] },
-  { to: '/kurse',     icon: 'book',     label: 'Kurse',          roles: ['dispatcher', 'owner'] },
-  { to: '/tldm',      icon: 'users',    label: 'TL/DM',          roles: ['dispatcher', 'owner'] },
-  { to: '/schueler',  icon: 'tag',      label: 'Schüler',        roles: ['dispatcher', 'owner'] },
-  { to: '/skills',    icon: 'grid',     label: 'Skill-Matrix',   roles: ['dispatcher', 'owner'] },
-  { to: '/pool',      icon: 'water',    label: 'Pool',           roles: ['dispatcher', 'owner'] },
-  { to: '/saldi',     icon: 'wallet',   label: 'Saldi',          roles: ['dispatcher', 'owner'] },
+  { to: '/cockpit',   icon: 'chart',    label: 'Cockpit',        roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/heute',     icon: 'house',    label: 'Heute',          roles: ['dispatcher', 'instructor', 'owner', 'cd'] },
+  { to: '/kalender',  icon: 'calendar', label: 'Kalender',       roles: ['dispatcher', 'instructor', 'owner', 'cd'] },
+  { to: '/kurse',     icon: 'book',     label: 'Kurse',          roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/tldm',      icon: 'users',    label: 'TL/DM',          roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/schueler',  icon: 'tag',      label: 'Schüler',        roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/skills',    icon: 'grid',     label: 'Skill-Matrix',   roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/pool',      icon: 'water',    label: 'Pool',           roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/saldi',     icon: 'wallet',   label: 'Saldi',          roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/einsaetze', icon: 'book',     label: 'Meine Einsätze', roles: ['instructor'] },
   { to: '/saldo',     icon: 'wallet',   label: 'Mein Saldo',     roles: ['instructor'] },
   { to: '/profil',    icon: 'tag',      label: 'Mein Profil',    roles: ['instructor'] },
 ]
 
+// CD-Modul: nur für CD-Rolle sichtbar (Owner read-only erscheint später separat)
+const CD_ITEMS: NavItem[] = [
+  { to: '/cd/kandidaten',    icon: 'users', label: 'Kandidaten',     roles: ['cd'] },
+  { to: '/cd/pipeline',      icon: 'chart', label: 'Pipeline',       roles: ['cd'] },
+  { to: '/cd/organisationen', icon: 'tag',  label: 'Organisationen', roles: ['cd'] },
+]
+
 const ADMIN: NavItem[] = [
-  { to: '/einstellungen', icon: 'settings', label: 'Einstellungen', roles: ['dispatcher', 'owner'] },
+  { to: '/einstellungen', icon: 'settings', label: 'Einstellungen', roles: ['dispatcher', 'owner', 'cd'] },
 ]
 
 export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
   const main = ITEMS.filter((i) => i.roles.includes(role))
+  const cd = CD_ITEMS.filter((i) => i.roles.includes(role))
   const admin = ADMIN.filter((i) => i.roles.includes(role))
 
   return (
@@ -76,6 +84,24 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
           <span>{item.label}</span>
         </NavLink>
       ))}
+
+      {cd.length > 0 && (
+        <>
+          <div className="sb-section">CD-Modul</div>
+          {cd.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => clsx('sb-row', isActive && 'active')}
+            >
+              <span className="sb-icon">
+                <Icon name={item.icon} size={17} />
+              </span>
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </>
+      )}
 
       {admin.length > 0 && (
         <>

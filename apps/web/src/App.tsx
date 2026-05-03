@@ -19,6 +19,9 @@ import { MyAssignmentsScreen } from '@/screens/MyAssignmentsScreen'
 import { MySaldoScreen } from '@/screens/MySaldoScreen'
 import { MyProfileScreen } from '@/screens/MyProfileScreen'
 import { CockpitScreen } from '@/screens/CockpitScreen'
+import { CDCandidatesScreen } from '@/screens/cd/CDCandidatesScreen'
+import { CDPipelineScreen } from '@/screens/cd/CDPipelineScreen'
+import { CDOrganizationsScreen } from '@/screens/cd/CDOrganizationsScreen'
 
 function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -65,6 +68,11 @@ function App() {
           <Route path="/einsaetze"              element={<MyAssignmentsScreen />} />
           <Route path="/saldo"                  element={<MySaldoScreen />} />
           <Route path="/profil"                 element={<MyProfileScreen />} />
+          {/* CD-Modul */}
+          <Route path="/cd/kandidaten"          element={<CDCandidatesScreen />} />
+          <Route path="/cd/kandidaten/:id"      element={<CDCandidatesScreen />} />
+          <Route path="/cd/pipeline"            element={<CDPipelineScreen />} />
+          <Route path="/cd/organisationen"      element={<CDOrganizationsScreen />} />
           <Route path="*"                       element={<Navigate to="/heute" replace />} />
         </Route>
       </Routes>

@@ -106,13 +106,13 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
           <div className="title-1">{inst.name}</div>
           <div className="caption">{inst.padi_level} · {inst.email || '—'}</div>
         </div>
-        {user.role === 'dispatcher' && inst.phone && (
+        {(user.role === 'dispatcher' || user.role === 'cd') && inst.phone && (
           <WhatsAppButton
             url={waDirectUrl(inst.phone, tplDirect({ to_name: inst.name.split(' ')[0], message: '' }))}
             label="Anschreiben"
           />
         )}
-        {user.role === 'dispatcher' && (
+        {(user.role === 'dispatcher' || user.role === 'cd') && (
           <button className="btn-secondary btn" onClick={() => setEditOpen(true)}>
             <Icon name="settings" size={14} /> Bearbeiten
           </button>
@@ -234,7 +234,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
             >
               {chf(balance)}
             </div>
-            {user.role === 'dispatcher' && (
+            {(user.role === 'dispatcher' || user.role === 'cd') && (
               <button className="btn-secondary btn" onClick={() => setCorrectionOpen(true)}>
                 <Icon name="plus" size={14} /> Korrektur buchen
               </button>
@@ -245,7 +245,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
           </div>
           <div style={{ display: 'grid', gap: 6 }}>
             {movements.map((m) => {
-              const editable = user.role === 'dispatcher' && (m.kind === 'korrektur' || m.kind === 'übertrag')
+              const editable = (user.role === 'dispatcher' || user.role === 'cd') && (m.kind === 'korrektur' || m.kind === 'übertrag')
               return (
                 <div
                   key={m.id}

@@ -53,7 +53,7 @@ export function HomeShell() {
             </div>
           )}
 
-          {user?.role === 'dispatcher' && (
+          {(user?.role === 'dispatcher' || user?.role === 'cd') && (
             <button
               className="btn btn-secondary"
               onClick={() => navigate('/einstellungen/import')}

@@ -65,7 +65,7 @@ export function InstructorsScreen() {
   }, [rows, search])
 
   const selected = rows.find((r) => r.id === id)
-  const isDispatcher = user.role === 'dispatcher'
+  const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
 
   return (
     <>

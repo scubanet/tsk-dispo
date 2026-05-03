@@ -74,7 +74,7 @@ function coursesOnDay(all: CourseRow[], day: Date): CourseRow[] {
 export function CalendarScreen() {
   const navigate = useNavigate()
   const { user } = useOutletContext<OutletCtx>()
-  const isDispatcher = user.role === 'dispatcher'
+  const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
   const [mode, setMode] = useState<Mode>('month')
   const [anchor, setAnchor] = useState<Date>(new Date())
   const [courses, setCourses] = useState<CourseRow[]>([])

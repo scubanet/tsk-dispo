@@ -39,7 +39,7 @@ const TABS: { value: Tab; label: string }[] = [
 export function CourseDetailPanel({ courseId }: { courseId: string }) {
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
-  const isDispatcher = user.role === 'dispatcher'
+  const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
   const [course, setCourse] = useState<CourseDetail | null>(null)
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
   const [participants, setParticipants] = useState<CourseParticipant[]>([])

@@ -44,7 +44,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
 
   if (!student) return <div style={{ padding: 40 }} className="caption">Lade…</div>
 
-  const isDispatcher = user.role === 'dispatcher'
+  const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
   const initials = initialsFromName(student.name)
   const certified = courses.filter((c) => c.status === 'certified')
   const enrolled = courses.filter((c) => c.status === 'enrolled')

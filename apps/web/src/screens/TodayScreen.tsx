@@ -22,7 +22,7 @@ import type { OutletCtx } from '@/layout/AppShell'
 
 export function TodayScreen() {
   const { user } = useOutletContext<OutletCtx>()
-  if (user.role === 'dispatcher') return <DispatcherToday />
+  if ((user.role === 'dispatcher' || user.role === 'cd')) return <DispatcherToday />
   return <InstructorToday />
 }
 
@@ -108,12 +108,12 @@ function DispatcherToday() {
   return (
     <>
       <Topbar
-        title={user.role === 'dispatcher' ? 'Heute' : `Hi, ${user.name.split(' ')[0]}`}
+        title={(user.role === 'dispatcher' || user.role === 'cd') ? 'Heute' : `Hi, ${user.name.split(' ')[0]}`}
         subtitle={`${todayLabel} · ${weekCount} Kurse diese Woche`}
       >
         <WhatsAppButton url={digestUrl} label="Tagesdigest" />
         <button className="btn-icon" title="Benachrichtigungen"><Icon name="bell" size={16} /></button>
-        {user.role === 'dispatcher' && (
+        {(user.role === 'dispatcher' || user.role === 'cd') && (
           <button className="btn"><Icon name="plus" size={14} /> Neuer Kurs</button>
         )}
       </Topbar>
