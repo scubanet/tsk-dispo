@@ -343,6 +343,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       <StudentEditSheet
         open={newStudentOpen}
         onClose={() => setNewStudentOpen(false)}
+        showCdFields={user.role === 'cd'}
         onSaved={() => {
           setNewStudentOpen(false)
           // Re-open the enroll sheet so the dispatcher can finish picking the new student

@@ -4,6 +4,7 @@ import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
 
 interface Form {
+  // Stamm
   first_name: string
   last_name: string
   email: string
@@ -13,6 +14,22 @@ interface Form {
   level: string
   notes: string
   active: boolean
+
+  // CD: Adresse
+  address: string
+  postal_code: string
+  city: string
+  country: string
+  photo_url: string
+
+  // CD: CRM
+  pipeline_stage: string
+  lead_source: string
+  tags: string             // CSV
+  languages: string        // CSV
+  organization_id: string  // '' = none
+  organization_role: string
+  is_candidate: boolean
 }
 
 const LEVELS = [
@@ -31,12 +48,25 @@ const LEVELS = [
   'CD',
 ] as const
 
+const STAGES = [
+  { code: 'none',        label: 'Kein' },
+  { code: 'lead',        label: 'Lead' },
+  { code: 'qualified',   label: 'Qualifiziert' },
+  { code: 'opportunity', label: 'Opportunity' },
+  { code: 'customer',    label: 'Kunde' },
+  { code: 'lost',        label: 'Verloren' },
+]
+
+interface Org { id: string; name: string }
+
 interface Props {
   open: boolean
   onClose: () => void
   onSaved: (newId?: string) => void
   /** When set, edits an existing student. Otherwise creates new. */
   studentId?: string | null
+  /** Wenn true, werden CD-Felder (Adresse, CRM, Pipeline, Org, is_candidate) eingeblendet. */
+  showCdFields?: boolean
 }
 
 const inputStyle = {
@@ -60,54 +90,98 @@ const EMPTY: Form = {
   level: 'Anfänger',
   notes: '',
   active: true,
+
+  address: '',
+  postal_code: '',
+  city: '',
+  country: '',
+  photo_url: '',
+
+  pipeline_stage: 'none',
+  lead_source: '',
+  tags: '',
+  languages: '',
+  organization_id: '',
+  organization_role: '',
+  is_candidate: false,
 }
 
-export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
+export function StudentEditSheet({ open, onClose, onSaved, studentId, showCdFields = false }: Props) {
   const isEdit = !!studentId
   const [form, setForm] = useState<Form>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [orgs, setOrgs] = useState<Org[]>([])
 
   useEffect(() => {
     if (!open) return
     setError(null)
+    if (showCdFields) {
+      supabase.from('organizations').select('id, name').order('name').then(({ data }) => {
+        setOrgs((data ?? []) as Org[])
+      })
+    }
     if (studentId) {
+      const cols = [
+        'first_name','last_name','name','email','phone','birthday','padi_nr','level','notes','active',
+        'address','postal_code','city','country','photo_url',
+        'pipeline_stage','lead_source','tags','languages','organization_id','organization_role','is_candidate',
+      ].join(',')
       supabase
         .from('students')
-        .select('first_name, last_name, name, email, phone, birthday, padi_nr, level, notes, active')
+        .select(cols)
         .eq('id', studentId)
         .single()
         .then(({ data }) => {
           if (!data) return
+          const d = data as any
           // Fallback: legacy Daten ohne first/last → aus name splitten
-          const first = (data as any).first_name?.trim() || (data.name ?? '').split(' ')[0] || ''
-          const last  = (data as any).last_name?.trim()  || (data.name ?? '').split(' ').slice(1).join(' ') || ''
+          const first = d.first_name?.trim() || (d.name ?? '').split(' ')[0] || ''
+          const last  = d.last_name?.trim()  || (d.name ?? '').split(' ').slice(1).join(' ') || ''
           setForm({
             first_name: first,
             last_name: last,
-            email: data.email ?? '',
-            phone: data.phone ?? '',
-            birthday: data.birthday ?? '',
-            padi_nr: data.padi_nr ?? '',
-            level: data.level ?? 'Anfänger',
-            notes: data.notes ?? '',
-            active: !!data.active,
+            email: d.email ?? '',
+            phone: d.phone ?? '',
+            birthday: d.birthday ?? '',
+            padi_nr: d.padi_nr ?? '',
+            level: d.level ?? 'Anfänger',
+            notes: d.notes ?? '',
+            active: !!d.active,
+
+            address: d.address ?? '',
+            postal_code: d.postal_code ?? '',
+            city: d.city ?? '',
+            country: d.country ?? '',
+            photo_url: d.photo_url ?? '',
+
+            pipeline_stage: d.pipeline_stage ?? 'none',
+            lead_source: d.lead_source ?? '',
+            tags: Array.isArray(d.tags) ? d.tags.join(', ') : '',
+            languages: Array.isArray(d.languages) ? d.languages.join(', ') : '',
+            organization_id: d.organization_id ?? '',
+            organization_role: d.organization_role ?? '',
+            is_candidate: !!d.is_candidate,
           })
         })
     } else {
       setForm(EMPTY)
     }
-  }, [open, studentId])
+  }, [open, studentId, showCdFields])
 
   function set<K extends keyof Form>(k: K, v: Form[K]) {
     setForm((prev) => ({ ...prev, [k]: v }))
+  }
+
+  function csvToArray(s: string): string[] {
+    return s.split(',').map((x) => x.trim()).filter(Boolean)
   }
 
   async function save() {
     if (!form.first_name.trim()) return
     setSaving(true)
     setError(null)
-    const payload = {
+    const base: Record<string, unknown> = {
       first_name: form.first_name.trim(),
       last_name: form.last_name.trim(),
       email: form.email.trim() || null,
@@ -118,17 +192,34 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
       notes: form.notes.trim() || null,
       active: form.active,
     }
+    // CD-Felder nur senden wenn UI sie geliefert hat — sonst werden sie nicht überschrieben
+    if (showCdFields) {
+      Object.assign(base, {
+        address: form.address.trim(),
+        postal_code: form.postal_code.trim(),
+        city: form.city.trim(),
+        country: form.country.trim(),
+        photo_url: form.photo_url.trim() || null,
+        pipeline_stage: form.pipeline_stage,
+        lead_source: form.lead_source.trim(),
+        tags: csvToArray(form.tags),
+        languages: csvToArray(form.languages),
+        organization_id: form.organization_id || null,
+        organization_role: form.organization_role.trim(),
+        is_candidate: form.is_candidate,
+      })
+    }
     if (isEdit) {
       const { error: updErr } = await supabase
         .from('students')
-        .update(payload)
+        .update(base)
         .eq('id', studentId!)
       if (updErr) { setError(updErr.message); setSaving(false); return }
       setSaving(false); onSaved(); onClose()
     } else {
       const { data: created, error: insErr } = await supabase
         .from('students')
-        .insert(payload)
+        .insert(base)
         .select('id')
         .single()
       if (insErr) { setError(insErr.message); setSaving(false); return }
@@ -148,99 +239,134 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title={isEdit ? 'Schüler bearbeiten' : 'Neuer Schüler'} width={520}>
+    <Sheet open={open} onClose={onClose} title={isEdit ? 'Schüler bearbeiten' : 'Neuer Schüler'} width={showCdFields ? 600 : 520}>
       <div style={{ display: 'grid', gap: 14 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div>
-            <Label>Vorname</Label>
-            <input
-              value={form.first_name}
-              onChange={(e) => set('first_name', e.target.value)}
-              style={inputStyle}
-            />
+        <Section title="Stamm">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <Field label="Vorname">
+              <input value={form.first_name} onChange={(e) => set('first_name', e.target.value)} style={inputStyle} />
+            </Field>
+            <Field label="Nachname">
+              <input value={form.last_name} onChange={(e) => set('last_name', e.target.value)} style={inputStyle} />
+            </Field>
           </div>
-          <div>
-            <Label>Nachname</Label>
-            <input
-              value={form.last_name}
-              onChange={(e) => set('last_name', e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div>
-            <Label>Email</Label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => set('email', e.target.value)}
-              placeholder="name@example.ch"
-              style={inputStyle}
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <Field label="Email">
+              <input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="name@example.ch" style={inputStyle} />
+            </Field>
+            <Field label="Telefon / WhatsApp">
+              <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="+41 …" style={inputStyle} />
+            </Field>
           </div>
-          <div>
-            <Label>Telefon / WhatsApp</Label>
-            <input
-              value={form.phone}
-              onChange={(e) => set('phone', e.target.value)}
-              placeholder="+41 …"
-              style={inputStyle}
-            />
-          </div>
-        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div>
-            <Label>Geburtstag</Label>
-            <input
-              type="date"
-              value={form.birthday}
-              onChange={(e) => set('birthday', e.target.value)}
-              style={inputStyle}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <Field label="Geburtstag">
+              <input type="date" value={form.birthday} onChange={(e) => set('birthday', e.target.value)} style={inputStyle} />
+            </Field>
+            <Field label="PADI-Nr (falls vorhanden)">
+              <input value={form.padi_nr} onChange={(e) => set('padi_nr', e.target.value)} placeholder="optional" style={inputStyle} />
+            </Field>
+          </div>
+
+          <Field label="Aktueller Level">
+            <select value={form.level} onChange={(e) => set('level', e.target.value)} style={inputStyle}>
+              {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
+            </select>
+            <div className="caption-2" style={{ marginTop: 4 }}>
+              Der höchste bisher erreichte Tauchschein-Level. Updaten wenn ein neuer Schein erworben wird.
+            </div>
+          </Field>
+
+          <Field label="Notizen (medizinisch, Allergien, etc.)">
+            <textarea
+              value={form.notes}
+              onChange={(e) => set('notes', e.target.value)}
+              rows={3}
+              style={{ ...inputStyle, resize: 'vertical' }}
             />
-          </div>
-          <div>
-            <Label>PADI-Nr (falls vorhanden)</Label>
+          </Field>
+
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <input
-              value={form.padi_nr}
-              onChange={(e) => set('padi_nr', e.target.value)}
-              placeholder="optional"
-              style={inputStyle}
+              id="active"
+              type="checkbox"
+              checked={form.active}
+              onChange={(e) => set('active', e.target.checked)}
             />
+            <label htmlFor="active">Aktiv (erscheint in Anmelde-Vorschlägen)</label>
           </div>
-        </div>
+        </Section>
 
-        <div>
-          <Label>Aktueller Level</Label>
-          <select value={form.level} onChange={(e) => set('level', e.target.value)} style={inputStyle}>
-            {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
-          </select>
-          <div className="caption-2" style={{ marginTop: 4 }}>
-            Der höchste bisher erreichte Tauchschein-Level. Updaten wenn ein neuer Schein erworben wird.
-          </div>
-        </div>
+        {showCdFields && (
+          <>
+            <Section title="Adresse">
+              <Field label="Strasse">
+                <input value={form.address} onChange={(e) => set('address', e.target.value)} style={inputStyle} />
+              </Field>
+              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12 }}>
+                <Field label="PLZ">
+                  <input value={form.postal_code} onChange={(e) => set('postal_code', e.target.value)} style={inputStyle} />
+                </Field>
+                <Field label="Ort">
+                  <input value={form.city} onChange={(e) => set('city', e.target.value)} style={inputStyle} />
+                </Field>
+              </div>
+              <Field label="Land">
+                <input value={form.country} onChange={(e) => set('country', e.target.value)} style={inputStyle} />
+              </Field>
+              <Field label="Foto-URL (optional)">
+                <input value={form.photo_url} onChange={(e) => set('photo_url', e.target.value)} placeholder="https://…" style={inputStyle} />
+              </Field>
+            </Section>
 
-        <div>
-          <Label>Notizen (medizinisch, Allergien, etc.)</Label>
-          <textarea
-            value={form.notes}
-            onChange={(e) => set('notes', e.target.value)}
-            rows={3}
-            style={{ ...inputStyle, resize: 'vertical' }}
-          />
-        </div>
+            <Section title="CRM">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="Pipeline-Stage">
+                  <select value={form.pipeline_stage} onChange={(e) => set('pipeline_stage', e.target.value)} style={inputStyle}>
+                    {STAGES.map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
+                  </select>
+                </Field>
+                <Field label="Lead-Quelle">
+                  <input value={form.lead_source} onChange={(e) => set('lead_source', e.target.value)} placeholder="z.B. Empfehlung, Google, Messe" style={inputStyle} />
+                </Field>
+              </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            id="active"
-            type="checkbox"
-            checked={form.active}
-            onChange={(e) => set('active', e.target.checked)}
-          />
-          <label htmlFor="active">Aktiv (erscheint in Anmelde-Vorschlägen)</label>
-        </div>
+              <Field label="Tags (Komma-getrennt)">
+                <input value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="z.B. vegan, photographer, club-member" style={inputStyle} />
+              </Field>
+
+              <Field label="Sprachen (Komma-getrennt)">
+                <input value={form.languages} onChange={(e) => set('languages', e.target.value)} placeholder="z.B. de, en, it" style={inputStyle} />
+              </Field>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="Organisation">
+                  <select value={form.organization_id} onChange={(e) => set('organization_id', e.target.value)} style={inputStyle}>
+                    <option value="">— keine —</option>
+                    {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+                  </select>
+                </Field>
+                <Field label="Rolle in Org">
+                  <input value={form.organization_role} onChange={(e) => set('organization_role', e.target.value)} placeholder="z.B. Vorstand, Mitglied" style={inputStyle} />
+                </Field>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: form.is_candidate ? 'rgba(52,199,89,.12)' : 'transparent', border: '0.5px solid var(--hairline)' }}>
+                <input
+                  id="is_candidate"
+                  type="checkbox"
+                  checked={form.is_candidate}
+                  onChange={(e) => set('is_candidate', e.target.checked)}
+                />
+                <label htmlFor="is_candidate" style={{ fontWeight: 600 }}>Als Kandidat:in markieren</label>
+                <span className="caption" style={{ marginLeft: 'auto' }}>
+                  erscheint in der CD-Kandidatenliste
+                </span>
+              </div>
+            </Section>
+          </>
+        )}
 
         {error && <div className="chip chip-red">{error}</div>}
 
@@ -267,6 +393,26 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId }: Props) {
         </div>
       </div>
     </Sheet>
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div className="caption-2" style={{ marginTop: 4, fontSize: 11, opacity: 0.6, letterSpacing: '.08em' }}>
+        {title.toUpperCase()}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      {children}
+    </div>
   )
 }
 

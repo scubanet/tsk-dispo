@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
+import type { OutletCtx } from '@/layout/AppShell'
 import clsx from 'clsx'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
@@ -14,6 +15,8 @@ import { StudentEditSheet } from './StudentEditSheet'
 export function StudentsScreen() {
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
+  const { user } = useOutletContext<OutletCtx>()
+  const isCD = user.role === 'cd'
   const [rows, setRows] = useState<Student[]>([])
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<'active' | 'all'>('active')
@@ -119,6 +122,7 @@ export function StudentsScreen() {
           if (newId) navigate(`/schueler/${newId}`)
         }}
         studentId={null}
+        showCdFields={isCD}
       />
     </>
   )

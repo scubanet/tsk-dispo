@@ -20,16 +20,53 @@ import type { OutletCtx } from '@/layout/AppShell'
 import { StudentEditSheet } from './StudentEditSheet'
 import { CertificationEditSheet } from './CertificationEditSheet'
 
+interface CdInfo {
+  address: string | null
+  postal_code: string | null
+  city: string | null
+  country: string | null
+  photo_url: string | null
+  pipeline_stage: string
+  lead_source: string | null
+  tags: string[] | null
+  languages: string[] | null
+  organization_id: string | null
+  organization_role: string | null
+  is_candidate: boolean
+  organization?: { id: string; name: string } | null
+}
+
+const STAGE_LABEL: Record<string, string> = {
+  none: 'Kein',
+  lead: 'Lead',
+  qualified: 'Qualifiziert',
+  opportunity: 'Opportunity',
+  customer: 'Kunde',
+  lost: 'Verloren',
+}
+
+const STAGE_TONE: Record<string, string> = {
+  none: 'rgba(255,255,255,.10)',
+  lead: 'rgba(0,122,255,.20)',
+  qualified: 'rgba(255,204,0,.20)',
+  opportunity: 'rgba(255,149,0,.20)',
+  customer: 'rgba(52,199,89,.20)',
+  lost: 'rgba(255,69,58,.18)',
+}
+
 export function StudentDetailPanel({ studentId }: { studentId: string }) {
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [student, setStudent] = useState<Student | null>(null)
+  const [cdInfo, setCdInfo] = useState<CdInfo | null>(null)
   const [courses, setCourses] = useState<CourseParticipant[]>([])
   const [certifications, setCertifications] = useState<StudentCertification[]>([])
   const [editOpen, setEditOpen] = useState(false)
   const [certOpen, setCertOpen] = useState(false)
   const [editingCert, setEditingCert] = useState<StudentCertification | null>(null)
   const [refreshTick, setRefreshTick] = useState(0)
+
+  const isCD = user.role === 'cd'
 
   useEffect(() => {
     supabase
@@ -40,7 +77,16 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
       .then(({ data }) => setStudent(data as Student | null))
     fetchStudentCourses(studentId).then(setCourses)
     fetchStudentCertifications(studentId).then(setCertifications)
-  }, [studentId, refreshTick])
+
+    if (isCD) {
+      supabase
+        .from('students')
+        .select('address, postal_code, city, country, photo_url, pipeline_stage, lead_source, tags, languages, organization_id, organization_role, is_candidate, organization:organizations(id, name)')
+        .eq('id', studentId)
+        .single()
+        .then(({ data }) => setCdInfo(data as unknown as CdInfo | null))
+    }
+  }, [studentId, refreshTick, isCD])
 
   if (!student) return <div style={{ padding: 40 }} className="caption">Lade…</div>
 
@@ -82,6 +128,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
         onClose={() => setEditOpen(false)}
         onSaved={() => setRefreshTick((t) => t + 1)}
         studentId={studentId}
+        showCdFields={user.role === 'cd'}
       />
 
       <CertificationEditSheet
@@ -97,6 +144,67 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
         <Field label="Telefon"  value={student.phone   || '—'} />
         {student.notes && <Field label="Notizen" value={student.notes} />}
       </div>
+
+      {isCD && cdInfo && (
+        <>
+          {/* CD: Pipeline + Kandidat-Badge prominent */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+            {cdInfo.is_candidate && (
+              <span
+                className="caption"
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: 999,
+                  background: 'rgba(52,199,89,.20)',
+                  fontWeight: 600,
+                }}
+              >
+                Kandidat:in
+              </span>
+            )}
+            {cdInfo.pipeline_stage !== 'none' && (
+              <span
+                className="caption"
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: 999,
+                  background: STAGE_TONE[cdInfo.pipeline_stage] ?? 'rgba(255,255,255,.10)',
+                }}
+              >
+                {STAGE_LABEL[cdInfo.pipeline_stage] ?? cdInfo.pipeline_stage}
+              </span>
+            )}
+            {(cdInfo.tags ?? []).map((t) => (
+              <span key={t} className="caption" style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(255,255,255,.08)' }}>
+                #{t}
+              </span>
+            ))}
+            {(cdInfo.languages ?? []).map((l) => (
+              <span key={l} className="caption" style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(88,86,214,.20)' }}>
+                {l}
+              </span>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gap: 14, marginBottom: 24 }}>
+            {(cdInfo.address || cdInfo.city) && (
+              <Field
+                label="Adresse"
+                value={[cdInfo.address, [cdInfo.postal_code, cdInfo.city].filter(Boolean).join(' '), cdInfo.country]
+                  .filter(Boolean)
+                  .join(', ')}
+              />
+            )}
+            {cdInfo.organization && (
+              <Field
+                label="Organisation"
+                value={`${cdInfo.organization.name}${cdInfo.organization_role ? ` · ${cdInfo.organization_role}` : ''}`}
+              />
+            )}
+            {cdInfo.lead_source && <Field label="Lead-Quelle" value={cdInfo.lead_source} />}
+          </div>
+        </>
+      )}
 
       {/* Externe / historische Zertifikate */}
       <div style={{ marginBottom: 24 }}>
