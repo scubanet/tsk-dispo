@@ -136,6 +136,9 @@ struct DiveLogProApp: App {
             // revoked access via Settings we wipe our Keychain and push them
             // back to SignInView automatically.
             .task {
+                #if DEBUG
+                DiveLogBridge.runRoundTripSelfCheck()
+                #endif
                 await appleSignIn.refreshCredentialState()
                 await DiveLogBridgePublisher(
                     container: sharedModelContainer,

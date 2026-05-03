@@ -62,3 +62,50 @@ public actor DiveLogBridge {
         containerURL?.appending(component: Self.atollHubSnapshotFile)
     }
 }
+
+#if DEBUG
+public extension DiveLogBridge {
+    /// Encodes a sample snapshot, decodes it back, asserts the round-trip
+    /// preserves every field. Logs PASS/FAIL to OSLog. Runs once on launch
+    /// in DEBUG builds — production builds skip it entirely.
+    static func runRoundTripSelfCheck() {
+        let logger = Logger(
+            subsystem: "com.weckherlin.DiveLogPro",
+            category: "AtollBridge.SelfCheck"
+        )
+        let original = SharedDiveLogSnapshot(
+            schemaVersion: 1,
+            appleUserId: "test.001234.abc",
+            displayName: "Selfcheck",
+            avatarFileName: nil,
+            diveLogHandle: nil,
+            loggedDivesCount: 42,
+            lastDiveDate: Date(timeIntervalSince1970: 1_700_000_000),
+            certifications: [
+                .init(agency: "PADI", level: "Course Director",
+                      issuedAt: Date(timeIntervalSince1970: 1_500_000_000))
+            ],
+            specialties: [],
+            languagesSpoken: ["en", "de"],
+            homeBase: nil,
+            conservationProjects: [],
+            snapshotUpdatedAt: Date(timeIntervalSince1970: 1_750_000_000)
+        )
+        do {
+            let data = try JSONEncoder.atollBridge().encode(original)
+            let back = try JSONDecoder.atollBridge().decode(
+                SharedDiveLogSnapshot.self, from: data
+            )
+            if back == original {
+                logger.info("PASS — round-trip preserved all fields")
+            } else {
+                logger.error("FAIL — round-trip mismatch")
+                assertionFailure("DiveLogBridge round-trip mismatch — encoder/decoder out of sync with the wire format")
+            }
+        } catch {
+            logger.error("FAIL — \(error.localizedDescription)")
+            assertionFailure("DiveLogBridge self-check threw: \(error)")
+        }
+    }
+}
+#endif
