@@ -18,13 +18,15 @@ interface Form {
 }
 
 const KINDS = [
-  { code: '',           label: '— Bitte wählen —' },
-  { code: 'dive_club',  label: 'Tauchclub' },
-  { code: 'company',    label: 'Firma' },
-  { code: 'school',     label: 'Schule' },
-  { code: 'agency',     label: 'Agentur' },
-  { code: 'resort',     label: 'Resort / Tauchbasis' },
-  { code: 'other',      label: 'Andere' },
+  { code: '',            label: '— Bitte wählen —' },
+  { code: 'dive_school', label: 'Tauchschule' },
+  { code: 'partner',     label: 'Partner' },
+  { code: 'association', label: 'Verband' },
+  { code: 'company',     label: 'Firma' },
+  { code: 'school',      label: 'Schule' },
+  { code: 'agency',      label: 'Agentur' },
+  { code: 'resort',      label: 'Resort / Tauchbasis' },
+  { code: 'other',       label: 'Andere' },
 ]
 
 const EMPTY: Form = {

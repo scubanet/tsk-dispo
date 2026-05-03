@@ -35,7 +35,7 @@ const ITEMS: NavItem[] = [
 
 // CD-Modul: nur für CD-Rolle sichtbar (Owner read-only erscheint später separat)
 const CD_ITEMS: NavItem[] = [
-  { to: '/cd/kandidaten',    icon: 'users', label: 'Kandidaten',     roles: ['cd'] },
+  { to: '/cd/kandidaten',    icon: 'users', label: 'Kontakte',       roles: ['cd'] },
   { to: '/cd/pipeline',      icon: 'chart', label: 'Pipeline',       roles: ['cd'] },
   { to: '/cd/organisationen', icon: 'tag',  label: 'Organisationen', roles: ['cd'] },
 ]

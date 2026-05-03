@@ -19,12 +19,16 @@ interface Org {
 }
 
 const KIND_LABEL: Record<string, string> = {
-  dive_club: 'Tauchclub',
-  company:   'Firma',
-  school:    'Schule',
-  agency:    'Agentur',
-  resort:    'Resort / Tauchbasis',
-  other:     'Andere',
+  dive_school: 'Tauchschule',
+  partner:     'Partner',
+  association: 'Verband',
+  company:     'Firma',
+  school:      'Schule',
+  agency:      'Agentur',
+  resort:      'Resort / Tauchbasis',
+  other:       'Andere',
+  // Legacy: alte Daten mit dive_club werden trotzdem als "Tauchschule" gerendert
+  dive_club:   'Tauchschule',
 }
 
 export function CDOrganizationsScreen() {

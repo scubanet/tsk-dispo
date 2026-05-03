@@ -79,7 +79,7 @@ export function CDCandidatesScreen() {
 
   return (
     <>
-      <Topbar title="Kandidaten" subtitle={`${rows.length} aktive Kandidat:innen`}>
+      <Topbar title="Kontakte" subtitle={`${rows.length} Einträge`}>
         <button className="btn" onClick={() => setCreateOpen(true)}>
           <Icon name="plus" size={14} /> Neu
         </button>
@@ -120,7 +120,7 @@ export function CDCandidatesScreen() {
         <div style={{ padding: 40 }} className="caption">Lade…</div>
       ) : filtered.length === 0 ? (
         <div style={{ padding: 40 }} className="caption">
-          Keine Kandidaten — markiere bestehende Schüler:innen via <code>is_candidate=true</code>.
+          Noch keine Kontakte — über „Neu" oder einen Schüler im TL/DM-Bereich als Kandidat:in markieren.
         </div>
       ) : (
         <div style={{ padding: '0 24px 24px', display: 'grid', gap: 6 }}>
