@@ -34,3 +34,6 @@ Carthage/Build/
 *.p8
 *.p12
 *.mobileprovision
+
+## Git worktrees (for parallel feature work)
+.worktrees/
