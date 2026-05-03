@@ -1,8 +1,9 @@
 # DiveLog Pro — Atoll Hub Bridge Completion Notes
 
 **Date completed:** 2026-05-03
-**Commit at completion:** `28323cc69a241b58a0361a6ded7cd873eade8ae1`
+**Commit at completion:** `41e9a34` (post-final-review fix)
 **Branch:** `feat/atollhub-bridge`
+**Tag:** `divelog-bridge-v1` (at `22dd88e` — moved to HEAD before merge)
 
 ## What works
 
@@ -14,6 +15,7 @@
 - `DiveLogBridgePublisher` assembles the snapshot from `DiverProfile` + `Dive` count + last-dive date; no-ops when not signed in
 - Snapshot republishes on: app launch, profile save (ProfileEditView), dive save (DiveFormView)
 - DEBUG round-trip self-check fires once per launch (in DEBUG only) and logs PASS/FAIL with `assertionFailure` on contract drift
+- Dates in the producer are truncated to whole seconds before assembly so the `.iso8601`-encoded snapshot round-trips losslessly (the encoder strategy itself drops fractional seconds, and Atoll Hub's `.iso8601` decoder doesn't accept them — truncation in the producer keeps the wire format unchanged and Atoll Hub-compatible)
 
 ## v1 minimal mappings (intentional)
 
@@ -82,4 +84,6 @@ b26a01e  feat(bridge): publish DiveLog snapshot on app launch
 9b17862  docs(bridge): explain intentional pre-persistence read in republish helper
 a051489  feat(bridge): re-publish snapshot after a dive is saved
 28323cc  feat(bridge): DEBUG round-trip self-check for the JSON contract
+22dd88e  docs: DiveLog × Atoll Hub bridge completion notes
+41e9a34  fix(bridge): truncate snapshot dates to whole seconds for ISO8601 lossless round-trip
 ```
