@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
+import type { OutletCtx } from '@/layout/AppShell'
 import clsx from 'clsx'
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
@@ -13,13 +14,22 @@ import { CourseEditSheet } from './CourseEditSheet'
 
 type Filter = 'open' | 'confirmed' | 'tentative' | 'completed' | 'cancelled' | 'all'
 
+const CD_COURSE_PREFIXES = ['DM', 'IDC', 'SPEI', 'EFRI']
+function isCdCourse(code?: string | null) {
+  if (!code) return false
+  return CD_COURSE_PREFIXES.some((p) => code === p || code.startsWith(p + '_'))
+}
+
 export function CoursesScreen() {
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
+  const { user } = useOutletContext<OutletCtx>()
   const [courses, setCourses] = useState<CourseDetail[]>([])
   const [search, setSearch] = useState('')
   // Default 'open' = alles außer 'completed' (abgeschlossene Kurse standardmäßig ausblenden)
   const [filter, setFilter] = useState<Filter>('open')
+  // CD: standardmäßig nur CD-Kurse; Dispatcher: aus
+  const [cdOnly, setCdOnly] = useState(user.role === 'cd')
   const [editOpen, setEditOpen] = useState(false)
 
   function refetch() {
@@ -39,6 +49,9 @@ export function CoursesScreen() {
         case 'cancelled': return c.status === 'cancelled'
       }
     })
+    if (cdOnly) {
+      arr = arr.filter((c) => isCdCourse(c.course_type?.code))
+    }
     if (search) {
       const q = search.toLowerCase()
       arr = arr.filter(
@@ -51,7 +64,7 @@ export function CoursesScreen() {
     // Chronologisch nach Startdatum (frühester oben)
     arr = [...arr].sort((a, b) => a.start_date.localeCompare(b.start_date))
     return arr
-  }, [courses, search, filter])
+  }, [courses, search, filter, cdOnly])
 
   const counts = useMemo(() => {
     const c = { confirmed: 0, tentative: 0, completed: 0, cancelled: 0 }
@@ -110,6 +123,30 @@ export function CoursesScreen() {
             <div className="caption-2">
               {filtered.length} sichtbar · {counts.confirmed} sicher · {counts.tentative} evtl. · {counts.completed} done · {counts.cancelled} cxl
             </div>
+
+            {(user.role === 'cd' || user.role === 'dispatcher') && (
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: 8,
+                  background: cdOnly ? 'rgba(52,199,89,.18)' : 'transparent',
+                  border: '0.5px solid var(--hairline)',
+                  width: 'fit-content',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={cdOnly}
+                  onChange={(e) => setCdOnly(e.target.checked)}
+                />
+                Nur CD-Kurse <span className="caption-2">(DM/IDC/SPEI/EFRI)</span>
+              </label>
+            )}
           </div>
 
           {filtered.length === 0 ? (

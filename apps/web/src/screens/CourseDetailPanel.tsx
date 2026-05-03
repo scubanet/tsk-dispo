@@ -25,16 +25,74 @@ import { CourseEditSheet } from './CourseEditSheet'
 import { AssignmentEditSheet } from './AssignmentEditSheet'
 import { EnrollStudentSheet } from './EnrollStudentSheet'
 import { StudentEditSheet } from './StudentEditSheet'
+import { supabase } from '@/lib/supabase'
 import type { OutletCtx } from '@/layout/AppShell'
 
-type Tab = 'overview' | 'assignments' | 'participants' | 'notes'
+type Tab = 'overview' | 'assignments' | 'participants' | 'notes' | 'prs'
 
-const TABS: { value: Tab; label: string }[] = [
+const BASE_TABS: { value: Tab; label: string }[] = [
   { value: 'overview',     label: 'Übersicht' },
   { value: 'assignments',  label: 'TL/DM' },
   { value: 'participants', label: 'Teilnehmer' },
   { value: 'notes',        label: 'Notizen' },
 ]
+
+// Mapping: course_type.code → pr_catalogs.course_type
+const CD_COURSE_PREFIXES: Array<{ catalog: string; match: (c: string) => boolean }> = [
+  { catalog: 'DM',   match: (c) => c === 'DM' },
+  { catalog: 'IDC',  match: (c) => c === 'IDC' },
+  { catalog: 'EFRI', match: (c) => c === 'EFRI' },
+  { catalog: 'SPEI', match: (c) => c.startsWith('SPEI') },
+]
+function catalogForCourse(code?: string | null): string | null {
+  if (!code) return null
+  return CD_COURSE_PREFIXES.find((p) => p.match(code))?.catalog ?? null
+}
+
+interface PrSkill {
+  code: string
+  title: string
+  isActive?: boolean
+  repeatable?: boolean
+}
+interface PrSlot {
+  code: string
+  order: number
+  title: string
+  kind: string
+  scoreSchema: string
+  passThreshold?: number
+  minRequired?: number
+  skills: PrSkill[]
+}
+interface PrPrereqCert { kind: string; minMonthsAgo?: number; maxMonthsAgo?: number; note?: string }
+interface PrCatalog {
+  course_type: string
+  language: string
+  version: string
+  data: {
+    course: string
+    title: string
+    version: string
+    prerequisites: {
+      minAge?: number
+      requiredCerts?: PrPrereqCert[]
+      requiredELearning?: { kind: string; minProgressPercent?: number; knowledgeReviewsRequired?: boolean; examRequired?: boolean } | null
+    }
+    slots: PrSlot[]
+  }
+}
+interface PrRecord {
+  id: string
+  student_id: string
+  pr_code: string
+  status: string
+  score: number | null
+  pass: boolean | null
+  assessed_on: string | null
+  assessed_by_text: string | null
+  notes: string | null
+}
 
 export function CourseDetailPanel({ courseId }: { courseId: string }) {
   const { user } = useOutletContext<OutletCtx>()
@@ -52,6 +110,8 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   const [editingParticipation, setEditingParticipation] = useState<CourseParticipant | null>(null)
   const [newStudentOpen, setNewStudentOpen] = useState(false)
   const [refreshTick, setRefreshTick] = useState(0)
+  const [catalog, setCatalog] = useState<PrCatalog | null>(null)
+  const [prRecords, setPrRecords] = useState<PrRecord[]>([])
 
   function refresh() {
     setRefreshTick((t) => t + 1)
@@ -64,7 +124,35 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
     fetchCourseDates(courseId).then(setCourseDates)
   }, [courseId, refreshTick])
 
+  // CD: Catalog + PR-Records laden, sobald Course bekannt + Catalog identifiziert
+  const courseTypeCode = course?.course_type?.code ?? null
+  const catalogKind = catalogForCourse(courseTypeCode)
+  const isCdCourse = !!catalogKind
+  const isCD = user.role === 'cd'
+
+  useEffect(() => {
+    if (!isCD || !catalogKind) return
+    supabase
+      .from('pr_catalogs')
+      .select('course_type, language, version, data')
+      .eq('course_type', catalogKind)
+      .eq('language', 'de')
+      .eq('active', true)
+      .maybeSingle()
+      .then(({ data }) => setCatalog((data as unknown as PrCatalog | null) ?? null))
+    supabase
+      .from('performance_records')
+      .select('id, student_id, pr_code, status, score, pass, assessed_on, assessed_by_text, notes')
+      .eq('course_id', courseId)
+      .then(({ data }) => setPrRecords((data ?? []) as PrRecord[]))
+  }, [courseId, refreshTick, isCD, catalogKind])
+
   if (!course) return <div style={{ padding: 40 }} className="caption">Lade…</div>
+
+  // PR-Tab nur wenn CD + CD-Kurs + Catalog vorhanden
+  const visibleTabs: { value: Tab; label: string }[] = isCD && isCdCourse
+    ? [...BASE_TABS, { value: 'prs', label: 'PRs' }]
+    : BASE_TABS
 
   const tone =
     course.status === 'cancelled' ? 'red' :
@@ -122,7 +210,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       <div style={{ height: 16 }} />
 
       <div className="seg" style={{ marginBottom: 20 }}>
-        {TABS.map((t) => (
+        {visibleTabs.map((t) => (
           <button
             key={t.value}
             className={clsx(tab === t.value && 'active')}
@@ -365,6 +453,14 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
         </div>
       )}
 
+      {tab === 'prs' && (
+        <PrTab
+          catalog={catalog}
+          records={prRecords}
+          participants={participants}
+        />
+      )}
+
       <CourseEditSheet
         open={editCourseOpen}
         onClose={() => setEditCourseOpen(false)}
@@ -389,6 +485,201 @@ function Field({ label, value }: { label: string; value: string }) {
     <div>
       <div className="caption-2">{label.toUpperCase()}</div>
       <div style={{ fontSize: 14 }}>{value}</div>
+    </div>
+  )
+}
+
+// =============================================================
+// PR-Tab (Phase 4a, read-only Catalog + Status-Matrix)
+// =============================================================
+
+function PrTab({
+  catalog,
+  records,
+  participants,
+}: {
+  catalog: PrCatalog | null
+  records: PrRecord[]
+  participants: CourseParticipant[]
+}) {
+  if (!catalog) {
+    return (
+      <div className="caption" style={{ padding: 20 }}>
+        Lade PR-Katalog…
+      </div>
+    )
+  }
+
+  // Status-Lookup pro (student_id, pr_code)
+  const lookup = new Map<string, PrRecord>()
+  for (const r of records) {
+    lookup.set(`${r.student_id}::${r.pr_code}`, r)
+  }
+
+  const cands = participants
+    .filter((p) => p.status !== 'dropped')
+    .filter((p) => !!p.student)
+  const totalSkills = catalog.data.slots.reduce((acc, s) => acc + s.skills.length, 0)
+
+  // Coverage-Berechnung pro Kandidat
+  const coverageByStudent = new Map<string, { done: number; inProg: number; rem: number }>()
+  for (const c of cands) {
+    let done = 0, inProg = 0, rem = 0
+    for (const slot of catalog.data.slots) {
+      for (const sk of slot.skills) {
+        const r = lookup.get(`${c.student!.id}::${sk.code}`)
+        if (!r) continue
+        if (r.status === 'completed' || r.pass === true) done++
+        else if (r.status === 'in_progress') inProg++
+        else if (r.status === 'remediation') rem++
+      }
+    }
+    coverageByStudent.set(c.student!.id, { done, inProg, rem })
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: 18 }}>
+      {/* Header mit Catalog-Info */}
+      <div className="glass-thin" style={{ padding: 14, borderRadius: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700 }}>{catalog.data.title}</div>
+          <div className="caption">
+            {catalog.course_type} · v{catalog.version} · {catalog.data.slots.length} Slots, {totalSkills} Skills
+          </div>
+        </div>
+      </div>
+
+      {/* Pre-Reqs */}
+      {(catalog.data.prerequisites?.requiredCerts?.length || catalog.data.prerequisites?.requiredELearning) && (
+        <div className="glass-thin" style={{ padding: 14, borderRadius: 12 }}>
+          <div className="caption-2" style={{ marginBottom: 6, opacity: 0.7 }}>VORAUSSETZUNGEN</div>
+          <div style={{ display: 'grid', gap: 4, fontSize: 13 }}>
+            {catalog.data.prerequisites?.minAge && (
+              <div>· Mindestalter {catalog.data.prerequisites.minAge}</div>
+            )}
+            {catalog.data.prerequisites?.requiredCerts?.map((c) => (
+              <div key={c.kind}>
+                · {c.kind}
+                {c.maxMonthsAgo ? ` (max. ${c.maxMonthsAgo} Mt. alt)` : ''}
+                {c.minMonthsAgo ? ` (min. ${c.minMonthsAgo} Mt. her)` : ''}
+                {c.note ? ` — ${c.note}` : ''}
+              </div>
+            ))}
+            {catalog.data.prerequisites?.requiredELearning && (
+              <div>
+                · {catalog.data.prerequisites.requiredELearning.kind} eLearning
+                {catalog.data.prerequisites.requiredELearning.minProgressPercent !== undefined &&
+                  ` (${catalog.data.prerequisites.requiredELearning.minProgressPercent}%)`}
+                {catalog.data.prerequisites.requiredELearning.examRequired && ' · Exam'}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Kandidaten-Coverage */}
+      {cands.length > 0 && (
+        <div>
+          <div className="title-3" style={{ marginBottom: 8 }}>Kandidaten · {cands.length}</div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {cands.map((c) => {
+              const cov = coverageByStudent.get(c.student!.id) ?? { done: 0, inProg: 0, rem: 0 }
+              const pct = totalSkills > 0 ? Math.round((cov.done / totalSkills) * 100) : 0
+              return (
+                <div key={c.id} className="glass-thin" style={{ padding: 12, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div className="avatar avatar-sm" style={{ background: 'linear-gradient(135deg,#34c759,#00c2a8)' }}>
+                    {c.student?.name.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 500 }}>{c.student?.name}</div>
+                    <div className="caption-2">{cov.done}/{totalSkills} abgenommen ({pct}%) · {cov.inProg} laufend · {cov.rem} Remediation</div>
+                  </div>
+                  <div style={{ width: 100, height: 6, borderRadius: 3, background: 'rgba(255,255,255,.10)', overflow: 'hidden' }}>
+                    <div style={{ width: `${pct}%`, height: '100%', background: pct >= 80 ? '#34C759' : pct >= 40 ? '#FFCC00' : '#FF9500' }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Catalog: Slots + Skills mit Status-Pillen */}
+      <div style={{ display: 'grid', gap: 14 }}>
+        {catalog.data.slots
+          .slice()
+          .sort((a, b) => a.order - b.order)
+          .map((slot) => (
+            <div key={slot.code} className="glass-thin" style={{ padding: 14, borderRadius: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontWeight: 700 }}>
+                    {slot.order}. {slot.title}
+                  </div>
+                  <div className="caption-2">
+                    {slot.code} · {slot.kind}
+                    {slot.scoreSchema === 'score1to5' && slot.passThreshold ? ` · Pass ≥ ${slot.passThreshold}/5` : ''}
+                    {slot.scoreSchema === 'percent' && slot.passThreshold ? ` · Pass ≥ ${slot.passThreshold}%` : ''}
+                    {slot.scoreSchema === 'passFail' ? ' · Pass/Fail' : ''}
+                    {slot.minRequired ? ` · min. ${slot.minRequired}` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gap: 4 }}>
+                {slot.skills.map((sk) => {
+                  // Aggregate über alle Kandidaten
+                  const completeCount = cands.filter((c) => {
+                    const r = lookup.get(`${c.student!.id}::${sk.code}`)
+                    return r && (r.status === 'completed' || r.pass === true)
+                  }).length
+                  return (
+                    <div
+                      key={sk.code}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '6px 10px',
+                        borderRadius: 8,
+                        fontSize: 13,
+                        background: 'rgba(255,255,255,.04)',
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <span className="mono" style={{ opacity: 0.5, marginRight: 8, fontSize: 11 }}>{sk.code}</span>
+                        {sk.title}
+                        {sk.repeatable && (
+                          <span className="caption-2" style={{ marginLeft: 8, opacity: 0.6 }}>(repeatable)</span>
+                        )}
+                      </div>
+                      {cands.length > 0 && (
+                        <div
+                          className="caption-2"
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: 999,
+                            background: completeCount === cands.length
+                              ? 'rgba(52,199,89,.20)'
+                              : completeCount > 0
+                                ? 'rgba(255,204,0,.18)'
+                                : 'rgba(255,255,255,.06)',
+                          }}
+                        >
+                          {completeCount}/{cands.length}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+      </div>
+
+      <div className="caption-2" style={{ opacity: 0.5, padding: '8px 0' }}>
+        Phase 4a: Read-only Anzeige. Der Live-Check-Off (Tap auf Skill → Status setzen) folgt in Phase 4b.
+      </div>
     </div>
   )
 }
