@@ -121,6 +121,28 @@ export function PrCheckOffSheet({
     update(studentId, patch)
   }
 
+  // Setzt Score und leitet Status automatisch ab (für score1to5 und percent)
+  function setScore(studentId: string, score: string) {
+    if (!skill) return
+    const patch: Partial<RowState> = { score }
+    if (score === '') {
+      patch.status = 'not_started'
+    } else {
+      const n = Number(score)
+      const threshold = skill.passThreshold ?? (skill.scoreSchema === 'percent' ? 75 : 3)
+      patch.status = n >= threshold ? 'completed' : 'remediation'
+    }
+    update(studentId, patch)
+  }
+
+  function setPass(studentId: string, pass: 'yes' | 'no') {
+    const patch: Partial<RowState> = {
+      pass,
+      status: pass === 'yes' ? 'completed' : 'remediation',
+    }
+    update(studentId, patch)
+  }
+
   async function save() {
     if (!skill) return
     setSaving(true)
@@ -200,103 +222,139 @@ export function PrCheckOffSheet({
                     )}
                   </div>
 
-                  {/* Quick-Status Buttons */}
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {STATUS_OPTIONS.map((s) => (
-                      <button
-                        key={s.code}
-                        onClick={() => quickSet(c.student!.id, s.code)}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: 999,
-                          fontSize: 12,
-                          border: '0.5px solid var(--hairline)',
-                          background: row.status === s.code ? s.tone : 'transparent',
-                          fontWeight: row.status === s.code ? 700 : 400,
-                          cursor: 'pointer',
-                          color: 'var(--ink)',
-                        }}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Score-Input je nach Schema */}
-                  {(skill.scoreSchema === 'score1to5' || skill.scoreSchema === 'percent') && row.status !== 'not_started' && (
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <span className="caption-2" style={{ minWidth: 60 }}>SCORE</span>
-                      {skill.scoreSchema === 'score1to5' ? (
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          {[1, 2, 3, 4, 5].map((n) => (
+                  {/* Score-/Pass-Eingabe direkt — Status leitet sich automatisch ab */}
+                  {skill.scoreSchema === 'score1to5' && (
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {[1, 2, 3, 4, 5].map((n) => {
+                          const passes = n >= (skill.passThreshold ?? 3)
+                          const selected = row.score === String(n)
+                          return (
                             <button
                               key={n}
-                              onClick={() => update(c.student!.id, { score: String(n) })}
+                              onClick={() => setScore(c.student!.id, String(n))}
                               style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 8,
-                                border: '0.5px solid var(--hairline)',
-                                background: row.score === String(n)
-                                  ? (n >= (skill.passThreshold ?? 3) ? 'rgba(52,199,89,.30)' : 'rgba(255,69,58,.30)')
+                                width: 40,
+                                height: 40,
+                                borderRadius: 10,
+                                border: selected
+                                  ? `1px solid ${passes ? 'rgba(52,199,89,.6)' : 'rgba(255,149,0,.6)'}`
+                                  : '0.5px solid var(--hairline)',
+                                background: selected
+                                  ? (passes ? 'rgba(52,199,89,.30)' : 'rgba(255,149,0,.30)')
                                   : 'transparent',
                                 fontWeight: 700,
+                                fontSize: 16,
                                 cursor: 'pointer',
                                 color: 'var(--ink)',
                               }}
+                              title={passes ? 'Pass' : 'unter Threshold → Remediation'}
                             >
                               {n}
                             </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={row.score}
-                          onChange={(e) => update(c.student!.id, { score: e.target.value })}
+                          )
+                        })}
+                      </div>
+                      {row.status === 'completed' && <span className="caption-2" style={{ color: '#34C759' }}>✓ Abgenommen</span>}
+                      {row.status === 'remediation' && <span className="caption-2" style={{ color: '#FF9500' }}>⟲ Remediation</span>}
+                      {row.score && (
+                        <button
+                          onClick={() => setScore(c.student!.id, '')}
+                          className="caption-2"
                           style={{
-                            width: 80,
-                            padding: '6px 10px',
-                            borderRadius: 8,
+                            marginLeft: 'auto',
+                            padding: '4px 8px',
+                            background: 'transparent',
                             border: '0.5px solid var(--hairline)',
-                            background: 'var(--surface-strong)',
-                            color: 'var(--ink)',
-                            fontSize: 13.5,
+                            borderRadius: 6,
+                            color: 'var(--ink-secondary)',
+                            cursor: 'pointer',
                           }}
-                          placeholder="0–100"
-                        />
+                        >
+                          zurücksetzen
+                        </button>
                       )}
                     </div>
                   )}
 
-                  {skill.scoreSchema === 'passFail' && row.status !== 'not_started' && (
+                  {skill.scoreSchema === 'percent' && (
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={row.score}
+                        onChange={(e) => setScore(c.student!.id, e.target.value)}
+                        style={{
+                          width: 90,
+                          padding: '8px 10px',
+                          borderRadius: 8,
+                          border: '0.5px solid var(--hairline)',
+                          background: 'var(--surface-strong)',
+                          color: 'var(--ink)',
+                          fontSize: 14,
+                          fontWeight: 600,
+                        }}
+                        placeholder="0–100"
+                      />
+                      <span className="caption-2">%</span>
+                      {row.status === 'completed' && <span className="caption-2" style={{ color: '#34C759' }}>✓ Pass</span>}
+                      {row.status === 'remediation' && <span className="caption-2" style={{ color: '#FF9500' }}>⟲ unter Threshold</span>}
+                    </div>
+                  )}
+
+                  {skill.scoreSchema === 'passFail' && (
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
-                        onClick={() => update(c.student!.id, { pass: 'yes' })}
+                        onClick={() => setPass(c.student!.id, 'yes')}
                         style={{
-                          padding: '6px 14px',
+                          padding: '8px 18px',
                           borderRadius: 8,
                           border: '0.5px solid var(--hairline)',
                           background: row.pass === 'yes' ? 'rgba(52,199,89,.30)' : 'transparent',
                           color: 'var(--ink)',
                           fontWeight: 600,
+                          fontSize: 14,
                           cursor: 'pointer',
                         }}
-                      >Pass</button>
+                      >✓ Pass</button>
                       <button
-                        onClick={() => update(c.student!.id, { pass: 'no' })}
+                        onClick={() => setPass(c.student!.id, 'no')}
                         style={{
-                          padding: '6px 14px',
+                          padding: '8px 18px',
                           borderRadius: 8,
                           border: '0.5px solid var(--hairline)',
                           background: row.pass === 'no' ? 'rgba(255,69,58,.30)' : 'transparent',
                           color: 'var(--ink)',
                           fontWeight: 600,
+                          fontSize: 14,
                           cursor: 'pointer',
                         }}
-                      >Fail</button>
+                      >✗ Fail</button>
+                    </div>
+                  )}
+
+                  {skill.scoreSchema === 'rubric' && (
+                    /* Rubric: nur Status-Buttons, da kein Skalar-Score */
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {STATUS_OPTIONS.map((s) => (
+                        <button
+                          key={s.code}
+                          onClick={() => quickSet(c.student!.id, s.code)}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: 999,
+                            fontSize: 12,
+                            border: '0.5px solid var(--hairline)',
+                            background: row.status === s.code ? s.tone : 'transparent',
+                            fontWeight: row.status === s.code ? 700 : 400,
+                            cursor: 'pointer',
+                            color: 'var(--ink)',
+                          }}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
                     </div>
                   )}
 
