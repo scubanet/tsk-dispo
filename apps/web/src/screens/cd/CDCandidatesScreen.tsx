@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
+import { StudentEditSheet } from '../StudentEditSheet'
 import type { OutletCtx } from '@/layout/AppShell'
 
 interface Candidate {
@@ -32,6 +33,8 @@ export function CDCandidatesScreen() {
   const [rows, setRows] = useState<Candidate[]>([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [refreshTick, setRefreshTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -48,7 +51,7 @@ export function CDCandidatesScreen() {
         setLoading(false)
       })
     return () => { cancelled = true }
-  }, [])
+  }, [refreshTick])
 
   if (user.role !== 'cd') {
     return (
@@ -77,7 +80,9 @@ export function CDCandidatesScreen() {
   return (
     <>
       <Topbar title="Kandidaten" subtitle={`${rows.length} aktive Kandidat:innen`}>
-        <button className="btn"><Icon name="plus" size={14} /> Neu</button>
+        <button className="btn" onClick={() => setCreateOpen(true)}>
+          <Icon name="plus" size={14} /> Neu
+        </button>
       </Topbar>
 
       <div style={{ padding: '0 24px 16px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -160,6 +165,19 @@ export function CDCandidatesScreen() {
           ))}
         </div>
       )}
+
+      <StudentEditSheet
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSaved={(newId) => {
+          setRefreshTick((t) => t + 1)
+          if (newId) navigate(`/cd/kandidaten/${newId}`)
+        }}
+        studentId={null}
+        showCdFields={true}
+        defaultIsCandidate={true}
+        defaultPipelineStage="lead"
+      />
     </>
   )
 }

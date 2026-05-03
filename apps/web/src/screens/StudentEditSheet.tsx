@@ -67,6 +67,10 @@ interface Props {
   studentId?: string | null
   /** Wenn true, werden CD-Felder (Adresse, CRM, Pipeline, Org, is_candidate) eingeblendet. */
   showCdFields?: boolean
+  /** Beim Anlegen: is_candidate per default auf true setzen (z.B. wenn aus Kandidaten-View geöffnet). */
+  defaultIsCandidate?: boolean
+  /** Beim Anlegen: pipeline_stage per default. */
+  defaultPipelineStage?: string
 }
 
 const inputStyle = {
@@ -106,7 +110,15 @@ const EMPTY: Form = {
   is_candidate: false,
 }
 
-export function StudentEditSheet({ open, onClose, onSaved, studentId, showCdFields = false }: Props) {
+export function StudentEditSheet({
+  open,
+  onClose,
+  onSaved,
+  studentId,
+  showCdFields = false,
+  defaultIsCandidate = false,
+  defaultPipelineStage,
+}: Props) {
   const isEdit = !!studentId
   const [form, setForm] = useState<Form>(EMPTY)
   const [saving, setSaving] = useState(false)
@@ -165,9 +177,13 @@ export function StudentEditSheet({ open, onClose, onSaved, studentId, showCdFiel
           })
         })
     } else {
-      setForm(EMPTY)
+      setForm({
+        ...EMPTY,
+        is_candidate: defaultIsCandidate,
+        pipeline_stage: defaultPipelineStage ?? EMPTY.pipeline_stage,
+      })
     }
-  }, [open, studentId, showCdFields])
+  }, [open, studentId, showCdFields, defaultIsCandidate, defaultPipelineStage])
 
   function set<K extends keyof Form>(k: K, v: Form[K]) {
     setForm((prev) => ({ ...prev, [k]: v }))
