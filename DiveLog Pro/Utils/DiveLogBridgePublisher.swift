@@ -22,6 +22,13 @@ final class DiveLogBridgePublisher {
         self.bridge = bridge
     }
 
+    /// Round to whole seconds so the snapshot is lossless across the
+    /// `.iso8601` encoder/decoder boundary (Atoll Hub side uses the same
+    /// strategy and would fail to parse fractional-second timestamps).
+    private static func truncatedToSecond(_ date: Date) -> Date {
+        Date(timeIntervalSince1970: floor(date.timeIntervalSince1970))
+    }
+
     /// Builds the current snapshot and writes it. No-op when the user
     /// isn't signed in with Apple yet — without an apple_user_id the
     /// snapshot can't be matched on the Atoll Hub side.
@@ -57,13 +64,13 @@ final class DiveLogBridgePublisher {
             avatarFileName: nil,                   // avatar copy: future enhancement
             diveLogHandle: nil,                    // v1: no handle concept on DiveLog side
             loggedDivesCount: totalDives,
-            lastDiveDate: lastDive?.date,
+            lastDiveDate: lastDive.map { Self.truncatedToSecond($0.date) },
             certifications: certifications,
             specialties: [],                       // v1: no per-user specialties
             languagesSpoken: languages,
             homeBase: nil,                         // v1: not on DiverProfile yet
             conservationProjects: [],              // v1: not modelled
-            snapshotUpdatedAt: Date()
+            snapshotUpdatedAt: Self.truncatedToSecond(Date())
         )
 
         do {
