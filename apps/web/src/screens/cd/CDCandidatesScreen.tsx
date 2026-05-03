@@ -16,6 +16,7 @@ interface Candidate {
   pipeline_stage: string
   stage_changed_on: string
   organization_id: string | null
+  organization: { id: string; name: string } | null
 }
 
 const STAGES: { code: string; label: string; tone: string }[] = [
@@ -41,13 +42,13 @@ export function CDCandidatesScreen() {
     setLoading(true)
     supabase
       .from('students')
-      .select('id, first_name, last_name, email, phone, level, pipeline_stage, stage_changed_on, organization_id')
+      .select('id, first_name, last_name, email, phone, level, pipeline_stage, stage_changed_on, organization_id, organization:organizations(id, name)')
       .eq('is_candidate', true)
       .order('stage_changed_on', { ascending: false })
       .then(({ data, error }) => {
         if (cancelled) return
         if (error) console.error('[cd] candidates load failed', error)
-        setRows((data ?? []) as Candidate[])
+        setRows((data ?? []) as unknown as Candidate[])
         setLoading(false)
       })
     return () => { cancelled = true }
@@ -128,13 +129,16 @@ export function CDCandidatesScreen() {
             <button
               key={c.id}
               className="glass-thin"
-              onClick={() => navigate(`/cd/kandidaten/${c.id}`)}
+              onClick={() => navigate(`/schueler/${c.id}`)}
               style={{
                 padding: 12,
                 borderRadius: 12,
                 textAlign: 'left',
                 border: 'none',
                 cursor: 'pointer',
+                color: 'var(--ink)',
+                font: 'inherit',
+                width: '100%',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
@@ -148,7 +152,11 @@ export function CDCandidatesScreen() {
                   {c.first_name} {c.last_name}
                 </div>
                 <div className="caption" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {c.email ?? '—'} · {c.level ?? '—'}
+                  {[
+                    c.organization?.name,
+                    c.level,
+                    c.email,
+                  ].filter(Boolean).join(' · ') || '—'}
                 </div>
               </div>
               <div
@@ -161,6 +169,7 @@ export function CDCandidatesScreen() {
               >
                 {STAGES.find((s) => s.code === c.pipeline_stage)?.label ?? c.pipeline_stage}
               </div>
+              <span className="caption-2" style={{ opacity: 0.4 }}>›</span>
             </button>
           ))}
         </div>
@@ -171,7 +180,7 @@ export function CDCandidatesScreen() {
         onClose={() => setCreateOpen(false)}
         onSaved={(newId) => {
           setRefreshTick((t) => t + 1)
-          if (newId) navigate(`/cd/kandidaten/${newId}`)
+          if (newId) navigate(`/schueler/${newId}`)
         }}
         studentId={null}
         showCdFields={true}
