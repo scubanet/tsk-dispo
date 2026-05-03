@@ -16,6 +16,10 @@
 5. **CD App:** Wird neu gebaut auf Supabase, alte iOS-CD-App wird abgelöst
 6. **Plattform:** Web first
 
+### Anmerkung zu DM (2026-05-03)
+
+DM ist KEIN originärer CD-Kurs. Im CD-Modul wird er trotzdem geführt, weil er als **Recruiting-Kanal** für DM-Kandidat:innen dient die später in den IDC eingeführt werden sollen — genau wie es die alte CD-App auch handhabte. Im UI ist das durch ein Label „Pro-Stufen (IDC, SPEI, EFRI · DM für Recruiting)" und einen Hinweis im PR-Tab-Header gekennzeichnet. Die echten Pro-Level-Kurse die der CD leitet sind IDC, SPEI und EFRI.
+
 ## Architektur-Entscheidungen (basierend auf User)
 
 ### A1. `students` als zentrale People-Tabelle

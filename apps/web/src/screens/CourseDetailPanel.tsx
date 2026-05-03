@@ -38,6 +38,9 @@ const BASE_TABS: { value: Tab; label: string }[] = [
 ]
 
 // Mapping: course_type.code → pr_catalogs.course_type
+// Hinweis: DM ist kein originärer CD-Kurs, sondern dient als Recruiting-Kanal
+// für DM-Kandidat:innen die später in den IDC eingeführt werden sollen.
+// IDC/SPEI/EFRI sind die eigentlichen Pro-Level-Kurse die der CD leitet.
 const CD_COURSE_PREFIXES: Array<{ catalog: string; match: (c: string) => boolean }> = [
   { catalog: 'DM',   match: (c) => c === 'DM' },
   { catalog: 'IDC',  match: (c) => c === 'IDC' },
@@ -546,6 +549,11 @@ function PrTab({
           <div className="caption">
             {catalog.course_type} · v{catalog.version} · {catalog.data.slots.length} Slots, {totalSkills} Skills
           </div>
+          {catalog.course_type === 'DM' && (
+            <div className="caption-2" style={{ marginTop: 6, opacity: 0.75 }}>
+              Hinweis: DM ist kein klassischer CD-Kurs — wird hier geführt um Kandidat:innen für den IDC anzuwerben.
+            </div>
+          )}
         </div>
       </div>
 

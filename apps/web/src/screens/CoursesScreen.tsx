@@ -144,7 +144,7 @@ export function CoursesScreen() {
                   checked={cdOnly}
                   onChange={(e) => setCdOnly(e.target.checked)}
                 />
-                Nur CD-Kurse <span className="caption-2">(DM/IDC/SPEI/EFRI)</span>
+                Nur Pro-Stufen <span className="caption-2">(IDC, SPEI, EFRI · DM für Recruiting)</span>
               </label>
             )}
           </div>
