@@ -407,6 +407,11 @@ struct ProfileEditView: View {
         useMetric = profile.useMetric
     }
 
+    /// Refresh the App Group snapshot for Atoll Hub. Fires from
+    /// `saveProfile()` after in-memory mutations land on `DiverProfile`
+    /// but before SwiftData drains its context to disk + CloudKit. That's
+    /// intentional: the publisher fetches from `mainContext`, so it sees
+    /// the just-edited values; persistence catches up asynchronously.
     private func republishToAtollBridge() {
         guard let bridge = atollBridge else { return }
         let container = ctx.container
