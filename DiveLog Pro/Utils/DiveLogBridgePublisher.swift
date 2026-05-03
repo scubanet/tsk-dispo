@@ -68,7 +68,7 @@ final class DiveLogBridgePublisher {
 
         do {
             try await bridge.writeDiveLogSnapshot(snapshot)
-            Self.logger.info("published snapshot — dives=\(totalDives), name='\(snapshot.displayName)'")
+            Self.logger.info("published snapshot — dives=\(totalDives), name='\(snapshot.displayName, privacy: .private)'")
         } catch {
             Self.logger.error("publish failed: \(error.localizedDescription)")
         }
