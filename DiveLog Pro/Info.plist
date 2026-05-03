@@ -18,6 +18,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>divelogpro</string>
+				<string>divelog</string>
 			</array>
 		</dict>
 	</array>
