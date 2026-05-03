@@ -8,6 +8,7 @@ struct DiveFormView: View {
     let mode: DiveFormMode
     @Environment(\.modelContext) private var ctx
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.atollBridge) private var atollBridge
     @Query(sort: \Dive.number, order: .reverse) private var existingDives: [Dive]
     @State private var step = 0
     
@@ -506,6 +507,19 @@ struct DiveFormView: View {
         importedPhotosOnThisSession.forEach { PhotoStore.delete(filename: $0) }
     }
     
+    /// Refresh the App Group snapshot for Atoll Hub. Fires from
+    /// `save()` after in-memory mutations land on `Dive` but before
+    /// SwiftData drains its context to disk + CloudKit. That's
+    /// intentional: the publisher fetches from `mainContext`, so it sees
+    /// the just-edited values; persistence catches up asynchronously.
+    private func republishToAtollBridge() {
+        guard let bridge = atollBridge else { return }
+        let container = ctx.container
+        Task { @MainActor in
+            await DiveLogBridgePublisher(container: container, bridge: bridge).publish()
+        }
+    }
+
     private func save() {
         let md = Double(maxDepth) ?? 15
         let bt = Int(bottomTime) ?? 40
@@ -568,6 +582,7 @@ struct DiveFormView: View {
         // Saving succeeded — any imported photos are now attached to a dive
         // and shouldn't be cleaned up on dismiss.
         importedPhotosOnThisSession = []
+        republishToAtollBridge()
         dismiss()
     }
 }
