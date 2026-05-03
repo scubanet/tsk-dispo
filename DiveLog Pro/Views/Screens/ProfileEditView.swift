@@ -13,6 +13,7 @@ struct ProfileEditView: View {
     let profile: DiverProfile
     @Environment(\.modelContext) private var ctx
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.atollBridge) private var atollBridge
 
     // Identity
     @State private var name: String = ""
@@ -406,6 +407,14 @@ struct ProfileEditView: View {
         useMetric = profile.useMetric
     }
 
+    private func republishToAtollBridge() {
+        guard let bridge = atollBridge else { return }
+        let container = ctx.container
+        Task { @MainActor in
+            await DiveLogBridgePublisher(container: container, bridge: bridge).publish()
+        }
+    }
+
     private func saveProfile() {
         profile.name = name.trimmingCharacters(in: .whitespaces)
         profile.padiNumber = padiNumber.trimmingCharacters(in: .whitespaces)
@@ -424,6 +433,7 @@ struct ProfileEditView: View {
         profile.useMetric = useMetric
         profile.language = language
 
+        republishToAtollBridge()
         dismiss()
     }
 

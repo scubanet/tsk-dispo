@@ -156,6 +156,7 @@ struct DiveLogProApp: App {
             }
             .animation(.easeInOut(duration: 0.25), value: appleSignIn.isSignedIn)
             .environment(deleteUndoManager)
+            .environment(\.atollBridge, atollBridge)
             .onChange(of: scenePhase) { _, newPhase in
                 // Don't let a pending delete hang around across app
                 // suspension — commit it now so the user's intent is honored
@@ -173,4 +174,15 @@ struct DiveLogProApp: App {
 // optional token without writing the same boilerplate inline.
 private struct RemoteSignToken: Identifiable, Hashable {
     let id: String
+}
+
+private struct DiveLogBridgeKey: EnvironmentKey {
+    static let defaultValue: DiveLogBridge? = nil
+}
+
+extension EnvironmentValues {
+    var atollBridge: DiveLogBridge? {
+        get { self[DiveLogBridgeKey.self] }
+        set { self[DiveLogBridgeKey.self] = newValue }
+    }
 }
