@@ -28,6 +28,10 @@ struct DiveLogProApp: App {
     // to the background so work-in-progress doesn't vanish silently.
     @Environment(\.scenePhase) private var scenePhase
 
+    // Atoll Hub bridge — writes our profile/activity snapshot into the
+    // shared App Group container so Atoll Hub can read it offline.
+    private let atollBridge = DiveLogBridge()
+
     // ═══════════════════════════════════════
     // MARK: - ModelContainer (SwiftData + CloudKit)
     // ═══════════════════════════════════════
@@ -133,6 +137,10 @@ struct DiveLogProApp: App {
             // back to SignInView automatically.
             .task {
                 await appleSignIn.refreshCredentialState()
+                await DiveLogBridgePublisher(
+                    container: sharedModelContainer,
+                    bridge: atollBridge
+                ).publish()
             }
             // Handle `divelogpro://remote-sign?token=…` links (Feature 3).
             .onOpenURL { url in
