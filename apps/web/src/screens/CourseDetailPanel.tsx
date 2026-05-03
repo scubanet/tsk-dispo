@@ -25,6 +25,7 @@ import { CourseEditSheet } from './CourseEditSheet'
 import { AssignmentEditSheet } from './AssignmentEditSheet'
 import { EnrollStudentSheet } from './EnrollStudentSheet'
 import { StudentEditSheet } from './StudentEditSheet'
+import { PrCheckOffSheet, type ScoreSchema } from './PrCheckOffSheet'
 import { supabase } from '@/lib/supabase'
 import type { OutletCtx } from '@/layout/AppShell'
 
@@ -461,6 +462,10 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
           catalog={catalog}
           records={prRecords}
           participants={participants}
+          courseId={courseId}
+          assessorName={user.name}
+          firstCourseDate={course.start_date}
+          onSaved={refresh}
         />
       )}
 
@@ -500,11 +505,26 @@ function PrTab({
   catalog,
   records,
   participants,
+  courseId,
+  assessorName,
+  firstCourseDate,
+  onSaved,
 }: {
   catalog: PrCatalog | null
   records: PrRecord[]
   participants: CourseParticipant[]
+  courseId: string
+  assessorName: string
+  firstCourseDate: string
+  onSaved: () => void
 }) {
+  const [openSkill, setOpenSkill] = useState<{
+    code: string
+    title: string
+    scoreSchema: ScoreSchema
+    passThreshold?: number
+  } | null>(null)
+
   if (!catalog) {
     return (
       <div className="caption" style={{ padding: 20 }}>
@@ -641,9 +661,19 @@ function PrTab({
                     const r = lookup.get(`${c.student!.id}::${sk.code}`)
                     return r && (r.status === 'completed' || r.pass === true)
                   }).length
+                  const clickable = cands.length > 0
                   return (
-                    <div
+                    <button
                       key={sk.code}
+                      disabled={!clickable}
+                      onClick={() =>
+                        setOpenSkill({
+                          code: sk.code,
+                          title: sk.title,
+                          scoreSchema: slot.scoreSchema as ScoreSchema,
+                          passThreshold: slot.passThreshold,
+                        })
+                      }
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -652,6 +682,12 @@ function PrTab({
                         borderRadius: 8,
                         fontSize: 13,
                         background: 'rgba(255,255,255,.04)',
+                        border: 'none',
+                        textAlign: 'left',
+                        cursor: clickable ? 'pointer' : 'default',
+                        color: 'var(--ink)',
+                        font: 'inherit',
+                        width: '100%',
                       }}
                     >
                       <div style={{ flex: 1 }}>
@@ -677,7 +713,10 @@ function PrTab({
                           {completeCount}/{cands.length}
                         </div>
                       )}
-                    </div>
+                      {clickable && (
+                        <span className="caption-2" style={{ opacity: 0.4 }}>›</span>
+                      )}
+                    </button>
                   )
                 })}
               </div>
@@ -686,8 +725,19 @@ function PrTab({
       </div>
 
       <div className="caption-2" style={{ opacity: 0.5, padding: '8px 0' }}>
-        Phase 4a: Read-only Anzeige. Der Live-Check-Off (Tap auf Skill → Status setzen) folgt in Phase 4b.
+        Tipp: Klick auf einen Skill zum Live Check-Off — Status, Score, Pass/Fail, Datum + Notiz pro Kandidat:in.
       </div>
+
+      <PrCheckOffSheet
+        open={!!openSkill}
+        onClose={() => setOpenSkill(null)}
+        onSaved={onSaved}
+        courseId={courseId}
+        skill={openSkill}
+        participants={participants}
+        defaultAssessor={assessorName}
+        defaultDate={firstCourseDate}
+      />
     </div>
   )
 }
