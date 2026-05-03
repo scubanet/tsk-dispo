@@ -637,10 +637,46 @@ function PrTab({
         {catalog.data.slots
           .slice()
           .sort((a, b) => a.order - b.order)
-          .map((slot) => (
+          .map((slot) => {
+            const slotClickable = cands.length > 0 && slot.skills.length > 0
+            const firstSkill = slot.skills[0]
+            // Coverage über den ganzen Slot (alle Skills × alle Kandidaten)
+            const slotTotal = slot.skills.length * cands.length
+            const slotDone = slot.skills.reduce((acc, sk) => {
+              return acc + cands.filter((c) => {
+                const r = lookup.get(`${c.student!.id}::${sk.code}`)
+                return r && (r.status === 'completed' || r.pass === true)
+              }).length
+            }, 0)
+            return (
             <div key={slot.code} className="glass-thin" style={{ padding: 14, borderRadius: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div>
+              <button
+                onClick={() => {
+                  if (!slotClickable) return
+                  setOpenSkill({
+                    code: firstSkill.code,
+                    title: firstSkill.title,
+                    scoreSchema: slot.scoreSchema as ScoreSchema,
+                    passThreshold: slot.passThreshold,
+                  })
+                }}
+                disabled={!slotClickable}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  width: '100%',
+                  padding: 0,
+                  marginBottom: 10,
+                  border: 'none',
+                  background: 'transparent',
+                  textAlign: 'left',
+                  cursor: slotClickable ? 'pointer' : 'default',
+                  color: 'var(--ink)',
+                  font: 'inherit',
+                }}
+              >
+                <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700 }}>
                     {slot.order}. {slot.title}
                   </div>
@@ -652,7 +688,27 @@ function PrTab({
                     {slot.minRequired ? ` · min. ${slot.minRequired}` : ''}
                   </div>
                 </div>
-              </div>
+                {slotTotal > 0 && (
+                  <div
+                    className="caption-2"
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: 999,
+                      background: slotDone === slotTotal
+                        ? 'rgba(52,199,89,.20)'
+                        : slotDone > 0
+                          ? 'rgba(255,204,0,.18)'
+                          : 'rgba(255,255,255,.06)',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {slotDone}/{slotTotal}
+                  </div>
+                )}
+                {slotClickable && (
+                  <span className="caption-2" style={{ opacity: 0.4 }}>›</span>
+                )}
+              </button>
 
               <div style={{ display: 'grid', gap: 4 }}>
                 {slot.skills.map((sk) => {
@@ -721,7 +777,7 @@ function PrTab({
                 })}
               </div>
             </div>
-          ))}
+          )})}
       </div>
 
       <div className="caption-2" style={{ opacity: 0.5, padding: '8px 0' }}>
