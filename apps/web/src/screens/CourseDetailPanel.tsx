@@ -648,8 +648,27 @@ function PrTab({
                 return r && (r.status === 'completed' || r.pass === true)
               }).length
             }, 0)
+            // Slot-Hintergrund je nach Coverage einfärben
+            const slotBg =
+              slotTotal === 0          ? undefined
+              : slotDone === slotTotal ? 'linear-gradient(180deg, rgba(52,199,89,.18), rgba(52,199,89,.06))'
+              : slotDone > 0           ? 'linear-gradient(180deg, rgba(255,204,0,.16), rgba(255,204,0,.04))'
+              :                          undefined
+            const slotBorder =
+              slotTotal > 0 && slotDone === slotTotal ? '0.5px solid rgba(52,199,89,.45)'
+              : slotTotal > 0 && slotDone > 0          ? '0.5px solid rgba(255,204,0,.40)'
+              :                                          undefined
             return (
-            <div key={slot.code} className="glass-thin" style={{ padding: 14, borderRadius: 12 }}>
+            <div
+              key={slot.code}
+              className="glass-thin"
+              style={{
+                padding: 14,
+                borderRadius: 12,
+                background: slotBg,
+                border: slotBorder,
+              }}
+            >
               <button
                 onClick={() => {
                   if (!slotClickable) return
