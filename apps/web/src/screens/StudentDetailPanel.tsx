@@ -20,6 +20,7 @@ import type { OutletCtx } from '@/layout/AppShell'
 import { StudentEditSheet } from './StudentEditSheet'
 import { CertificationEditSheet } from './CertificationEditSheet'
 import { CommunicationEditSheet, CHANNELS } from './cd/CommunicationEditSheet'
+import { IntakeChecklistSheet } from './cd/IntakeChecklistSheet'
 
 interface CommEntry {
   id: string
@@ -30,6 +31,22 @@ interface CommEntry {
   body: string | null
   duration_minutes: number | null
   outcome: string | null
+}
+
+interface IntakeStatus {
+  instructor_status: string | null
+  min_age_confirmed: boolean
+  medical_signed: boolean
+  medical_signed_on: string | null
+  certified_diver_since: string | null
+  efr_kind: string | null
+  efr_completed_on: string | null
+  non_padi_certs_seen: boolean
+  logbook_seen: boolean
+  id_seen: boolean
+  insurance_proof: boolean
+  liability_signed: boolean
+  checked_on: string | null
 }
 
 interface CdInfo {
@@ -81,6 +98,8 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
   const [commOpen, setCommOpen] = useState(false)
   const [editingCommId, setEditingCommId] = useState<string | null>(null)
   const [communications, setCommunications] = useState<CommEntry[]>([])
+  const [intakeOpen, setIntakeOpen] = useState(false)
+  const [intake, setIntake] = useState<IntakeStatus | null>(null)
   const [refreshTick, setRefreshTick] = useState(0)
 
   const isCD = user.role === 'cd'
@@ -109,6 +128,13 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
         .eq('contact_id', studentId)
         .order('occurred_on', { ascending: false })
         .then(({ data }) => setCommunications((data ?? []) as CommEntry[]))
+
+      supabase
+        .from('intake_checklists')
+        .select('instructor_status, min_age_confirmed, medical_signed, medical_signed_on, certified_diver_since, efr_kind, efr_completed_on, non_padi_certs_seen, logbook_seen, id_seen, insurance_proof, liability_signed, checked_on')
+        .eq('student_id', studentId)
+        .maybeSingle()
+        .then(({ data }) => setIntake((data as unknown as IntakeStatus | null) ?? null))
     }
   }, [studentId, refreshTick, isCD])
 
@@ -228,6 +254,43 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
             {cdInfo.lead_source && <Field label="Lead-Quelle" value={cdInfo.lead_source} />}
           </div>
 
+          {/* Intake-Checkliste (Kompakt-Anzeige + Edit) */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+              <div className="title-3">
+                Intake-Checkliste
+                {intake?.checked_on && (
+                  <span className="caption" style={{ marginLeft: 8 }}>
+                    · zuletzt geprüft am {format(new Date(intake.checked_on), 'd. MMM yyyy', { locale: de })}
+                  </span>
+                )}
+              </div>
+              {isDispatcher && (
+                <button className="btn-secondary btn" onClick={() => setIntakeOpen(true)}>
+                  <Icon name="settings" size={12} /> {intake ? 'Bearbeiten' : 'Erfassen'}
+                </button>
+              )}
+            </div>
+            {intake ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <IntakeChip label="Lehrer-Status" ok={!!intake.instructor_status} />
+                <IntakeChip label="Mind. 18" ok={intake.min_age_confirmed} />
+                <IntakeChip label="Medical" ok={intake.medical_signed} />
+                <IntakeChip label="≥6 Mt. Taucher" ok={!!intake.certified_diver_since} />
+                <IntakeChip label="EFR" ok={!!intake.efr_kind} />
+                <IntakeChip label="Logbuch" ok={intake.logbook_seen} />
+                <IntakeChip label="ID" ok={intake.id_seen} />
+                <IntakeChip label="Versicherung" ok={intake.insurance_proof} />
+                <IntakeChip label="Liability" ok={intake.liability_signed} />
+                <IntakeChip label="Brevets-Kopien" ok={intake.non_padi_certs_seen} />
+              </div>
+            ) : (
+              <div className="caption">
+                Noch nicht erfasst — über „Erfassen" die Voraussetzungen durchgehen.
+              </div>
+            )}
+          </div>
+
           {/* Communication-Log */}
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
@@ -313,6 +376,14 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
             contactId={studentId}
             entryId={editingCommId}
             createdById={user.instructorId}
+          />
+
+          <IntakeChecklistSheet
+            open={intakeOpen}
+            onClose={() => setIntakeOpen(false)}
+            onSaved={() => setRefreshTick((t) => t + 1)}
+            studentId={studentId}
+            checkedById={user.instructorId}
           />
         </>
       )}
@@ -455,5 +526,22 @@ function Field({ label, value }: { label: string; value: string }) {
       <div className="caption-2">{label.toUpperCase()}</div>
       <div style={{ fontSize: 14 }}>{value}</div>
     </div>
+  )
+}
+
+function IntakeChip({ label, ok }: { label: string; ok: boolean }) {
+  return (
+    <span
+      className="caption"
+      style={{
+        padding: '4px 10px',
+        borderRadius: 999,
+        background: ok ? 'rgba(52,199,89,.20)' : 'rgba(255,255,255,.08)',
+        fontWeight: ok ? 600 : 400,
+        opacity: ok ? 1 : 0.7,
+      }}
+    >
+      {ok ? '✓' : '○'} {label}
+    </span>
   )
 }
