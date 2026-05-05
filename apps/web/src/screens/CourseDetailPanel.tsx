@@ -59,6 +59,8 @@ interface PrSkill {
   isActive?: boolean
   repeatable?: boolean
   showAssistantToggle?: boolean
+  /** Skills mit gleichem pairGroup werden zusammengefasst — der Schnitt der Scores muss ≥ pairAverageThreshold sein */
+  pairGroup?: number
 }
 interface PrSlot {
   code: string
@@ -68,8 +70,11 @@ interface PrSlot {
   scoreSchema: string
   passThreshold?: number
   minRequired?: number
-  /** 'minOnePassed' = Slot gilt als bestanden sobald MIN. 1 Skill ≥ Threshold von einem Kandidaten erreicht ist (typisch für IDC-Lehrproben) */
+  /** 'minOnePassed' = Slot gilt als bestanden sobald MIN. 1 Skill ≥ Threshold von einem Kandidaten erreicht ist
+   *  'minOnePairPassed' = Slot gilt als bestanden sobald MIN. 1 Pärchen (gruppiert via pairGroup) Schnitt ≥ pairAverageThreshold erreicht */
   passRule?: string
+  /** Threshold für pairGroup-Schnitte bei minOnePairPassed */
+  pairAverageThreshold?: number
   skills: PrSkill[]
 }
 interface PrPrereqCert { kind: string; minMonthsAgo?: number; maxMonthsAgo?: number; note?: string }
@@ -646,7 +651,9 @@ function PrTab({
             const slotClickable = cands.length > 0 && slot.skills.length > 0
             const firstSkill = slot.skills[0]
             const isMinOnePassed = slot.passRule === 'minOnePassed'
+            const isMinOnePairPassed = slot.passRule === 'minOnePairPassed'
             const threshold = slot.passThreshold ?? 0
+            const pairThreshold = slot.pairAverageThreshold ?? 3.4
             // Coverage über den ganzen Slot (alle Skills × alle Kandidaten)
             const slotTotal = slot.skills.length * cands.length
             const slotDone = slot.skills.reduce((acc, sk) => {
@@ -662,12 +669,36 @@ function PrTab({
                 return r && r.score != null && Number(r.score) >= threshold
               })
             )
+            // minOnePairPassed: Pärchen (Skills mit gleichem pairGroup) muss Schnitt ≥ pairThreshold haben
+            // → Slot bestanden sobald MIN. 1 Pärchen für MIN. 1 Kandidat den Schnitt erreicht
+            const pairGroups = Array.from(
+              new Set(slot.skills.map((sk) => sk.pairGroup).filter((g): g is number => g != null))
+            )
+            const pairAverages: { group: number; avg: number | null; passed: boolean }[] = pairGroups.map((g) => {
+              const skillsInPair = slot.skills.filter((sk) => sk.pairGroup === g)
+              // Avg über höchsten Score je Skill (cross-Kandidat); für 1-Kandidat-IDC ist das einfach der Score
+              const scores: number[] = []
+              for (const sk of skillsInPair) {
+                const skillScores = cands
+                  .map((c) => lookup.get(`${c.student!.id}::${sk.code}`)?.score)
+                  .filter((s): s is number => s != null)
+                  .map((s) => Number(s))
+                if (skillScores.length > 0) scores.push(Math.max(...skillScores))
+              }
+              if (scores.length < skillsInPair.length) return { group: g, avg: null, passed: false }
+              const avg = scores.reduce((a, b) => a + b, 0) / scores.length
+              return { group: g, avg, passed: avg >= pairThreshold }
+            })
+            const minOnePairAchieved = isMinOnePairPassed && pairAverages.some((p) => p.passed)
             // Slot-Hintergrund je nach Coverage einfärben
-            // minOnePassed-Slots werden ausschliesslich grün (wenn ≥1 ≥Threshold) oder neutral — keine Gelb-Stufe!
+            // minOnePassed/minOnePairPassed-Slots werden ausschliesslich grün (wenn Pass-Rule erfüllt)
+            // oder neutral — keine Gelb-Stufe bei Fail!
             const slotPassed = isMinOnePassed
               ? minOnePassedAchieved
-              : (slotTotal > 0 && slotDone === slotTotal)
-            const slotPartial = !isMinOnePassed && slotTotal > 0 && slotDone > 0 && slotDone < slotTotal
+              : isMinOnePairPassed
+                ? minOnePairAchieved
+                : (slotTotal > 0 && slotDone === slotTotal)
+            const slotPartial = !isMinOnePassed && !isMinOnePairPassed && slotTotal > 0 && slotDone > 0 && slotDone < slotTotal
             const slotBg =
               slotPassed  ? 'linear-gradient(180deg, rgba(52,199,89,.18), rgba(52,199,89,.06))'
               : slotPartial ? 'linear-gradient(180deg, rgba(255,204,0,.16), rgba(255,204,0,.04))'
@@ -741,7 +772,7 @@ function PrTab({
                       fontWeight: 600,
                     }}
                   >
-                    {isMinOnePassed
+                    {(isMinOnePassed || isMinOnePairPassed)
                       ? (slotPassed ? '✓ Pass' : 'offen')
                       : `${slotDone}/${slotTotal}`}
                   </div>
@@ -852,6 +883,38 @@ function PrTab({
                     </button>
                   )
                 })}
+
+                {/* Pärchen-Schnitte (für minOnePairPassed-Slots) */}
+                {isMinOnePairPassed && pairAverages.length > 0 && (
+                  <div style={{ marginTop: 6, display: 'grid', gap: 4 }}>
+                    {pairAverages.map((p) => (
+                      <div
+                        key={p.group}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          padding: '6px 10px',
+                          borderRadius: 8,
+                          fontSize: 12.5,
+                          background: p.passed
+                            ? 'rgba(52,199,89,.18)'
+                            : 'rgba(255,255,255,.04)',
+                          border: p.passed ? '0.5px solid rgba(52,199,89,.40)' : '0.5px dashed rgba(255,255,255,.20)',
+                        }}
+                      >
+                        <span style={{ fontWeight: 600 }}>Pärchen {p.group}</span>
+                        <span className="caption-2">
+                          Schnitt: {p.avg != null ? p.avg.toFixed(2) : '—'}
+                          {' / '}{(slot.pairAverageThreshold ?? 3.4).toFixed(2)}
+                        </span>
+                        <span style={{ marginLeft: 'auto', fontWeight: 600 }}>
+                          {p.passed ? '✓ Pass' : p.avg != null ? '⟲ unter Schnitt' : 'offen'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )})}
