@@ -12,6 +12,14 @@ interface ExistingParticipation {
   status: Status
   certificate_nr: string | null
   notes: string | null
+  certified_by_instructor_id?: string | null
+  certified_on?: string | null
+}
+
+interface InstructorOption {
+  id: string
+  name: string
+  active: boolean
 }
 
 interface Props {
@@ -51,9 +59,12 @@ export function EnrollStudentSheet({
   const isEdit = !!existingParticipation
 
   const [students, setStudents] = useState<Student[]>([])
+  const [instructors, setInstructors] = useState<InstructorOption[]>([])
   const [studentId, setStudentId] = useState('')
   const [status, setStatus] = useState<Status>('enrolled')
   const [certNr, setCertNr] = useState('')
+  const [certifiedById, setCertifiedById] = useState('')
+  const [certifiedOn, setCertifiedOn] = useState('')
   const [notes, setNotes] = useState('')
   const [search, setSearch] = useState('')
   const [saving, setSaving] = useState(false)
@@ -63,19 +74,36 @@ export function EnrollStudentSheet({
     if (!open) return
     setError(null)
     fetchStudents().then(setStudents)
+    supabase
+      .from('instructors')
+      .select('id, name, active')
+      .eq('active', true)
+      .order('name')
+      .then(({ data }) => setInstructors((data ?? []) as InstructorOption[]))
     if (existingParticipation) {
       setStudentId(existingParticipation.student_id)
       setStatus(existingParticipation.status)
       setCertNr(existingParticipation.certificate_nr ?? '')
+      setCertifiedById(existingParticipation.certified_by_instructor_id ?? '')
+      setCertifiedOn(existingParticipation.certified_on ?? '')
       setNotes(existingParticipation.notes ?? '')
     } else {
       setStudentId('')
       setStatus('enrolled')
       setCertNr('')
+      setCertifiedById('')
+      setCertifiedOn('')
       setNotes('')
       setSearch('')
     }
   }, [open, existingParticipation])
+
+  // Wenn Status auf 'certified' wechselt und kein Datum gesetzt → heute als Default
+  useEffect(() => {
+    if (status === 'certified' && !certifiedOn) {
+      setCertifiedOn(new Date().toISOString().slice(0, 10))
+    }
+  }, [status, certifiedOn])
 
   const filteredStudents = useMemo(() => {
     const enrolled = new Set(alreadyEnrolledStudentIds)
@@ -102,6 +130,10 @@ export function EnrollStudentSheet({
       status,
       certificate_nr: certNr.trim() || null,
       notes: notes.trim() || null,
+      // Bei 'certified': zertifizierender Instructor + Datum mitspeichern.
+      // Bei anderen Status auf NULL setzen damit alte Einträge konsistent sind.
+      certified_by_instructor_id: status === 'certified' ? (certifiedById || null) : null,
+      certified_on: status === 'certified' ? (certifiedOn || null) : null,
     }
     if (isEdit) {
       const { error: updErr } = await supabase
@@ -215,15 +247,45 @@ export function EnrollStudentSheet({
         </div>
 
         {status === 'certified' && (
-          <div>
-            <Label>PADI-Zertifikatsnummer</Label>
-            <input
-              value={certNr}
-              onChange={(e) => setCertNr(e.target.value)}
-              placeholder="z.B. PADI 1234567890"
-              style={inputStyle}
-            />
-          </div>
+          <>
+            <div>
+              <Label>PADI-Zertifikatsnummer</Label>
+              <input
+                value={certNr}
+                onChange={(e) => setCertNr(e.target.value)}
+                placeholder="z.B. PADI 1234567890"
+                style={inputStyle}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: 12 }}>
+              <div>
+                <Label>Zertifizierender Instructor</Label>
+                <select
+                  value={certifiedById}
+                  onChange={(e) => setCertifiedById(e.target.value)}
+                  style={inputStyle}
+                >
+                  <option value="">— bitte wählen —</option>
+                  {instructors.map((i) => (
+                    <option key={i.id} value={i.id}>{i.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label>Zertifiziert am</Label>
+                <input
+                  type="date"
+                  value={certifiedOn}
+                  onChange={(e) => setCertifiedOn(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+            <div className="caption-2" style={{ marginTop: -8 }}>
+              Erfasst für die TL/DM-Statistik „Ausgestellte Zertifikate".
+            </div>
+          </>
         )}
 
         <div>

@@ -290,6 +290,8 @@ export interface CourseParticipant {
   enrolled_at: string
   certificate_nr: string | null
   notes: string | null
+  certified_by_instructor_id: string | null
+  certified_on: string | null
   student?: Student | null
   course?: {
     id: string
@@ -304,7 +306,7 @@ export async function fetchCourseParticipants(courseId: string): Promise<CourseP
   const { data, error } = await supabase
     .from('course_participants')
     .select(`
-      id, course_id, student_id, status, enrolled_at, certificate_nr, notes,
+      id, course_id, student_id, status, enrolled_at, certificate_nr, notes, certified_by_instructor_id, certified_on,
       student:students(id, name, email, phone, birthday, padi_nr, notes, active, created_at)
     `)
     .eq('course_id', courseId)
@@ -316,7 +318,7 @@ export async function fetchStudentCourses(studentId: string): Promise<CoursePart
   const { data, error } = await supabase
     .from('course_participants')
     .select(`
-      id, course_id, student_id, status, enrolled_at, certificate_nr, notes,
+      id, course_id, student_id, status, enrolled_at, certificate_nr, notes, certified_by_instructor_id, certified_on,
       course:courses(id, title, start_date, status, course_type:course_types(code, label))
     `)
     .eq('student_id', studentId)

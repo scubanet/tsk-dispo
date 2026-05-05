@@ -14,14 +14,22 @@ import type { OutletCtx } from '@/layout/AppShell'
 import { InstructorEditSheet } from './InstructorEditSheet'
 import { CorrectionSheet } from './CorrectionSheet'
 
-type Tab = 'overview' | 'skills' | 'assignments' | 'saldo'
+type Tab = 'overview' | 'skills' | 'assignments' | 'saldo' | 'certs'
 
 const TABS: { value: Tab; label: string }[] = [
   { value: 'overview',    label: 'Übersicht' },
   { value: 'skills',      label: 'Skills' },
   { value: 'assignments', label: 'Einsätze' },
+  { value: 'certs',       label: 'Zertifikate' },
   { value: 'saldo',       label: 'Saldo' },
 ]
+
+interface CertStat {
+  level_code: string
+  level_label: string
+  count: number
+  most_recent: string | null
+}
 
 interface Instructor {
   id: string
@@ -43,6 +51,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
   const [skills, setSkills] = useState<any[]>([])
   const [assignments, setAssignments] = useState<any[]>([])
   const [movements, setMovements] = useState<any[]>([])
+  const [certStats, setCertStats] = useState<CertStat[]>([])
   const [editOpen, setEditOpen] = useState(false)
   const [correctionOpen, setCorrectionOpen] = useState(false)
   const [editMovementId, setEditMovementId] = useState<string | null>(null)
@@ -92,6 +101,14 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
         })
         setMovements(visible)
       })
+
+    // Zertifikat-Statistik (aus v_instructor_certifications_by_level View)
+    supabase
+      .from('v_instructor_certifications_by_level')
+      .select('level_code, level_label, count, most_recent')
+      .eq('instructor_id', instructorId)
+      .order('count', { ascending: false })
+      .then(({ data }) => setCertStats((data ?? []) as CertStat[]))
   }, [instructorId, refreshTick])
 
   if (!inst) return <div style={{ padding: 40 }} className="caption">Lade…</div>
@@ -221,6 +238,44 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
                 </div>
               )
             })
+          )}
+        </div>
+      )}
+
+      {tab === 'certs' && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div className="title-2">Ausgestellte Zertifikate</div>
+            <div className="caption">
+              {certStats.reduce((s, c) => s + c.count, 0)} insgesamt
+            </div>
+          </div>
+          {certStats.length === 0 ? (
+            <div className="caption">
+              Noch keine Zertifizierungen erfasst. Bei „Status = zertifiziert" im Kurs den
+              zertifizierenden Instructor wählen — dann erscheinen die Stats hier.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: 8 }}>
+              {certStats.map((c) => (
+                <div
+                  key={c.level_code}
+                  className="glass-thin"
+                  style={{ padding: 12, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}
+                >
+                  <Chip tone="accent">{c.level_code}</Chip>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 500 }}>{c.level_label}</div>
+                    {c.most_recent && (
+                      <div className="caption-2">
+                        Letzte: {format(new Date(c.most_recent), 'd. MMM yyyy', { locale: de })}
+                      </div>
+                    )}
+                  </div>
+                  <div className="title-2 mono" style={{ fontWeight: 700 }}>{c.count}</div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
