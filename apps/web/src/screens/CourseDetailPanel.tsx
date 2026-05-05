@@ -68,6 +68,8 @@ interface PrSlot {
   scoreSchema: string
   passThreshold?: number
   minRequired?: number
+  /** 'minOnePassed' = Slot gilt als bestanden sobald MIN. 1 Skill ≥ Threshold von einem Kandidaten erreicht ist (typisch für IDC-Lehrproben) */
+  passRule?: string
   skills: PrSkill[]
 }
 interface PrPrereqCert { kind: string; minMonthsAgo?: number; maxMonthsAgo?: number; note?: string }
@@ -97,6 +99,7 @@ interface PrRecord {
   assessed_on: string | null
   assessed_by_text: string | null
   notes: string | null
+  with_assistant: boolean | null
 }
 
 export function CourseDetailPanel({ courseId }: { courseId: string }) {
@@ -147,7 +150,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       .then(({ data }) => setCatalog((data as unknown as PrCatalog | null) ?? null))
     supabase
       .from('performance_records')
-      .select('id, student_id, pr_code, status, score, pass, assessed_on, assessed_by_text, notes')
+      .select('id, student_id, pr_code, status, score, pass, assessed_on, assessed_by_text, notes, with_assistant')
       .eq('course_id', courseId)
       .then(({ data }) => setPrRecords((data ?? []) as PrRecord[]))
   }, [courseId, refreshTick, isCD, catalogKind])
@@ -642,6 +645,8 @@ function PrTab({
           .map((slot) => {
             const slotClickable = cands.length > 0 && slot.skills.length > 0
             const firstSkill = slot.skills[0]
+            const isMinOnePassed = slot.passRule === 'minOnePassed'
+            const threshold = slot.passThreshold ?? 0
             // Coverage über den ganzen Slot (alle Skills × alle Kandidaten)
             const slotTotal = slot.skills.length * cands.length
             const slotDone = slot.skills.reduce((acc, sk) => {
@@ -650,16 +655,27 @@ function PrTab({
                 return r && (r.status === 'completed' || r.pass === true)
               }).length
             }, 0)
+            // minOnePassed: Slot ist "bestanden" sobald min. 1 Skill ≥ Threshold von einem Kandidaten existiert
+            const minOnePassedAchieved = isMinOnePassed && slot.skills.some((sk) =>
+              cands.some((c) => {
+                const r = lookup.get(`${c.student!.id}::${sk.code}`)
+                return r && r.score != null && Number(r.score) >= threshold
+              })
+            )
             // Slot-Hintergrund je nach Coverage einfärben
+            // minOnePassed-Slots werden ausschliesslich grün (wenn ≥1 ≥Threshold) oder neutral — keine Gelb-Stufe!
+            const slotPassed = isMinOnePassed
+              ? minOnePassedAchieved
+              : (slotTotal > 0 && slotDone === slotTotal)
+            const slotPartial = !isMinOnePassed && slotTotal > 0 && slotDone > 0 && slotDone < slotTotal
             const slotBg =
-              slotTotal === 0          ? undefined
-              : slotDone === slotTotal ? 'linear-gradient(180deg, rgba(52,199,89,.18), rgba(52,199,89,.06))'
-              : slotDone > 0           ? 'linear-gradient(180deg, rgba(255,204,0,.16), rgba(255,204,0,.04))'
-              :                          undefined
+              slotPassed  ? 'linear-gradient(180deg, rgba(52,199,89,.18), rgba(52,199,89,.06))'
+              : slotPartial ? 'linear-gradient(180deg, rgba(255,204,0,.16), rgba(255,204,0,.04))'
+              :              undefined
             const slotBorder =
-              slotTotal > 0 && slotDone === slotTotal ? '0.5px solid rgba(52,199,89,.45)'
-              : slotTotal > 0 && slotDone > 0          ? '0.5px solid rgba(255,204,0,.40)'
-              :                                          undefined
+              slotPassed  ? '0.5px solid rgba(52,199,89,.45)'
+              : slotPartial ? '0.5px solid rgba(255,204,0,.40)'
+              :              undefined
             return (
             <div
               key={slot.code}
@@ -717,15 +733,17 @@ function PrTab({
                     style={{
                       padding: '4px 10px',
                       borderRadius: 999,
-                      background: slotDone === slotTotal
-                        ? 'rgba(52,199,89,.20)'
-                        : slotDone > 0
+                      background: slotPassed
+                        ? 'rgba(52,199,89,.25)'
+                        : slotPartial
                           ? 'rgba(255,204,0,.18)'
                           : 'rgba(255,255,255,.06)',
                       fontWeight: 600,
                     }}
                   >
-                    {slotDone}/{slotTotal}
+                    {isMinOnePassed
+                      ? (slotPassed ? '✓ Pass' : 'offen')
+                      : `${slotDone}/${slotTotal}`}
                   </div>
                 )}
                 {slotClickable && (
@@ -740,6 +758,15 @@ function PrTab({
                     const r = lookup.get(`${c.student!.id}::${sk.code}`)
                     return r && (r.status === 'completed' || r.pass === true)
                   }).length
+                  // Höchster erfasster Score über alle Kandidaten (für score-Schemas)
+                  const scoresForSkill = cands
+                    .map((c) => lookup.get(`${c.student!.id}::${sk.code}`)?.score)
+                    .filter((s): s is number => s != null)
+                  const bestScore = scoresForSkill.length > 0
+                    ? Math.max(...scoresForSkill.map((s) => Number(s)))
+                    : null
+                  const isScoreSchema = slot.scoreSchema === 'score1to5' || slot.scoreSchema === 'score1to5_decimal' || slot.scoreSchema === 'percent'
+                  const isPassed = bestScore != null && bestScore >= threshold
                   const clickable = cands.length > 0
                   return (
                     <button
@@ -778,20 +805,46 @@ function PrTab({
                         )}
                       </div>
                       {cands.length > 0 && (
-                        <div
-                          className="caption-2"
-                          style={{
-                            padding: '2px 8px',
-                            borderRadius: 999,
-                            background: completeCount === cands.length
-                              ? 'rgba(52,199,89,.20)'
-                              : completeCount > 0
-                                ? 'rgba(255,204,0,.18)'
-                                : 'rgba(255,255,255,.06)',
-                          }}
-                        >
-                          {completeCount}/{cands.length}
-                        </div>
+                        isScoreSchema && bestScore != null ? (
+                          // Score-basierte Anzeige: zeige den höchsten Score
+                          // Bei minOnePassed: grün wenn ≥ Threshold, sonst neutral (KEIN gelb/orange/rot bei Fail)
+                          // Bei Standard-Schemas: grün wenn ≥ Threshold, gelb-orange wenn drunter
+                          <div
+                            className="caption-2"
+                            style={{
+                              padding: '2px 10px',
+                              borderRadius: 999,
+                              fontWeight: 700,
+                              background: isPassed
+                                ? 'rgba(52,199,89,.25)'
+                                : isMinOnePassed
+                                  ? 'rgba(255,255,255,.06)'
+                                  : 'rgba(255,149,0,.18)',
+                            }}
+                          >
+                            {slot.scoreSchema === 'score1to5_decimal'
+                              ? bestScore.toFixed(2)
+                              : slot.scoreSchema === 'percent'
+                                ? `${bestScore}%`
+                                : bestScore.toString()}
+                          </div>
+                        ) : (
+                          // Pass/Fail oder Done-Schema: zeige Anzahl Kandidaten die abgenommen haben
+                          <div
+                            className="caption-2"
+                            style={{
+                              padding: '2px 8px',
+                              borderRadius: 999,
+                              background: completeCount === cands.length
+                                ? 'rgba(52,199,89,.20)'
+                                : completeCount > 0
+                                  ? 'rgba(255,204,0,.18)'
+                                  : 'rgba(255,255,255,.06)',
+                            }}
+                          >
+                            {completeCount}/{cands.length}
+                          </div>
+                        )
                       )}
                       {clickable && (
                         <span className="caption-2" style={{ opacity: 0.4 }}>›</span>
