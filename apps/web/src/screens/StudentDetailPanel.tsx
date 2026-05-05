@@ -19,6 +19,18 @@ import { waDirectUrl, tplDirect } from '@/lib/whatsapp'
 import type { OutletCtx } from '@/layout/AppShell'
 import { StudentEditSheet } from './StudentEditSheet'
 import { CertificationEditSheet } from './CertificationEditSheet'
+import { CommunicationEditSheet, CHANNELS } from './cd/CommunicationEditSheet'
+
+interface CommEntry {
+  id: string
+  channel: string
+  direction: string
+  occurred_on: string
+  subject: string | null
+  body: string | null
+  duration_minutes: number | null
+  outcome: string | null
+}
 
 interface CdInfo {
   address: string | null
@@ -66,6 +78,9 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
   const [editOpen, setEditOpen] = useState(false)
   const [certOpen, setCertOpen] = useState(false)
   const [editingCert, setEditingCert] = useState<StudentCertification | null>(null)
+  const [commOpen, setCommOpen] = useState(false)
+  const [editingCommId, setEditingCommId] = useState<string | null>(null)
+  const [communications, setCommunications] = useState<CommEntry[]>([])
   const [refreshTick, setRefreshTick] = useState(0)
 
   const isCD = user.role === 'cd'
@@ -87,6 +102,13 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
         .eq('id', studentId)
         .single()
         .then(({ data }) => setCdInfo(data as unknown as CdInfo | null))
+
+      supabase
+        .from('communication_entries')
+        .select('id, channel, direction, occurred_on, subject, body, duration_minutes, outcome')
+        .eq('contact_id', studentId)
+        .order('occurred_on', { ascending: false })
+        .then(({ data }) => setCommunications((data ?? []) as CommEntry[]))
     }
   }, [studentId, refreshTick, isCD])
 
@@ -205,6 +227,93 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
             )}
             {cdInfo.lead_source && <Field label="Lead-Quelle" value={cdInfo.lead_source} />}
           </div>
+
+          {/* Communication-Log */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+              <div className="title-3">
+                Communication{' '}
+                <span className="caption">· {communications.length}</span>
+              </div>
+              {isDispatcher && (
+                <button
+                  className="btn-secondary btn"
+                  onClick={() => {
+                    setEditingCommId(null)
+                    setCommOpen(true)
+                  }}
+                >
+                  <Icon name="plus" size={12} /> Neuer Touchpoint
+                </button>
+              )}
+            </div>
+            {communications.length === 0 ? (
+              <div className="caption">
+                Noch keine Touchpoints erfasst — Calls, Mails, Meetings, Notizen.
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: 6 }}>
+                {communications.map((c) => {
+                  const channel = CHANNELS.find((x) => x.code === c.channel)
+                  return (
+                    <div
+                      key={c.id}
+                      className="glass-thin"
+                      style={{ padding: 12, borderRadius: 12, cursor: isDispatcher ? 'pointer' : 'default' }}
+                      onClick={() => {
+                        if (!isDispatcher) return
+                        setEditingCommId(c.id)
+                        setCommOpen(true)
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: 999,
+                            background: c.direction === 'inbound' ? 'rgba(0,122,255,.20)' : 'rgba(52,199,89,.20)',
+                            fontSize: 11,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {channel?.label ?? c.channel}
+                          {c.direction === 'inbound' ? ' ↓' : ' ↑'}
+                        </div>
+                        <div className="caption-2" style={{ marginLeft: 'auto' }}>
+                          {format(new Date(c.occurred_on), 'd. MMM yyyy, HH:mm', { locale: de })}
+                        </div>
+                      </div>
+                      {c.subject && (
+                        <div style={{ fontWeight: 500, marginTop: 6 }}>{c.subject}</div>
+                      )}
+                      {c.body && (
+                        <div className="caption" style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}>
+                          {c.body}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: 12, marginTop: 6 }}>
+                        {c.duration_minutes != null && (
+                          <span className="caption-2">{c.duration_minutes} min</span>
+                        )}
+                        {c.outcome && (
+                          <span className="caption-2" style={{ fontStyle: 'italic' }}>→ {c.outcome}</span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          <CommunicationEditSheet
+            open={commOpen}
+            onClose={() => setCommOpen(false)}
+            onSaved={() => setRefreshTick((t) => t + 1)}
+            contactId={studentId}
+            entryId={editingCommId}
+            createdById={user.instructorId}
+          />
         </>
       )}
 
