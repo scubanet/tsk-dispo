@@ -58,6 +58,7 @@ interface PrSkill {
   title: string
   isActive?: boolean
   repeatable?: boolean
+  showAssistantToggle?: boolean
 }
 interface PrSlot {
   code: string
@@ -523,6 +524,7 @@ function PrTab({
     title: string
     scoreSchema: ScoreSchema
     passThreshold?: number
+    showAssistantToggle?: boolean
   } | null>(null)
 
   if (!catalog) {
@@ -677,6 +679,7 @@ function PrTab({
                     title: firstSkill.title,
                     scoreSchema: slot.scoreSchema as ScoreSchema,
                     passThreshold: slot.passThreshold,
+                    showAssistantToggle: firstSkill.showAssistantToggle,
                   })
                 }}
                 disabled={!slotClickable}
@@ -748,6 +751,7 @@ function PrTab({
                           title: sk.title,
                           scoreSchema: slot.scoreSchema as ScoreSchema,
                           passThreshold: slot.passThreshold,
+                          showAssistantToggle: sk.showAssistantToggle,
                         })
                       }
                       style={{

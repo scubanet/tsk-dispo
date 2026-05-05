@@ -11,6 +11,7 @@ interface SkillContext {
   title: string
   scoreSchema: ScoreSchema
   passThreshold?: number
+  showAssistantToggle?: boolean
 }
 
 interface ExistingRecord {
@@ -23,6 +24,7 @@ interface ExistingRecord {
   assessed_on: string | null
   assessed_by_text: string | null
   notes: string | null
+  with_assistant: boolean | null
 }
 
 interface RowState {
@@ -31,6 +33,7 @@ interface RowState {
   pass: 'yes' | 'no' | ''
   notes: string
   assessed_on: string    // ISO date
+  with_assistant: boolean  // für CW/OW Lehrproben
   recordId?: string      // existing PR record id, if loaded
   dirty: boolean
 }
@@ -77,7 +80,7 @@ export function PrCheckOffSheet({
     // Bestehende Records dieses Skills für alle Kandidaten dieses Kurses laden
     supabase
       .from('performance_records')
-      .select('id, student_id, pr_code, status, score, pass, assessed_on, assessed_by_text, notes')
+      .select('id, student_id, pr_code, status, score, pass, assessed_on, assessed_by_text, notes, with_assistant')
       .eq('course_id', courseId)
       .eq('pr_code', skill.code)
       .then(({ data }) => {
@@ -91,6 +94,7 @@ export function PrCheckOffSheet({
             pass: r?.pass === true ? 'yes' : r?.pass === false ? 'no' : '',
             notes: r?.notes ?? '',
             assessed_on: r?.assessed_on ?? defaultDate ?? new Date().toISOString().slice(0, 10),
+            with_assistant: r?.with_assistant ?? false,
             recordId: r?.id,
             dirty: false,
           }
@@ -171,6 +175,7 @@ export function PrCheckOffSheet({
       assessed_on: r.assessed_on || null,
       assessed_by_text: defaultAssessor || null,
       notes: r.notes.trim() || null,
+      with_assistant: skill.showAssistantToggle ? r.with_assistant : null,
     }))
     // upsert auf UNIQUE(student_id, course_id, pr_code) — siehe Migration 0051
     const { error: upErr } = await supabase
@@ -427,6 +432,32 @@ export function PrCheckOffSheet({
                         </button>
                       ))}
                     </div>
+                  )}
+
+                  {skill.showAssistantToggle && (
+                    <label
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '6px 10px',
+                        borderRadius: 8,
+                        border: '0.5px solid var(--hairline)',
+                        background: row.with_assistant ? 'rgba(0,122,255,.16)' : 'transparent',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        fontSize: 13,
+                        width: 'fit-content',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={row.with_assistant}
+                        onChange={(e) => update(c.student!.id, { with_assistant: e.target.checked })}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      Mit Assistent
+                    </label>
                   )}
 
                   <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 8 }}>
