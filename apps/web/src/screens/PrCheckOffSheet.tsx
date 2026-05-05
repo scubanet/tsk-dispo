@@ -4,7 +4,7 @@ import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
 import type { CourseParticipant } from '@/lib/queries'
 
-export type ScoreSchema = 'score1to5' | 'score1to5_decimal' | 'percent' | 'passFail' | 'rubric'
+export type ScoreSchema = 'score1to5' | 'score1to5_decimal' | 'percent' | 'passFail' | 'rubric' | 'done'
 
 interface SkillContext {
   code: string
@@ -141,6 +141,14 @@ export function PrCheckOffSheet({
       status: pass === 'yes' ? 'completed' : 'remediation',
     }
     update(studentId, patch)
+  }
+
+  // Einfacher Done-Toggle ohne Score / Pass-Fail
+  function setDone(studentId: string, done: boolean) {
+    update(studentId, {
+      status: done ? 'completed' : 'not_started',
+      // pass/score bleiben null
+    })
   }
 
   async function save() {
@@ -371,6 +379,32 @@ export function PrCheckOffSheet({
                     </div>
                   )}
 
+                  {skill.scoreSchema === 'done' && (
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '8px 12px',
+                        borderRadius: 10,
+                        border: '0.5px solid var(--hairline)',
+                        background: row.status === 'completed' ? 'rgba(52,199,89,.18)' : 'transparent',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={row.status === 'completed'}
+                        onChange={(e) => setDone(c.student!.id, e.target.checked)}
+                        style={{ width: 18, height: 18, cursor: 'pointer' }}
+                      />
+                      <span style={{ fontWeight: 600 }}>
+                        {row.status === 'completed' ? '✓ Erledigt' : 'als erledigt markieren'}
+                      </span>
+                    </label>
+                  )}
+
                   {skill.scoreSchema === 'rubric' && (
                     /* Rubric: nur Status-Buttons, da kein Skalar-Score */
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -455,5 +489,6 @@ function labelFor(s: ScoreSchema): string {
     case 'percent':           return 'Prozent'
     case 'passFail':          return 'Pass / Fail'
     case 'rubric':            return 'Rubric'
+    case 'done':              return 'Erledigt-Toggle'
   }
 }
