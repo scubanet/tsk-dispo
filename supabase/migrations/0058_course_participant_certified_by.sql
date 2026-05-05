@@ -31,7 +31,7 @@ SELECT
   MAX(cp.certified_on) AS most_recent
 FROM course_participants cp
 JOIN courses c ON c.id = cp.course_id
-JOIN course_types ct ON ct.id = c.course_type_id
+JOIN course_types ct ON ct.id = c.type_id
 WHERE cp.status = 'certified'
   AND cp.certified_by_instructor_id IS NOT NULL
 GROUP BY cp.certified_by_instructor_id, ct.code, ct.label;
