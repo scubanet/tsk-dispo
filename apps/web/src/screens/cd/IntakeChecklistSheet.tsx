@@ -68,8 +68,8 @@ const INSTRUCTOR_STATUS = [
   { code: '',                    label: '— bitte wählen —' },
   { code: 'divemaster',           label: 'PADI Divemaster' },
   { code: 'assistant_instructor', label: 'PADI Assistant Instructor' },
-  { code: 'padi_instructor',      label: 'PADI Instructor (Crossover)' },
-  { code: 'other_org_6m',         label: '≥ 6 Mt. Tauchlehrer anderer Org' },
+  { code: 'padi_instructor',      label: 'PADI Instructor' },
+  { code: 'other_org_6m',         label: '≥ 6 Mt. Tauchlehrer anderer Org (Crossover)' },
   { code: 'none',                 label: 'Keine Lehrer-Vorqualifikation' },
 ]
 
