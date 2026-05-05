@@ -36,16 +36,16 @@ interface CommEntry {
 interface IntakeStatus {
   instructor_status: string | null
   min_age_confirmed: boolean
-  medical_signed: boolean
+  medical_received: boolean
+  medical_doctor_signed: boolean
   medical_signed_on: string | null
   certified_diver_since: string | null
   efr_kind: string | null
   efr_completed_on: string | null
   non_padi_certs_seen: boolean
   logbook_seen: boolean
-  id_seen: boolean
-  insurance_proof: boolean
   liability_signed: boolean
+  safe_diving_signed: boolean
   checked_on: string | null
 }
 
@@ -131,7 +131,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
 
       supabase
         .from('intake_checklists')
-        .select('instructor_status, min_age_confirmed, medical_signed, medical_signed_on, certified_diver_since, efr_kind, efr_completed_on, non_padi_certs_seen, logbook_seen, id_seen, insurance_proof, liability_signed, checked_on')
+        .select('instructor_status, min_age_confirmed, medical_received, medical_doctor_signed, medical_signed_on, certified_diver_since, efr_kind, efr_completed_on, non_padi_certs_seen, logbook_seen, liability_signed, safe_diving_signed, checked_on')
         .eq('student_id', studentId)
         .maybeSingle()
         .then(({ data }) => setIntake((data as unknown as IntakeStatus | null) ?? null))
@@ -273,15 +273,14 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
             </div>
             {intake ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                <IntakeChip label="Lehrer-Status" ok={!!intake.instructor_status} />
+                <IntakeChip label="Status" ok={!!intake.instructor_status} />
                 <IntakeChip label="Mind. 18" ok={intake.min_age_confirmed} />
-                <IntakeChip label="Medical" ok={intake.medical_signed} />
+                <IntakeChip label="Medical (Arzt)" ok={intake.medical_received && intake.medical_doctor_signed} />
                 <IntakeChip label="≥6 Mt. Taucher" ok={!!intake.certified_diver_since} />
                 <IntakeChip label="EFR" ok={!!intake.efr_kind} />
                 <IntakeChip label="Logbuch" ok={intake.logbook_seen} />
-                <IntakeChip label="ID" ok={intake.id_seen} />
-                <IntakeChip label="Versicherung" ok={intake.insurance_proof} />
                 <IntakeChip label="Liability" ok={intake.liability_signed} />
+                <IntakeChip label="Safe Diving" ok={intake.safe_diving_signed} />
                 <IntakeChip label="Brevets-Kopien" ok={intake.non_padi_certs_seen} />
               </div>
             ) : (

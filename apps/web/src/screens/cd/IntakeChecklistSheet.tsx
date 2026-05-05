@@ -66,6 +66,7 @@ const EMPTY: Form = {
 
 const INSTRUCTOR_STATUS = [
   { code: '',                    label: '— bitte wählen —' },
+  { code: 'divemaster',           label: 'PADI Divemaster' },
   { code: 'assistant_instructor', label: 'PADI Assistant Instructor' },
   { code: 'padi_instructor',      label: 'PADI Instructor (Crossover)' },
   { code: 'other_org_6m',         label: '≥ 6 Mt. Tauchlehrer anderer Org' },
@@ -77,13 +78,6 @@ const EFR_KIND = [
   { code: 'primary_secondary',     label: 'EFR Primary & Secondary (≤24 Mt.)' },
   { code: 'efri',                  label: 'Aktiver EFR Instructor' },
   { code: 'hlw_instructor_other',  label: 'HLW/Erste-Hilfe-Instructor anderer Org' },
-]
-
-const ID_KIND = [
-  { code: '',         label: '— bitte wählen —' },
-  { code: 'passport', label: 'Reisepass' },
-  { code: 'id_card',  label: 'Identitätskarte' },
-  { code: 'driving_license', label: 'Führerausweis' },
 ]
 
 const inputStyle = {
@@ -219,18 +213,14 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, studentId, checke
           />
         </Section>
 
-        <Section title="3. Medical Statement (≤ 12 Monate, Arzt-Attest)">
+        <Section title="3. Medical Statement (Arzt-Attest, ≤ 12 Monate, zwingend)">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Toggle label="Medical erhalten" checked={form.medical_received} onChange={(v) => set('medical_received', v)} />
-            <Toggle label="Medical unterschrieben" checked={form.medical_signed} onChange={(v) => set('medical_signed', v)} />
+            <Toggle label="Vom Arzt unterschrieben" checked={form.medical_doctor_signed} onChange={(v) => set('medical_doctor_signed', v)} />
           </div>
           <Field label="Datum Arzt-Attest">
             <input type="date" value={form.medical_signed_on} onChange={(e) => set('medical_signed_on', e.target.value)} style={inputStyle} />
           </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Toggle label="Arzt-Visum erforderlich" checked={form.medical_doctor_required} onChange={(v) => set('medical_doctor_required', v)} />
-            <Toggle label="Arzt-Visum eingeholt" checked={form.medical_doctor_signed} onChange={(v) => set('medical_doctor_signed', v)} />
-          </div>
           <Field label="Notizen Medical">
             <textarea value={form.medical_notes} onChange={(e) => set('medical_notes', e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
           </Field>
@@ -268,26 +258,6 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, studentId, checke
           <Field label="Welche (z.B. SDI OWD/AOWD/Rescue/DM)">
             <input value={form.non_padi_certs_notes} onChange={(e) => set('non_padi_certs_notes', e.target.value)} style={inputStyle} />
           </Field>
-        </Section>
-
-        <Section title="Identifikation & Versicherung">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Toggle label="ID gesehen" checked={form.id_seen} onChange={(v) => set('id_seen', v)} />
-            <Field label="Art">
-              <select value={form.id_kind} onChange={(e) => set('id_kind', e.target.value)} style={inputStyle}>
-                {ID_KIND.map((k) => <option key={k.code} value={k.code}>{k.label}</option>)}
-              </select>
-            </Field>
-          </div>
-          <Toggle label="Versicherungsnachweis vorhanden" checked={form.insurance_proof} onChange={(v) => set('insurance_proof', v)} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: 12 }}>
-            <Field label="Versicherer">
-              <input value={form.insurance_provider} onChange={(e) => set('insurance_provider', e.target.value)} style={inputStyle} />
-            </Field>
-            <Field label="Gültig bis">
-              <input type="date" value={form.insurance_valid_to} onChange={(e) => set('insurance_valid_to', e.target.value)} style={inputStyle} />
-            </Field>
-          </div>
         </Section>
 
         <Section title="Releases">
