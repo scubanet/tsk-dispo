@@ -243,7 +243,14 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       {tab === 'overview' && (
         <div style={{ display: 'grid', gap: 14 }}>
           <Field label="Kurstyp" value={`${course.course_type?.code ?? '—'} · ${course.course_type?.label ?? '—'}`} />
-          <Field label="Teilnehmer" value={String(course.num_participants)} />
+          <Field
+            label="Teilnehmer"
+            value={
+              course.num_participants > 0 && course.num_participants !== participants.length
+                ? `${participants.length} angemeldet · ${course.num_participants} geplant`
+                : `${participants.length} angemeldet`
+            }
+          />
 
           <div>
             <div className="caption-2">KURSDATEN ({courseDates.length || 1})</div>
