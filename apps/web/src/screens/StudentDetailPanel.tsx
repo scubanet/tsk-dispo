@@ -41,7 +41,8 @@ const STAGE_LABEL: Record<string, string> = {
   lead: 'Lead',
   qualified: 'Qualifiziert',
   opportunity: 'Opportunity',
-  customer: 'Kunde',
+  candidate: 'Kandidat',
+  customer: 'Kandidat', // Legacy
   lost: 'Verloren',
 }
 
@@ -50,7 +51,8 @@ const STAGE_TONE: Record<string, string> = {
   lead: 'rgba(0,122,255,.20)',
   qualified: 'rgba(255,204,0,.20)',
   opportunity: 'rgba(255,149,0,.20)',
-  customer: 'rgba(52,199,89,.20)',
+  candidate: 'rgba(52,199,89,.20)',
+  customer: 'rgba(52,199,89,.20)', // Legacy
   lost: 'rgba(255,69,58,.18)',
 }
 

@@ -17,7 +17,6 @@ interface Candidate {
   stage_changed_on: string
   organization_id: string | null
   organization: { id: string; name: string } | null
-  is_candidate: boolean
 }
 
 const STAGES: { code: string; label: string; tone: string }[] = [
@@ -27,11 +26,10 @@ const STAGES: { code: string; label: string; tone: string }[] = [
   { code: 'opportunity', label: 'Opportunity', tone: 'rgba(255,149,0,.20)' },
   { code: 'candidate',   label: 'Kandidat',    tone: 'rgba(52,199,89,.20)' },
   { code: 'lost',        label: 'Verloren',    tone: 'rgba(255,69,58,.18)' },
-  // Legacy: alte Daten mit 'customer' werden trotzdem als "Kandidat" gerendert
   { code: 'customer',    label: 'Kandidat',    tone: 'rgba(52,199,89,.20)' },
 ]
 
-export function CDCandidatesScreen() {
+export function CDOnlyCandidatesScreen() {
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [rows, setRows] = useState<Candidate[]>([])
@@ -45,9 +43,8 @@ export function CDCandidatesScreen() {
     setLoading(true)
     supabase
       .from('students')
-      .select('id, first_name, last_name, email, phone, level, pipeline_stage, stage_changed_on, organization_id, organization:organizations(id, name), is_candidate')
-      // Kontakte = jeder mit Pipeline-Stage ODER als Kandidat markiert ODER mit Org-Zuordnung
-      .or('is_candidate.eq.true,pipeline_stage.neq.none,organization_id.not.is.null')
+      .select('id, first_name, last_name, email, phone, level, pipeline_stage, stage_changed_on, organization_id, organization:organizations(id, name)')
+      .eq('is_candidate', true)
       .order('stage_changed_on', { ascending: false })
       .then(({ data, error }) => {
         if (cancelled) return
@@ -77,17 +74,14 @@ export function CDCandidatesScreen() {
     )
   })
 
-  const byStage = STAGES.map((s) => ({
+  const byStage = STAGES.filter((s) => s.code !== 'customer').map((s) => ({
     ...s,
-    count: rows.filter((r) => r.pipeline_stage === s.code).length,
+    count: rows.filter((r) => r.pipeline_stage === s.code || (s.code === 'candidate' && r.pipeline_stage === 'customer')).length,
   }))
 
   return (
     <>
-      <Topbar
-        title="Kontakte"
-        subtitle={`${rows.length} Einträge · ${rows.filter((r) => r.is_candidate).length} Kandidaten`}
-      >
+      <Topbar title="Kandidaten" subtitle={`${rows.length} aktive Kandidat:innen`}>
         <button className="btn" onClick={() => setCreateOpen(true)}>
           <Icon name="plus" size={14} /> Neu
         </button>
@@ -128,7 +122,7 @@ export function CDCandidatesScreen() {
         <div style={{ padding: 40 }} className="caption">Lade…</div>
       ) : filtered.length === 0 ? (
         <div style={{ padding: 40 }} className="caption">
-          Noch keine Kontakte — über „Neu" oder einen Schüler im TL/DM-Bereich als Kandidat:in markieren.
+          Noch keine Kandidat:innen — über „Neu" oder einen bestehenden Kontakt als Kandidat:in markieren.
         </div>
       ) : (
         <div style={{ padding: '0 24px 24px', display: 'grid', gap: 6 }}>
@@ -159,11 +153,7 @@ export function CDCandidatesScreen() {
                   {c.first_name} {c.last_name}
                 </div>
                 <div className="caption" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {[
-                    c.organization?.name,
-                    c.level,
-                    c.email,
-                  ].filter(Boolean).join(' · ') || '—'}
+                  {[c.organization?.name, c.level, c.email].filter(Boolean).join(' · ') || '—'}
                 </div>
               </div>
               <div
@@ -192,7 +182,7 @@ export function CDCandidatesScreen() {
         studentId={null}
         showCdFields={true}
         defaultIsCandidate={true}
-        defaultPipelineStage="lead"
+        defaultPipelineStage="candidate"
       />
     </>
   )

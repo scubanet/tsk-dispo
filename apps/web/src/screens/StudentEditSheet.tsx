@@ -53,7 +53,7 @@ const STAGES = [
   { code: 'lead',        label: 'Lead' },
   { code: 'qualified',   label: 'Qualifiziert' },
   { code: 'opportunity', label: 'Opportunity' },
-  { code: 'customer',    label: 'Kunde' },
+  { code: 'candidate',   label: 'Kandidat' },
   { code: 'lost',        label: 'Verloren' },
 ]
 

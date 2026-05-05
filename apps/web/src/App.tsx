@@ -20,6 +20,7 @@ import { MySaldoScreen } from '@/screens/MySaldoScreen'
 import { MyProfileScreen } from '@/screens/MyProfileScreen'
 import { CockpitScreen } from '@/screens/CockpitScreen'
 import { CDCandidatesScreen } from '@/screens/cd/CDCandidatesScreen'
+import { CDOnlyCandidatesScreen } from '@/screens/cd/CDOnlyCandidatesScreen'
 import { CDPipelineScreen } from '@/screens/cd/CDPipelineScreen'
 import { CDOrganizationsScreen } from '@/screens/cd/CDOrganizationsScreen'
 
@@ -69,8 +70,8 @@ function App() {
           <Route path="/saldo"                  element={<MySaldoScreen />} />
           <Route path="/profil"                 element={<MyProfileScreen />} />
           {/* CD-Modul */}
-          <Route path="/cd/kandidaten"          element={<CDCandidatesScreen />} />
-          <Route path="/cd/kandidaten/:id"      element={<CDCandidatesScreen />} />
+          <Route path="/cd/kontakte"            element={<CDCandidatesScreen />} />
+          <Route path="/cd/kandidaten"          element={<CDOnlyCandidatesScreen />} />
           <Route path="/cd/pipeline"            element={<CDPipelineScreen />} />
           <Route path="/cd/organisationen"      element={<CDOrganizationsScreen />} />
           <Route path="*"                       element={<Navigate to="/heute" replace />} />
