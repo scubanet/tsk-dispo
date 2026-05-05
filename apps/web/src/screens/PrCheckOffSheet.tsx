@@ -4,7 +4,7 @@ import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
 import type { CourseParticipant } from '@/lib/queries'
 
-export type ScoreSchema = 'score1to5' | 'percent' | 'passFail' | 'rubric'
+export type ScoreSchema = 'score1to5' | 'score1to5_decimal' | 'percent' | 'passFail' | 'rubric'
 
 interface SkillContext {
   code: string
@@ -193,6 +193,7 @@ export function PrCheckOffSheet({
           <div className="caption" style={{ marginTop: 4 }}>
             Schema: {labelFor(skill.scoreSchema)}
             {skill.scoreSchema === 'score1to5' && skill.passThreshold ? ` · Pass ≥ ${skill.passThreshold}/5` : ''}
+            {skill.scoreSchema === 'score1to5_decimal' && skill.passThreshold ? ` · Pass ≥ ${skill.passThreshold.toFixed(2)}/5` : ''}
             {skill.scoreSchema === 'percent' && skill.passThreshold ? ` · Pass ≥ ${skill.passThreshold}%` : ''}
           </div>
         </div>
@@ -273,6 +274,42 @@ export function PrCheckOffSheet({
                         >
                           zurücksetzen
                         </button>
+                      )}
+                    </div>
+                  )}
+
+                  {skill.scoreSchema === 'score1to5_decimal' && (
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <input
+                        type="number"
+                        min={1}
+                        max={5}
+                        step={0.01}
+                        value={row.score}
+                        onChange={(e) => setScore(c.student!.id, e.target.value)}
+                        style={{
+                          width: 110,
+                          padding: '8px 10px',
+                          borderRadius: 8,
+                          border: '0.5px solid var(--hairline)',
+                          background: 'var(--surface-strong)',
+                          color: 'var(--ink)',
+                          fontSize: 16,
+                          fontWeight: 700,
+                          textAlign: 'center',
+                        }}
+                        placeholder="1.00–5.00"
+                      />
+                      <span className="caption-2">/ 5.00</span>
+                      {row.status === 'completed' && (
+                        <span className="caption-2" style={{ color: '#34C759' }}>
+                          ✓ ≥ {skill.passThreshold?.toFixed(2)}
+                        </span>
+                      )}
+                      {row.status === 'remediation' && (
+                        <span className="caption-2" style={{ color: '#FF9500' }}>
+                          ⟲ &lt; {skill.passThreshold?.toFixed(2)}
+                        </span>
                       )}
                     </div>
                   )}
@@ -413,9 +450,10 @@ export function PrCheckOffSheet({
 
 function labelFor(s: ScoreSchema): string {
   switch (s) {
-    case 'score1to5': return '1–5 Demonstration'
-    case 'percent':   return 'Prozent'
-    case 'passFail':  return 'Pass / Fail'
-    case 'rubric':    return 'Rubric'
+    case 'score1to5':         return '1–5 Demonstration'
+    case 'score1to5_decimal': return '1.00–5.00 Lehrprobe'
+    case 'percent':           return 'Prozent'
+    case 'passFail':          return 'Pass / Fail'
+    case 'rubric':            return 'Rubric'
   }
 }

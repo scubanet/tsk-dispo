@@ -702,6 +702,7 @@ function PrTab({
                   <div className="caption-2">
                     {slot.code} · {slot.kind}
                     {slot.scoreSchema === 'score1to5' && slot.passThreshold ? ` · Pass ≥ ${slot.passThreshold}/5` : ''}
+                    {slot.scoreSchema === 'score1to5_decimal' && slot.passThreshold ? ` · Pass ≥ ${slot.passThreshold.toFixed(2)}/5` : ''}
                     {slot.scoreSchema === 'percent' && slot.passThreshold ? ` · Pass ≥ ${slot.passThreshold}%` : ''}
                     {slot.scoreSchema === 'passFail' ? ' · Pass/Fail' : ''}
                     {slot.minRequired ? ` · min. ${slot.minRequired}` : ''}
