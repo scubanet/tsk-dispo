@@ -56,11 +56,12 @@ export function CDOrganizationsScreen() {
     return () => { cancelled = true }
   }, [refreshTick])
 
-  if (user.role !== 'cd') {
+  const canAccess = user.role === 'cd' || user.role === 'dispatcher' || user.role === 'owner'
+  if (!canAccess) {
     return (
       <div style={{ padding: 40 }}>
         <div className="title-2">Kein Zugriff</div>
-        <div className="caption">Diese Ansicht ist nur für die CD-Rolle.</div>
+        <div className="caption">Diese Ansicht ist nur für CD, Dispatcher oder Owner.</div>
       </div>
     )
   }

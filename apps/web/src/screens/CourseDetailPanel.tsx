@@ -26,6 +26,7 @@ import { AssignmentEditSheet } from './AssignmentEditSheet'
 import { EnrollStudentSheet } from './EnrollStudentSheet'
 import { StudentEditSheet } from './StudentEditSheet'
 import { PrCheckOffSheet, type ScoreSchema } from './PrCheckOffSheet'
+import { IntakeChecklistSheet } from './cd/IntakeChecklistSheet'
 import { supabase } from '@/lib/supabase'
 import type { OutletCtx } from '@/layout/AppShell'
 
@@ -125,6 +126,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   const [refreshTick, setRefreshTick] = useState(0)
   const [catalog, setCatalog] = useState<PrCatalog | null>(null)
   const [prRecords, setPrRecords] = useState<PrRecord[]>([])
+  const [intakeForCpId, setIntakeForCpId] = useState<string | null>(null)
 
   function refresh() {
     setRefreshTick((t) => t + 1)
@@ -422,6 +424,20 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                 {p.certificate_nr && (
                   <Chip tone="green">Zert: {p.certificate_nr}</Chip>
                 )}
+                {isDispatcher && (
+                  <button
+                    type="button"
+                    className="btn-secondary btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setIntakeForCpId(p.id)
+                    }}
+                    style={{ height: 26, padding: '0 10px', fontSize: 11.5 }}
+                    title="Intake-Checkliste"
+                  >
+                    Intake
+                  </button>
+                )}
                 <Chip
                   tone={
                     p.status === 'certified' ? 'green' :
@@ -490,6 +506,14 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
         onClose={() => setEditCourseOpen(false)}
         onSaved={refresh}
         courseId={courseId}
+      />
+
+      <IntakeChecklistSheet
+        open={!!intakeForCpId}
+        onClose={() => setIntakeForCpId(null)}
+        onSaved={refresh}
+        courseParticipantId={intakeForCpId}
+        checkedById={user.instructorId}
       />
 
       <AssignmentEditSheet

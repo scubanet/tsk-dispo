@@ -95,11 +95,15 @@ interface Props {
   open: boolean
   onClose: () => void
   onSaved: () => void
-  studentId: string
+  /** Wenn gesetzt: Intake-Checkliste an einer konkreten Kurs-Teilnahme. (preferred) */
+  courseParticipantId?: string | null
+  /** Legacy: Intake auf Schüler-Ebene (1:1). Nur wenn kein courseParticipantId. */
+  studentId?: string | null
   checkedById?: string | null
 }
 
-export function IntakeChecklistSheet({ open, onClose, onSaved, studentId, checkedById }: Props) {
+export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipantId, studentId, checkedById }: Props) {
+  const useCourseParticipant = !!courseParticipantId
   const [form, setForm] = useState<Form>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -108,11 +112,13 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, studentId, checke
   useEffect(() => {
     if (!open) return
     setError(null)
-    supabase
-      .from('intake_checklists')
-      .select('*')
-      .eq('student_id', studentId)
-      .maybeSingle()
+    let q = supabase.from('intake_checklists').select('*')
+    if (useCourseParticipant) {
+      q = q.eq('course_participant_id', courseParticipantId!)
+    } else if (studentId) {
+      q = q.eq('student_id', studentId).is('course_participant_id', null)
+    }
+    q.maybeSingle()
       .then(({ data }) => {
         if (data) {
           const d = data as any
@@ -148,7 +154,8 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, studentId, checke
           setForm({ ...EMPTY, checked_on: new Date().toISOString().slice(0, 10) })
         }
       })
-  }, [open, studentId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, studentId, courseParticipantId])
 
   function set<K extends keyof Form>(k: K, v: Form[K]) {
     setForm((prev) => ({ ...prev, [k]: v }))
@@ -157,8 +164,10 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, studentId, checke
   async function save() {
     setSaving(true)
     setError(null)
-    const payload = {
-      student_id: studentId,
+    const payload: Record<string, unknown> = {
+      // Entweder course_participant_id (preferred) oder student_id (Legacy)
+      course_participant_id: useCourseParticipant ? courseParticipantId : null,
+      student_id: useCourseParticipant ? null : studentId,
       instructor_status: form.instructor_status || null,
       min_age_confirmed: form.min_age_confirmed,
       medical_received: form.medical_received,
@@ -185,8 +194,14 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, studentId, checke
       checked_by_id: checkedById ?? null,
       checked_on: form.checked_on || null,
     }
+    let updateQ = supabase.from('intake_checklists').update(payload)
+    if (useCourseParticipant) {
+      updateQ = updateQ.eq('course_participant_id', courseParticipantId!)
+    } else {
+      updateQ = updateQ.eq('student_id', studentId!).is('course_participant_id', null)
+    }
     const { error: e } = hasRow
-      ? await supabase.from('intake_checklists').update(payload).eq('student_id', studentId)
+      ? await updateQ
       : await supabase.from('intake_checklists').insert(payload)
     if (e) { setError(e.message); setSaving(false); return }
     setSaving(false)

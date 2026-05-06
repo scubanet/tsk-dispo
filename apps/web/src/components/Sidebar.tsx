@@ -25,6 +25,7 @@ const ITEMS: NavItem[] = [
   { to: '/kurse',     icon: 'book',     label: 'Kurse',          roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/tldm',      icon: 'users',    label: 'TL/DM',          roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/schueler',  icon: 'tag',      label: 'Personen',       roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/cd/organisationen', icon: 'tag', label: 'Organisationen', roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/skills',    icon: 'grid',     label: 'Skill-Matrix',   roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/pool',      icon: 'water',    label: 'Pool',           roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/saldi',     icon: 'wallet',   label: 'Saldi',          roles: ['dispatcher', 'owner', 'cd'] },
@@ -35,9 +36,9 @@ const ITEMS: NavItem[] = [
 
 // CD-Modul: nur für CD-Rolle sichtbar (Owner read-only erscheint später separat)
 // Kontakte/Kandidaten sind jetzt Tabs in „Personen" — hier nur CD-spezifische Tools.
+// Orgs sind in den Hauptbereich gewandert weil auch Dispatcher zugreifen darf.
 const CD_ITEMS: NavItem[] = [
   { to: '/cd/pipeline',       icon: 'chart', label: 'Pipeline',       roles: ['cd'] },
-  { to: '/cd/organisationen', icon: 'tag',   label: 'Organisationen', roles: ['cd'] },
 ]
 
 const ADMIN: NavItem[] = [
