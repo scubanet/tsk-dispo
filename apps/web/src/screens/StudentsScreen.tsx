@@ -30,18 +30,24 @@ export function StudentsScreen() {
 
   useEffect(() => { refetch() }, [])
 
+  // Org/CRM ist exklusiv: nur Personen die WEDER Schüler NOCH Kandidat sind,
+  // aber eine Pipeline-Stage oder Org-Zuordnung haben.
+  const isOrgOnly = (r: Student) =>
+    !r.is_student && !r.is_candidate &&
+    (!!r.organization_id || (!!r.pipeline_stage && r.pipeline_stage !== 'none'))
+
   const counts = useMemo(() => ({
     all:        rows.length,
     students:   rows.filter((r) => r.is_student).length,
     candidates: rows.filter((r) => r.is_candidate).length,
-    orgs:       rows.filter((r) => r.organization_id || (r.pipeline_stage && r.pipeline_stage !== 'none')).length,
+    orgs:       rows.filter(isOrgOnly).length,
   }), [rows])
 
   const filtered = useMemo(() => {
     let arr = rows
     if (tab === 'students')   arr = arr.filter((r) => r.is_student)
     if (tab === 'candidates') arr = arr.filter((r) => r.is_candidate)
-    if (tab === 'orgs')       arr = arr.filter((r) => r.organization_id || (r.pipeline_stage && r.pipeline_stage !== 'none'))
+    if (tab === 'orgs')       arr = arr.filter(isOrgOnly)
     if (search) {
       const q = search.toLowerCase()
       arr = arr.filter(
