@@ -42,7 +42,7 @@ export function CDOnlyCandidatesScreen() {
     let cancelled = false
     setLoading(true)
     supabase
-      .from('students')
+      .from('people')
       .select('id, first_name, last_name, email, phone, level, pipeline_stage, stage_changed_on, organization_id, organization:organizations(id, name)')
       .eq('is_candidate', true)
       .order('stage_changed_on', { ascending: false })

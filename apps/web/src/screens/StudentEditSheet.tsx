@@ -140,7 +140,7 @@ export function StudentEditSheet({
         'pipeline_stage','lead_source','tags','languages','organization_id','organization_role','is_candidate',
       ].join(',')
       supabase
-        .from('students')
+        .from('people')
         .select(cols)
         .eq('id', studentId)
         .single()
@@ -227,14 +227,14 @@ export function StudentEditSheet({
     }
     if (isEdit) {
       const { error: updErr } = await supabase
-        .from('students')
+        .from('people')
         .update(base)
         .eq('id', studentId!)
       if (updErr) { setError(updErr.message); setSaving(false); return }
       setSaving(false); onSaved(); onClose()
     } else {
       const { data: created, error: insErr } = await supabase
-        .from('students')
+        .from('people')
         .insert(base)
         .select('id')
         .single()
@@ -247,7 +247,7 @@ export function StudentEditSheet({
     if (!isEdit) return
     if (!confirm('Schüler wirklich löschen? Falls er bereits Kursen zugewiesen ist, wird das Löschen blockiert — markier ihn dann lieber als inaktiv.')) return
     setSaving(true)
-    const { error: delErr } = await supabase.from('students').delete().eq('id', studentId!)
+    const { error: delErr } = await supabase.from('people').delete().eq('id', studentId!)
     setSaving(false)
     if (delErr) { setError(delErr.message); return }
     onSaved()

@@ -44,7 +44,7 @@ export function CDCandidatesScreen() {
     let cancelled = false
     setLoading(true)
     supabase
-      .from('students')
+      .from('people')
       .select('id, first_name, last_name, email, phone, level, pipeline_stage, stage_changed_on, organization_id, organization:organizations(id, name), is_candidate')
       // Kontakte = jeder mit Pipeline-Stage ODER als Kandidat markiert ODER mit Org-Zuordnung
       .or('is_candidate.eq.true,pipeline_stage.neq.none,organization_id.not.is.null')

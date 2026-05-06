@@ -28,7 +28,7 @@ export function CDPipelineScreen() {
   useEffect(() => {
     let cancelled = false
     supabase
-      .from('students')
+      .from('people')
       .select('id, first_name, last_name, pipeline_stage, stage_changed_on')
       .neq('pipeline_stage', 'none')
       .order('stage_changed_on', { ascending: false })

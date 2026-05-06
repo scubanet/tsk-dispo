@@ -106,7 +106,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
 
   useEffect(() => {
     supabase
-      .from('students')
+      .from('people')
       .select('id, name, email, phone, birthday, padi_nr, level, notes, active, created_at')
       .eq('id', studentId)
       .single()
@@ -116,7 +116,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
 
     if (isCD) {
       supabase
-        .from('students')
+        .from('people')
         .select('address, postal_code, city, country, photo_url, pipeline_stage, lead_source, tags, languages, organization_id, organization_role, is_candidate, organization:organizations(id, name)')
         .eq('id', studentId)
         .single()

@@ -253,7 +253,7 @@ export interface Student {
 
 export async function fetchStudents(): Promise<Student[]> {
   const { data, error } = await supabase
-    .from('students')
+    .from('people')
     .select('id, name, email, phone, birthday, padi_nr, level, notes, active, created_at')
     .order('last_name')
     .order('first_name')
@@ -307,7 +307,7 @@ export async function fetchCourseParticipants(courseId: string): Promise<CourseP
     .from('course_participants')
     .select(`
       id, course_id, student_id, status, enrolled_at, certificate_nr, notes, certified_by_instructor_id, certified_on,
-      student:students(id, name, email, phone, birthday, padi_nr, notes, active, created_at)
+      student:people(id, name, email, phone, birthday, padi_nr, notes, active, created_at)
     `)
     .eq('course_id', courseId)
   if (error) throw error
