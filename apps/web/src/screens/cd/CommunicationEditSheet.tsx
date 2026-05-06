@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
+import { waDirectUrl } from '@/lib/whatsapp'
 
 export const CHANNELS = [
   { code: 'email',    label: 'Email',    icon: 'tag'      as const },
@@ -59,6 +60,8 @@ const inputStyle = {
 interface PersonOption {
   id: string
   name: string
+  email?: string | null
+  phone?: string | null
   is_student?: boolean
   is_candidate?: boolean
 }
@@ -81,6 +84,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
   const [people, setPeople] = useState<PersonOption[]>([])
   const [pickerSearch, setPickerSearch] = useState('')
   const [instructors, setInstructors] = useState<InstructorOption[]>([])
+  const [contactInfo, setContactInfo] = useState<PersonOption | null>(null)
   const isEdit = !!entryId
   const [form, setForm] = useState<Form>(EMPTY)
   const [saving, setSaving] = useState(false)
@@ -93,10 +97,22 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
     if (showPicker) {
       supabase
         .from('people')
-        .select('id, name, is_student, is_candidate')
+        .select('id, name, email, phone, is_student, is_candidate')
         .order('last_name')
         .order('first_name')
         .then(({ data }) => setPeople((data ?? []) as PersonOption[]))
+    }
+    // Kontaktdaten der gewählten Person laden für Send-Buttons
+    const cid = contactId ?? pickedContactId
+    if (cid) {
+      supabase
+        .from('people')
+        .select('id, name, email, phone')
+        .eq('id', cid)
+        .maybeSingle()
+        .then(({ data }) => setContactInfo((data as PersonOption | null) ?? null))
+    } else {
+      setContactInfo(null)
     }
     supabase
       .from('instructors')
@@ -129,7 +145,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
       setForm({ ...EMPTY, occurred_on: nowLocal(), created_by: createdById ?? '' })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, entryId])
+  }, [open, entryId, contactId, pickedContactId])
 
   function set<K extends keyof Form>(k: K, v: Form[K]) {
     setForm((prev) => ({ ...prev, [k]: v }))
@@ -178,6 +194,32 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
   }
 
   const showDuration = form.channel === 'phone' || form.channel === 'meeting'
+
+  // Send-Helpers — öffnen native Apps mit pre-filled Subject/Body und setzen Direction auf outbound
+  function sendViaMail() {
+    if (!contactInfo?.email) return
+    const subject = encodeURIComponent(form.subject || '')
+    const body = encodeURIComponent(form.body || '')
+    set('direction', 'outbound')
+    set('channel', 'email')
+    window.location.href = `mailto:${contactInfo.email}?subject=${subject}&body=${body}`
+  }
+  function sendViaWhatsApp() {
+    if (!contactInfo?.phone) return
+    const text = [form.subject, form.body].filter(Boolean).join('\n\n')
+    set('direction', 'outbound')
+    set('channel', 'whatsapp')
+    window.open(waDirectUrl(contactInfo.phone, text), '_blank')
+  }
+  function sendViaIMessage() {
+    if (!contactInfo?.phone) return
+    const cleanPhone = contactInfo.phone.replace(/[^\d+]/g, '')
+    const text = [form.subject, form.body].filter(Boolean).join('\n\n')
+    set('direction', 'outbound')
+    set('channel', 'phone') // sms fällt unter "Phone"
+    // Apple-Format: sms:NUMBER&body=TEXT
+    window.location.href = `sms:${cleanPhone}&body=${encodeURIComponent(text)}`
+  }
 
   return (
     <Sheet open={open} onClose={onClose} title={isEdit ? 'Touchpoint bearbeiten' : 'Neuer Touchpoint'} width={520}>
@@ -289,6 +331,46 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
             style={inputStyle}
           />
         </Field>
+
+        {/* Direkt-Senden über Mail / WhatsApp / iMessage */}
+        {contactInfo && (contactInfo.email || contactInfo.phone) && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', padding: '8px 10px', borderRadius: 10, background: 'rgba(0,122,255,.08)' }}>
+            <span className="caption-2" style={{ marginRight: 4 }}>Senden:</span>
+            {contactInfo.email && (
+              <button
+                type="button"
+                onClick={sendViaMail}
+                className="btn-secondary btn"
+                style={{ height: 28, padding: '0 12px', fontSize: 12 }}
+              >
+                ✉ Mail
+              </button>
+            )}
+            {contactInfo.phone && (
+              <>
+                <button
+                  type="button"
+                  onClick={sendViaWhatsApp}
+                  className="btn-secondary btn"
+                  style={{ height: 28, padding: '0 12px', fontSize: 12, background: 'rgba(37,211,102,.18)' }}
+                >
+                  💬 WhatsApp
+                </button>
+                <button
+                  type="button"
+                  onClick={sendViaIMessage}
+                  className="btn-secondary btn"
+                  style={{ height: 28, padding: '0 12px', fontSize: 12 }}
+                >
+                  💬 iMessage / SMS
+                </button>
+              </>
+            )}
+            <span className="caption-2" style={{ marginLeft: 'auto', opacity: 0.6 }}>
+              setzt Kanal + Richtung „ausgehend"
+            </span>
+          </div>
+        )}
 
         {error && <div className="chip chip-red">{error}</div>}
 
