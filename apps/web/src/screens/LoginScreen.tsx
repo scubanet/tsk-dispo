@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { Wallpaper } from '@/components/Wallpaper'
 import { StatusBar } from '@/components/StatusBar'
 import { Logo } from '@/components/Logo'
+import { CopyrightFooter } from '@/components/CopyrightFooter'
 
 export function LoginScreen() {
   const [email, setEmail] = useState('')
@@ -31,11 +32,14 @@ export function LoginScreen() {
       <StatusBar />
       <div
         style={{
-          display: 'grid',
-          placeItems: 'center',
-          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
           position: 'relative',
           zIndex: 1,
+          padding: '24px 0',
         }}
       >
         <div className="glass card" style={{ width: 380, padding: 28 }}>
@@ -83,6 +87,10 @@ export function LoginScreen() {
               )}
             </form>
           )}
+        </div>
+
+        <div style={{ width: 380, maxWidth: '90vw' }}>
+          <CopyrightFooter variant="full" />
         </div>
       </div>
     </>

@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { NavLink } from 'react-router-dom'
 import { Icon, type IconName } from './Icon'
 import { Logo } from './Logo'
+import { CopyrightFooter } from './CopyrightFooter'
 import type { Role } from '@/lib/auth'
 
 interface SidebarProps {
@@ -181,6 +182,7 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
             <Icon name="logout" size={14} />
           </button>
         </div>
+        <CopyrightFooter variant="compact" />
       </div>
     </aside>
   )
