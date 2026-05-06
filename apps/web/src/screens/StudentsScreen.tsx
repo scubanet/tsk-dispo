@@ -22,7 +22,6 @@ export function StudentsScreen() {
   const [rows, setRows] = useState<Student[]>([])
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState<Tab>(isCD ? 'all' : 'students')
-  const [showInactive, setShowInactive] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
 
   function refetch() {
@@ -32,15 +31,14 @@ export function StudentsScreen() {
   useEffect(() => { refetch() }, [])
 
   const counts = useMemo(() => ({
-    all:        rows.filter((r) => r.active || showInactive).length,
-    students:   rows.filter((r) => r.is_student && (r.active || showInactive)).length,
-    candidates: rows.filter((r) => r.is_candidate && (r.active || showInactive)).length,
-    orgs:       rows.filter((r) => (r.organization_id || (r.pipeline_stage && r.pipeline_stage !== 'none')) && (r.active || showInactive)).length,
-  }), [rows, showInactive])
+    all:        rows.length,
+    students:   rows.filter((r) => r.is_student).length,
+    candidates: rows.filter((r) => r.is_candidate).length,
+    orgs:       rows.filter((r) => r.organization_id || (r.pipeline_stage && r.pipeline_stage !== 'none')).length,
+  }), [rows])
 
   const filtered = useMemo(() => {
     let arr = rows
-    if (!showInactive) arr = arr.filter((r) => r.active)
     if (tab === 'students')   arr = arr.filter((r) => r.is_student)
     if (tab === 'candidates') arr = arr.filter((r) => r.is_candidate)
     if (tab === 'orgs')       arr = arr.filter((r) => r.organization_id || (r.pipeline_stage && r.pipeline_stage !== 'none'))
@@ -54,13 +52,13 @@ export function StudentsScreen() {
       )
     }
     return arr
-  }, [rows, tab, showInactive, search])
+  }, [rows, tab, search])
 
   const selected = rows.find((r) => r.id === id)
 
   return (
     <>
-      <Topbar title="Personen" subtitle={`${rows.length} insgesamt · ${rows.filter((r) => r.active).length} aktiv`}>
+      <Topbar title="Personen" subtitle={`${rows.length} insgesamt`}>
         <div className="search" style={{ width: 220 }}>
           <Icon name="search" size={14} />
           <input
@@ -83,10 +81,6 @@ export function StudentsScreen() {
               <button className={clsx(tab === 'candidates' && 'active')} onClick={() => setTab('candidates')}>Kandidaten <span style={{opacity:.6}}>· {counts.candidates}</span></button>
               <button className={clsx(tab === 'orgs' && 'active')}       onClick={() => setTab('orgs')}>Org/CRM <span style={{opacity:.6}}>· {counts.orgs}</span></button>
             </div>
-            <label className="caption-2" style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-              <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
-              auch inaktive zeigen
-            </label>
           </div>
 
           {filtered.length === 0 ? (
@@ -101,7 +95,11 @@ export function StudentsScreen() {
               >
                 <Avatar
                   initials={initialsFromName(r.name)}
-                  color={r.active ? '#34C759' : '#8E8E93'}
+                  color={
+                    r.is_candidate ? '#FF3B30'   // rot = Kandidat (Vorrang)
+                    : r.is_student ? '#007AFF'  // blau = Schüler
+                    : '#34C759'                 // grün = sonstige (Org/CRM)
+                  }
                   size="sm"
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>

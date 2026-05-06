@@ -13,7 +13,6 @@ interface Form {
   padi_nr: string
   level: string
   notes: string
-  active: boolean
 
   // CD: Adresse
   address: string
@@ -26,7 +25,7 @@ interface Form {
   pipeline_stage: string
   lead_source: string
   tags: string             // CSV
-  languages: string        // CSV
+  languages: string[]      // selected codes
   organization_id: string  // '' = none
   organization_role: string
   is_student: boolean
@@ -56,6 +55,15 @@ const STAGES = [
   { code: 'opportunity', label: 'Opportunity' },
   { code: 'candidate',   label: 'Kandidat' },
   { code: 'lost',        label: 'Verloren' },
+]
+
+const LANGUAGES = [
+  { code: 'de',  label: 'De' },
+  { code: 'en',  label: 'En' },
+  { code: 'fr',  label: 'Fr' },
+  { code: 'it',  label: 'It' },
+  { code: 'sp',  label: 'Sp' },
+  { code: 'tag', label: 'Tag' },
 ]
 
 interface Org { id: string; name: string }
@@ -94,7 +102,6 @@ const EMPTY: Form = {
   padi_nr: '',
   level: 'Anfänger',
   notes: '',
-  active: true,
 
   address: '',
   postal_code: '',
@@ -105,7 +112,7 @@ const EMPTY: Form = {
   pipeline_stage: 'none',
   lead_source: '',
   tags: '',
-  languages: '',
+  languages: [],
   organization_id: '',
   organization_role: '',
   is_student: true,
@@ -161,7 +168,6 @@ export function StudentEditSheet({
             padi_nr: d.padi_nr ?? '',
             level: d.level ?? 'Anfänger',
             notes: d.notes ?? '',
-            active: !!d.active,
 
             address: d.address ?? '',
             postal_code: d.postal_code ?? '',
@@ -172,7 +178,7 @@ export function StudentEditSheet({
             pipeline_stage: d.pipeline_stage ?? 'none',
             lead_source: d.lead_source ?? '',
             tags: Array.isArray(d.tags) ? d.tags.join(', ') : '',
-            languages: Array.isArray(d.languages) ? d.languages.join(', ') : '',
+            languages: Array.isArray(d.languages) ? d.languages : [],
             organization_id: d.organization_id ?? '',
             organization_role: d.organization_role ?? '',
             is_student: d.is_student !== undefined ? !!d.is_student : true,
@@ -209,7 +215,6 @@ export function StudentEditSheet({
       padi_nr: form.padi_nr.trim() || null,
       level: form.level || 'Anfänger',
       notes: form.notes.trim() || null,
-      active: form.active,
     }
     // CD-Felder nur senden wenn UI sie geliefert hat — sonst werden sie nicht überschrieben
     if (showCdFields) {
@@ -222,7 +227,7 @@ export function StudentEditSheet({
         pipeline_stage: form.pipeline_stage,
         lead_source: form.lead_source.trim(),
         tags: csvToArray(form.tags),
-        languages: csvToArray(form.languages),
+        languages: form.languages,
         organization_id: form.organization_id || null,
         organization_role: form.organization_role.trim(),
         is_student: form.is_student,
@@ -307,15 +312,6 @@ export function StudentEditSheet({
             />
           </Field>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <input
-              id="active"
-              type="checkbox"
-              checked={form.active}
-              onChange={(e) => set('active', e.target.checked)}
-            />
-            <label htmlFor="active">Aktiv (erscheint in Anmelde-Vorschlägen)</label>
-          </div>
         </Section>
 
         {showCdFields && (
@@ -356,8 +352,43 @@ export function StudentEditSheet({
                 <input value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="z.B. vegan, photographer, club-member" style={inputStyle} />
               </Field>
 
-              <Field label="Sprachen (Komma-getrennt)">
-                <input value={form.languages} onChange={(e) => set('languages', e.target.value)} placeholder="z.B. de, en, it" style={inputStyle} />
+              <Field label="Sprachen">
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {LANGUAGES.map((l) => {
+                    const checked = form.languages.includes(l.code)
+                    return (
+                      <label
+                        key={l.code}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '6px 12px',
+                          borderRadius: 999,
+                          border: '0.5px solid var(--hairline)',
+                          background: checked ? 'rgba(88,86,214,.20)' : 'transparent',
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          fontSize: 12.5,
+                          fontWeight: checked ? 600 : 400,
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            const next = e.target.checked
+                              ? [...form.languages, l.code]
+                              : form.languages.filter((x) => x !== l.code)
+                            set('languages', next)
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        {l.label}
+                      </label>
+                    )
+                  })}
+                </div>
               </Field>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
