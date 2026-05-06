@@ -15,6 +15,6 @@ enum Config {
 
   // MARK: – Branding
   static let appName = "ATOLL"
-  static let appTagline = "The diving school OS"
+  static let appTagline = "The Scuba OS"
   static let tenantName = "TSK Zürich"
 }

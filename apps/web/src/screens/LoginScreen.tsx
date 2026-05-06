@@ -49,7 +49,7 @@ export function LoginScreen() {
             </div>
             <div>
               <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '.08em', lineHeight: 1 }}>ATOLL</div>
-              <div className="caption-2" style={{ marginTop: 4, opacity: 0.75 }}>The diving school OS</div>
+              <div className="caption-2" style={{ marginTop: 4, opacity: 0.75 }}>The Scuba OS</div>
             </div>
           </div>
           <div className="caption" style={{ marginBottom: 18 }}>Magic-Link an deine Email</div>

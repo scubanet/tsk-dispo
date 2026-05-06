@@ -1,9 +1,11 @@
+import { useState } from 'react'
+
 /**
  * ATOLL Logo
  *
- * Top-down view of an atoll: outer reef ring (white) + inner lagoon (subtle fill)
- * + tiny islet at center. Sits on a blue→teal gradient square — die Farben des
- * tropischen Wassers vom flachen Riff bis in die tiefe Lagune.
+ * Lädt primär ein PNG/SVG aus `/public/atoll-logo.png` (oder atoll-logo.svg).
+ * Falls die Datei fehlt, fällt es zurück auf die SVG-Atoll-Symbol-Variante
+ * (Ring + Lagune + Inselchen) — damit es immer rendert.
  *
  * Skaliert von 24px (StatusBar) bis 512px (PWA-Icon).
  */
@@ -11,14 +13,35 @@ interface Props {
   size?: number
   /** Show only the symbol, no rounded square background. Useful on top of glass surfaces. */
   bare?: boolean
-  /** Optional gradient override (default: blue → teal). */
+  /** Optional gradient override (default: blue → teal) — nur für SVG-Fallback. */
   gradient?: [string, string]
 }
 
 export function Logo({ size = 32, bare = false, gradient = ['#0A84FF', '#30B0C7'] }: Props) {
-  // Gradient ID muss eindeutig sein wenn mehrere Logos auf einer Seite sind
-  const gradId = `atoll-grad-${gradient[0].slice(1)}-${gradient[1].slice(1)}`
+  const [imgFailed, setImgFailed] = useState(false)
 
+  // Primär: das gelieferte File aus /public/. Falls 404 → onError → Fallback auf SVG.
+  if (!imgFailed) {
+    return (
+      <img
+        src="/atoll-logo.png"
+        alt="ATOLL"
+        width={size}
+        height={size}
+        onError={() => setImgFailed(true)}
+        style={{
+          display: 'block',
+          flexShrink: 0,
+          objectFit: 'contain',
+          width: size,
+          height: size,
+        }}
+      />
+    )
+  }
+
+  // Fallback: bisheriges SVG-Atoll-Symbol
+  const gradId = `atoll-grad-${gradient[0].slice(1)}-${gradient[1].slice(1)}`
   return (
     <svg
       width={size}
@@ -37,17 +60,9 @@ export function Logo({ size = 32, bare = false, gradient = ['#0A84FF', '#30B0C7'
           <stop offset="100%" stopColor="white" stopOpacity="0.15" />
         </radialGradient>
       </defs>
-
       {!bare && (
-        <rect
-          width="32"
-          height="32"
-          rx="8"
-          fill={`url(#${gradId})`}
-        />
+        <rect width="32" height="32" rx="8" fill={`url(#${gradId})`} />
       )}
-
-      {/* Outer reef ring — slight asymmetry mit subtle gap unten-rechts (atoll passage) */}
       <path
         d="M 16 5 A 11 11 0 1 1 22 25"
         stroke="white"
@@ -56,11 +71,7 @@ export function Logo({ size = 32, bare = false, gradient = ['#0A84FF', '#30B0C7'
         fill="none"
         opacity="0.95"
       />
-
-      {/* Inner lagoon — radial gradient für Tiefen-Eindruck */}
       <circle cx="16" cy="16" r="5" fill={`url(#${gradId}-lagoon)`} />
-
-      {/* Center islet */}
       <circle cx="16" cy="16" r="1.4" fill="white" opacity="0.95" />
     </svg>
   )

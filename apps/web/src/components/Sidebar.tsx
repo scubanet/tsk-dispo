@@ -69,7 +69,7 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
             ATOLL
           </div>
           <div className="caption-2" style={{ marginTop: 2, fontSize: 10.5, opacity: 0.75 }}>
-            The diving school OS
+            The Scuba OS
           </div>
         </div>
       </div>
