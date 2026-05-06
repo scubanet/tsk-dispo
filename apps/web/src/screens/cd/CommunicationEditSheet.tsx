@@ -25,6 +25,13 @@ interface Form {
   body: string
   duration_minutes: string
   outcome: string
+  created_by: string  // instructor_id; '' = nicht erfasst
+}
+
+interface InstructorOption {
+  id: string
+  name: string
+  active: boolean
 }
 
 const EMPTY: Form = {
@@ -35,6 +42,7 @@ const EMPTY: Form = {
   body: '',
   duration_minutes: '',
   outcome: '',
+  created_by: '',
 }
 
 const inputStyle = {
@@ -72,6 +80,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
   const [pickedContactId, setPickedContactId] = useState<string>('')
   const [people, setPeople] = useState<PersonOption[]>([])
   const [pickerSearch, setPickerSearch] = useState('')
+  const [instructors, setInstructors] = useState<InstructorOption[]>([])
   const isEdit = !!entryId
   const [form, setForm] = useState<Form>(EMPTY)
   const [saving, setSaving] = useState(false)
@@ -89,10 +98,16 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
         .order('first_name')
         .then(({ data }) => setPeople((data ?? []) as PersonOption[]))
     }
+    supabase
+      .from('instructors')
+      .select('id, name, active')
+      .eq('active', true)
+      .order('name')
+      .then(({ data }) => setInstructors((data ?? []) as InstructorOption[]))
     if (entryId) {
       supabase
         .from('communication_entries')
-        .select('channel, direction, occurred_on, subject, body, duration_minutes, outcome, contact_id')
+        .select('channel, direction, occurred_on, subject, body, duration_minutes, outcome, contact_id, created_by')
         .eq('id', entryId)
         .single()
         .then(({ data }) => {
@@ -107,11 +122,13 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
             body: d.body ?? '',
             duration_minutes: d.duration_minutes != null ? String(d.duration_minutes) : '',
             outcome: d.outcome ?? '',
+            created_by: d.created_by ?? '',
           })
         })
     } else {
-      setForm({ ...EMPTY, occurred_on: nowLocal() })
+      setForm({ ...EMPTY, occurred_on: nowLocal(), created_by: createdById ?? '' })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, entryId])
 
   function set<K extends keyof Form>(k: K, v: Form[K]) {
@@ -135,7 +152,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
       body: form.body.trim() || null,
       duration_minutes: form.duration_minutes ? Number(form.duration_minutes) : null,
       outcome: form.outcome.trim() || null,
-      created_by: createdById ?? null,
+      created_by: form.created_by || createdById || null,
     }
     if (isEdit) {
       const { error: e } = await supabase.from('communication_entries').update(payload).eq('id', entryId!)
@@ -216,14 +233,22 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
           </Field>
         </div>
 
-        <Field label="Datum & Uhrzeit">
-          <input
-            type="datetime-local"
-            value={form.occurred_on}
-            onChange={(e) => set('occurred_on', e.target.value)}
-            style={inputStyle}
-          />
-        </Field>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <Field label="Datum & Uhrzeit">
+            <input
+              type="datetime-local"
+              value={form.occurred_on}
+              onChange={(e) => set('occurred_on', e.target.value)}
+              style={inputStyle}
+            />
+          </Field>
+          <Field label="Bearbeiter (TSK-Team)">
+            <select value={form.created_by} onChange={(e) => set('created_by', e.target.value)} style={inputStyle}>
+              <option value="">— wählen —</option>
+              {instructors.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
+            </select>
+          </Field>
+        </div>
 
         <Field label="Betreff">
           <input

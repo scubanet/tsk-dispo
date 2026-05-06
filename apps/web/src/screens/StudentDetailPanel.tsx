@@ -31,6 +31,7 @@ interface CommEntry {
   body: string | null
   duration_minutes: number | null
   outcome: string | null
+  created_by_instructor: { id: string; name: string } | null
 }
 
 interface IntakeStatus {
@@ -124,10 +125,10 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
 
       supabase
         .from('communication_entries')
-        .select('id, channel, direction, occurred_on, subject, body, duration_minutes, outcome')
+        .select('id, channel, direction, occurred_on, subject, body, duration_minutes, outcome, created_by_instructor:instructors!created_by(id, name)')
         .eq('contact_id', studentId)
         .order('occurred_on', { ascending: false })
-        .then(({ data }) => setCommunications((data ?? []) as CommEntry[]))
+        .then(({ data }) => setCommunications((data ?? []) as unknown as CommEntry[]))
 
       supabase
         .from('intake_checklists')
@@ -341,6 +342,11 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
                           {channel?.label ?? c.channel}
                           {c.direction === 'inbound' ? ' ↓' : ' ↑'}
                         </div>
+                        {c.created_by_instructor && (
+                          <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(88,86,214,.20)' }}>
+                            {c.created_by_instructor.name}
+                          </span>
+                        )}
                         <div className="caption-2" style={{ marginLeft: 'auto' }}>
                           {format(new Date(c.occurred_on), 'd. MMM yyyy, HH:mm', { locale: de })}
                         </div>

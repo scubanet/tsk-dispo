@@ -20,6 +20,7 @@ interface Entry {
   duration_minutes: number | null
   outcome: string | null
   contact: { id: string; name: string; is_student: boolean; is_candidate: boolean } | null
+  created_by_instructor: { id: string; name: string } | null
 }
 
 const CHANNEL_FILTERS = [
@@ -47,7 +48,7 @@ export function CommunicationHubScreen() {
     setLoading(true)
     supabase
       .from('communication_entries')
-      .select('id, contact_id, channel, direction, occurred_on, subject, body, duration_minutes, outcome, contact:people!contact_id(id, name, is_student, is_candidate)')
+      .select('id, contact_id, channel, direction, occurred_on, subject, body, duration_minutes, outcome, contact:people!contact_id(id, name, is_student, is_candidate), created_by_instructor:instructors!created_by(id, name)')
       .order('occurred_on', { ascending: false })
       .limit(500)
       .then(({ data, error }) => {
@@ -173,6 +174,11 @@ export function CommunicationHubScreen() {
                   <span style={{ fontWeight: 600 }}>{c.contact?.name ?? '—'}</span>
                   {c.contact?.is_candidate && <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(255,69,58,.20)' }}>Kandidat</span>}
                   {c.contact?.is_student && !c.contact?.is_candidate && <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(0,122,255,.20)' }}>Schüler</span>}
+                  {c.created_by_instructor && (
+                    <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(88,86,214,.20)' }}>
+                      {c.created_by_instructor.name}
+                    </span>
+                  )}
                   <span className="caption-2" style={{ marginLeft: 'auto' }}>
                     {format(new Date(c.occurred_on), 'd. MMM yyyy, HH:mm', { locale: de })}
                   </span>
