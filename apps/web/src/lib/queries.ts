@@ -84,6 +84,10 @@ export interface CourseDate {
   date: string
   type: CourseDateType
   pool_location: PoolLocation | null
+  pool_reserved?: boolean
+  has_theory?: boolean
+  has_pool?: boolean
+  has_lake?: boolean
   time_from: string | null
   time_to: string | null
   note: string | null
@@ -92,7 +96,7 @@ export interface CourseDate {
 export async function fetchCourseDates(courseId: string): Promise<CourseDate[]> {
   const { data, error } = await supabase
     .from('course_dates')
-    .select('id, course_id, date, type, pool_location, time_from, time_to, note')
+    .select('id, course_id, date, type, pool_location, pool_reserved, has_theory, has_pool, has_lake, time_from, time_to, note')
     .eq('course_id', courseId)
     .order('date')
   if (error) throw error

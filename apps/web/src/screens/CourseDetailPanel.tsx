@@ -14,7 +14,6 @@ import {
   fetchCourseParticipants,
   fetchCourseDates,
   POOL_LOCATIONS,
-  COURSE_DATE_TYPES,
   type CourseDetail,
   type AssignmentRow,
   type CourseParticipant,
@@ -261,32 +260,49 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                 ? courseDates
                 : [{ id: 'fallback', date: course.start_date, type: 'theorie' as const, pool_location: null }] as any
               ).map((cd: any) => {
-                const typeMeta = COURSE_DATE_TYPES.find((t) => t.value === cd.type)
                 const poolMeta = POOL_LOCATIONS.find((p) => p.value === cd.pool_location)
+                // Multi-Type-Logik: nimm Booleans wenn vorhanden, sonst aus type ableiten
+                const hasTheory = cd.has_theory != null ? !!cd.has_theory : cd.type === 'theorie'
+                const hasPool   = cd.has_pool   != null ? !!cd.has_pool   : cd.type === 'pool'
+                const hasLake   = cd.has_lake   != null ? !!cd.has_lake   : cd.type === 'see'
                 return (
                   <div
                     key={cd.id}
                     style={{
                       display: 'flex',
-                      gap: 12,
+                      gap: 8,
                       padding: '8px 10px',
                       background: 'rgba(120,120,128,.08)',
                       borderRadius: 8,
                       alignItems: 'center',
+                      flexWrap: 'wrap',
                     }}
                   >
                     <span className="mono" style={{ fontSize: 13, fontWeight: 500, minWidth: 110 }}>
                       {format(new Date(cd.date), 'EEE, d. MMM', { locale: de })}
                     </span>
-                    <Chip tone={
-                      cd.type === 'pool' ? 'accent' :
-                      cd.type === 'see'  ? 'green'  : 'neutral'
-                    }>
-                      {typeMeta?.emoji} {typeMeta?.label ?? cd.type}
-                    </Chip>
-                    {cd.type === 'pool' && cd.pool_location && (
-                      <Chip tone="purple">🏊 {poolMeta?.label ?? cd.pool_location}</Chip>
+                    {hasTheory && <Chip tone="neutral">📚 Theorie</Chip>}
+                    {hasPool && (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '3px 10px',
+                          borderRadius: 999,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          background: cd.pool_reserved ? 'rgba(52,199,89,.22)' : 'rgba(255,149,0,.22)',
+                          color: cd.pool_reserved ? '#1c8b3c' : '#a04e00',
+                          border: cd.pool_reserved ? '0.5px solid rgba(52,199,89,.45)' : '0.5px dashed rgba(255,149,0,.55)',
+                        }}
+                        title={cd.pool_reserved ? 'Pool reserviert' : 'Pool noch nicht reserviert'}
+                      >
+                        🏊 {poolMeta?.label ?? cd.pool_location ?? 'Pool'}
+                        {cd.pool_reserved ? ' ✓' : ' …'}
+                      </span>
                     )}
+                    {hasLake && <Chip tone="green">🌊 See</Chip>}
                   </div>
                 )
               })}
