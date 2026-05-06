@@ -12,6 +12,7 @@ interface PoolDateRow {
   course_id: string
   date: string
   pool_location: PoolLocation
+  pool_reserved: boolean
   time_from: string | null
   time_to: string | null
   course: {
@@ -37,7 +38,7 @@ export function PoolScreen() {
     supabase
       .from('course_dates')
       .select(`
-        id, course_id, date, pool_location, time_from, time_to,
+        id, course_id, date, pool_location, pool_reserved, time_from, time_to,
         course:courses(id, title, course_type:course_types(code))
       `)
       .eq('type', 'pool')
@@ -112,19 +113,21 @@ export function PoolScreen() {
                                 onClick={() => s.course && navigate(`/kurse/${s.course.id}`)}
                                 style={{
                                   cursor: 'pointer',
-                                  background: 'var(--accent-soft)',
-                                  color: 'var(--accent)',
+                                  // Grün wenn Pool reserviert, Orange wenn noch offen
+                                  background: s.pool_reserved ? 'rgba(52,199,89,.22)' : 'rgba(255,149,0,.22)',
+                                  color: s.pool_reserved ? '#1c8b3c' : '#a04e00',
                                   padding: '4px 6px',
                                   borderRadius: 6,
                                   fontSize: 11,
                                   fontWeight: 600,
+                                  border: s.pool_reserved ? '0.5px solid rgba(52,199,89,.45)' : '0.5px dashed rgba(255,149,0,.55)',
                                 }}
-                                title={s.course?.title ?? ''}
+                                title={`${s.course?.title ?? ''} — ${s.pool_reserved ? 'Pool reserviert ✓' : 'Pool noch offen'}`}
                               >
                                 <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {s.course?.course_type?.code ?? '—'}
                                 </div>
-                                <div className="caption-2" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <div className="caption-2" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', opacity: 0.8 }}>
                                   {s.course?.title ?? ''}
                                 </div>
                               </div>
@@ -140,8 +143,16 @@ export function PoolScreen() {
           </table>
         </div>
 
-        <div className="caption" style={{ marginTop: 12, padding: '0 4px' }}>
-          {rows.length} Pool-Slots in dieser Woche · automatisch aus Kurs-Daten erzeugt (Type "Pool")
+        <div style={{ marginTop: 12, padding: '0 4px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span className="caption">
+            {rows.length} Pool-Slots in dieser Woche · {rows.filter((r) => r.pool_reserved).length} reserviert · {rows.filter((r) => !r.pool_reserved).length} offen
+          </span>
+          <span className="caption-2" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(52,199,89,.40)', border: '0.5px solid rgba(52,199,89,.6)' }} /> reserviert
+          </span>
+          <span className="caption-2" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(255,149,0,.40)', border: '0.5px dashed rgba(255,149,0,.6)' }} /> offen
+          </span>
         </div>
       </div>
     </>
