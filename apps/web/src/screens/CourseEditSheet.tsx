@@ -4,7 +4,6 @@ import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
 import {
   POOL_LOCATIONS,
-  COURSE_DATE_TYPES,
   type CourseDateType,
   type PoolLocation,
 } from '@/lib/queries'
@@ -20,9 +19,19 @@ interface Conflict {
 /** Local form-state row representing one date of the course */
 interface DateEntry {
   date: string
-  type: CourseDateType
+  type: CourseDateType  // primary type — abgeleitet aus den Booleans (für Calendar-Anzeige)
+  has_theory: boolean
+  has_pool: boolean
+  has_lake: boolean
   pool_location: PoolLocation | null
   pool_reserved: boolean
+}
+
+/** Liefert primary type aus den Booleans — Pool > See > Theorie (Wassertage haben Vorrang in Anzeige) */
+function derivePrimaryType(d: { has_pool: boolean; has_lake: boolean; has_theory: boolean }): CourseDateType {
+  if (d.has_pool) return 'pool'
+  if (d.has_lake) return 'see'
+  return 'theorie'
 }
 
 interface Props {
@@ -61,7 +70,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
   const [title, setTitle] = useState('')
   const [status, setStatus] = useState<'tentative' | 'confirmed' | 'completed' | 'cancelled'>('tentative')
   const [dates, setDates] = useState<DateEntry[]>([
-    { date: new Date().toISOString().slice(0, 10), type: 'theorie', pool_location: null, pool_reserved: false },
+    { date: new Date().toISOString().slice(0, 10), type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false },
   ])
   const [numParticipants, setNumParticipants] = useState(0)
   const [info, setInfo] = useState('')
@@ -93,7 +102,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           .single(),
         supabase
           .from('course_dates')
-          .select('date, type, pool_location, pool_reserved')
+          .select('date, type, pool_location, pool_reserved, has_theory, has_pool, has_lake')
           .eq('course_id', courseId)
           .order('date'),
       ]).then(([courseRes, datesRes]) => {
@@ -107,12 +116,18 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         setNotes(c.notes ?? '')
 
         // Combine course_dates rows with start_date + additional_dates as fallback
-        const cdMap = new Map<string, { type: CourseDateType; pool: PoolLocation | null; reserved: boolean }>()
+        const cdMap = new Map<string, { type: CourseDateType; pool: PoolLocation | null; reserved: boolean; theory: boolean; lake: boolean; poolFlag: boolean }>()
         for (const cd of datesRes.data ?? []) {
+          const x = cd as any
+          // Falls Booleans schon gesetzt sind (Migration durch), nimm sie. Sonst aus type ableiten.
+          const theory = x.has_theory != null ? !!x.has_theory : x.type === 'theorie'
+          const poolFlag = x.has_pool != null ? !!x.has_pool : x.type === 'pool'
+          const lake = x.has_lake != null ? !!x.has_lake : x.type === 'see'
           cdMap.set(cd.date, {
             type: cd.type as CourseDateType,
             pool: cd.pool_location as PoolLocation | null,
-            reserved: !!(cd as any).pool_reserved,
+            reserved: !!x.pool_reserved,
+            theory, poolFlag, lake,
           })
         }
 
@@ -122,19 +137,22 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           return {
             date: d,
             type: meta?.type ?? 'theorie',
+            has_theory: meta?.theory ?? true,
+            has_pool: meta?.poolFlag ?? false,
+            has_lake: meta?.lake ?? false,
             pool_location: meta?.pool ?? null,
             pool_reserved: meta?.reserved ?? false,
           }
         })
 
         setDates(merged.length > 0 ? merged : [
-          { date: c.start_date, type: 'theorie', pool_location: null, pool_reserved: false },
+          { date: c.start_date, type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false },
         ])
       })
     } else {
       // Reset for create mode
       setTypeId(''); setTitle(''); setStatus('tentative')
-      setDates([{ date: new Date().toISOString().slice(0, 10), type: 'theorie', pool_location: null, pool_reserved: false }])
+      setDates([{ date: new Date().toISOString().slice(0, 10), type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false }])
       setNumParticipants(0)
       setInfo(''); setNotes(''); setHaupt('')
     }
@@ -159,7 +177,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
   function addDate() {
     setDates((prev) => [
       ...prev,
-      { date: '', type: 'theorie', pool_location: null, pool_reserved: false },
+      { date: '', type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false },
     ])
   }
   function removeDateAt(idx: number) {
@@ -170,8 +188,13 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
       prev.map((d, i) => {
         if (i !== idx) return d
         const next = { ...d, ...patch }
-        // If type changes away from 'pool', clear pool_location
-        if (patch.type && patch.type !== 'pool') next.pool_location = null
+        // Wenn has_pool deaktiviert → pool_location und pool_reserved löschen
+        if (patch.has_pool === false) {
+          next.pool_location = null
+          next.pool_reserved = false
+        }
+        // primary type abgeleitet halten
+        next.type = derivePrimaryType(next)
         return next
       }),
     )
@@ -297,13 +320,19 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
     // Sync course_dates: delete existing and re-insert (idempotent rebuild)
     if (savedCourseId) {
       await supabase.from('course_dates').delete().eq('course_id', savedCourseId)
-      const rows = sorted.map((d) => ({
-        course_id: savedCourseId,
-        date: d.date,
-        type: d.type,
-        pool_location: d.type === 'pool' ? d.pool_location : null,
-        pool_reserved: d.type === 'pool' ? d.pool_reserved : false,
-      }))
+      const rows = sorted.map((d) => {
+        const primaryType = derivePrimaryType(d)
+        return {
+          course_id: savedCourseId,
+          date: d.date,
+          type: primaryType,
+          has_theory: d.has_theory,
+          has_pool: d.has_pool,
+          has_lake: d.has_lake,
+          pool_location: d.has_pool ? d.pool_location : null,
+          pool_reserved: d.has_pool ? d.pool_reserved : false,
+        }
+      })
       if (rows.length > 0) {
         const { error: cdErr } = await supabase.from('course_dates').insert(rows)
         if (cdErr) {
@@ -373,36 +402,37 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
             </button>
           </div>
           <div className="caption-2" style={{ marginBottom: 8 }}>
-            {isMultiDay ? `${dates.length} Tage` : 'Eintägiger Kurs'} · pro Datum den Typ wählen, bei Pool-Tagen den Pool angeben.
+            {isMultiDay ? `${dates.length} Tage` : 'Eintägiger Kurs'} · pro Datum mehrere Typen kombinierbar (z.B. Theorie + Pool am gleichen Tag).
           </div>
 
-          <div style={{ display: 'grid', gap: 6 }}>
+          <div style={{ display: 'grid', gap: 10 }}>
             {dates.map((d, i) => (
               <div
                 key={i}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 130px 130px 32px',
-                  gap: 6,
-                  alignItems: 'center',
-                }}
+                className="glass-thin"
+                style={{ padding: 10, borderRadius: 10, display: 'grid', gap: 6 }}
               >
-                <input
-                  type="date"
-                  value={d.date}
-                  onChange={(e) => updateDate(i, { date: e.target.value })}
-                  style={inputStyle}
-                />
-                <select
-                  value={d.type}
-                  onChange={(e) => updateDate(i, { type: e.target.value as CourseDateType })}
-                  style={inputStyle}
-                >
-                  {COURSE_DATE_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>{t.emoji} {t.label}</option>
-                  ))}
-                </select>
-                {d.type === 'pool' ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto 32px', gap: 6, alignItems: 'center' }}>
+                  <input
+                    type="date"
+                    value={d.date}
+                    onChange={(e) => updateDate(i, { date: e.target.value })}
+                    style={inputStyle}
+                  />
+                  <TypeToggle label="📚 Theorie" checked={d.has_theory} onChange={(v) => updateDate(i, { has_theory: v })} />
+                  <TypeToggle label="🏊 Pool"    checked={d.has_pool}   onChange={(v) => updateDate(i, { has_pool: v })} />
+                  <TypeToggle label="🌊 See"     checked={d.has_lake}   onChange={(v) => updateDate(i, { has_lake: v })} />
+                  <button
+                    type="button"
+                    className="btn-icon"
+                    onClick={() => removeDateAt(i)}
+                    title="Tag entfernen"
+                    disabled={dates.length === 1}
+                  >
+                    <Icon name="x" size={12} />
+                  </button>
+                </div>
+                {d.has_pool && (
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     <select
                       value={d.pool_location ?? ''}
@@ -442,18 +472,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                       reserv.
                     </label>
                   </div>
-                ) : (
-                  <div className="caption-2" style={{ textAlign: 'center', alignSelf: 'center' }}>—</div>
                 )}
-                <button
-                  type="button"
-                  className="btn-icon"
-                  onClick={() => removeDateAt(i)}
-                  title="Tag entfernen"
-                  disabled={dates.length === 1}
-                >
-                  <Icon name="x" size={12} />
-                </button>
               </div>
             ))}
           </div>
@@ -555,4 +574,33 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
 
 function Label({ children }: { children: string }) {
   return <div className="caption-2" style={{ marginBottom: 4 }}>{children.toUpperCase()}</div>
+}
+
+function TypeToggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '6px 10px',
+        borderRadius: 8,
+        border: '0.5px solid var(--hairline)',
+        background: checked ? 'rgba(0,122,255,.16)' : 'transparent',
+        cursor: 'pointer',
+        userSelect: 'none',
+        fontSize: 12,
+        fontWeight: checked ? 600 : 400,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        style={{ cursor: 'pointer' }}
+      />
+      {label}
+    </label>
+  )
 }
