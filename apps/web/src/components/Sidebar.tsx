@@ -26,6 +26,7 @@ const ITEMS: NavItem[] = [
   { to: '/tldm',      icon: 'users',    label: 'TL/DM',          roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/schueler',  icon: 'tag',      label: 'Personen',       roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/cd/organisationen', icon: 'tag', label: 'Organisationen', roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/communication', icon: 'chart', label: 'Communication',  roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/skills',    icon: 'grid',     label: 'Skill-Matrix',   roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/pool',      icon: 'water',    label: 'Pool',           roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/saldi',     icon: 'wallet',   label: 'Saldi',          roles: ['dispatcher', 'owner', 'cd'] },

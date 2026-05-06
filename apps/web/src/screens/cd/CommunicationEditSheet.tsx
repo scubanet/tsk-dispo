@@ -48,11 +48,19 @@ const inputStyle = {
   width: '100%',
 }
 
+interface PersonOption {
+  id: string
+  name: string
+  is_student?: boolean
+  is_candidate?: boolean
+}
+
 interface Props {
   open: boolean
   onClose: () => void
   onSaved: () => void
-  contactId: string
+  /** Wenn gesetzt: Touchpoint hängt direkt an dieser Person. Sonst Person-Picker im Sheet. */
+  contactId?: string | null
   /** When set, edits an existing entry. */
   entryId?: string | null
   /** Default-Assessor (instructor_id) zum Setzen von created_by */
@@ -60,6 +68,10 @@ interface Props {
 }
 
 export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entryId, createdById }: Props) {
+  const showPicker = !contactId
+  const [pickedContactId, setPickedContactId] = useState<string>('')
+  const [people, setPeople] = useState<PersonOption[]>([])
+  const [pickerSearch, setPickerSearch] = useState('')
   const isEdit = !!entryId
   const [form, setForm] = useState<Form>(EMPTY)
   const [saving, setSaving] = useState(false)
@@ -68,15 +80,25 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
   useEffect(() => {
     if (!open) return
     setError(null)
+    setPickedContactId('')
+    if (showPicker) {
+      supabase
+        .from('people')
+        .select('id, name, is_student, is_candidate')
+        .order('last_name')
+        .order('first_name')
+        .then(({ data }) => setPeople((data ?? []) as PersonOption[]))
+    }
     if (entryId) {
       supabase
         .from('communication_entries')
-        .select('channel, direction, occurred_on, subject, body, duration_minutes, outcome')
+        .select('channel, direction, occurred_on, subject, body, duration_minutes, outcome, contact_id')
         .eq('id', entryId)
         .single()
         .then(({ data }) => {
           if (!data) return
           const d = data as any
+          if (showPicker && d.contact_id) setPickedContactId(d.contact_id)
           setForm({
             channel: d.channel ?? 'note',
             direction: d.direction ?? 'outbound',
@@ -97,10 +119,15 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
   }
 
   async function save() {
+    const finalContactId = contactId ?? pickedContactId
+    if (!finalContactId) {
+      setError('Bitte eine Person wählen.')
+      return
+    }
     setSaving(true)
     setError(null)
     const payload = {
-      contact_id: contactId,
+      contact_id: finalContactId,
       channel: form.channel,
       direction: form.direction,
       occurred_on: form.occurred_on ? new Date(form.occurred_on).toISOString() : new Date().toISOString(),
@@ -138,6 +165,44 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
   return (
     <Sheet open={open} onClose={onClose} title={isEdit ? 'Touchpoint bearbeiten' : 'Neuer Touchpoint'} width={520}>
       <div style={{ display: 'grid', gap: 14 }}>
+        {showPicker && (
+          <Field label="Person">
+            <input
+              value={pickerSearch}
+              onChange={(e) => setPickerSearch(e.target.value)}
+              placeholder="Name suchen…"
+              style={inputStyle}
+            />
+            <div style={{ marginTop: 6, maxHeight: 180, overflow: 'auto', display: 'grid', gap: 4 }}>
+              {people
+                .filter((p) => !pickerSearch || p.name.toLowerCase().includes(pickerSearch.toLowerCase()))
+                .slice(0, 30)
+                .map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPickedContactId(p.id)}
+                    style={{
+                      textAlign: 'left',
+                      padding: '6px 10px',
+                      borderRadius: 6,
+                      border: 0,
+                      cursor: 'pointer',
+                      background: pickedContactId === p.id ? 'var(--accent-soft)' : 'rgba(120,120,128,.08)',
+                      color: pickedContactId === p.id ? 'var(--accent)' : 'var(--ink)',
+                      fontWeight: pickedContactId === p.id ? 600 : 400,
+                      fontSize: 13,
+                    }}
+                  >
+                    {p.name}
+                    {p.is_candidate && <span style={{ marginLeft: 8, opacity: 0.6, fontSize: 11 }}>· Kandidat</span>}
+                    {p.is_student && !p.is_candidate && <span style={{ marginLeft: 8, opacity: 0.6, fontSize: 11 }}>· Schüler</span>}
+                  </button>
+                ))}
+            </div>
+          </Field>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <Field label="Kanal">
             <select value={form.channel} onChange={(e) => set('channel', e.target.value)} style={inputStyle}>
