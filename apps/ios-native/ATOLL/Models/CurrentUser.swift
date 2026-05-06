@@ -5,6 +5,17 @@ struct CurrentUser: Codable, Identifiable, Equatable {
     case instructor
     case dispatcher
     case owner
+    case cd
+
+    /// Lesbares Label für UI-Anzeige (z.B. "Course Director" statt "Cd").
+    var displayName: String {
+      switch self {
+      case .instructor: return "Instructor"
+      case .dispatcher: return "Dispatcher"
+      case .owner:      return "Owner"
+      case .cd:         return "Course Director"
+      }
+    }
   }
 
   let id: UUID                  // instructors.id

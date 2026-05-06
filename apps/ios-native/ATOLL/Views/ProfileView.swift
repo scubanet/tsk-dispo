@@ -67,7 +67,7 @@ struct ProfileView: View {
 
                 // Rolle / Kunde
                 Section("Konto") {
-                    LabeledContent("Rolle", value: user.role.rawValue.capitalized)
+                    LabeledContent("Rolle", value: user.role.displayName)
                     LabeledContent("Tenant", value: Config.tenantName)
                 }
 
