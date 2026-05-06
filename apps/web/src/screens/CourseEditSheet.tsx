@@ -22,6 +22,7 @@ interface DateEntry {
   date: string
   type: CourseDateType
   pool_location: PoolLocation | null
+  pool_reserved: boolean
 }
 
 interface Props {
@@ -60,7 +61,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
   const [title, setTitle] = useState('')
   const [status, setStatus] = useState<'tentative' | 'confirmed' | 'completed' | 'cancelled'>('tentative')
   const [dates, setDates] = useState<DateEntry[]>([
-    { date: new Date().toISOString().slice(0, 10), type: 'theorie', pool_location: null },
+    { date: new Date().toISOString().slice(0, 10), type: 'theorie', pool_location: null, pool_reserved: false },
   ])
   const [numParticipants, setNumParticipants] = useState(0)
   const [info, setInfo] = useState('')
@@ -92,7 +93,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           .single(),
         supabase
           .from('course_dates')
-          .select('date, type, pool_location')
+          .select('date, type, pool_location, pool_reserved')
           .eq('course_id', courseId)
           .order('date'),
       ]).then(([courseRes, datesRes]) => {
@@ -106,9 +107,13 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         setNotes(c.notes ?? '')
 
         // Combine course_dates rows with start_date + additional_dates as fallback
-        const cdMap = new Map<string, { type: CourseDateType; pool: PoolLocation | null }>()
+        const cdMap = new Map<string, { type: CourseDateType; pool: PoolLocation | null; reserved: boolean }>()
         for (const cd of datesRes.data ?? []) {
-          cdMap.set(cd.date, { type: cd.type as CourseDateType, pool: cd.pool_location as PoolLocation | null })
+          cdMap.set(cd.date, {
+            type: cd.type as CourseDateType,
+            pool: cd.pool_location as PoolLocation | null,
+            reserved: !!(cd as any).pool_reserved,
+          })
         }
 
         const allDateStrings = [c.start_date, ...((c.additional_dates as string[]) ?? [])].filter(Boolean)
@@ -118,17 +123,18 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
             date: d,
             type: meta?.type ?? 'theorie',
             pool_location: meta?.pool ?? null,
+            pool_reserved: meta?.reserved ?? false,
           }
         })
 
         setDates(merged.length > 0 ? merged : [
-          { date: c.start_date, type: 'theorie', pool_location: null },
+          { date: c.start_date, type: 'theorie', pool_location: null, pool_reserved: false },
         ])
       })
     } else {
       // Reset for create mode
       setTypeId(''); setTitle(''); setStatus('tentative')
-      setDates([{ date: new Date().toISOString().slice(0, 10), type: 'theorie', pool_location: null }])
+      setDates([{ date: new Date().toISOString().slice(0, 10), type: 'theorie', pool_location: null, pool_reserved: false }])
       setNumParticipants(0)
       setInfo(''); setNotes(''); setHaupt('')
     }
@@ -153,7 +159,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
   function addDate() {
     setDates((prev) => [
       ...prev,
-      { date: '', type: 'theorie', pool_location: null },
+      { date: '', type: 'theorie', pool_location: null, pool_reserved: false },
     ])
   }
   function removeDateAt(idx: number) {
@@ -296,6 +302,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         date: d.date,
         type: d.type,
         pool_location: d.type === 'pool' ? d.pool_location : null,
+        pool_reserved: d.type === 'pool' ? d.pool_reserved : false,
       }))
       if (rows.length > 0) {
         const { error: cdErr } = await supabase.from('course_dates').insert(rows)
@@ -396,20 +403,45 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                   ))}
                 </select>
                 {d.type === 'pool' ? (
-                  <select
-                    value={d.pool_location ?? ''}
-                    onChange={(e) =>
-                      updateDate(i, {
-                        pool_location: (e.target.value || null) as PoolLocation | null,
-                      })
-                    }
-                    style={inputStyle}
-                  >
-                    <option value="">Pool wählen</option>
-                    {POOL_LOCATIONS.map((p) => (
-                      <option key={p.value} value={p.value}>{p.label}</option>
-                    ))}
-                  </select>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <select
+                      value={d.pool_location ?? ''}
+                      onChange={(e) =>
+                        updateDate(i, {
+                          pool_location: (e.target.value || null) as PoolLocation | null,
+                        })
+                      }
+                      style={{ ...inputStyle, flex: 1 }}
+                    >
+                      <option value="">Pool wählen</option>
+                      {POOL_LOCATIONS.map((p) => (
+                        <option key={p.value} value={p.value}>{p.label}</option>
+                      ))}
+                    </select>
+                    <label
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        padding: '4px 8px',
+                        borderRadius: 6,
+                        border: '0.5px solid var(--hairline)',
+                        background: d.pool_reserved ? 'rgba(52,199,89,.18)' : 'transparent',
+                        cursor: 'pointer',
+                        fontSize: 11.5,
+                        whiteSpace: 'nowrap',
+                      }}
+                      title="Pool reserviert / gebucht"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={d.pool_reserved}
+                        onChange={(e) => updateDate(i, { pool_reserved: e.target.checked })}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      reserv.
+                    </label>
+                  </div>
                 ) : (
                   <div className="caption-2" style={{ textAlign: 'center', alignSelf: 'center' }}>—</div>
                 )}
