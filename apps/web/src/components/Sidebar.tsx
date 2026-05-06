@@ -24,7 +24,7 @@ const ITEMS: NavItem[] = [
   { to: '/kalender',  icon: 'calendar', label: 'Kalender',       roles: ['dispatcher', 'instructor', 'owner', 'cd'] },
   { to: '/kurse',     icon: 'book',     label: 'Kurse',          roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/tldm',      icon: 'users',    label: 'TL/DM',          roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/schueler',  icon: 'tag',      label: 'Schüler',        roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/schueler',  icon: 'tag',      label: 'Personen',       roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/skills',    icon: 'grid',     label: 'Skill-Matrix',   roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/pool',      icon: 'water',    label: 'Pool',           roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/saldi',     icon: 'wallet',   label: 'Saldi',          roles: ['dispatcher', 'owner', 'cd'] },
@@ -34,9 +34,8 @@ const ITEMS: NavItem[] = [
 ]
 
 // CD-Modul: nur für CD-Rolle sichtbar (Owner read-only erscheint später separat)
+// Kontakte/Kandidaten sind jetzt Tabs in „Personen" — hier nur CD-spezifische Tools.
 const CD_ITEMS: NavItem[] = [
-  { to: '/cd/kontakte',       icon: 'users', label: 'Kontakte',       roles: ['cd'] },
-  { to: '/cd/kandidaten',     icon: 'tag',   label: 'Kandidaten',     roles: ['cd'] },
   { to: '/cd/pipeline',       icon: 'chart', label: 'Pipeline',       roles: ['cd'] },
   { to: '/cd/organisationen', icon: 'tag',   label: 'Organisationen', roles: ['cd'] },
 ]

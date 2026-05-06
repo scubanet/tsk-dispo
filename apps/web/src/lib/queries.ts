@@ -249,12 +249,16 @@ export interface Student {
   notes: string | null
   active: boolean
   created_at: string
+  is_student?: boolean
+  is_candidate?: boolean
+  organization_id?: string | null
+  pipeline_stage?: string
 }
 
 export async function fetchStudents(): Promise<Student[]> {
   const { data, error } = await supabase
     .from('people')
-    .select('id, name, email, phone, birthday, padi_nr, level, notes, active, created_at')
+    .select('id, name, email, phone, birthday, padi_nr, level, notes, active, created_at, is_student, is_candidate, organization_id, pipeline_stage')
     .order('last_name')
     .order('first_name')
   if (error) throw error

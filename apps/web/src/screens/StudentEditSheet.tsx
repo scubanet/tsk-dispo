@@ -29,6 +29,7 @@ interface Form {
   languages: string        // CSV
   organization_id: string  // '' = none
   organization_role: string
+  is_student: boolean
   is_candidate: boolean
 }
 
@@ -107,6 +108,7 @@ const EMPTY: Form = {
   languages: '',
   organization_id: '',
   organization_role: '',
+  is_student: true,
   is_candidate: false,
 }
 
@@ -137,7 +139,7 @@ export function StudentEditSheet({
       const cols = [
         'first_name','last_name','name','email','phone','birthday','padi_nr','level','notes','active',
         'address','postal_code','city','country','photo_url',
-        'pipeline_stage','lead_source','tags','languages','organization_id','organization_role','is_candidate',
+        'pipeline_stage','lead_source','tags','languages','organization_id','organization_role','is_candidate','is_student',
       ].join(',')
       supabase
         .from('people')
@@ -173,6 +175,7 @@ export function StudentEditSheet({
             languages: Array.isArray(d.languages) ? d.languages.join(', ') : '',
             organization_id: d.organization_id ?? '',
             organization_role: d.organization_role ?? '',
+            is_student: d.is_student !== undefined ? !!d.is_student : true,
             is_candidate: !!d.is_candidate,
           })
         })
@@ -222,6 +225,7 @@ export function StudentEditSheet({
         languages: csvToArray(form.languages),
         organization_id: form.organization_id || null,
         organization_role: form.organization_role.trim(),
+        is_student: form.is_student,
         is_candidate: form.is_candidate,
       })
     }
@@ -368,6 +372,17 @@ export function StudentEditSheet({
                 </Field>
               </div>
 
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: form.is_student ? 'rgba(0,122,255,.12)' : 'transparent', border: '0.5px solid var(--hairline)' }}>
+                <input
+                  id="is_student"
+                  type="checkbox"
+                  checked={form.is_student}
+                  onChange={(e) => set('is_student', e.target.checked)}
+                />
+                <label htmlFor="is_student" style={{ fontWeight: 600 }}>Schüler:in</label>
+                <span className="caption" style={{ marginLeft: 'auto' }}>aktiver Tauchschüler</span>
+              </div>
+
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: form.is_candidate ? 'rgba(52,199,89,.12)' : 'transparent', border: '0.5px solid var(--hairline)' }}>
                 <input
                   id="is_candidate"
@@ -375,7 +390,7 @@ export function StudentEditSheet({
                   checked={form.is_candidate}
                   onChange={(e) => set('is_candidate', e.target.checked)}
                 />
-                <label htmlFor="is_candidate" style={{ fontWeight: 600 }}>Als Kandidat:in markieren</label>
+                <label htmlFor="is_candidate" style={{ fontWeight: 600 }}>Kandidat:in</label>
                 <span className="caption" style={{ marginLeft: 'auto' }}>
                   erscheint in der CD-Kandidatenliste
                 </span>
