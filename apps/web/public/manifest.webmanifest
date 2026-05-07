@@ -1,13 +1,19 @@
 {
-  "name": "ATOLL — The diving school OS",
+  "name": "ATOLL — The Scuba OS",
   "short_name": "ATOLL",
   "description": "Operations, Disposition und Saldi für PADI-Tauchschulen.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f2f1ee",
+  "background_color": "#0A1C38",
   "theme_color": "#0A84FF",
   "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
