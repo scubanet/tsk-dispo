@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { de } from 'date-fns/locale'
+import { de, enGB } from 'date-fns/locale'
 import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { Avatar } from '@/components/Avatar'
 import { Chip } from '@/components/Chip'
@@ -30,13 +31,6 @@ import { supabase } from '@/lib/supabase'
 import type { OutletCtx } from '@/layout/AppShell'
 
 type Tab = 'overview' | 'assignments' | 'participants' | 'notes' | 'prs'
-
-const BASE_TABS: { value: Tab; label: string }[] = [
-  { value: 'overview',     label: 'Übersicht' },
-  { value: 'assignments',  label: 'TL/DM' },
-  { value: 'participants', label: 'Teilnehmer' },
-  { value: 'notes',        label: 'Notizen' },
-]
 
 // Mapping: course_type.code → pr_catalogs.course_type
 // Hinweis: DM ist kein originärer CD-Kurs, sondern dient als Recruiting-Kanal
@@ -108,6 +102,14 @@ interface PrRecord {
 }
 
 export function CourseDetailPanel({ courseId }: { courseId: string }) {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
+  const BASE_TABS: { value: Tab; label: string }[] = [
+    { value: 'overview',     label: t('course_detail.tab_overview') },
+    { value: 'assignments',  label: t('course_detail.tab_assignments') },
+    { value: 'participants', label: t('course_detail.tab_participants') },
+    { value: 'notes',        label: t('course_detail.tab_notes') },
+  ]
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
@@ -161,11 +163,11 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       .then(({ data }) => setPrRecords((data ?? []) as PrRecord[]))
   }, [courseId, refreshTick, isCD, catalogKind])
 
-  if (!course) return <div style={{ padding: 40 }} className="caption">Lade…</div>
+  if (!course) return <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
 
   // PR-Tab nur wenn CD + CD-Kurs + Catalog vorhanden
   const visibleTabs: { value: Tab; label: string }[] = isCD && isCdCourse
-    ? [...BASE_TABS, { value: 'prs', label: 'PRs' }]
+    ? [...BASE_TABS, { value: 'prs', label: t('course_detail.tab_prs') }]
     : BASE_TABS
 
   const tone =
@@ -202,9 +204,9 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
           <div className="title-1">{course.title}</div>
           <div className="caption" style={{ marginTop: 4 }}>
             {course.course_type?.label ?? '—'} ·{' '}
-            {format(new Date(course.start_date), 'EEEE, d. MMMM yyyy', { locale: de })}
+            {format(new Date(course.start_date), 'EEEE, d. MMMM yyyy', { locale: dfLocale })}
             {course.additional_dates.length > 0 && (
-              <> · +{course.additional_dates.length} {course.additional_dates.length === 1 ? 'Tag' : 'Tage'}</>
+              <> · +{t('course_detail.additional_days', { count: course.additional_dates.length })}</>
             )}
           </div>
         </div>
@@ -212,29 +214,29 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
           <Chip tone={tone}>{course.status}</Chip>
           {isDispatcher && (
             <button className="btn-secondary btn" onClick={() => setEditCourseOpen(true)}>
-              <Icon name="settings" size={14} /> Bearbeiten
+              <Icon name="settings" size={14} /> {t('common.edit')}
             </button>
           )}
           <WhatsAppButton
             url={course.status === 'cancelled' ? cancelUrl : announceUrl}
-            label={course.status === 'cancelled' ? 'Storno posten' : 'In Gruppe ankündigen'}
+            label={course.status === 'cancelled' ? t('course_detail.post_cancellation') : t('course_detail.announce_in_group')}
           />
         </div>
       </div>
       <div style={{ height: 16 }} />
 
       <div className="seg" style={{ marginBottom: 20 }}>
-        {visibleTabs.map((t) => (
+        {visibleTabs.map((tabDef) => (
           <button
-            key={t.value}
-            className={clsx(tab === t.value && 'active')}
-            onClick={() => setTab(t.value)}
+            key={tabDef.value}
+            className={clsx(tab === tabDef.value && 'active')}
+            onClick={() => setTab(tabDef.value)}
           >
-            {t.label}
-            {t.value === 'assignments' && (
+            {tabDef.label}
+            {tabDef.value === 'assignments' && (
               <span className="caption" style={{ marginLeft: 6 }}>· {assignments.length}</span>
             )}
-            {t.value === 'participants' && (
+            {tabDef.value === 'participants' && (
               <span className="caption" style={{ marginLeft: 6 }}>· {participants.length}</span>
             )}
           </button>
@@ -243,18 +245,18 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
 
       {tab === 'overview' && (
         <div style={{ display: 'grid', gap: 14 }}>
-          <Field label="Kurstyp" value={`${course.course_type?.code ?? '—'} · ${course.course_type?.label ?? '—'}`} />
+          <Field label={t('course_detail.field_type')} value={`${course.course_type?.code ?? '—'} · ${course.course_type?.label ?? '—'}`} />
           <Field
-            label="Teilnehmer"
+            label={t('course_detail.field_participants')}
             value={
               course.num_participants > 0 && course.num_participants !== participants.length
-                ? `${participants.length} angemeldet · ${course.num_participants} geplant`
-                : `${participants.length} angemeldet`
+                ? t('course_detail.participants_enrolled_planned', { enrolled: participants.length, planned: course.num_participants })
+                : t('course_detail.participants_enrolled', { count: participants.length })
             }
           />
 
           <div>
-            <div className="caption-2">KURSDATEN ({courseDates.length || 1})</div>
+            <div className="caption-2">{t('course_detail.section_course_dates', { count: courseDates.length || 1 })}</div>
             <div style={{ display: 'grid', gap: 6, marginTop: 6 }}>
               {(courseDates.length > 0
                 ? courseDates
@@ -279,9 +281,9 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                     }}
                   >
                     <span className="mono" style={{ fontSize: 13, fontWeight: 500, minWidth: 110 }}>
-                      {format(new Date(cd.date), 'EEE, d. MMM', { locale: de })}
+                      {format(new Date(cd.date), 'EEE, d. MMM', { locale: dfLocale })}
                     </span>
-                    {hasTheory && <Chip tone="neutral">📚 Theorie</Chip>}
+                    {hasTheory && <Chip tone="neutral">📚 {t('course_edit.type_theory')}</Chip>}
                     {hasPool && (
                       <span
                         style={{
@@ -296,13 +298,13 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                           color: cd.pool_reserved ? '#1c8b3c' : '#a04e00',
                           border: cd.pool_reserved ? '0.5px solid rgba(52,199,89,.45)' : '0.5px dashed rgba(255,149,0,.55)',
                         }}
-                        title={cd.pool_reserved ? 'Pool reserviert' : 'Pool noch nicht reserviert'}
+                        title={cd.pool_reserved ? t('pool.legend_reserved') : t('pool.legend_open')}
                       >
-                        🏊 {poolMeta?.label ?? cd.pool_location ?? 'Pool'}
+                        🏊 {poolMeta?.label ?? cd.pool_location ?? t('course_edit.type_pool')}
                         {cd.pool_reserved ? ' ✓' : ' …'}
                       </span>
                     )}
-                    {hasLake && <Chip tone="green">🌊 See</Chip>}
+                    {hasLake && <Chip tone="green">🌊 {t('course_edit.type_lake')}</Chip>}
                   </div>
                 )
               })}
@@ -322,12 +324,12 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
               }}
               style={{ alignSelf: 'flex-start' }}
             >
-              <Icon name="plus" size={14} /> TL/DM zuweisen
+              <Icon name="plus" size={14} /> {t('course_detail.assign_tldm')}
             </button>
           )}
 
           {assignments.length === 0 ? (
-            <div className="caption">Noch keine Zuweisungen.</div>
+            <div className="caption">{t('course_detail.no_assignments')}</div>
           ) : (
             assignments.map((a) => {
               const dates = (a as any).assigned_for_dates as string[] | undefined
@@ -359,15 +361,15 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                       {a.instructor?.padi_level} · {a.role}
                       {partial && (
                         <Chip tone="purple">
-                          {dates!.length}/{allDates.length} Tage
+                          {t('course_detail.days_partial', { selected: dates!.length, total: allDates.length })}
                         </Chip>
                       )}
                     </div>
                   </div>
                   {a.confirmed ? (
-                    <Chip tone="green">bestätigt</Chip>
+                    <Chip tone="green">{t('my_assignments.confirmed')}</Chip>
                   ) : (
-                    <Chip tone="orange">offen</Chip>
+                    <Chip tone="orange">{t('my_assignments.open')}</Chip>
                   )}
                   {isDispatcher && <Icon name="chevron-right" size={14} />}
                 </div>
@@ -388,17 +390,19 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                   setEnrollOpen(true)
                 }}
               >
-                <Icon name="plus" size={14} /> Schüler anmelden
+                <Icon name="plus" size={14} /> {t('course_detail.enroll_student')}
               </button>
               <div className="caption" style={{ alignSelf: 'center' }}>
-                {participants.filter((p) => p.status === 'enrolled').length} angemeldet ·{' '}
-                {participants.filter((p) => p.status === 'certified').length} zertifiziert
+                {t('course_detail.enrolled_certified_summary', {
+                  enrolled: participants.filter((p) => p.status === 'enrolled').length,
+                  certified: participants.filter((p) => p.status === 'certified').length,
+                })}
               </div>
             </div>
           )}
 
           {participants.length === 0 ? (
-            <div className="caption">Noch keine Teilnehmer.</div>
+            <div className="caption">{t('course_detail.no_participants')}</div>
           ) : (
             participants.map((p) => (
               <div
@@ -438,7 +442,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                   </div>
                 </div>
                 {p.certificate_nr && (
-                  <Chip tone="green">Zert: {p.certificate_nr}</Chip>
+                  <Chip tone="green">{t('course_detail.cert_short', { nr: p.certificate_nr })}</Chip>
                 )}
                 {isDispatcher && (
                   <button
@@ -449,9 +453,9 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                       setIntakeForCpId(p.id)
                     }}
                     style={{ height: 26, padding: '0 10px', fontSize: 11.5 }}
-                    title="Intake-Checkliste"
+                    title={t('course_detail.intake_tooltip')}
                   >
-                    Intake
+                    {t('course_detail.intake')}
                   </button>
                 )}
                 <Chip
@@ -460,8 +464,8 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                     p.status === 'dropped'   ? 'red' : 'orange'
                   }
                 >
-                  {p.status === 'enrolled' ? 'angemeldet' :
-                   p.status === 'certified' ? 'zertifiziert' : 'abgebrochen'}
+                  {p.status === 'enrolled' ? t('course_detail.status_enrolled') :
+                   p.status === 'certified' ? t('course_detail.status_certified') : t('course_detail.status_dropped')}
                 </Chip>
                 {isDispatcher && <Icon name="chevron-right" size={14} />}
               </div>
@@ -494,11 +498,11 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
 
       {tab === 'notes' && (
         <div>
-          <div className="title-3" style={{ marginBottom: 8 }}>Info</div>
+          <div className="title-3" style={{ marginBottom: 8 }}>{t('course_detail.section_info')}</div>
           <div className="caption" style={{ marginBottom: 18, whiteSpace: 'pre-wrap' }}>
             {course.info || '—'}
           </div>
-          <div className="title-3" style={{ marginBottom: 8 }}>Notizen</div>
+          <div className="title-3" style={{ marginBottom: 8 }}>{t('course_detail.section_notes')}</div>
           <div className="caption" style={{ whiteSpace: 'pre-wrap' }}>
             {course.notes || '—'}
           </div>
