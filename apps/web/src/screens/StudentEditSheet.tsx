@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -48,14 +49,7 @@ const LEVELS = [
   'CD',
 ] as const
 
-const STAGES = [
-  { code: 'none',        label: 'Kein' },
-  { code: 'lead',        label: 'Lead' },
-  { code: 'qualified',   label: 'Qualifiziert' },
-  { code: 'opportunity', label: 'Opportunity' },
-  { code: 'candidate',   label: 'Kandidat' },
-  { code: 'lost',        label: 'Verloren' },
-]
+const STAGE_CODES = ['none', 'lead', 'qualified', 'opportunity', 'candidate', 'lost'] as const
 
 const LANGUAGES = [
   { code: 'de',  label: 'De' },
@@ -128,7 +122,9 @@ export function StudentEditSheet({
   defaultIsCandidate = false,
   defaultPipelineStage,
 }: Props) {
+  const { t } = useTranslation()
   const isEdit = !!studentId
+  const STAGES = STAGE_CODES.map((code) => ({ code, label: t(`student_edit.stage_${code}`) }))
   const [form, setForm] = useState<Form>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -254,7 +250,7 @@ export function StudentEditSheet({
 
   async function deleteStudent() {
     if (!isEdit) return
-    if (!confirm('Schüler wirklich löschen? Falls er bereits Kursen zugewiesen ist, wird das Löschen blockiert — markier ihn dann lieber als inaktiv.')) return
+    if (!confirm(t('student_edit.confirm_delete'))) return
     setSaving(true)
     const { error: delErr } = await supabase.from('people').delete().eq('id', studentId!)
     setSaving(false)
@@ -264,46 +260,46 @@ export function StudentEditSheet({
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title={isEdit ? 'Schüler bearbeiten' : 'Neuer Schüler'} width={showCdFields ? 600 : 520}>
+    <Sheet open={open} onClose={onClose} title={isEdit ? t('student_edit.title_edit') : t('student_edit.title_new')} width={showCdFields ? 600 : 520}>
       <div style={{ display: 'grid', gap: 14 }}>
-        <Section title="Stamm">
+        <Section title={t('student_edit.section_master')}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Field label="Vorname">
+            <Field label={t('student_edit.label_first_name')}>
               <input value={form.first_name} onChange={(e) => set('first_name', e.target.value)} style={inputStyle} />
             </Field>
-            <Field label="Nachname">
+            <Field label={t('student_edit.label_last_name')}>
               <input value={form.last_name} onChange={(e) => set('last_name', e.target.value)} style={inputStyle} />
             </Field>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Field label="Email">
+            <Field label={t('student_edit.label_email')}>
               <input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="name@example.ch" style={inputStyle} />
             </Field>
-            <Field label="Telefon / WhatsApp">
+            <Field label={t('student_edit.label_phone')}>
               <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="+41 …" style={inputStyle} />
             </Field>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Field label="Geburtstag">
+            <Field label={t('student_edit.label_birthday')}>
               <input type="date" value={form.birthday} onChange={(e) => set('birthday', e.target.value)} style={inputStyle} />
             </Field>
-            <Field label="PADI-Nr (falls vorhanden)">
-              <input value={form.padi_nr} onChange={(e) => set('padi_nr', e.target.value)} placeholder="optional" style={inputStyle} />
+            <Field label={t('student_edit.label_padi_nr')}>
+              <input value={form.padi_nr} onChange={(e) => set('padi_nr', e.target.value)} placeholder={t('student_edit.placeholder_optional')} style={inputStyle} />
             </Field>
           </div>
 
-          <Field label="Aktueller Level">
+          <Field label={t('student_edit.label_level')}>
             <select value={form.level} onChange={(e) => set('level', e.target.value)} style={inputStyle}>
               {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
             <div className="caption-2" style={{ marginTop: 4 }}>
-              Der höchste bisher erreichte Tauchschein-Level. Updaten wenn ein neuer Schein erworben wird.
+              {t('student_edit.level_hint')}
             </div>
           </Field>
 
-          <Field label="Notizen (medizinisch, Allergien, etc.)">
+          <Field label={t('student_edit.label_notes')}>
             <textarea
               value={form.notes}
               onChange={(e) => set('notes', e.target.value)}
@@ -316,43 +312,43 @@ export function StudentEditSheet({
 
         {showCdFields && (
           <>
-            <Section title="Adresse">
-              <Field label="Strasse">
+            <Section title={t('student_edit.section_address')}>
+              <Field label={t('student_edit.label_street')}>
                 <input value={form.address} onChange={(e) => set('address', e.target.value)} style={inputStyle} />
               </Field>
               <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12 }}>
-                <Field label="PLZ">
+                <Field label={t('student_edit.label_zip')}>
                   <input value={form.postal_code} onChange={(e) => set('postal_code', e.target.value)} style={inputStyle} />
                 </Field>
-                <Field label="Ort">
+                <Field label={t('student_edit.label_city')}>
                   <input value={form.city} onChange={(e) => set('city', e.target.value)} style={inputStyle} />
                 </Field>
               </div>
-              <Field label="Land">
+              <Field label={t('student_edit.label_country')}>
                 <input value={form.country} onChange={(e) => set('country', e.target.value)} style={inputStyle} />
               </Field>
-              <Field label="Foto-URL (optional)">
+              <Field label={t('student_edit.label_photo_url')}>
                 <input value={form.photo_url} onChange={(e) => set('photo_url', e.target.value)} placeholder="https://…" style={inputStyle} />
               </Field>
             </Section>
 
-            <Section title="CRM">
+            <Section title={t('student_edit.section_crm')}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <Field label="Pipeline-Stage">
+                <Field label={t('student_edit.label_pipeline_stage')}>
                   <select value={form.pipeline_stage} onChange={(e) => set('pipeline_stage', e.target.value)} style={inputStyle}>
                     {STAGES.map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
                   </select>
                 </Field>
-                <Field label="Lead-Quelle">
-                  <input value={form.lead_source} onChange={(e) => set('lead_source', e.target.value)} placeholder="z.B. Empfehlung, Google, Messe" style={inputStyle} />
+                <Field label={t('student_edit.label_lead_source')}>
+                  <input value={form.lead_source} onChange={(e) => set('lead_source', e.target.value)} placeholder={t('student_edit.lead_source_placeholder')} style={inputStyle} />
                 </Field>
               </div>
 
-              <Field label="Tags (Komma-getrennt)">
-                <input value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="z.B. vegan, photographer, club-member" style={inputStyle} />
+              <Field label={t('student_edit.label_tags')}>
+                <input value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder={t('student_edit.tags_placeholder')} style={inputStyle} />
               </Field>
 
-              <Field label="Sprachen">
+              <Field label={t('student_edit.label_languages')}>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {LANGUAGES.map((l) => {
                     const checked = form.languages.includes(l.code)
@@ -392,14 +388,14 @@ export function StudentEditSheet({
               </Field>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <Field label="Organisation">
+                <Field label={t('student_edit.label_organization')}>
                   <select value={form.organization_id} onChange={(e) => set('organization_id', e.target.value)} style={inputStyle}>
-                    <option value="">— keine —</option>
+                    <option value="">— {t('student_edit.org_none')} —</option>
                     {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
                   </select>
                 </Field>
-                <Field label="Rolle in Org">
-                  <input value={form.organization_role} onChange={(e) => set('organization_role', e.target.value)} placeholder="z.B. Vorstand, Mitglied" style={inputStyle} />
+                <Field label={t('student_edit.label_org_role')}>
+                  <input value={form.organization_role} onChange={(e) => set('organization_role', e.target.value)} placeholder={t('student_edit.org_role_placeholder')} style={inputStyle} />
                 </Field>
               </div>
 
@@ -410,8 +406,8 @@ export function StudentEditSheet({
                   checked={form.is_student}
                   onChange={(e) => set('is_student', e.target.checked)}
                 />
-                <label htmlFor="is_student" style={{ fontWeight: 600 }}>Schüler:in</label>
-                <span className="caption" style={{ marginLeft: 'auto' }}>aktiver Tauchschüler</span>
+                <label htmlFor="is_student" style={{ fontWeight: 600 }}>{t('student_edit.is_student')}</label>
+                <span className="caption" style={{ marginLeft: 'auto' }}>{t('student_edit.is_student_hint')}</span>
               </div>
 
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: form.is_candidate ? 'rgba(52,199,89,.12)' : 'transparent', border: '0.5px solid var(--hairline)' }}>
@@ -421,9 +417,9 @@ export function StudentEditSheet({
                   checked={form.is_candidate}
                   onChange={(e) => set('is_candidate', e.target.checked)}
                 />
-                <label htmlFor="is_candidate" style={{ fontWeight: 600 }}>Kandidat:in</label>
+                <label htmlFor="is_candidate" style={{ fontWeight: 600 }}>{t('student_edit.is_candidate')}</label>
                 <span className="caption" style={{ marginLeft: 'auto' }}>
-                  erscheint in der CD-Kandidatenliste
+                  {t('student_edit.is_candidate_hint')}
                 </span>
               </div>
             </Section>
@@ -440,17 +436,17 @@ export function StudentEditSheet({
               disabled={saving}
               style={{ color: '#FF3B30' }}
             >
-              <Icon name="x" size={12} /> Löschen
+              <Icon name="x" size={12} /> {t('common.delete')}
             </button>
           )}
-          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button
             className="btn"
             onClick={save}
             disabled={saving || !form.first_name.trim()}
             style={{ flex: 1 }}
           >
-            {saving ? 'Speichere…' : isEdit ? 'Speichern' : 'Anlegen'}
+            {saving ? t('common.saving') : isEdit ? t('common.save') : t('course_edit.create')}
           </button>
         </div>
       </div>
