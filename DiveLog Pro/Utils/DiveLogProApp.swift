@@ -31,6 +31,10 @@ struct DiveLogProApp: App {
     // to the background so work-in-progress doesn't vanish silently.
     @Environment(\.scenePhase) private var scenePhase
 
+    // Atoll Hub bridge — writes our profile/activity snapshot into the
+    // shared App Group container so Atoll Hub can read it offline.
+    private let atollBridge = DiveLogBridge()
+
     // ═══════════════════════════════════════
     // MARK: - ModelContainer (SwiftData + CloudKit)
     // ═══════════════════════════════════════
@@ -125,7 +129,14 @@ struct DiveLogProApp: App {
             // revoked access via Settings we wipe our Keychain and push them
             // back to SignInView automatically.
             .task {
+                #if DEBUG
+                DiveLogBridge.runRoundTripSelfCheck()
+                #endif
                 await appleSignIn.refreshCredentialState()
+                await DiveLogBridgePublisher(
+                    container: sharedModelContainer,
+                    bridge: atollBridge
+                ).publish()
             }
             // Handle `divelogpro://remote-sign?token=…` links (Feature 3).
             .onOpenURL { url in
@@ -146,6 +157,7 @@ struct DiveLogProApp: App {
                 }
             }
             .environment(deleteUndoManager)
+            .environment(\.atollBridge, atollBridge)
             .onChange(of: scenePhase) { _, newPhase in
                 // Don't let a pending delete hang around across app
                 // suspension — commit it now so the user's intent is honored
@@ -188,4 +200,15 @@ struct DiveLogProApp: App {
 // optional token without writing the same boilerplate inline.
 private struct RemoteSignToken: Identifiable, Hashable {
     let id: String
+}
+
+private struct DiveLogBridgeKey: EnvironmentKey {
+    static let defaultValue: DiveLogBridge? = nil
+}
+
+extension EnvironmentValues {
+    var atollBridge: DiveLogBridge? {
+        get { self[DiveLogBridgeKey.self] }
+        set { self[DiveLogBridgeKey.self] = newValue }
+    }
 }

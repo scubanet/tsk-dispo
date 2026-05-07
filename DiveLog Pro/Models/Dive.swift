@@ -71,6 +71,11 @@ final class Dive {
     // Stored as filenames, actual files in app documents directory
     var photoFilenamesRaw: String = ""
 
+    // CloudKit-mirrored binary copies (per filename) — used by PhotoStore
+    // to back up photos to iCloud without inflating the dive document.
+    @Relationship(deleteRule: .cascade, inverse: \DivePhoto.dive)
+    var photos: [DivePhoto]? = []
+
     // ─── Marine Life ─────────────────────
     var marineLifeRaw: String = ""
 

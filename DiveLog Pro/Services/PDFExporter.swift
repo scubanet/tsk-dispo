@@ -6,7 +6,7 @@ import SwiftUI
 // MARK: - PDF Exporter (Phase 5)
 // ═══════════════════════════════════════
 
-/// Renders DiveLog Pro content to PDF. Two layouts:
+/// Renders AtollLog content to PDF. Two layouts:
 ///   • Single dive → one A4 portrait page with all detail (header, stats grid,
 ///     conditions, equipment, notes, marine life, signatures).
 ///   • Full logbook → A4 portrait with two dives per page, PADI-style strip
@@ -36,8 +36,8 @@ enum PDFExporter {
     /// Render a single dive to a full-page A4 PDF. Returns the PDF bytes.
     static func exportSingleDive(_ dive: Dive, profile: DiverProfile?, languageCode: String) -> Data {
         let renderer = UIGraphicsPDFRenderer(bounds: CGRect(origin: .zero, size: pageSize),
-                                             format: pdfFormat(title: "DiveLog #\(dive.number)",
-                                                               author: profile?.name ?? "DiveLog Pro"))
+                                             format: pdfFormat(title: "AtollLog #\(dive.number)",
+                                                               author: profile?.name ?? "AtollLog"))
         return renderer.pdfData { ctx in
             ctx.beginPage()
             drawSingleDivePage(dive: dive, profile: profile, lang: languageCode)
@@ -48,8 +48,8 @@ enum PDFExporter {
     /// in a PADI-inspired strip format, then a summary page at the end.
     static func exportLogbook(_ dives: [Dive], profile: DiverProfile?, languageCode: String) -> Data {
         let renderer = UIGraphicsPDFRenderer(bounds: CGRect(origin: .zero, size: pageSize),
-                                             format: pdfFormat(title: "DiveLog Pro — \(profile?.name ?? "Logbook")",
-                                                               author: profile?.name ?? "DiveLog Pro"))
+                                             format: pdfFormat(title: "AtollLog — \(profile?.name ?? "Logbook")",
+                                                               author: profile?.name ?? "AtollLog"))
         return renderer.pdfData { ctx in
             // Cover
             ctx.beginPage()
@@ -391,7 +391,7 @@ enum PDFExporter {
         // Centered block
         let centerY = pageSize.height / 2 - 120
 
-        drawText("DIVELOG PRO",
+        drawText("ATOLLLOG",
                  at: CGPoint(x: margin, y: centerY),
                  size: 13, weight: .bold, color: seafoam, tracking: 4, center: true)
 
@@ -485,11 +485,11 @@ enum PDFExporter {
     private static func drawPageHeader(profile: DiverProfile?, lang: String) {
         // Small branded strip
         let ruleY: CGFloat = margin + 14
-        let name = (profile?.name.isEmpty == false ? profile!.name : "DiveLog Pro").uppercased()
+        let name = (profile?.name.isEmpty == false ? profile!.name : "AtollLog").uppercased()
         drawText(name,
                  at: CGPoint(x: margin, y: margin - 4),
                  size: 9, weight: .bold, color: inkSoft, tracking: 2)
-        let rightLabel = "DIVELOG PRO"
+        let rightLabel = "ATOLLLOG"
         let rw = textSize(rightLabel, size: 9, weight: .semibold).width
         drawText(rightLabel,
                  at: CGPoint(x: pageSize.width - margin - rw, y: margin - 4),
@@ -522,7 +522,7 @@ enum PDFExporter {
         }
 
         // Center: brand
-        let brand = "DiveLog Pro"
+        let brand = "AtollLog"
         let bw = textSize(brand, size: 8, weight: .regular).width
         drawText(brand,
                  at: CGPoint(x: pageSize.width / 2 - bw / 2, y: y + 8),
@@ -780,7 +780,7 @@ enum PDFExporter {
         format.documentInfo = [
             kCGPDFContextTitle as String: title,
             kCGPDFContextAuthor as String: author,
-            kCGPDFContextCreator as String: "DiveLog Pro",
+            kCGPDFContextCreator as String: "AtollLog",
         ]
         return format
     }

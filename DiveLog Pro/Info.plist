@@ -7,9 +7,9 @@
 		<string>remote-notification</string>
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>DiveLog Pro uses your location to capture dive site coordinates and auto-load weather conditions.</string>
+	<string>AtollLog uses your location to capture dive site coordinates and auto-load weather conditions.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>DiveLog Pro uses the camera to scan a buddy's QR code for quick identity transfer when signing dives.</string>
+	<string>AtollLog uses the camera to scan a buddy's QR code for quick identity transfer when signing dives.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -18,6 +18,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>divelogpro</string>
+				<string>divelog</string>
 			</array>
 		</dict>
 	</array>

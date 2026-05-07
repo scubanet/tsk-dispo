@@ -95,8 +95,8 @@ struct SignTab: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(L10n.currentLanguage == "de"
-                     ? "Der gescannte Code ist kein gültiger DiveLog-Pro-Identity-Code."
-                     : "The scanned code is not a valid DiveLog Pro identity code.")
+                     ? "Der gescannte Code ist kein gültiger AtollLog-Identity-Code."
+                     : "The scanned code is not a valid AtollLog identity code.")
             }
         }
     }

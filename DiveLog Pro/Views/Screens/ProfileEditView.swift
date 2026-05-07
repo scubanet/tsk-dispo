@@ -13,6 +13,7 @@ struct ProfileEditView: View {
     let profile: DiverProfile
     @Environment(\.modelContext) private var ctx
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.atollBridge) private var atollBridge
 
     // Ascending-order query so `.first` is the oldest (lowest-numbered) dive.
     // Used by the "first dive number" field to show the actual current start
@@ -508,6 +509,19 @@ struct ProfileEditView: View {
         originalFirstDiveNumber = startValue
     }
 
+    /// Refresh the App Group snapshot for Atoll Hub. Fires from
+    /// `saveProfile()` after in-memory mutations land on `DiverProfile`
+    /// but before SwiftData drains its context to disk + CloudKit. That's
+    /// intentional: the publisher fetches from `mainContext`, so it sees
+    /// the just-edited values; persistence catches up asynchronously.
+    private func republishToAtollBridge() {
+        guard let bridge = atollBridge else { return }
+        let container = ctx.container
+        Task { @MainActor in
+            await DiveLogBridgePublisher(container: container, bridge: bridge).publish()
+        }
+    }
+
     private func saveProfile() {
         profile.name = name.trimmingCharacters(in: .whitespaces)
         profile.padiNumber = padiNumber.trimmingCharacters(in: .whitespaces)
@@ -531,6 +545,7 @@ struct ProfileEditView: View {
         // If no dives, just persist the starting offset silently.
         guard let newFirst = Int(firstDiveNumber), newFirst > 0 else {
             // Invalid input — skip the logbook change but still save everything else.
+            republishToAtollBridge()
             dismiss()
             return
         }
@@ -538,6 +553,7 @@ struct ProfileEditView: View {
         if delta != 0 {
             if allDives.isEmpty {
                 profile.startingDiveNumber = newFirst
+                republishToAtollBridge()
                 dismiss()
             } else {
                 // Present confirmation — actual shift happens in applyShift().
@@ -546,6 +562,7 @@ struct ProfileEditView: View {
                 return
             }
         } else {
+            republishToAtollBridge()
             dismiss()
         }
     }
@@ -560,6 +577,7 @@ struct ProfileEditView: View {
         }
         profile.startingDiveNumber = (allDives.first?.number ?? profile.startingDiveNumber)
         try? ctx.save()
+        republishToAtollBridge()
         dismiss()
     }
 
