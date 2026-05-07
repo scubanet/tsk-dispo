@@ -166,6 +166,15 @@
     "day_of": "Day {{current}}/{{total}}",
     "more_count": "+{{count}} more"
   },
+  "cd_candidates": {
+    "title": "Contacts",
+    "subtitle": "{{total}} entries · {{candidates}} candidates",
+    "empty_hint": "No contacts yet — use \"New\" or mark a student in the TL/DM area as a candidate."
+  },
+  "cd_only_candidates": {
+    "title": "Candidates",
+    "subtitle": "{{count}} active candidates"
+  },
   "cd_pipeline": {
     "subtitle": "Sales stages for diving and instructor candidates",
     "no_access_title": "No access",

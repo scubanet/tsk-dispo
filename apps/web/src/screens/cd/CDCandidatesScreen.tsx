@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
@@ -20,18 +21,23 @@ interface Candidate {
   is_candidate: boolean
 }
 
-const STAGES: { code: string; label: string; tone: string }[] = [
-  { code: 'none',        label: 'Kein',        tone: 'rgba(255,255,255,.10)' },
-  { code: 'lead',        label: 'Lead',        tone: 'rgba(0,122,255,.20)' },
-  { code: 'qualified',   label: 'Qualifiziert', tone: 'rgba(255,204,0,.20)' },
-  { code: 'opportunity', label: 'Opportunity', tone: 'rgba(255,149,0,.20)' },
-  { code: 'candidate',   label: 'Kandidat',    tone: 'rgba(52,199,89,.20)' },
-  { code: 'lost',        label: 'Verloren',    tone: 'rgba(255,69,58,.18)' },
-  // Legacy: alte Daten mit 'customer' werden trotzdem als "Kandidat" gerendert
-  { code: 'customer',    label: 'Kandidat',    tone: 'rgba(52,199,89,.20)' },
+const STAGE_DEFS: { code: string; tone: string }[] = [
+  { code: 'none',        tone: 'rgba(255,255,255,.10)' },
+  { code: 'lead',        tone: 'rgba(0,122,255,.20)' },
+  { code: 'qualified',   tone: 'rgba(255,204,0,.20)' },
+  { code: 'opportunity', tone: 'rgba(255,149,0,.20)' },
+  { code: 'candidate',   tone: 'rgba(52,199,89,.20)' },
+  { code: 'lost',        tone: 'rgba(255,69,58,.18)' },
+  // Legacy: 'customer' wird wie 'candidate' behandelt
+  { code: 'customer',    tone: 'rgba(52,199,89,.20)' },
 ]
 
 export function CDCandidatesScreen() {
+  const { t } = useTranslation()
+  const STAGES = STAGE_DEFS.map((s) => ({
+    ...s,
+    label: s.code === 'customer' ? t('student_edit.stage_candidate') : t(`student_edit.stage_${s.code}`),
+  }))
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [rows, setRows] = useState<Candidate[]>([])
@@ -61,8 +67,8 @@ export function CDCandidatesScreen() {
   if (user.role !== 'cd') {
     return (
       <div style={{ padding: 40 }}>
-        <div className="title-2">Kein Zugriff</div>
-        <div className="caption">Diese Ansicht ist nur für die CD-Rolle.</div>
+        <div className="title-2">{t('cd_pipeline.no_access_title')}</div>
+        <div className="caption">{t('cd_pipeline.no_access_desc')}</div>
       </div>
     )
   }
@@ -85,11 +91,11 @@ export function CDCandidatesScreen() {
   return (
     <>
       <Topbar
-        title="Kontakte"
-        subtitle={`${rows.length} Einträge · ${rows.filter((r) => r.is_candidate).length} Kandidaten`}
+        title={t('cd_candidates.title')}
+        subtitle={t('cd_candidates.subtitle', { total: rows.length, candidates: rows.filter((r) => r.is_candidate).length })}
       >
         <button className="btn" onClick={() => setCreateOpen(true)}>
-          <Icon name="plus" size={14} /> Neu
+          <Icon name="plus" size={14} /> {t('courses.new')}
         </button>
       </Topbar>
 
@@ -117,7 +123,7 @@ export function CDCandidatesScreen() {
       <div style={{ padding: '0 24px 16px' }}>
         <input
           className="input"
-          placeholder="Suche…"
+          placeholder={t('common.search') + '…'}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{ width: '100%' }}
@@ -125,10 +131,10 @@ export function CDCandidatesScreen() {
       </div>
 
       {loading ? (
-        <div style={{ padding: 40 }} className="caption">Lade…</div>
+        <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
       ) : filtered.length === 0 ? (
         <div style={{ padding: 40 }} className="caption">
-          Noch keine Kontakte — über „Neu" oder einen Schüler im TL/DM-Bereich als Kandidat:in markieren.
+          {t('cd_candidates.empty_hint')}
         </div>
       ) : (
         <div style={{ padding: '0 24px 24px', display: 'grid', gap: 6 }}>

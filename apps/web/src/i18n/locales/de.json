@@ -166,6 +166,15 @@
     "day_of": "Tag {{current}}/{{total}}",
     "more_count": "+{{count}} mehr"
   },
+  "cd_candidates": {
+    "title": "Kontakte",
+    "subtitle": "{{total}} Einträge · {{candidates}} Kandidaten",
+    "empty_hint": "Noch keine Kontakte — über „Neu\" oder einen Schüler im TL/DM-Bereich als Kandidat:in markieren."
+  },
+  "cd_only_candidates": {
+    "title": "Kandidaten",
+    "subtitle": "{{count}} aktive Kandidat:innen"
+  },
   "cd_pipeline": {
     "subtitle": "Sales-Stages für Tauch- & Instructor-Kandidat:innen",
     "no_access_title": "Kein Zugriff",
