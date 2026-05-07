@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -53,15 +54,17 @@ const inputStyle = {
   width: '100%',
 }
 
-const STATUSES = [
-  { value: 'tentative', label: 'evtl.' },
-  { value: 'confirmed', label: 'sicher' },
-  { value: 'completed', label: 'abgeschlossen' },
-  { value: 'cancelled', label: 'CXL' },
-] as const
+const STATUS_VALUES = ['tentative', 'confirmed', 'completed', 'cancelled'] as const
 
 export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
+  const { t } = useTranslation()
   const isEdit = !!courseId
+  const STATUSES: ReadonlyArray<{ value: typeof STATUS_VALUES[number]; label: string }> = [
+    { value: 'tentative', label: t('course_edit.status_tentative') },
+    { value: 'confirmed', label: t('course_edit.status_confirmed') },
+    { value: 'completed', label: t('course_edit.status_completed') },
+    { value: 'cancelled', label: t('course_edit.status_cancelled') },
+  ]
 
   const [types, setTypes] = useState<CourseType[]>([])
   const [instructors, setInstructors] = useState<Instructor[]>([])
@@ -202,9 +205,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
 
   async function deleteCourse() {
     if (!courseId) return
-    if (!confirm(
-      `Kurs wirklich komplett löschen?\n\n• Alle Zuteilungen (TL/DM) werden entfernt\n• Alle Kursdaten + Schüler-Anmeldungen werden entfernt\n• Vergütungs-Buchungen zu diesem Kurs werden gelöscht\n\nDiese Aktion ist NICHT umkehrbar. Falls du den Kurs nur aus der Planung nehmen willst, setze ihn stattdessen auf "CXL" (abgesagt).`
-    )) return
+    if (!confirm(t('course_edit.confirm_delete'))) return
 
     setSaving(true)
     setError(null)
@@ -225,7 +226,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           .eq('kind', 'vergütung')
           .in('ref_assignment_id', assignmentIds)
         if (delMovErr) {
-          setError('Fehler beim Aufräumen der Vergütungs-Buchungen: ' + delMovErr.message)
+          setError(t('course_edit.error_cleanup_payments') + delMovErr.message)
           setSaving(false)
           return
         }
@@ -237,7 +238,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         .delete()
         .eq('id', courseId)
       if (delErr) {
-        setError('Fehler beim Löschen: ' + delErr.message)
+        setError(t('course_edit.error_delete') + delErr.message)
         setSaving(false)
         return
       }
@@ -246,7 +247,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
       onSaved()
       onClose()
     } catch (e: any) {
-      setError(e?.message || 'Unbekannter Fehler')
+      setError(e?.message || t('course_edit.error_unknown'))
       setSaving(false)
     }
   }
@@ -255,7 +256,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
     if (!typeId || !title) return
     const valid = dates.filter((d) => d.date)
     if (valid.length === 0) {
-      setError('Mindestens ein Datum erforderlich.')
+      setError(t('course_edit.error_at_least_one_date'))
       return
     }
     // Sort chronologically
@@ -304,7 +305,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         .select('id')
         .single()
       if (insErr || !course) {
-        setError(insErr?.message ?? 'Fehler'); setSaving(false); return
+        setError(insErr?.message ?? t('common.error')); setSaving(false); return
       }
       savedCourseId = course.id
 
@@ -336,7 +337,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
       if (rows.length > 0) {
         const { error: cdErr } = await supabase.from('course_dates').insert(rows)
         if (cdErr) {
-          setError('Datums-Details konnten nicht gespeichert werden: ' + cdErr.message)
+          setError(t('course_edit.error_save_dates') + cdErr.message)
           setSaving(false)
           return
         }
@@ -354,32 +355,32 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
     <Sheet
       open={open}
       onClose={onClose}
-      title={isEdit ? 'Kurs bearbeiten' : 'Neuer Kurs'}
+      title={isEdit ? t('course_edit.title_edit') : t('course_edit.title_new')}
       width={620}
     >
       <div style={{ display: 'grid', gap: 14 }}>
         <div>
-          <Label>Kurstyp</Label>
+          <Label>{t('course_edit.label_type')}</Label>
           <select value={typeId} onChange={(e) => setTypeId(e.target.value)} style={inputStyle}>
-            <option value="">— wählen —</option>
-            {types.map((t) => (
-              <option key={t.id} value={t.id}>{t.code} · {t.label}</option>
+            <option value="">— {t('course_edit.choose')} —</option>
+            {types.map((ct) => (
+              <option key={ct.id} value={ct.id}>{ct.code} · {ct.label}</option>
             ))}
           </select>
         </div>
 
         <div>
-          <Label>Titel</Label>
+          <Label>{t('course_edit.label_title')}</Label>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder='z.B. "OWD GK15"'
+            placeholder={t('course_edit.title_placeholder')}
             style={inputStyle}
           />
         </div>
 
         <div>
-          <Label>Status</Label>
+          <Label>{t('course_edit.label_status')}</Label>
           <div className="seg">
             {STATUSES.map((s) => (
               <button
@@ -396,13 +397,13 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <Label>Kursdaten · Theorie / Pool / See</Label>
+            <Label>{t('course_edit.label_dates')}</Label>
             <button type="button" className="btn-ghost btn" onClick={addDate} style={{ padding: '0 8px', height: 24 }}>
-              <Icon name="plus" size={12} /> Tag
+              <Icon name="plus" size={12} /> {t('course_edit.add_day')}
             </button>
           </div>
           <div className="caption-2" style={{ marginBottom: 8 }}>
-            {isMultiDay ? `${dates.length} Tage` : 'Eintägiger Kurs'} · pro Datum mehrere Typen kombinierbar (z.B. Theorie + Pool am gleichen Tag).
+            {isMultiDay ? t('course_edit.days_count', { count: dates.length }) : t('course_edit.single_day')} · {t('course_edit.dates_hint')}
           </div>
 
           <div style={{ display: 'grid', gap: 10 }}>
@@ -419,14 +420,14 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                     onChange={(e) => updateDate(i, { date: e.target.value })}
                     style={inputStyle}
                   />
-                  <TypeToggle label="📚 Theorie" checked={d.has_theory} onChange={(v) => updateDate(i, { has_theory: v })} />
-                  <TypeToggle label="🏊 Pool"    checked={d.has_pool}   onChange={(v) => updateDate(i, { has_pool: v })} />
-                  <TypeToggle label="🌊 See"     checked={d.has_lake}   onChange={(v) => updateDate(i, { has_lake: v })} />
+                  <TypeToggle label={`📚 ${t('course_edit.type_theory')}`} checked={d.has_theory} onChange={(v) => updateDate(i, { has_theory: v })} />
+                  <TypeToggle label={`🏊 ${t('course_edit.type_pool')}`}   checked={d.has_pool}   onChange={(v) => updateDate(i, { has_pool: v })} />
+                  <TypeToggle label={`🌊 ${t('course_edit.type_lake')}`}    checked={d.has_lake}   onChange={(v) => updateDate(i, { has_lake: v })} />
                   <button
                     type="button"
                     className="btn-icon"
                     onClick={() => removeDateAt(i)}
-                    title="Tag entfernen"
+                    title={t('course_edit.remove_day')}
                     disabled={dates.length === 1}
                   >
                     <Icon name="x" size={12} />
@@ -443,7 +444,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                       }
                       style={{ ...inputStyle, flex: 1 }}
                     >
-                      <option value="">Pool wählen</option>
+                      <option value="">{t('course_edit.pool_choose')}</option>
                       {POOL_LOCATIONS.map((p) => (
                         <option key={p.value} value={p.value}>{p.label}</option>
                       ))}
@@ -461,7 +462,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                         fontSize: 11.5,
                         whiteSpace: 'nowrap',
                       }}
-                      title="Pool reserviert / gebucht"
+                      title={t('course_edit.pool_reserved_tooltip')}
                     >
                       <input
                         type="checkbox"
@@ -469,7 +470,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                         onChange={(e) => updateDate(i, { pool_reserved: e.target.checked })}
                         style={{ cursor: 'pointer' }}
                       />
-                      reserv.
+                      {t('course_edit.reserved_short')}
                     </label>
                   </div>
                 )}
@@ -479,7 +480,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         </div>
 
         <div>
-          <Label># Teilnehmer</Label>
+          <Label>{t('course_edit.label_participants')}</Label>
           <input
             type="number"
             min={0}
@@ -490,7 +491,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         </div>
 
         <div>
-          <Label>Info (öffentliche Notiz, z.B. Treffpunkt)</Label>
+          <Label>{t('course_edit.label_info')}</Label>
           <textarea
             value={info}
             onChange={(e) => setInfo(e.target.value)}
@@ -500,7 +501,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         </div>
 
         <div>
-          <Label>Notizen (intern)</Label>
+          <Label>{t('course_edit.label_notes')}</Label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -512,15 +513,15 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         {!isEdit && (
           <>
             <div>
-              <Label>Haupt-Instructor (initial zuweisen)</Label>
+              <Label>{t('course_edit.label_haupt_instructor')}</Label>
               <select value={haupt} onChange={(e) => setHaupt(e.target.value)} style={inputStyle}>
-                <option value="">— später zuweisen —</option>
+                <option value="">— {t('course_edit.assign_later')} —</option>
                 {instructors.map((i) => (
                   <option key={i.id} value={i.id}>{i.name} ({i.padi_level})</option>
                 ))}
               </select>
               <div className="caption-2" style={{ marginTop: 4 }}>
-                Weitere TL/DM und Termine kannst du nach dem Anlegen im Kurs-Detail hinzufügen.
+                {t('course_edit.haupt_hint')}
               </div>
             </div>
 
@@ -531,10 +532,12 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
               >
                 <Icon name="bell" size={16} />
                 <div>
-                  <strong>Konflikt:</strong> Instructor ist bereits zugewiesen für{' '}
-                  <em>"{conflicts[0].conflicting_course_title}"</em> als {conflicts[0].conflicting_role}.
+                  <strong>{t('course_edit.conflict')}:</strong> {t('course_edit.conflict_text', {
+                    title: conflicts[0].conflicting_course_title,
+                    role: conflicts[0].conflicting_role,
+                  })}
                   <div className="caption-2" style={{ marginTop: 4 }}>
-                    Du kannst trotzdem speichern.
+                    {t('course_edit.conflict_hint')}
                   </div>
                 </div>
               </div>
@@ -552,19 +555,19 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
               onClick={deleteCourse}
               disabled={saving}
               style={{ color: '#FF3B30' }}
-              title="Kurs komplett entfernen"
+              title={t('course_edit.delete_tooltip')}
             >
-              <Icon name="x" size={12} /> Löschen
+              <Icon name="x" size={12} /> {t('common.delete')}
             </button>
           )}
-          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button
             className="btn"
             onClick={save}
             disabled={saving || !typeId || !title || dates.filter((d) => d.date).length === 0}
             style={{ flex: 1 }}
           >
-            {saving ? 'Speichere…' : isEdit ? 'Änderungen speichern' : 'Anlegen'}
+            {saving ? t('common.saving') : isEdit ? t('course_edit.save_changes') : t('course_edit.create')}
           </button>
         </div>
       </div>
