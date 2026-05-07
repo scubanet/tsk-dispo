@@ -166,6 +166,20 @@
     "day_of": "Day {{current}}/{{total}}",
     "more_count": "+{{count}} more"
   },
+  "cert_edit": {
+    "title_new": "Add certification",
+    "title_edit": "Edit certification",
+    "intro": "You can also record certifications that weren't earned at TSK (e.g. OWD from a vacation 5 years ago).",
+    "label_certification": "Certification",
+    "cert_placeholder": "e.g. \"OWD — Open Water Diver\"",
+    "label_issued_date": "Issue date",
+    "label_issued_by": "Issuing org",
+    "label_cert_nr": "Certificate number",
+    "cert_nr_placeholder": "optional, e.g. 1234567890",
+    "label_notes": "Notes",
+    "capture": "Add",
+    "confirm_delete": "Really delete \"{{name}}\"?"
+  },
   "enroll": {
     "title_new": "Enroll student",
     "title_edit": "Edit enrolment",

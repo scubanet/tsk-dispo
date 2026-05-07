@@ -166,6 +166,20 @@
     "day_of": "Tag {{current}}/{{total}}",
     "more_count": "+{{count}} mehr"
   },
+  "cert_edit": {
+    "title_new": "Zertifikat erfassen",
+    "title_edit": "Zertifikat bearbeiten",
+    "intro": "Hier kannst du auch Zertifikate erfassen, die nicht bei TSK erworben wurden (z.B. OWD aus dem Urlaub vor 5 Jahren).",
+    "label_certification": "Zertifikat",
+    "cert_placeholder": "z.B. \"OWD — Open Water Diver\"",
+    "label_issued_date": "Ausstelldatum",
+    "label_issued_by": "Ausstellende Org",
+    "label_cert_nr": "Zertifikats-Nummer",
+    "cert_nr_placeholder": "optional, z.B. 1234567890",
+    "label_notes": "Notizen",
+    "capture": "Erfassen",
+    "confirm_delete": "\"{{name}}\" wirklich löschen?"
+  },
   "enroll": {
     "title_new": "Schüler anmelden",
     "title_edit": "Teilnahme bearbeiten",

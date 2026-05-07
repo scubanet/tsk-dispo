@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -45,6 +46,7 @@ const COMMON_CERTS = [
 const COMMON_AGENCIES = ['PADI', 'SSI', 'CMAS', 'NAUI', 'TDI', 'SDI', 'TSK ZRH']
 
 export function CertificationEditSheet({ open, onClose, onSaved, studentId, existing }: Props) {
+  const { t } = useTranslation()
   const isEdit = !!existing
   const [certification, setCertification] = useState('')
   const [issuedDate, setIssuedDate] = useState('')
@@ -103,7 +105,7 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
 
   async function deleteCert() {
     if (!isEdit) return
-    if (!confirm(`"${existing!.certification}" wirklich löschen?`)) return
+    if (!confirm(t('cert_edit.confirm_delete', { name: existing!.certification }))) return
     setSaving(true)
     const { error: delErr } = await supabase
       .from('student_certifications')
@@ -116,19 +118,18 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title={isEdit ? 'Zertifikat bearbeiten' : 'Zertifikat erfassen'} width={520}>
+    <Sheet open={open} onClose={onClose} title={isEdit ? t('cert_edit.title_edit') : t('cert_edit.title_new')} width={520}>
       <div style={{ display: 'grid', gap: 14 }}>
         <div className="caption">
-          Hier kannst du auch Zertifikate erfassen, die nicht bei TSK erworben wurden
-          (z.B. OWD aus dem Urlaub vor 5 Jahren).
+          {t('cert_edit.intro')}
         </div>
 
         <div>
-          <Label>Zertifikat</Label>
+          <Label>{t('cert_edit.label_certification')}</Label>
           <input
             value={certification}
             onChange={(e) => setCertification(e.target.value)}
-            placeholder='z.B. "OWD — Open Water Diver"'
+            placeholder={t('cert_edit.cert_placeholder')}
             list="common-certs"
             style={inputStyle}
           />
@@ -139,7 +140,7 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div>
-            <Label>Ausstelldatum</Label>
+            <Label>{t('cert_edit.label_issued_date')}</Label>
             <input
               type="date"
               value={issuedDate}
@@ -148,7 +149,7 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
             />
           </div>
           <div>
-            <Label>Ausstellende Org</Label>
+            <Label>{t('cert_edit.label_issued_by')}</Label>
             <input
               value={issuedBy}
               onChange={(e) => setIssuedBy(e.target.value)}
@@ -163,21 +164,21 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
         </div>
 
         <div>
-          <Label>Zertifikats-Nummer</Label>
+          <Label>{t('cert_edit.label_cert_nr')}</Label>
           <input
             value={certificateNr}
             onChange={(e) => setCertificateNr(e.target.value)}
-            placeholder="optional, z.B. 1234567890"
+            placeholder={t('cert_edit.cert_nr_placeholder')}
             style={inputStyle}
           />
         </div>
 
         <div>
-          <Label>Notizen</Label>
+          <Label>{t('cert_edit.label_notes')}</Label>
           <input
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="optional"
+            placeholder={t('student_edit.placeholder_optional')}
             style={inputStyle}
           />
         </div>
@@ -192,17 +193,17 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
               disabled={saving}
               style={{ color: '#FF3B30' }}
             >
-              <Icon name="x" size={12} /> Löschen
+              <Icon name="x" size={12} /> {t('common.delete')}
             </button>
           )}
-          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button
             className="btn"
             onClick={save}
             disabled={saving || !certification.trim()}
             style={{ flex: 1 }}
           >
-            {saving ? 'Speichere…' : isEdit ? 'Speichern' : 'Erfassen'}
+            {saving ? t('common.saving') : isEdit ? t('common.save') : t('cert_edit.capture')}
           </button>
         </div>
       </div>
