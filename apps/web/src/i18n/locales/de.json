@@ -175,6 +175,17 @@
     "title": "Kandidaten",
     "subtitle": "{{count}} aktive Kandidat:innen"
   },
+  "comm_hub": {
+    "no_access_desc": "Communication Hub ist nur für Dispatcher, CD und Owner.",
+    "subtitle": "{{total}} Touchpoints · {{inbound}} eingehend · {{outbound}} ausgehend",
+    "search_placeholder": "Person, Betreff, Inhalt…",
+    "all_channels": "Alle Kanäle",
+    "inbound": "Eingehend",
+    "outbound": "Ausgehend",
+    "student_badge": "Schüler",
+    "empty_first_time": "Noch keine Touchpoints erfasst — über „Neu\" oder direkt am Kontakt.",
+    "no_filter_matches": "Keine Treffer mit diesen Filtern."
+  },
   "cd_pipeline": {
     "subtitle": "Sales-Stages für Tauch- & Instructor-Kandidat:innen",
     "no_access_title": "Kein Zugriff",

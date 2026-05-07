@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { format } from 'date-fns'
-import { de } from 'date-fns/locale'
+import { de, enGB } from 'date-fns/locale'
 import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
@@ -23,12 +24,13 @@ interface Entry {
   created_by_instructor: { id: string; name: string } | null
 }
 
-const CHANNEL_FILTERS = [
-  { code: '',         label: 'Alle Kanäle' },
-  ...CHANNELS,
-]
-
 export function CommunicationHubScreen() {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
+  const CHANNEL_FILTERS = [
+    { code: '',         label: t('comm_hub.all_channels') },
+    ...CHANNELS,
+  ]
   const { user } = useOutletContext<OutletCtx>()
   const canAccess = user.role === 'dispatcher' || user.role === 'cd' || user.role === 'owner'
 
@@ -76,8 +78,8 @@ export function CommunicationHubScreen() {
   if (!canAccess) {
     return (
       <div style={{ padding: 40 }}>
-        <div className="title-2">Kein Zugriff</div>
-        <div className="caption">Communication Hub ist nur für Dispatcher, CD und Owner.</div>
+        <div className="title-2">{t('cd_pipeline.no_access_title')}</div>
+        <div className="caption">{t('comm_hub.no_access_desc')}</div>
       </div>
     )
   }
@@ -90,25 +92,28 @@ export function CommunicationHubScreen() {
 
   return (
     <>
-      <Topbar title="Communication" subtitle={`${stats.total} Touchpoints · ${stats.inbound} eingehend · ${stats.outbound} ausgehend`}>
+      <Topbar
+        title={t('nav.communication')}
+        subtitle={t('comm_hub.subtitle', { total: stats.total, inbound: stats.inbound, outbound: stats.outbound })}
+      >
         <div className="search" style={{ width: 220 }}>
           <Icon name="search" size={14} />
           <input
-            placeholder="Person, Betreff, Inhalt…"
+            placeholder={t('comm_hub.search_placeholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <button className="btn" onClick={() => setCreateOpen(true)}>
-          <Icon name="plus" size={14} /> Neu
+          <Icon name="plus" size={14} /> {t('courses.new')}
         </button>
       </Topbar>
 
       <div style={{ padding: '0 24px 12px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <div className="seg">
-          <button className={clsx(direction === 'all' && 'active')} onClick={() => setDirection('all')}>Alle</button>
-          <button className={clsx(direction === 'inbound' && 'active')} onClick={() => setDirection('inbound')}>↓ Eingehend</button>
-          <button className={clsx(direction === 'outbound' && 'active')} onClick={() => setDirection('outbound')}>↑ Ausgehend</button>
+          <button className={clsx(direction === 'all' && 'active')} onClick={() => setDirection('all')}>{t('people.tab_all')}</button>
+          <button className={clsx(direction === 'inbound' && 'active')} onClick={() => setDirection('inbound')}>↓ {t('comm_hub.inbound')}</button>
+          <button className={clsx(direction === 'outbound' && 'active')} onClick={() => setDirection('outbound')}>↑ {t('comm_hub.outbound')}</button>
         </div>
         <select
           value={channel}
@@ -127,12 +132,12 @@ export function CommunicationHubScreen() {
       </div>
 
       {loading ? (
-        <div style={{ padding: 40 }} className="caption">Lade…</div>
+        <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
       ) : filtered.length === 0 ? (
         <div style={{ padding: 40 }} className="caption">
           {rows.length === 0
-            ? 'Noch keine Touchpoints erfasst — über „Neu" oder direkt am Kontakt.'
-            : 'Keine Treffer mit diesen Filtern.'}
+            ? t('comm_hub.empty_first_time')
+            : t('comm_hub.no_filter_matches')}
         </div>
       ) : (
         <div style={{ padding: '0 24px 24px', display: 'grid', gap: 6 }}>
@@ -172,15 +177,15 @@ export function CommunicationHubScreen() {
                     {ch?.label ?? c.channel}{c.direction === 'inbound' ? ' ↓' : ' ↑'}
                   </span>
                   <span style={{ fontWeight: 600 }}>{c.contact?.name ?? '—'}</span>
-                  {c.contact?.is_candidate && <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(255,69,58,.20)' }}>Kandidat</span>}
-                  {c.contact?.is_student && !c.contact?.is_candidate && <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(0,122,255,.20)' }}>Schüler</span>}
+                  {c.contact?.is_candidate && <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(255,69,58,.20)' }}>{t('student_edit.stage_candidate')}</span>}
+                  {c.contact?.is_student && !c.contact?.is_candidate && <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(0,122,255,.20)' }}>{t('comm_hub.student_badge')}</span>}
                   {c.created_by_instructor && (
                     <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(88,86,214,.20)' }}>
                       {c.created_by_instructor.name}
                     </span>
                   )}
                   <span className="caption-2" style={{ marginLeft: 'auto' }}>
-                    {format(new Date(c.occurred_on), 'd. MMM yyyy, HH:mm', { locale: de })}
+                    {format(new Date(c.occurred_on), 'd. MMM yyyy, HH:mm', { locale: dfLocale })}
                   </span>
                 </div>
                 {c.subject && <div style={{ fontWeight: 500 }}>{c.subject}</div>}
@@ -191,7 +196,7 @@ export function CommunicationHubScreen() {
                 )}
                 {(c.duration_minutes != null || c.outcome) && (
                   <div style={{ display: 'flex', gap: 12 }}>
-                    {c.duration_minutes != null && <span className="caption-2">{c.duration_minutes} min</span>}
+                    {c.duration_minutes != null && <span className="caption-2">{t('student_detail.minutes', { count: c.duration_minutes })}</span>}
                     {c.outcome && <span className="caption-2" style={{ fontStyle: 'italic' }}>→ {c.outcome}</span>}
                   </div>
                 )}

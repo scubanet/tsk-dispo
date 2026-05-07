@@ -175,6 +175,17 @@
     "title": "Candidates",
     "subtitle": "{{count}} active candidates"
   },
+  "comm_hub": {
+    "no_access_desc": "Communication Hub is for Dispatcher, CD and Owner only.",
+    "subtitle": "{{total}} touchpoints · {{inbound}} inbound · {{outbound}} outbound",
+    "search_placeholder": "Person, subject, content…",
+    "all_channels": "All channels",
+    "inbound": "Inbound",
+    "outbound": "Outbound",
+    "student_badge": "Student",
+    "empty_first_time": "No touchpoints recorded yet — use \"New\" or add one directly on the contact.",
+    "no_filter_matches": "No matches with these filters."
+  },
   "cd_pipeline": {
     "subtitle": "Sales stages for diving and instructor candidates",
     "no_access_title": "No access",
