@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import clsx from 'clsx'
 import { format } from 'date-fns'
-import { de } from 'date-fns/locale'
+import { de, enGB } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/Avatar'
 import { Chip } from '@/components/Chip'
 import { Icon } from '@/components/Icon'
@@ -15,14 +16,6 @@ import { InstructorEditSheet } from './InstructorEditSheet'
 import { CorrectionSheet } from './CorrectionSheet'
 
 type Tab = 'overview' | 'skills' | 'assignments' | 'saldo' | 'certs'
-
-const TABS: { value: Tab; label: string }[] = [
-  { value: 'overview',    label: 'Übersicht' },
-  { value: 'skills',      label: 'Skills' },
-  { value: 'assignments', label: 'Einsätze' },
-  { value: 'certs',       label: 'Zertifikate' },
-  { value: 'saldo',       label: 'Saldo' },
-]
 
 interface CertStat {
   level_code: string
@@ -44,6 +37,15 @@ interface Instructor {
 }
 
 export function InstructorDetailPanel({ instructorId }: { instructorId: string }) {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
+  const TABS: { value: Tab; label: string }[] = [
+    { value: 'overview',    label: t('instructor_detail.tab_overview') },
+    { value: 'skills',      label: t('instructor_detail.tab_skills') },
+    { value: 'assignments', label: t('instructor_detail.tab_assignments') },
+    { value: 'certs',       label: t('instructor_detail.tab_certs') },
+    { value: 'saldo',       label: t('instructor_detail.tab_saldo') },
+  ]
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [inst, setInst] = useState<Instructor | null>(null)
@@ -111,7 +113,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
       .then(({ data }) => setCertStats((data ?? []) as CertStat[]))
   }, [instructorId, refreshTick])
 
-  if (!inst) return <div style={{ padding: 40 }} className="caption">Lade…</div>
+  if (!inst) return <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
 
   const balance = movements.reduce((sum, m) => sum + Number(m.amount_chf), 0)
 
@@ -126,12 +128,12 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
         {(user.role === 'dispatcher' || user.role === 'cd') && inst.phone && (
           <WhatsAppButton
             url={waDirectUrl(inst.phone, tplDirect({ to_name: inst.name.split(' ')[0], message: '' }))}
-            label="Anschreiben"
+            label={t('instructor_detail.message')}
           />
         )}
         {(user.role === 'dispatcher' || user.role === 'cd') && (
           <button className="btn-secondary btn" onClick={() => setEditOpen(true)}>
-            <Icon name="settings" size={14} /> Bearbeiten
+            <Icon name="settings" size={14} /> {t('common.edit')}
           </button>
         )}
       </div>
@@ -156,33 +158,33 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
       />
 
       <div className="seg" style={{ marginBottom: 20 }}>
-        {TABS.map((t) => (
+        {TABS.map((tabDef) => (
           <button
-            key={t.value}
-            className={clsx(tab === t.value && 'active')}
-            onClick={() => setTab(t.value)}
+            key={tabDef.value}
+            className={clsx(tab === tabDef.value && 'active')}
+            onClick={() => setTab(tabDef.value)}
           >
-            {t.label}
+            {tabDef.label}
           </button>
         ))}
       </div>
 
       {tab === 'overview' && (
         <div style={{ display: 'grid', gap: 12 }}>
-          <Field label="PADI-Level" value={inst.padi_level} />
-          <Field label="Email" value={inst.email || '—'} />
-          <Field label="Eröffnung 2026 (Excel)" value={chf(inst.opening_balance_chf)} />
-          <Field label="Saldo aus Excel-Import" value={chf(inst.excel_saldo_chf)} />
-          <Field label="Aktueller App-Saldo" value={chf(balance)} />
-          <Field label="Anzahl Skills" value={String(skills.length)} />
-          <Field label="Einsätze 2026" value={String(assignments.length)} />
+          <Field label={t('instructor_edit.label_padi_level')} value={inst.padi_level} />
+          <Field label={t('student_edit.label_email')} value={inst.email || '—'} />
+          <Field label={t('instructor_detail.opening_2026')} value={chf(inst.opening_balance_chf)} />
+          <Field label={t('instructor_detail.excel_saldo')} value={chf(inst.excel_saldo_chf)} />
+          <Field label={t('instructor_detail.current_app_balance')} value={chf(balance)} />
+          <Field label={t('instructor_detail.skill_count')} value={String(skills.length)} />
+          <Field label={t('instructor_detail.assignments_year', { year: 2026 })} value={String(assignments.length)} />
         </div>
       )}
 
       {tab === 'skills' && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {skills.length === 0 ? (
-            <div className="caption">Keine Skills hinterlegt.</div>
+            <div className="caption">{t('instructor_detail.no_skills')}</div>
           ) : (
             skills.map((s) => <Chip key={s.code} tone="accent">{s.label}</Chip>)
           )}
@@ -192,7 +194,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
       {tab === 'assignments' && (
         <div style={{ display: 'grid', gap: 8 }}>
           {assignments.length === 0 ? (
-            <div className="caption">Noch keine Einsätze.</div>
+            <div className="caption">{t('instructor_detail.no_assignments')}</div>
           ) : (
             assignments.map((a) => {
               const courseId = a.courses?.id
@@ -218,7 +220,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
                   }}
                   onMouseEnter={(e) => clickable && (e.currentTarget.style.transform = 'translateY(-1px)')}
                   onMouseLeave={(e) => clickable && (e.currentTarget.style.transform = 'translateY(0)')}
-                  title={clickable ? 'Kurs öffnen' : undefined}
+                  title={clickable ? t('instructor_detail.open_course') : undefined}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 500 }}>{a.courses?.title ?? '—'}</span>
@@ -230,7 +232,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
                     </div>
                   </div>
                   <div className="caption" style={{ marginTop: 4, display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {a.courses?.start_date && format(new Date(a.courses.start_date), 'd. MMM yyyy', { locale: de })}
+                    {a.courses?.start_date && format(new Date(a.courses.start_date), 'd. MMM yyyy', { locale: dfLocale })}
                     <Chip tone={a.courses?.status === 'confirmed' ? 'green' : a.courses?.status === 'tentative' ? 'orange' : 'red'}>
                       {a.courses?.status}
                     </Chip>
@@ -245,15 +247,14 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
       {tab === 'certs' && (
         <div>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div className="title-2">Ausgestellte Zertifikate</div>
+            <div className="title-2">{t('instructor_detail.certs_title')}</div>
             <div className="caption">
-              {certStats.reduce((s, c) => s + c.count, 0)} insgesamt
+              {t('student_detail.total_count', { count: certStats.reduce((s, c) => s + c.count, 0) })}
             </div>
           </div>
           {certStats.length === 0 ? (
             <div className="caption">
-              Noch keine Zertifizierungen erfasst. Bei „Status = zertifiziert" im Kurs den
-              zertifizierenden Instructor wählen — dann erscheinen die Stats hier.
+              {t('instructor_detail.certs_empty_hint')}
             </div>
           ) : (
             <div style={{ display: 'grid', gap: 8 }}>
@@ -268,7 +269,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
                     <div style={{ fontWeight: 500 }}>{c.level_label}</div>
                     {c.most_recent && (
                       <div className="caption-2">
-                        Letzte: {format(new Date(c.most_recent), 'd. MMM yyyy', { locale: de })}
+                        {t('instructor_detail.last_cert', { date: format(new Date(c.most_recent), 'd. MMM yyyy', { locale: dfLocale }) })}
                       </div>
                     )}
                   </div>
@@ -291,12 +292,12 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
             </div>
             {(user.role === 'dispatcher' || user.role === 'cd') && (
               <button className="btn-secondary btn" onClick={() => setCorrectionOpen(true)}>
-                <Icon name="plus" size={14} /> Korrektur buchen
+                <Icon name="plus" size={14} /> {t('instructor_detail.book_correction')}
               </button>
             )}
           </div>
           <div className="caption" style={{ marginBottom: 12 }}>
-            Aktueller berechneter Saldo aus {movements.length} Bewegungen.
+            {t('instructor_detail.balance_summary', { count: movements.length })}
           </div>
           <div style={{ display: 'grid', gap: 6 }}>
             {movements.map((m) => {
@@ -318,14 +319,14 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
                     setEditMovementId(m.id)
                     setCorrectionOpen(true)
                   }}
-                  title={editable ? 'Klicken zum Bearbeiten' : m.kind === 'vergütung' ? 'Auto-berechnet aus Assignment — nicht editierbar' : ''}
+                  title={editable ? t('common.click_to_edit') : m.kind === 'vergütung' ? t('instructor_detail.movement_readonly_tooltip') : ''}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {m.description || m.kind}
                     </div>
                     <div className="caption-2">
-                      {format(new Date(m.date), 'd. MMM yyyy', { locale: de })} · {m.kind}
+                      {format(new Date(m.date), 'd. MMM yyyy', { locale: dfLocale })} · {m.kind}
                     </div>
                   </div>
                   <div
