@@ -166,6 +166,20 @@
     "day_of": "Day {{current}}/{{total}}",
     "more_count": "+{{count}} more"
   },
+  "enroll": {
+    "title_new": "Enroll student",
+    "title_edit": "Edit enrolment",
+    "search_student": "Search student",
+    "new_student": "new student",
+    "label_padi_cert_nr": "PADI certification number",
+    "label_certifying_instructor": "Certifying instructor",
+    "please_choose": "please choose",
+    "label_certified_on": "Certified on",
+    "cert_stats_hint": "Recorded for the TL/DM \"Issued certifications\" stats.",
+    "label_notes": "Notes (about enrolment)",
+    "enroll": "Enroll",
+    "confirm_unenroll": "Really remove this student from the course?"
+  },
   "assignment_edit": {
     "title_new": "Assign TL/DM",
     "title_edit": "Edit assignment",

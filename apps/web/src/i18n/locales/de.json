@@ -166,6 +166,20 @@
     "day_of": "Tag {{current}}/{{total}}",
     "more_count": "+{{count}} mehr"
   },
+  "enroll": {
+    "title_new": "Schüler anmelden",
+    "title_edit": "Teilnahme bearbeiten",
+    "search_student": "Schüler suchen",
+    "new_student": "neuer Schüler",
+    "label_padi_cert_nr": "PADI-Zertifikatsnummer",
+    "label_certifying_instructor": "Zertifizierender Instructor",
+    "please_choose": "bitte wählen",
+    "label_certified_on": "Zertifiziert am",
+    "cert_stats_hint": "Erfasst für die TL/DM-Statistik „Ausgestellte Zertifikate\".",
+    "label_notes": "Notizen (zur Teilnahme)",
+    "enroll": "Anmelden",
+    "confirm_unenroll": "Schüler wirklich vom Kurs entfernen?"
+  },
   "assignment_edit": {
     "title_new": "TL/DM zuweisen",
     "title_edit": "Zuweisung bearbeiten",

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -46,16 +47,16 @@ const inputStyle = {
   width: '100%',
 }
 
-const STATUSES: { value: Status; label: string }[] = [
-  { value: 'enrolled',  label: 'angemeldet' },
-  { value: 'certified', label: 'zertifiziert' },
-  { value: 'dropped',   label: 'abgebrochen' },
-]
-
 export function EnrollStudentSheet({
   open, onClose, onSaved, courseId, existingParticipation, alreadyEnrolledStudentIds = [],
   onNewStudent,
 }: Props) {
+  const { t } = useTranslation()
+  const STATUSES: { value: Status; label: string }[] = [
+    { value: 'enrolled',  label: t('course_detail.status_enrolled') },
+    { value: 'certified', label: t('course_detail.status_certified') },
+    { value: 'dropped',   label: t('course_detail.status_dropped') },
+  ]
   const isEdit = !!existingParticipation
 
   const [students, setStudents] = useState<Student[]>([])
@@ -154,7 +155,7 @@ export function EnrollStudentSheet({
 
   async function unenroll() {
     if (!isEdit) return
-    if (!confirm('Schüler wirklich vom Kurs entfernen?')) return
+    if (!confirm(t('enroll.confirm_unenroll'))) return
     setSaving(true)
     const { error: delErr } = await supabase
       .from('course_participants')
@@ -169,30 +170,30 @@ export function EnrollStudentSheet({
   const selectedStudent = students.find((s) => s.id === studentId)
 
   return (
-    <Sheet open={open} onClose={onClose} title={isEdit ? 'Teilnahme bearbeiten' : 'Schüler anmelden'} width={520}>
+    <Sheet open={open} onClose={onClose} title={isEdit ? t('enroll.title_edit') : t('enroll.title_new')} width={520}>
       <div style={{ display: 'grid', gap: 14 }}>
         {!isEdit && (
           <>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <Label>Schüler suchen</Label>
+                <Label>{t('enroll.search_student')}</Label>
                 {onNewStudent && (
                   <button type="button" className="btn-ghost btn" onClick={onNewStudent} style={{ height: 24, padding: '0 8px' }}>
-                    <Icon name="plus" size={12} /> neuer Schüler
+                    <Icon name="plus" size={12} /> {t('enroll.new_student')}
                   </button>
                 )}
               </div>
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Name, Email, PADI-Nr…"
+                placeholder={t('people.search_placeholder')}
                 style={inputStyle}
               />
             </div>
 
             <div style={{ display: 'grid', gap: 4, maxHeight: 240, overflow: 'auto' }}>
               {filteredStudents.length === 0 ? (
-                <div className="caption">Keine Treffer.</div>
+                <div className="caption">{t('courses.no_matches')}.</div>
               ) : (
                 filteredStudents.map((s) => (
                   <button
@@ -231,7 +232,7 @@ export function EnrollStudentSheet({
         )}
 
         <div>
-          <Label>Status</Label>
+          <Label>{t('course_edit.label_status')}</Label>
           <div className="seg">
             {STATUSES.map((s) => (
               <button
@@ -249,31 +250,31 @@ export function EnrollStudentSheet({
         {status === 'certified' && (
           <>
             <div>
-              <Label>PADI-Zertifikatsnummer</Label>
+              <Label>{t('enroll.label_padi_cert_nr')}</Label>
               <input
                 value={certNr}
                 onChange={(e) => setCertNr(e.target.value)}
-                placeholder="z.B. PADI 1234567890"
+                placeholder="e.g. PADI 1234567890"
                 style={inputStyle}
               />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: 12 }}>
               <div>
-                <Label>Zertifizierender Instructor</Label>
+                <Label>{t('enroll.label_certifying_instructor')}</Label>
                 <select
                   value={certifiedById}
                   onChange={(e) => setCertifiedById(e.target.value)}
                   style={inputStyle}
                 >
-                  <option value="">— bitte wählen —</option>
+                  <option value="">— {t('enroll.please_choose')} —</option>
                   {instructors.map((i) => (
                     <option key={i.id} value={i.id}>{i.name}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <Label>Zertifiziert am</Label>
+                <Label>{t('enroll.label_certified_on')}</Label>
                 <input
                   type="date"
                   value={certifiedOn}
@@ -283,13 +284,13 @@ export function EnrollStudentSheet({
               </div>
             </div>
             <div className="caption-2" style={{ marginTop: -8 }}>
-              Erfasst für die TL/DM-Statistik „Ausgestellte Zertifikate".
+              {t('enroll.cert_stats_hint')}
             </div>
           </>
         )}
 
         <div>
-          <Label>Notizen (zur Teilnahme)</Label>
+          <Label>{t('enroll.label_notes')}</Label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -308,17 +309,17 @@ export function EnrollStudentSheet({
               disabled={saving}
               style={{ color: '#FF3B30' }}
             >
-              <Icon name="x" size={12} /> Entfernen
+              <Icon name="x" size={12} /> {t('assignment_edit.remove')}
             </button>
           )}
-          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button
             className="btn"
             onClick={save}
             disabled={saving || !studentId}
             style={{ flex: 1 }}
           >
-            {saving ? 'Speichere…' : isEdit ? 'Speichern' : 'Anmelden'}
+            {saving ? t('common.saving') : isEdit ? t('common.save') : t('enroll.enroll')}
           </button>
         </div>
       </div>
