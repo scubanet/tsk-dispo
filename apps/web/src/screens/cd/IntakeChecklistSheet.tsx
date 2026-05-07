@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -64,21 +65,8 @@ const EMPTY: Form = {
   checked_on: '',
 }
 
-const INSTRUCTOR_STATUS = [
-  { code: '',                    label: '— bitte wählen —' },
-  { code: 'divemaster',           label: 'PADI Divemaster' },
-  { code: 'assistant_instructor', label: 'PADI Assistant Instructor' },
-  { code: 'padi_instructor',      label: 'PADI Instructor' },
-  { code: 'other_org_6m',         label: '≥ 6 Mt. Tauchlehrer anderer Org (Crossover)' },
-  { code: 'none',                 label: 'Keine Lehrer-Vorqualifikation' },
-]
-
-const EFR_KIND = [
-  { code: '',                     label: '— bitte wählen —' },
-  { code: 'primary_secondary',     label: 'EFR Primary & Secondary (≤24 Mt.)' },
-  { code: 'efri',                  label: 'Aktiver EFR Instructor' },
-  { code: 'hlw_instructor_other',  label: 'HLW/Erste-Hilfe-Instructor anderer Org' },
-]
+const INSTRUCTOR_STATUS_CODES = ['divemaster', 'assistant_instructor', 'padi_instructor', 'other_org_6m', 'none'] as const
+const EFR_KIND_CODES = ['primary_secondary', 'efri', 'hlw_instructor_other'] as const
 
 const inputStyle = {
   padding: '8px 10px',
@@ -103,6 +91,16 @@ interface Props {
 }
 
 export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipantId, studentId, checkedById }: Props) {
+  const { t } = useTranslation()
+  const placeholderChoose = `— ${t('enroll.please_choose')} —`
+  const INSTRUCTOR_STATUS = [
+    { code: '', label: placeholderChoose },
+    ...INSTRUCTOR_STATUS_CODES.map((code) => ({ code, label: t(`intake.instructor_status_${code}`) })),
+  ]
+  const EFR_KIND = [
+    { code: '', label: placeholderChoose },
+    ...EFR_KIND_CODES.map((code) => ({ code, label: t(`intake.efr_kind_${code}`) })),
+  ]
   const useCourseParticipant = !!courseParticipantId
   const [form, setForm] = useState<Form>(EMPTY)
   const [saving, setSaving] = useState(false)
@@ -210,81 +208,81 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title="Intake-Checkliste" width={620}>
+    <Sheet open={open} onClose={onClose} title={t('intake.title')} width={620}>
       <div style={{ display: 'grid', gap: 16 }}>
-        <Section title="1. Lehrer-Status (PADI IDC Pre-Req 1)">
-          <Field label="Status">
+        <Section title={t('intake.section_1_instructor_status')}>
+          <Field label={t('intake.field_status')}>
             <select value={form.instructor_status} onChange={(e) => set('instructor_status', e.target.value)} style={inputStyle}>
               {INSTRUCTOR_STATUS.map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
             </select>
           </Field>
         </Section>
 
-        <Section title="2. Mindestalter (≥ 18)">
+        <Section title={t('intake.section_2_min_age')}>
           <Toggle
-            label="Mindestalter 18 bestätigt"
+            label={t('intake.toggle_min18_confirmed')}
             checked={form.min_age_confirmed}
             onChange={(v) => set('min_age_confirmed', v)}
           />
         </Section>
 
-        <Section title="3. Medical Statement (Arzt-Attest, ≤ 12 Monate, zwingend)">
+        <Section title={t('intake.section_3_medical')}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Toggle label="Medical erhalten" checked={form.medical_received} onChange={(v) => set('medical_received', v)} />
-            <Toggle label="Vom Arzt unterschrieben" checked={form.medical_doctor_signed} onChange={(v) => set('medical_doctor_signed', v)} />
+            <Toggle label={t('intake.toggle_medical_received')} checked={form.medical_received} onChange={(v) => set('medical_received', v)} />
+            <Toggle label={t('intake.toggle_medical_doctor_signed')} checked={form.medical_doctor_signed} onChange={(v) => set('medical_doctor_signed', v)} />
           </div>
-          <Field label="Datum Arzt-Attest">
+          <Field label={t('intake.field_medical_signed_on')}>
             <input type="date" value={form.medical_signed_on} onChange={(e) => set('medical_signed_on', e.target.value)} style={inputStyle} />
           </Field>
-          <Field label="Notizen Medical">
+          <Field label={t('intake.field_medical_notes')}>
             <textarea value={form.medical_notes} onChange={(e) => set('medical_notes', e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
           </Field>
         </Section>
 
-        <Section title="4. Brevetierter Taucher (≥ 6 Monate)">
-          <Field label="Erst-Brevetierung">
+        <Section title={t('intake.section_4_diver_6mo')}>
+          <Field label={t('intake.field_first_cert')}>
             <input type="date" value={form.certified_diver_since} onChange={(e) => set('certified_diver_since', e.target.value)} style={inputStyle} />
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 12 }}>
-            <Toggle label="Logbuch gesehen" checked={form.logbook_seen} onChange={(v) => set('logbook_seen', v)} />
-            <Field label="TG-Anzahl">
-              <input type="number" min={0} value={form.logbook_dives_count} onChange={(e) => set('logbook_dives_count', e.target.value)} style={inputStyle} placeholder="z.B. 60" />
+            <Toggle label={t('intake.toggle_logbook_seen')} checked={form.logbook_seen} onChange={(v) => set('logbook_seen', v)} />
+            <Field label={t('intake.field_dive_count')}>
+              <input type="number" min={0} value={form.logbook_dives_count} onChange={(e) => set('logbook_dives_count', e.target.value)} style={inputStyle} placeholder={t('intake.dive_count_placeholder')} />
             </Field>
           </div>
         </Section>
 
-        <Section title="5. Erste Hilfe / HLW (≤ 24 Monate)">
-          <Field label="Qualifikation">
+        <Section title={t('intake.section_5_first_aid')}>
+          <Field label={t('intake.field_qualification')}>
             <select value={form.efr_kind} onChange={(e) => set('efr_kind', e.target.value)} style={inputStyle}>
               {EFR_KIND.map((k) => <option key={k.code} value={k.code}>{k.label}</option>)}
             </select>
           </Field>
-          <Field label="Datum Abschluss / aktuelle Zertifizierung">
+          <Field label={t('intake.field_efr_completed_on')}>
             <input type="date" value={form.efr_completed_on} onChange={(e) => set('efr_completed_on', e.target.value)} style={inputStyle} />
           </Field>
         </Section>
 
-        <Section title="6. Kopien qualifizierender nicht-PADI Brevets">
+        <Section title={t('intake.section_6_other_certs')}>
           <Toggle
-            label="Brevets-Kopien erhalten"
+            label={t('intake.toggle_certs_received')}
             checked={form.non_padi_certs_seen}
             onChange={(v) => set('non_padi_certs_seen', v)}
           />
-          <Field label="Welche (z.B. SDI OWD/AOWD/Rescue/DM)">
+          <Field label={t('intake.field_certs_which')}>
             <input value={form.non_padi_certs_notes} onChange={(e) => set('non_padi_certs_notes', e.target.value)} style={inputStyle} />
           </Field>
         </Section>
 
-        <Section title="Releases">
-          <Toggle label="Liability Release unterschrieben" checked={form.liability_signed} onChange={(v) => set('liability_signed', v)} />
-          <Toggle label="Safe Diving Practices unterschrieben" checked={form.safe_diving_signed} onChange={(v) => set('safe_diving_signed', v)} />
+        <Section title={t('intake.section_releases')}>
+          <Toggle label={t('intake.toggle_liability')} checked={form.liability_signed} onChange={(v) => set('liability_signed', v)} />
+          <Toggle label={t('intake.toggle_safe_diving')} checked={form.safe_diving_signed} onChange={(v) => set('safe_diving_signed', v)} />
         </Section>
 
-        <Section title="Allgemein">
-          <Field label="Notizen">
+        <Section title={t('intake.section_general')}>
+          <Field label={t('cert_edit.label_notes')}>
             <textarea value={form.notes} onChange={(e) => set('notes', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
           </Field>
-          <Field label="Geprüft am">
+          <Field label={t('intake.field_checked_on')}>
             <input type="date" value={form.checked_on} onChange={(e) => set('checked_on', e.target.value)} style={inputStyle} />
           </Field>
         </Section>
@@ -292,9 +290,9 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
         {error && <div className="chip chip-red">{error}</div>}
 
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button className="btn" onClick={save} disabled={saving} style={{ flex: 1 }}>
-            {saving ? 'Speichere…' : <><Icon name="check" size={12} /> Speichern</>}
+            {saving ? t('common.saving') : <><Icon name="check" size={12} /> {t('common.save')}</>}
           </button>
         </div>
       </div>
