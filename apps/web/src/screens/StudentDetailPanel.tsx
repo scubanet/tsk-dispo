@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { format } from 'date-fns'
-import { de } from 'date-fns/locale'
+import { de, enGB } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/Avatar'
 import { Chip } from '@/components/Chip'
 import { Icon } from '@/components/Icon'
@@ -66,15 +67,7 @@ interface CdInfo {
   organization?: { id: string; name: string } | null
 }
 
-const STAGE_LABEL: Record<string, string> = {
-  none: 'Kein',
-  lead: 'Lead',
-  qualified: 'Qualifiziert',
-  opportunity: 'Opportunity',
-  candidate: 'Kandidat',
-  customer: 'Kandidat', // Legacy
-  lost: 'Verloren',
-}
+// Stage-Label kommt aus i18n: t(`student_edit.stage_${code}`)
 
 const STAGE_TONE: Record<string, string> = {
   none: 'rgba(255,255,255,.10)',
@@ -87,6 +80,8 @@ const STAGE_TONE: Record<string, string> = {
 }
 
 export function StudentDetailPanel({ studentId }: { studentId: string }) {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [student, setStudent] = useState<Student | null>(null)
@@ -139,7 +134,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
     }
   }, [studentId, refreshTick, isCD])
 
-  if (!student) return <div style={{ padding: 40 }} className="caption">Lade…</div>
+  if (!student) return <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
 
   const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
   const initials = initialsFromName(student.name)
@@ -157,8 +152,8 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
             <Chip tone="accent">{student.level}</Chip>
           </div>
           <div className="caption" style={{ marginTop: 4 }}>
-            {student.padi_nr ? `PADI ${student.padi_nr}` : 'Kein PADI'}
-            {student.birthday && ` · *${format(new Date(student.birthday), 'd. MMM yyyy', { locale: de })}`}
+            {student.padi_nr ? `PADI ${student.padi_nr}` : t('student_detail.no_padi')}
+            {student.birthday && ` · *${format(new Date(student.birthday), 'd. MMM yyyy', { locale: dfLocale })}`}
           </div>
         </div>
         {isDispatcher && student.phone && (
@@ -169,7 +164,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
         )}
         {isDispatcher && (
           <button className="btn-secondary btn" onClick={() => setEditOpen(true)}>
-            <Icon name="settings" size={14} /> Bearbeiten
+            <Icon name="settings" size={14} /> {t('common.edit')}
           </button>
         )}
       </div>
@@ -191,9 +186,9 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
       />
 
       <div style={{ display: 'grid', gap: 14, marginBottom: 24 }}>
-        <Field label="Email"    value={student.email   || '—'} />
-        <Field label="Telefon"  value={student.phone   || '—'} />
-        {student.notes && <Field label="Notizen" value={student.notes} />}
+        <Field label={t('student_edit.label_email')}    value={student.email   || '—'} />
+        <Field label={t('student_detail.field_phone')}  value={student.phone   || '—'} />
+        {student.notes && <Field label={t('student_detail.field_notes')} value={student.notes} />}
       </div>
 
       {isCD && cdInfo && (
@@ -210,7 +205,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
                   fontWeight: 600,
                 }}
               >
-                Kandidat:in
+                {t('student_edit.is_candidate')}
               </span>
             )}
             {cdInfo.pipeline_stage !== 'none' && (
@@ -222,7 +217,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
                   background: STAGE_TONE[cdInfo.pipeline_stage] ?? 'rgba(255,255,255,.10)',
                 }}
               >
-                {STAGE_LABEL[cdInfo.pipeline_stage] ?? cdInfo.pipeline_stage}
+                {t(`student_edit.stage_${cdInfo.pipeline_stage === 'customer' ? 'candidate' : cdInfo.pipeline_stage}`, { defaultValue: cdInfo.pipeline_stage })}
               </span>
             )}
             {(cdInfo.tags ?? []).map((t) => (
@@ -240,7 +235,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
           <div style={{ display: 'grid', gap: 14, marginBottom: 24 }}>
             {(cdInfo.address || cdInfo.city) && (
               <Field
-                label="Adresse"
+                label={t('student_edit.section_address')}
                 value={[cdInfo.address, [cdInfo.postal_code, cdInfo.city].filter(Boolean).join(' '), cdInfo.country]
                   .filter(Boolean)
                   .join(', ')}
@@ -248,45 +243,45 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
             )}
             {cdInfo.organization && (
               <Field
-                label="Organisation"
+                label={t('student_edit.label_organization')}
                 value={`${cdInfo.organization.name}${cdInfo.organization_role ? ` · ${cdInfo.organization_role}` : ''}`}
               />
             )}
-            {cdInfo.lead_source && <Field label="Lead-Quelle" value={cdInfo.lead_source} />}
+            {cdInfo.lead_source && <Field label={t('student_edit.label_lead_source')} value={cdInfo.lead_source} />}
           </div>
 
           {/* Intake-Checkliste (Kompakt-Anzeige + Edit) */}
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
               <div className="title-3">
-                Intake-Checkliste
+                {t('student_detail.intake_title')}
                 {intake?.checked_on && (
                   <span className="caption" style={{ marginLeft: 8 }}>
-                    · zuletzt geprüft am {format(new Date(intake.checked_on), 'd. MMM yyyy', { locale: de })}
+                    · {t('student_detail.intake_last_checked', { date: format(new Date(intake.checked_on), 'd. MMM yyyy', { locale: dfLocale }) })}
                   </span>
                 )}
               </div>
               {isDispatcher && (
                 <button className="btn-secondary btn" onClick={() => setIntakeOpen(true)}>
-                  <Icon name="settings" size={12} /> {intake ? 'Bearbeiten' : 'Erfassen'}
+                  <Icon name="settings" size={12} /> {intake ? t('common.edit') : t('student_detail.intake_capture')}
                 </button>
               )}
             </div>
             {intake ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                <IntakeChip label="Status" ok={!!intake.instructor_status} />
-                <IntakeChip label="Mind. 18" ok={intake.min_age_confirmed} />
-                <IntakeChip label="Medical (Arzt)" ok={intake.medical_received && intake.medical_doctor_signed} />
-                <IntakeChip label="≥6 Mt. Taucher" ok={!!intake.certified_diver_since} />
-                <IntakeChip label="EFR" ok={!!intake.efr_kind} />
-                <IntakeChip label="Logbuch" ok={intake.logbook_seen} />
-                <IntakeChip label="Liability" ok={intake.liability_signed} />
-                <IntakeChip label="Safe Diving" ok={intake.safe_diving_signed} />
-                <IntakeChip label="Brevets-Kopien" ok={intake.non_padi_certs_seen} />
+                <IntakeChip label={t('student_detail.intake_status')} ok={!!intake.instructor_status} />
+                <IntakeChip label={t('student_detail.intake_min18')} ok={intake.min_age_confirmed} />
+                <IntakeChip label={t('student_detail.intake_medical')} ok={intake.medical_received && intake.medical_doctor_signed} />
+                <IntakeChip label={t('student_detail.intake_diver_6mo')} ok={!!intake.certified_diver_since} />
+                <IntakeChip label={t('student_detail.intake_efr')} ok={!!intake.efr_kind} />
+                <IntakeChip label={t('student_detail.intake_logbook')} ok={intake.logbook_seen} />
+                <IntakeChip label={t('student_detail.intake_liability')} ok={intake.liability_signed} />
+                <IntakeChip label={t('student_detail.intake_safe_diving')} ok={intake.safe_diving_signed} />
+                <IntakeChip label={t('student_detail.intake_certs')} ok={intake.non_padi_certs_seen} />
               </div>
             ) : (
               <div className="caption">
-                Noch nicht erfasst — über „Erfassen" die Voraussetzungen durchgehen.
+                {t('student_detail.intake_empty_hint')}
               </div>
             )}
           </div>
@@ -295,7 +290,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
               <div className="title-3">
-                Communication{' '}
+                {t('nav.communication')}{' '}
                 <span className="caption">· {communications.length}</span>
               </div>
               {isDispatcher && (
@@ -306,13 +301,13 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
                     setCommOpen(true)
                   }}
                 >
-                  <Icon name="plus" size={12} /> Neuer Touchpoint
+                  <Icon name="plus" size={12} /> {t('student_detail.new_touchpoint')}
                 </button>
               )}
             </div>
             {communications.length === 0 ? (
               <div className="caption">
-                Noch keine Touchpoints erfasst — Calls, Mails, Meetings, Notizen.
+                {t('student_detail.no_touchpoints')}
               </div>
             ) : (
               <div style={{ display: 'grid', gap: 6 }}>
@@ -348,7 +343,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
                           </span>
                         )}
                         <div className="caption-2" style={{ marginLeft: 'auto' }}>
-                          {format(new Date(c.occurred_on), 'd. MMM yyyy, HH:mm', { locale: de })}
+                          {format(new Date(c.occurred_on), 'd. MMM yyyy, HH:mm', { locale: dfLocale })}
                         </div>
                       </div>
                       {c.subject && (
@@ -361,7 +356,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
                       )}
                       <div style={{ display: 'flex', gap: 12, marginTop: 6 }}>
                         {c.duration_minutes != null && (
-                          <span className="caption-2">{c.duration_minutes} min</span>
+                          <span className="caption-2">{t('student_detail.minutes', { count: c.duration_minutes })}</span>
                         )}
                         {c.outcome && (
                           <span className="caption-2" style={{ fontStyle: 'italic' }}>→ {c.outcome}</span>
@@ -397,7 +392,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
           <div className="title-3">
-            Tauchscheine{' '}
+            {t('student_detail.certifications')}{' '}
             <span className="caption">· {certifications.length}</span>
           </div>
           {isDispatcher && (
@@ -408,13 +403,13 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
                 setCertOpen(true)
               }}
             >
-              <Icon name="plus" size={12} /> Erfassen
+              <Icon name="plus" size={12} /> {t('student_detail.intake_capture')}
             </button>
           )}
         </div>
         {certifications.length === 0 ? (
           <div className="caption">
-            Noch keine Tauchscheine erfasst — auch externe (z.B. OWD aus früheren Schulen) hier eintragen.
+            {t('student_detail.no_certifications')}
           </div>
         ) : (
           <div style={{ display: 'grid', gap: 6 }}>
@@ -435,8 +430,8 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
                     <div className="caption" style={{ marginTop: 2 }}>
                       {[
                         c.issued_by,
-                        c.issued_date ? format(new Date(c.issued_date), 'd. MMM yyyy', { locale: de }) : null,
-                        c.certificate_nr ? `Nr. ${c.certificate_nr}` : null,
+                        c.issued_date ? format(new Date(c.issued_date), 'd. MMM yyyy', { locale: dfLocale }) : null,
+                        c.certificate_nr ? t('student_detail.cert_nr', { nr: c.certificate_nr }) : null,
                       ].filter(Boolean).join(' · ') || '—'}
                     </div>
                     {c.notes && (
@@ -453,32 +448,32 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
       </div>
 
       <div className="title-3" style={{ marginBottom: 8, display: 'flex', alignItems: 'baseline', gap: 8 }}>
-        TSK-Kurs-Historie
-        <span className="caption">· {courses.length} insgesamt</span>
+        {t('student_detail.tsk_history')}
+        <span className="caption">· {t('student_detail.total_count', { count: courses.length })}</span>
       </div>
 
       {courses.length === 0 ? (
-        <div className="caption">Noch keinem Kurs zugewiesen.</div>
+        <div className="caption">{t('student_detail.no_course_assignment')}</div>
       ) : (
         <>
           {enrolled.length > 0 && (
-            <Section title="Angemeldet" tone="orange">
+            <Section title={t('student_detail.section_enrolled')} tone="orange">
               {enrolled.map((p) => (
-                <CourseRow key={p.id} p={p} onClick={() => navigate(`/kurse/${p.course?.id}`)} />
+                <CourseRow key={p.id} p={p} onClick={() => navigate(`/kurse/${p.course?.id}`)} dfLocale={dfLocale} t={t} />
               ))}
             </Section>
           )}
           {certified.length > 0 && (
-            <Section title="Zertifiziert" tone="green">
+            <Section title={t('student_detail.section_certified')} tone="green">
               {certified.map((p) => (
-                <CourseRow key={p.id} p={p} onClick={() => navigate(`/kurse/${p.course?.id}`)} />
+                <CourseRow key={p.id} p={p} onClick={() => navigate(`/kurse/${p.course?.id}`)} dfLocale={dfLocale} t={t} />
               ))}
             </Section>
           )}
           {dropped.length > 0 && (
-            <Section title="Abgebrochen" tone="red">
+            <Section title={t('student_detail.section_dropped')} tone="red">
               {dropped.map((p) => (
-                <CourseRow key={p.id} p={p} onClick={() => navigate(`/kurse/${p.course?.id}`)} />
+                <CourseRow key={p.id} p={p} onClick={() => navigate(`/kurse/${p.course?.id}`)} dfLocale={dfLocale} t={t} />
               ))}
             </Section>
           )}
@@ -499,7 +494,12 @@ function Section({ title, tone, children }: { title: string; tone: any; children
   )
 }
 
-function CourseRow({ p, onClick }: { p: CourseParticipant; onClick: () => void }) {
+function CourseRow({ p, onClick, dfLocale, t }: {
+  p: CourseParticipant
+  onClick: () => void
+  dfLocale: typeof de
+  t: (key: string, opts?: Record<string, unknown>) => string
+}) {
   if (!p.course) return null
   return (
     <div
@@ -512,11 +512,11 @@ function CourseRow({ p, onClick }: { p: CourseParticipant; onClick: () => void }
           <div style={{ fontWeight: 500 }}>{p.course.title}</div>
           <div className="caption">
             {p.course.course_type?.code} ·{' '}
-            {format(new Date(p.course.start_date), 'd. MMM yyyy', { locale: de })}
+            {format(new Date(p.course.start_date), 'd. MMM yyyy', { locale: dfLocale })}
           </div>
           {p.certificate_nr && (
             <div className="caption-2 mono" style={{ marginTop: 2 }}>
-              Zert: {p.certificate_nr}
+              {t('course_detail.cert_short', { nr: p.certificate_nr })}
             </div>
           )}
         </div>
