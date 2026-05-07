@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import clsx from 'clsx'
 import { format, isAfter, isBefore, startOfDay } from 'date-fns'
-import { de } from 'date-fns/locale'
+import { de, enGB } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { Chip } from '@/components/Chip'
@@ -13,6 +14,8 @@ import type { OutletCtx } from '@/layout/AppShell'
 type Filter = 'upcoming' | 'past' | 'all'
 
 export function MyAssignmentsScreen() {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [rows, setRows] = useState<MyAssignment[]>([])
@@ -46,11 +49,11 @@ export function MyAssignmentsScreen() {
   if (!user.instructorId) {
     return (
       <>
-        <Topbar title="Meine Einsätze" />
+        <Topbar title={t('nav.my_assignments')} />
         <EmptyState
           icon="users"
-          title="Kein Instructor verknüpft"
-          description="Dein Login ist noch keinem TL/DM-Datensatz zugeordnet. Bitte den Dispatcher um die Verknüpfung."
+          title={t('my_assignments.no_link_title')}
+          description={t('my_assignments.no_link_desc')}
         />
       </>
     )
@@ -59,13 +62,13 @@ export function MyAssignmentsScreen() {
   return (
     <>
       <Topbar
-        title="Meine Einsätze"
-        subtitle={`${rows.length} insgesamt · ${filtered.length} sichtbar`}
+        title={t('nav.my_assignments')}
+        subtitle={t('my_assignments.subtitle', { total: rows.length, visible: filtered.length })}
       >
         <div className="search" style={{ width: 200 }}>
           <Icon name="search" size={14} />
           <input
-            placeholder="Suchen…"
+            placeholder={t('common.search') + '…'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -75,18 +78,18 @@ export function MyAssignmentsScreen() {
       <div className="screen-fade scroll" style={{ flex: 1, padding: '20px 24px 40px' }}>
         <div className="seg" style={{ marginBottom: 16 }}>
           <button className={clsx(filter === 'upcoming' && 'active')} onClick={() => setFilter('upcoming')}>
-            Kommend
+            {t('my_assignments.filter_upcoming')}
           </button>
           <button className={clsx(filter === 'past' && 'active')} onClick={() => setFilter('past')}>
-            Vergangen
+            {t('my_assignments.filter_past')}
           </button>
           <button className={clsx(filter === 'all' && 'active')} onClick={() => setFilter('all')}>
-            Alle
+            {t('my_assignments.filter_all')}
           </button>
         </div>
 
         {filtered.length === 0 ? (
-          <EmptyState icon="book" title="Keine Einsätze" description="Hier ist gerade nichts." />
+          <EmptyState icon="book" title={t('my_assignments.empty_title')} description={t('my_assignments.empty_desc')} />
         ) : (
           <div style={{ display: 'grid', gap: 8 }}>
             {filtered.map((a) => {
@@ -115,16 +118,16 @@ export function MyAssignmentsScreen() {
                     <div style={{ display: 'flex', gap: 6, flexDirection: 'column', alignItems: 'flex-end' }}>
                       <Chip tone={a.role === 'haupt' ? 'accent' : 'neutral'}>{a.role}</Chip>
                       {a.confirmed ? (
-                        <Chip tone="green">bestätigt</Chip>
+                        <Chip tone="green">{t('my_assignments.confirmed')}</Chip>
                       ) : (
-                        <Chip tone="orange">offen</Chip>
+                        <Chip tone="orange">{t('my_assignments.open')}</Chip>
                       )}
                     </div>
                   </div>
                   <div className="caption mono" style={{ marginTop: 8 }}>
-                    {format(new Date(a.course.start_date), 'EEE, d. MMM yyyy', { locale: de })}
+                    {format(new Date(a.course.start_date), 'EEE, d. MMM yyyy', { locale: dfLocale })}
                     {a.course.additional_dates.length > 0 && (
-                      <span> · +{a.course.additional_dates.length} Zusatzdaten</span>
+                      <span> · +{t('my_assignments.extra_dates', { count: a.course.additional_dates.length })}</span>
                     )}
                   </div>
                   {a.course.info && (

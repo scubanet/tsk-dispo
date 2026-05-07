@@ -3,7 +3,8 @@ import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import type { OutletCtx } from '@/layout/AppShell'
 import clsx from 'clsx'
 import { format } from 'date-fns'
-import { de } from 'date-fns/locale'
+import { de, enGB } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { Chip } from '@/components/Chip'
@@ -21,6 +22,8 @@ function isCdCourse(code?: string | null) {
 }
 
 export function CoursesScreen() {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const { user } = useOutletContext<OutletCtx>()
@@ -76,17 +79,20 @@ export function CoursesScreen() {
 
   return (
     <>
-      <Topbar title="Kurse" subtitle={`${courses.length} Kurse 2026`}>
+      <Topbar
+        title={t('nav.courses')}
+        subtitle={t('courses.count_year', { count: courses.length, year: 2026 })}
+      >
         <div className="search" style={{ width: 220 }}>
           <Icon name="search" size={14} />
           <input
-            placeholder="Suchen…"
+            placeholder={t('common.search') + '…'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <button className="btn" onClick={() => setEditOpen(true)}>
-          <Icon name="plus" size={14} /> Neu
+          <Icon name="plus" size={14} /> {t('courses.new')}
         </button>
       </Topbar>
 
@@ -97,31 +103,37 @@ export function CoursesScreen() {
               <button
                 className={clsx(filter === 'open' && 'active')}
                 onClick={() => setFilter('open')}
-                title="alle außer abgeschlossen"
-              >Aktiv</button>
+                title={t('courses.filter_active_tooltip')}
+              >{t('courses.filter_active')}</button>
               <button
                 className={clsx(filter === 'confirmed' && 'active')}
                 onClick={() => setFilter('confirmed')}
-              >Sicher</button>
+              >{t('courses.filter_certain')}</button>
               <button
                 className={clsx(filter === 'tentative' && 'active')}
                 onClick={() => setFilter('tentative')}
-              >Evtl.</button>
+              >{t('courses.filter_tentative')}</button>
               <button
                 className={clsx(filter === 'completed' && 'active')}
                 onClick={() => setFilter('completed')}
-              >Done</button>
+              >{t('courses.filter_done')}</button>
               <button
                 className={clsx(filter === 'cancelled' && 'active')}
                 onClick={() => setFilter('cancelled')}
-              >CXL</button>
+              >{t('courses.filter_cxl')}</button>
               <button
                 className={clsx(filter === 'all' && 'active')}
                 onClick={() => setFilter('all')}
-              >Alle</button>
+              >{t('courses.filter_all')}</button>
             </div>
             <div className="caption-2">
-              {filtered.length} sichtbar · {counts.confirmed} sicher · {counts.tentative} evtl. · {counts.completed} done · {counts.cancelled} cxl
+              {t('courses.counts_summary', {
+                visible: filtered.length,
+                confirmed: counts.confirmed,
+                tentative: counts.tentative,
+                completed: counts.completed,
+                cancelled: counts.cancelled,
+              })}
             </div>
 
             {(user.role === 'cd' || user.role === 'dispatcher') && (
@@ -144,13 +156,13 @@ export function CoursesScreen() {
                   checked={cdOnly}
                   onChange={(e) => setCdOnly(e.target.checked)}
                 />
-                Nur Pro-Stufen <span className="caption-2">(IDC, SPEI, EFRI · DM für Recruiting)</span>
+                {t('courses.pro_only')} <span className="caption-2">{t('courses.pro_only_hint')}</span>
               </label>
             )}
           </div>
 
           {filtered.length === 0 ? (
-            <EmptyState icon="book" title="Keine Treffer" />
+            <EmptyState icon="book" title={t('courses.no_matches')} />
           ) : (
             filtered.map((c) => (
               <div
@@ -165,7 +177,7 @@ export function CoursesScreen() {
                   </div>
                   <div className="caption">
                     {c.course_type?.code ?? '—'} ·{' '}
-                    {format(new Date(c.start_date), 'dd. MMM', { locale: de })}
+                    {format(new Date(c.start_date), 'dd. MMM', { locale: dfLocale })}
                   </div>
                 </div>
                 <Chip tone={
@@ -173,9 +185,9 @@ export function CoursesScreen() {
                   c.status === 'tentative' ? 'orange' :
                   c.status === 'completed' ? 'purple' : 'red'
                 }>
-                  {c.status === 'confirmed' ? 'sicher' :
-                   c.status === 'tentative' ? 'evtl.' :
-                   c.status === 'completed' ? 'done' : 'cxl'}
+                  {c.status === 'confirmed' ? t('courses.status_certain') :
+                   c.status === 'tentative' ? t('courses.status_tentative') :
+                   c.status === 'completed' ? t('courses.status_done') : t('courses.status_cxl')}
                 </Chip>
               </div>
             ))
@@ -188,8 +200,8 @@ export function CoursesScreen() {
           ) : (
             <EmptyState
               icon="book"
-              title="Wähle einen Kurs"
-              description="Klick links auf einen Eintrag, um Details zu sehen."
+              title={t('courses.pick_one_title')}
+              description={t('courses.pick_one_desc')}
             />
           )}
         </div>

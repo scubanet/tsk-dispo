@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -17,6 +18,7 @@ interface Row {
 type SortKey = 'name' | 'app_balance' | 'diff'
 
 export function SaldiScreen() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [rows, setRows] = useState<Row[]>([])
   const [search, setSearch] = useState('')
@@ -62,13 +64,13 @@ export function SaldiScreen() {
   return (
     <>
       <Topbar
-        title="Saldi"
-        subtitle={`${rows.length} Personen · Σ App-Saldo ${chf(totalAppBalance)}`}
+        title={t('nav.balances')}
+        subtitle={t('balances.topbar_subtitle', { count: rows.length, sum: chf(totalAppBalance) })}
       >
         <div className="search" style={{ width: 220 }}>
           <Icon name="search" size={14} />
           <input
-            placeholder="Suchen…"
+            placeholder={t('common.search') + '…'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -77,32 +79,31 @@ export function SaldiScreen() {
 
       <div className="screen-fade scroll" style={{ flex: 1, padding: '20px 24px 40px' }}>
         <div className="glass card" style={{ marginBottom: 16 }}>
-          <div className="title-3" style={{ marginBottom: 8 }}>Saldo-Vergleich App ↔ Excel</div>
+          <div className="title-3" style={{ marginBottom: 8 }}>{t('balances.compare_title')}</div>
           <div className="caption">
-            {within50} von {total} Personen innerhalb ±CHF 50 ({ratio}%). Δ &gt; 50 weist meist
-            auf Guru-Bezüge oder manuelle Korrekturen hin (kommen in Slice C).
+            {t('balances.compare_summary', { within: within50, total, ratio })}
           </div>
         </div>
 
         <div className="glass card">
           <div className="seg" style={{ marginBottom: 12 }}>
             <button className={clsx(sortBy === 'name' && 'active')} onClick={() => setSortBy('name')}>
-              Name
+              {t('balances.col_name')}
             </button>
             <button className={clsx(sortBy === 'app_balance' && 'active')} onClick={() => setSortBy('app_balance')}>
-              Saldo (App)
+              {t('balances.sort_app_balance')}
             </button>
             <button className={clsx(sortBy === 'diff' && 'active')} onClick={() => setSortBy('diff')}>
-              Δ größte zuerst
+              {t('balances.sort_diff')}
             </button>
           </div>
 
           <table style={{ width: '100%', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: '0.5px solid var(--hairline)' }}>
-                <th align="left" style={{ padding: '6px 4px' }}>Name</th>
-                <th align="right" style={{ padding: '6px 4px' }}>App</th>
-                <th align="right" style={{ padding: '6px 4px' }}>Excel</th>
+                <th align="left" style={{ padding: '6px 4px' }}>{t('balances.col_name')}</th>
+                <th align="right" style={{ padding: '6px 4px' }}>{t('balances.col_app')}</th>
+                <th align="right" style={{ padding: '6px 4px' }}>{t('balances.col_excel')}</th>
                 <th align="right" style={{ padding: '6px 4px' }}>Δ</th>
               </tr>
             </thead>
