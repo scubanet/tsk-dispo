@@ -166,6 +166,23 @@
     "day_of": "Tag {{current}}/{{total}}",
     "more_count": "+{{count}} mehr"
   },
+  "assignment_edit": {
+    "title_new": "TL/DM zuweisen",
+    "title_edit": "Zuweisung bearbeiten",
+    "label_person": "Person",
+    "role_haupt": "Haupt",
+    "role_assist": "Assistent",
+    "role_opfer": "Opfer (Rescue)",
+    "opfer_hint": "Rescue-Szenario-Opfer · Pauschal 1.5 Punkte Vergütung",
+    "label_which_days": "Welche Tage?",
+    "all_days": "Alle Tage",
+    "days_hint": "Leer = ganzer Kurs. Auswahl = nur an diesen Tagen.",
+    "confirmed_label": "Person hat zugesagt (bestätigt)",
+    "conflict_text": "Person ist an mind. einem dieser Tage bereits zugewiesen für \"{{title}}\" als {{role}}.",
+    "remove": "Entfernen",
+    "assign": "Zuweisen",
+    "confirm_delete": "Diese Zuweisung wirklich entfernen? Die zugehörige Vergütungsbuchung wird automatisch storniert."
+  },
   "instructor_detail": {
     "tab_overview": "Übersicht",
     "tab_skills": "Skills",

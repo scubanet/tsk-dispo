@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { de } from 'date-fns/locale'
+import { de, enGB } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -44,13 +45,14 @@ const inputStyle = {
   width: '100%',
 }
 
-const BASE_ROLES = [
-  { value: 'haupt' as const,  label: 'Haupt' },
-  { value: 'assist' as const, label: 'Assistent' },
-]
-const OPFER_ROLE = { value: 'opfer' as const, label: 'Opfer (Rescue)' }
-
 export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates, existingAssignment }: Props) {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
+  const BASE_ROLES = [
+    { value: 'haupt' as const,  label: t('assignment_edit.role_haupt') },
+    { value: 'assist' as const, label: t('assignment_edit.role_assist') },
+  ]
+  const OPFER_ROLE = { value: 'opfer' as const, label: t('assignment_edit.role_opfer') }
   const isEdit = !!existingAssignment
 
   const [instructors, setInstructors] = useState<Instructor[]>([])
@@ -183,7 +185,7 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
 
   async function deleteAssignment() {
     if (!existingAssignment) return
-    if (!confirm('Diese Zuweisung wirklich entfernen? Die zugehörige Vergütungsbuchung wird automatisch storniert.')) return
+    if (!confirm(t('assignment_edit.confirm_delete'))) return
     setSaving(true)
     const { error: delErr } = await supabase
       .from('course_assignments')
@@ -201,18 +203,18 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
     <Sheet
       open={open}
       onClose={onClose}
-      title={isEdit ? 'Zuweisung bearbeiten' : 'TL/DM zuweisen'}
+      title={isEdit ? t('assignment_edit.title_edit') : t('assignment_edit.title_new')}
       width={520}
     >
       <div style={{ display: 'grid', gap: 14 }}>
         <div>
-          <Label>Person</Label>
+          <Label>{t('assignment_edit.label_person')}</Label>
           <select
             value={instructorId}
             onChange={(e) => setInstructorId(e.target.value)}
             style={inputStyle}
           >
-            <option value="">— wählen —</option>
+            <option value="">— {t('course_edit.choose')} —</option>
             {instructors.map((i) => (
               <option key={i.id} value={i.id}>{i.name} ({i.padi_level})</option>
             ))}
@@ -220,7 +222,7 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
         </div>
 
         <div>
-          <Label>Rolle</Label>
+          <Label>{t('instructor_edit.label_role')}</Label>
           <div className="seg">
             {availableRoles.map((r) => (
               <button
@@ -235,25 +237,25 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
           </div>
           {isRescueCourse && role === 'opfer' && (
             <div className="caption-2" style={{ marginTop: 6, color: 'var(--ink-2)' }}>
-              Rescue-Szenario-Opfer · Pauschal 1.5 Punkte Vergütung
+              {t('assignment_edit.opfer_hint')}
             </div>
           )}
         </div>
 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <Label>Welche Tage?</Label>
+            <Label>{t('assignment_edit.label_which_days')}</Label>
             <button
               type="button"
               className="btn-ghost btn"
               onClick={selectAll}
               style={{ padding: '0 8px', height: 24 }}
             >
-              Alle Tage
+              {t('assignment_edit.all_days')}
             </button>
           </div>
           <div className="caption-2" style={{ marginBottom: 8 }}>
-            Leer = ganzer Kurs. Auswahl = nur an diesen Tagen.
+            {t('assignment_edit.days_hint')}
           </div>
           <div style={{ display: 'grid', gap: 6 }}>
             {allDates.map((d) => {
@@ -287,7 +289,7 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
                     }}
                   />
                   <span className="mono caption" style={{ minWidth: 110 }}>
-                    {format(new Date(d), 'EEE, d. MMM', { locale: de })}
+                    {format(new Date(d), 'EEE, d. MMM', { locale: dfLocale })}
                   </span>
                 </label>
               )
@@ -302,7 +304,7 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
             checked={confirmed}
             onChange={(e) => setConfirmed(e.target.checked)}
           />
-          <label htmlFor="confirmed">Person hat zugesagt (bestätigt)</label>
+          <label htmlFor="confirmed">{t('assignment_edit.confirmed_label')}</label>
         </div>
 
         {conflicts.length > 0 && (
@@ -312,8 +314,10 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
           >
             <Icon name="bell" size={16} />
             <div>
-              <strong>Konflikt:</strong> Person ist an mind. einem dieser Tage bereits zugewiesen für{' '}
-              <em>"{conflicts[0].conflicting_course_title}"</em> als {conflicts[0].conflicting_role}.
+              <strong>{t('course_edit.conflict')}:</strong> {t('assignment_edit.conflict_text', {
+                title: conflicts[0].conflicting_course_title,
+                role: conflicts[0].conflicting_role,
+              })}
             </div>
           </div>
         )}
@@ -328,17 +332,17 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
               disabled={saving}
               style={{ color: '#FF3B30' }}
             >
-              <Icon name="x" size={12} /> Entfernen
+              <Icon name="x" size={12} /> {t('assignment_edit.remove')}
             </button>
           )}
-          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button
             className="btn"
             onClick={save}
             disabled={saving || !instructorId}
             style={{ flex: 1 }}
           >
-            {saving ? 'Speichere…' : isEdit ? 'Speichern' : 'Zuweisen'}
+            {saving ? t('common.saving') : isEdit ? t('common.save') : t('assignment_edit.assign')}
           </button>
         </div>
       </div>
