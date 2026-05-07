@@ -1,0 +1,105 @@
+{
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "close": "Schliessen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "search": "Suchen",
+    "loading": "Lädt…",
+    "saving": "Speichere…",
+    "sending": "Sende…",
+    "error": "Fehler",
+    "click_to_edit": "Klicken zum Bearbeiten",
+    "open": "Öffnen",
+    "yes": "Ja",
+    "no": "Nein",
+    "of": "von"
+  },
+  "nav": {
+    "cockpit": "Cockpit",
+    "today": "Heute",
+    "calendar": "Kalender",
+    "courses": "Kurse",
+    "tldm": "TL/DM",
+    "people": "Personen",
+    "organizations": "Organisationen",
+    "communication": "Communication",
+    "skills": "Skill-Matrix",
+    "pool": "Pool",
+    "balances": "Saldi",
+    "my_assignments": "Meine Einsätze",
+    "my_balance": "Mein Saldo",
+    "my_profile": "Mein Profil",
+    "section_cd": "CD-Modul",
+    "pipeline": "Pipeline",
+    "section_admin": "Verwaltung",
+    "settings": "Einstellungen"
+  },
+  "auth": {
+    "logout": "Abmelden",
+    "tagline": "The Scuba OS",
+    "magic_link_prompt": "Magic-Link an deine Email",
+    "email_placeholder": "deine@email.ch",
+    "send_magic_link": "Magic-Link senden",
+    "link_sent": "✉️ Link gesendet — schau in deine Inbox"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "subtitle": "Vergütungssätze · Kurs-Punkte · Import · User",
+    "language": {
+      "title": "Sprache",
+      "subtitle": "Wirkt sofort und wird in deinem Profil gespeichert.",
+      "de": "Deutsch",
+      "en": "English"
+    },
+    "import": {
+      "title": "Excel-Import",
+      "subtitle": "4-stufiger Wizard zum einmaligen Import deines Excel-Sheets.",
+      "open": "Import öffnen"
+    },
+    "recalc": {
+      "saved_notice_strong": "Änderungen gespeichert.",
+      "saved_notice_body": "Bestehende Vergütungen sind noch mit den alten Sätzen berechnet. Klick auf \"Vergütungen neu berechnen\" um alle Saldi zu aktualisieren.",
+      "calculating": "Berechne…",
+      "button": "Vergütungen neu berechnen",
+      "confirm": "Alle bestehenden Vergütungs-Buchungen werden gelöscht und mit den aktuellen Sätzen + Punkten neu berechnet. Fortfahren?",
+      "result": "✓ {{deleted}} alte Buchungen gelöscht, {{inserted}} neue erstellt.",
+      "result_generic": "✓ Recalc abgeschlossen.",
+      "error_prefix": "Fehler: ",
+      "save_failed": "Fehler beim Speichern: ",
+      "comp_units_sync_failed": "comp_units Sync Fehler: "
+    },
+    "rates": {
+      "title": "Vergütungssätze pro Level",
+      "subtitle": "CHF pro Punkt. Multipliziert mit den Kurs-Punkten unten ergibt die Vergütung.",
+      "subtitle_dispatcher_hint": " · Klick auf den Wert zum Bearbeiten.",
+      "col_level": "Level",
+      "col_chf_per_point": "CHF / Punkt"
+    },
+    "course_pay": {
+      "title": "Kursentschädigungen (Punkte)",
+      "subtitle": "Punkte je Kurstyp · Theorie + Pool + See = Total. Vergütung = Total × CHF/Punkt.",
+      "col_code": "Code",
+      "col_course": "Kurs",
+      "col_theory": "Theorie",
+      "col_pool": "Pool",
+      "col_lake": "See",
+      "col_total": "Total",
+      "col_instructor_pay": "Instruktor-Vergütung",
+      "footnote": "Instruktor-Vergütung als Beispiel-Rechnung mit aktuellem Instruktor-Satz · DM/AI/Shop Staff analog mit ihrem niedrigeren Satz."
+    },
+    "users": {
+      "title": "User & Login-Verknüpfungen",
+      "summary": "{{linked}} von {{total}} Person hat einen Login.",
+      "summary_other": "{{linked}} von {{total}} Personen haben einen Login.",
+      "col_name": "Name",
+      "col_email": "Email",
+      "col_role": "Rolle",
+      "col_login": "Login"
+    }
+  }
+}

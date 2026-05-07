@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Icon, type IconName } from './Icon'
 import { Logo } from './Logo'
 import { CopyrightFooter } from './CopyrightFooter'
@@ -15,39 +16,39 @@ interface SidebarProps {
 interface NavItem {
   to: string
   icon: IconName
-  label: string
+  /** i18n key under `nav.*` */
+  i18nKey: string
   roles: Role[]
 }
 
 const ITEMS: NavItem[] = [
-  { to: '/cockpit',   icon: 'chart',    label: 'Cockpit',        roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/heute',     icon: 'house',    label: 'Heute',          roles: ['dispatcher', 'instructor', 'owner', 'cd'] },
-  { to: '/kalender',  icon: 'calendar', label: 'Kalender',       roles: ['dispatcher', 'instructor', 'owner', 'cd'] },
-  { to: '/kurse',     icon: 'book',     label: 'Kurse',          roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/tldm',      icon: 'users',    label: 'TL/DM',          roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/schueler',  icon: 'tag',      label: 'Personen',       roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/cd/organisationen', icon: 'tag', label: 'Organisationen', roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/communication', icon: 'chart', label: 'Communication',  roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/skills',    icon: 'grid',     label: 'Skill-Matrix',   roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/pool',      icon: 'water',    label: 'Pool',           roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/saldi',     icon: 'wallet',   label: 'Saldi',          roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/einsaetze', icon: 'book',     label: 'Meine Einsätze', roles: ['instructor'] },
-  { to: '/saldo',     icon: 'wallet',   label: 'Mein Saldo',     roles: ['instructor'] },
-  { to: '/profil',    icon: 'tag',      label: 'Mein Profil',    roles: ['instructor'] },
+  { to: '/cockpit',           icon: 'chart',    i18nKey: 'cockpit',         roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/heute',             icon: 'house',    i18nKey: 'today',           roles: ['dispatcher', 'instructor', 'owner', 'cd'] },
+  { to: '/kalender',          icon: 'calendar', i18nKey: 'calendar',        roles: ['dispatcher', 'instructor', 'owner', 'cd'] },
+  { to: '/kurse',             icon: 'book',     i18nKey: 'courses',         roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/tldm',              icon: 'users',    i18nKey: 'tldm',            roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/schueler',          icon: 'tag',      i18nKey: 'people',          roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/cd/organisationen', icon: 'tag',      i18nKey: 'organizations',   roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/communication',     icon: 'chart',    i18nKey: 'communication',   roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/skills',            icon: 'grid',     i18nKey: 'skills',          roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/pool',              icon: 'water',    i18nKey: 'pool',            roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/saldi',             icon: 'wallet',   i18nKey: 'balances',        roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/einsaetze',         icon: 'book',     i18nKey: 'my_assignments',  roles: ['instructor'] },
+  { to: '/saldo',             icon: 'wallet',   i18nKey: 'my_balance',      roles: ['instructor'] },
+  { to: '/profil',            icon: 'tag',      i18nKey: 'my_profile',      roles: ['instructor'] },
 ]
 
-// CD-Modul: nur für CD-Rolle sichtbar (Owner read-only erscheint später separat)
-// Kontakte/Kandidaten sind jetzt Tabs in „Personen" — hier nur CD-spezifische Tools.
-// Orgs sind in den Hauptbereich gewandert weil auch Dispatcher zugreifen darf.
+// CD module: CD role only.
 const CD_ITEMS: NavItem[] = [
-  { to: '/cd/pipeline',       icon: 'chart', label: 'Pipeline',       roles: ['cd'] },
+  { to: '/cd/pipeline', icon: 'chart', i18nKey: 'pipeline', roles: ['cd'] },
 ]
 
 const ADMIN: NavItem[] = [
-  { to: '/einstellungen', icon: 'settings', label: 'Einstellungen', roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/einstellungen', icon: 'settings', i18nKey: 'settings', roles: ['dispatcher', 'owner', 'cd'] },
 ]
 
 export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
+  const { t } = useTranslation()
   const main = ITEMS.filter((i) => i.roles.includes(role))
   const cd = CD_ITEMS.filter((i) => i.roles.includes(role))
   const admin = ADMIN.filter((i) => i.roles.includes(role))
@@ -84,13 +85,13 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
           <span className="sb-icon">
             <Icon name={item.icon} size={17} />
           </span>
-          <span>{item.label}</span>
+          <span>{t(`nav.${item.i18nKey}`)}</span>
         </NavLink>
       ))}
 
       {cd.length > 0 && (
         <>
-          <div className="sb-section">CD-Modul</div>
+          <div className="sb-section">{t('nav.section_cd')}</div>
           {cd.map((item) => (
             <NavLink
               key={item.to}
@@ -100,7 +101,7 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
               <span className="sb-icon">
                 <Icon name={item.icon} size={17} />
               </span>
-              <span>{item.label}</span>
+              <span>{t(`nav.${item.i18nKey}`)}</span>
             </NavLink>
           ))}
         </>
@@ -108,7 +109,7 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
 
       {admin.length > 0 && (
         <>
-          <div className="sb-section">Verwaltung</div>
+          <div className="sb-section">{t('nav.section_admin')}</div>
           {admin.map((item) => (
             <NavLink
               key={item.to}
@@ -118,7 +119,7 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
               <span className="sb-icon">
                 <Icon name={item.icon} size={17} />
               </span>
-              <span>{item.label}</span>
+              <span>{t(`nav.${item.i18nKey}`)}</span>
             </NavLink>
           ))}
           <button
@@ -130,7 +131,7 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
             <span className="sb-icon">
               <Icon name="logout" size={17} />
             </span>
-            <span>Abmelden</span>
+            <span>{t('auth.logout')}</span>
           </button>
         </>
       )}
@@ -178,7 +179,7 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
               {userEmail}
             </div>
           </div>
-          <button className="btn-icon" onClick={onLogout} title="Abmelden">
+          <button className="btn-icon" onClick={onLogout} title={t('auth.logout')}>
             <Icon name="logout" size={14} />
           </button>
         </div>

@@ -1,0 +1,105 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "sending": "Sending…",
+    "error": "Error",
+    "click_to_edit": "Click to edit",
+    "open": "Open",
+    "yes": "Yes",
+    "no": "No",
+    "of": "of"
+  },
+  "nav": {
+    "cockpit": "Cockpit",
+    "today": "Today",
+    "calendar": "Calendar",
+    "courses": "Courses",
+    "tldm": "TL/DM",
+    "people": "People",
+    "organizations": "Organizations",
+    "communication": "Communication",
+    "skills": "Skill matrix",
+    "pool": "Pool",
+    "balances": "Balances",
+    "my_assignments": "My assignments",
+    "my_balance": "My balance",
+    "my_profile": "My profile",
+    "section_cd": "CD module",
+    "pipeline": "Pipeline",
+    "section_admin": "Admin",
+    "settings": "Settings"
+  },
+  "auth": {
+    "logout": "Sign out",
+    "tagline": "The Scuba OS",
+    "magic_link_prompt": "Magic link to your email",
+    "email_placeholder": "you@email.com",
+    "send_magic_link": "Send magic link",
+    "link_sent": "✉️ Link sent — check your inbox"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Pay rates · Course points · Import · Users",
+    "language": {
+      "title": "Language",
+      "subtitle": "Applies instantly and is saved to your profile.",
+      "de": "Deutsch",
+      "en": "English"
+    },
+    "import": {
+      "title": "Excel import",
+      "subtitle": "4-step wizard for the one-time import of your Excel sheet.",
+      "open": "Open import"
+    },
+    "recalc": {
+      "saved_notice_strong": "Changes saved.",
+      "saved_notice_body": "Existing pay records are still based on the old rates. Click \"Recalculate pay\" to refresh all balances.",
+      "calculating": "Calculating…",
+      "button": "Recalculate pay",
+      "confirm": "All existing pay records will be deleted and recalculated with current rates + points. Continue?",
+      "result": "✓ {{deleted}} old records deleted, {{inserted}} new ones created.",
+      "result_generic": "✓ Recalc complete.",
+      "error_prefix": "Error: ",
+      "save_failed": "Save failed: ",
+      "comp_units_sync_failed": "comp_units sync failed: "
+    },
+    "rates": {
+      "title": "Pay rates per level",
+      "subtitle": "CHF per point. Multiplied with course points below gives the pay.",
+      "subtitle_dispatcher_hint": " · Click a value to edit.",
+      "col_level": "Level",
+      "col_chf_per_point": "CHF / point"
+    },
+    "course_pay": {
+      "title": "Course pay (points)",
+      "subtitle": "Points per course type · Theory + Pool + Lake = Total. Pay = Total × CHF/point.",
+      "col_code": "Code",
+      "col_course": "Course",
+      "col_theory": "Theory",
+      "col_pool": "Pool",
+      "col_lake": "Lake",
+      "col_total": "Total",
+      "col_instructor_pay": "Instructor pay",
+      "footnote": "Instructor pay shown as example with the current instructor rate · DM/AI/Shop Staff use their lower rate accordingly."
+    },
+    "users": {
+      "title": "Users & login links",
+      "summary": "{{linked}} of {{total}} person has a login.",
+      "summary_other": "{{linked}} of {{total}} people have a login.",
+      "col_name": "Name",
+      "col_email": "Email",
+      "col_role": "Role",
+      "col_login": "Login"
+    }
+  }
+}

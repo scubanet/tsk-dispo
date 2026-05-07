@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Wallpaper } from '@/components/Wallpaper'
 import { StatusBar } from '@/components/StatusBar'
@@ -6,6 +7,7 @@ import { Logo } from '@/components/Logo'
 import { CopyrightFooter } from '@/components/CopyrightFooter'
 
 export function LoginScreen() {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -53,14 +55,14 @@ export function LoginScreen() {
             </div>
             <div>
               <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '.08em', lineHeight: 1 }}>ATOLL</div>
-              <div className="caption-2" style={{ marginTop: 4, opacity: 0.75 }}>The Scuba OS</div>
+              <div className="caption-2" style={{ marginTop: 4, opacity: 0.75 }}>{t('auth.tagline')}</div>
             </div>
           </div>
-          <div className="caption" style={{ marginBottom: 18 }}>Magic-Link an deine Email</div>
+          <div className="caption" style={{ marginBottom: 18 }}>{t('auth.magic_link_prompt')}</div>
 
           {status === 'sent' ? (
             <div className="chip chip-green" style={{ marginBottom: 8 }}>
-              ✉️ Link gesendet — schau in deine Inbox
+              {t('auth.link_sent')}
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
@@ -68,7 +70,7 @@ export function LoginScreen() {
                 <input
                   type="email"
                   required
-                  placeholder="deine@email.ch"
+                  placeholder={t('auth.email_placeholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={status === 'sending'}
@@ -80,7 +82,7 @@ export function LoginScreen() {
                 disabled={status === 'sending' || !email}
                 style={{ width: '100%', height: 40, justifyContent: 'center' }}
               >
-                {status === 'sending' ? 'Sende…' : 'Magic-Link senden'}
+                {status === 'sending' ? t('common.sending') : t('auth.send_magic_link')}
               </button>
               {error && (
                 <div className="chip chip-red" style={{ marginTop: 12 }}>{error}</div>

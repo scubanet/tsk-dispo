@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { Chip } from '@/components/Chip'
 import { supabase } from '@/lib/supabase'
 import { chf } from '@/lib/format'
+import { useLanguage } from '@/i18n/useLanguage'
+import type { Lang } from '@/i18n'
 import type { OutletCtx } from '@/layout/AppShell'
 
 interface CompRate {
@@ -32,6 +35,7 @@ interface UserRow {
 }
 
 export function SettingsScreen() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { user } = useOutletContext<OutletCtx>()
   const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
@@ -86,7 +90,7 @@ export function SettingsScreen() {
       .update({ hourly_rate_chf: newValue })
       .eq('id', rateId)
     if (error) {
-      alert('Fehler beim Speichern: ' + error.message)
+      alert(t('settings.recalc.save_failed') + error.message)
       refetch()  // revert
       return
     }
@@ -101,7 +105,7 @@ export function SettingsScreen() {
       .update({ [field]: newValue })
       .eq('id', id)
     if (error) {
-      alert('Fehler beim Speichern: ' + error.message)
+      alert(t('settings.recalc.save_failed') + error.message)
       refetch()  // revert
       return
     }
@@ -112,13 +116,13 @@ export function SettingsScreen() {
       .update({ [compUnitField]: newValue })
       .eq('course_type_id', id)
     if (cuErr) {
-      alert('comp_units Sync Fehler: ' + cuErr.message)
+      alert(t('settings.recalc.comp_units_sync_failed') + cuErr.message)
     }
     setDirty(true)
   }
 
   async function runRecalc() {
-    if (!confirm('Alle bestehenden Vergütungs-Buchungen werden gelöscht und mit den aktuellen Sätzen + Punkten neu berechnet. Fortfahren?')) {
+    if (!confirm(t('settings.recalc.confirm'))) {
       return
     }
     setRecalcing(true)
@@ -126,30 +130,32 @@ export function SettingsScreen() {
     const { data, error } = await supabase.rpc('recalc_all_compensations')
     setRecalcing(false)
     if (error) {
-      setRecalcMsg('Fehler: ' + error.message)
+      setRecalcMsg(t('settings.recalc.error_prefix') + error.message)
       return
     }
     const row = Array.isArray(data) && data[0] ? data[0] : null
     setRecalcMsg(
       row
-        ? `✓ ${row.deleted_count} alte Buchungen gelöscht, ${row.inserted_count} neue erstellt.`
-        : '✓ Recalc abgeschlossen.',
+        ? t('settings.recalc.result', { deleted: row.deleted_count, inserted: row.inserted_count })
+        : t('settings.recalc.result_generic'),
     )
     setDirty(false)
   }
 
   return (
     <>
-      <Topbar title="Einstellungen" subtitle="Vergütungssätze · Kurs-Punkte · Import · User" />
+      <Topbar title={t('settings.title')} subtitle={t('settings.subtitle')} />
       <div className="screen-fade scroll" style={{ padding: '20px 24px 40px', flex: 1 }}>
+        <LanguageCard />
+
         <div className="glass card" style={{ marginBottom: 20 }}>
-          <div className="title-3" style={{ marginBottom: 12 }}>Excel-Import</div>
+          <div className="title-3" style={{ marginBottom: 12 }}>{t('settings.import.title')}</div>
           <div className="caption" style={{ marginBottom: 12 }}>
-            4-stufiger Wizard zum einmaligen Import deines Excel-Sheets.
+            {t('settings.import.subtitle')}
           </div>
           <button className="btn" onClick={() => navigate('/einstellungen/import')}>
             <Icon name="plus" size={14} />
-            Import öffnen
+            {t('settings.import.open')}
           </button>
         </div>
 
@@ -167,11 +173,10 @@ export function SettingsScreen() {
           >
             <Icon name="bell" size={18} />
             <div style={{ flex: 1, fontSize: 13 }}>
-              <strong>Änderungen gespeichert.</strong> Bestehende Vergütungen sind noch mit den alten Sätzen berechnet.
-              Klick auf "Vergütungen neu berechnen" um alle Saldi zu aktualisieren.
+              <strong>{t('settings.recalc.saved_notice_strong')}</strong> {t('settings.recalc.saved_notice_body')}
             </div>
             <button className="btn" onClick={runRecalc} disabled={recalcing}>
-              {recalcing ? 'Berechne…' : 'Vergütungen neu berechnen'}
+              {recalcing ? t('settings.recalc.calculating') : t('settings.recalc.button')}
             </button>
           </div>
         )}
@@ -193,16 +198,16 @@ export function SettingsScreen() {
         )}
 
         <div className="glass card" style={{ marginBottom: 20 }}>
-          <div className="title-3" style={{ marginBottom: 12 }}>Vergütungssätze pro Level</div>
+          <div className="title-3" style={{ marginBottom: 12 }}>{t('settings.rates.title')}</div>
           <div className="caption" style={{ marginBottom: 12 }}>
-            CHF pro Punkt. Multipliziert mit den Kurs-Punkten unten ergibt die Vergütung.
-            {isDispatcher && ' · Klick auf den Wert zum Bearbeiten.'}
+            {t('settings.rates.subtitle')}
+            {isDispatcher && t('settings.rates.subtitle_dispatcher_hint')}
           </div>
           <table style={{ width: '100%', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: '0.5px solid var(--hairline)' }}>
-                <th align="left" style={{ padding: '6px 4px' }}>Level</th>
-                <th align="right" style={{ padding: '6px 4px' }}>CHF / Punkt</th>
+                <th align="left" style={{ padding: '6px 4px' }}>{t('settings.rates.col_level')}</th>
+                <th align="right" style={{ padding: '6px 4px' }}>{t('settings.rates.col_chf_per_point')}</th>
               </tr>
             </thead>
             <tbody>
@@ -227,22 +232,22 @@ export function SettingsScreen() {
         </div>
 
         <div className="glass card" style={{ marginBottom: 20 }}>
-          <div className="title-3" style={{ marginBottom: 4 }}>Kursentschädigungen (Punkte)</div>
+          <div className="title-3" style={{ marginBottom: 4 }}>{t('settings.course_pay.title')}</div>
           <div className="caption" style={{ marginBottom: 12 }}>
-            Punkte je Kurstyp · Theorie + Pool + See = Total. Vergütung = Total × CHF/Punkt.
-            {isDispatcher && ' · Klick auf einen Wert zum Bearbeiten.'}
+            {t('settings.course_pay.subtitle')}
+            {isDispatcher && t('settings.rates.subtitle_dispatcher_hint')}
           </div>
           <div style={{ overflow: 'auto' }}>
             <table style={{ width: '100%', fontSize: 13, minWidth: 560 }}>
               <thead>
                 <tr style={{ borderBottom: '0.5px solid var(--hairline)' }}>
-                  <th align="left"  style={{ padding: '6px 4px' }}>Code</th>
-                  <th align="left"  style={{ padding: '6px 4px' }}>Kurs</th>
-                  <th align="right" style={{ padding: '6px 4px' }}>Theorie</th>
-                  <th align="right" style={{ padding: '6px 4px' }}>Pool</th>
-                  <th align="right" style={{ padding: '6px 4px' }}>See</th>
-                  <th align="right" style={{ padding: '6px 4px', borderLeft: '0.5px solid var(--hairline)' }}>Total</th>
-                  <th align="right" style={{ padding: '6px 4px' }}>Instruktor-Vergütung</th>
+                  <th align="left"  style={{ padding: '6px 4px' }}>{t('settings.course_pay.col_code')}</th>
+                  <th align="left"  style={{ padding: '6px 4px' }}>{t('settings.course_pay.col_course')}</th>
+                  <th align="right" style={{ padding: '6px 4px' }}>{t('settings.course_pay.col_theory')}</th>
+                  <th align="right" style={{ padding: '6px 4px' }}>{t('settings.course_pay.col_pool')}</th>
+                  <th align="right" style={{ padding: '6px 4px' }}>{t('settings.course_pay.col_lake')}</th>
+                  <th align="right" style={{ padding: '6px 4px', borderLeft: '0.5px solid var(--hairline)' }}>{t('settings.course_pay.col_total')}</th>
+                  <th align="right" style={{ padding: '6px 4px' }}>{t('settings.course_pay.col_instructor_pay')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -292,23 +297,27 @@ export function SettingsScreen() {
             </table>
           </div>
           <div className="caption-2" style={{ marginTop: 12, color: 'var(--ink-2)' }}>
-            Instruktor-Vergütung als Beispiel-Rechnung mit aktuellem Instruktor-Satz · DM/AI/Shop Staff analog mit ihrem niedrigeren Satz.
+            {t('settings.course_pay.footnote')}
           </div>
         </div>
 
         <div className="glass card">
-          <div className="title-3" style={{ marginBottom: 12 }}>User & Login-Verknüpfungen</div>
+          <div className="title-3" style={{ marginBottom: 12 }}>{t('settings.users.title')}</div>
           <div className="caption" style={{ marginBottom: 12 }}>
-            {users.filter((u) => u.auth_linked).length} von {users.length} Personen haben einen Login.
+            {t('settings.users.summary', {
+              linked: users.filter((u) => u.auth_linked).length,
+              total: users.length,
+              count: users.length,
+            })}
           </div>
           <div style={{ maxHeight: 400, overflow: 'auto' }}>
             <table style={{ width: '100%', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '0.5px solid var(--hairline)' }}>
-                  <th align="left" style={{ padding: '6px 4px' }}>Name</th>
-                  <th align="left" style={{ padding: '6px 4px' }}>Email</th>
-                  <th align="left" style={{ padding: '6px 4px' }}>Rolle</th>
-                  <th align="center" style={{ padding: '6px 4px' }}>Login</th>
+                  <th align="left" style={{ padding: '6px 4px' }}>{t('settings.users.col_name')}</th>
+                  <th align="left" style={{ padding: '6px 4px' }}>{t('settings.users.col_email')}</th>
+                  <th align="left" style={{ padding: '6px 4px' }}>{t('settings.users.col_role')}</th>
+                  <th align="center" style={{ padding: '6px 4px' }}>{t('settings.users.col_login')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -342,6 +351,8 @@ function NumberCell({
   suffix?: string
   onSave: (n: number) => void | Promise<void>
 }) {
+  const { t } = useTranslation()
+  const titleClickToEdit = t('common.click_to_edit')
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(String(value))
 
@@ -371,7 +382,7 @@ function NumberCell({
         }}
         onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0,0,0,.04)')}
         onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-        title="Klicken zum Bearbeiten"
+        title={titleClickToEdit}
       >
         {fmtPoints(value)}{suffix}
       </span>
@@ -412,4 +423,57 @@ function fmtPoints(n: number | string): string {
   const num = Number(n)
   if (num === 0) return '—'
   return num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)
+}
+
+function LanguageCard() {
+  const { t } = useTranslation()
+  const { lang, setLang } = useLanguage()
+
+  const options: { code: Lang; label: string; flag: string }[] = [
+    { code: 'de', label: t('settings.language.de'), flag: '🇩🇪' },
+    { code: 'en', label: t('settings.language.en'), flag: '🇬🇧' },
+  ]
+
+  return (
+    <div className="glass card" style={{ marginBottom: 20 }}>
+      <div className="title-3" style={{ marginBottom: 4 }}>{t('settings.language.title')}</div>
+      <div className="caption" style={{ marginBottom: 12 }}>
+        {t('settings.language.subtitle')}
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {options.map((opt) => {
+          const active = lang === opt.code
+          return (
+            <button
+              key={opt.code}
+              type="button"
+              onClick={() => void setLang(opt.code)}
+              className={active ? 'btn' : 'btn-ghost'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 14px',
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: active ? 600 : 400,
+                ...(active
+                  ? {}
+                  : {
+                      background: 'rgba(0,0,0,.04)',
+                      border: '0.5px solid var(--hairline)',
+                      color: 'var(--ink)',
+                      cursor: 'pointer',
+                    }),
+              }}
+            >
+              <span style={{ fontSize: 16 }}>{opt.flag}</span>
+              <span>{opt.label}</span>
+              {active && <span style={{ marginLeft: 4 }}>✓</span>}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
