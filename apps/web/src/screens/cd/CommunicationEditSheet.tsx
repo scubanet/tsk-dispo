@@ -1,21 +1,31 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
 import { waDirectUrl } from '@/lib/whatsapp'
+import i18n from '@/i18n'
 
+/**
+ * Communication-Channels.
+ *
+ * Important: many other screens import `CHANNELS` and read the `.label`
+ * field (e.g. `CommunicationHubScreen`, `StudentDetailPanel`). To keep
+ * those callers working without forcing them to be hooks, we resolve the
+ * label via the i18n singleton at access time using a getter.
+ */
 export const CHANNELS = [
-  { code: 'email',    label: 'Email',    icon: 'tag'      as const },
-  { code: 'phone',    label: 'Telefon',  icon: 'users'    as const },
-  { code: 'whatsapp', label: 'WhatsApp', icon: 'tag'      as const },
-  { code: 'meeting',  label: 'Meeting',  icon: 'calendar' as const },
-  { code: 'note',     label: 'Notiz',    icon: 'tag'      as const },
-  { code: 'other',    label: 'Andere',   icon: 'tag'      as const },
+  { code: 'email',    icon: 'tag'      as const, get label() { return i18n.t('comm_edit.channel_email')    } },
+  { code: 'phone',    icon: 'users'    as const, get label() { return i18n.t('comm_edit.channel_phone')    } },
+  { code: 'whatsapp', icon: 'tag'      as const, get label() { return i18n.t('comm_edit.channel_whatsapp') } },
+  { code: 'meeting',  icon: 'calendar' as const, get label() { return i18n.t('comm_edit.channel_meeting')  } },
+  { code: 'note',     icon: 'tag'      as const, get label() { return i18n.t('comm_edit.channel_note')     } },
+  { code: 'other',    icon: 'tag'      as const, get label() { return i18n.t('comm_edit.channel_other')    } },
 ]
 
 export const DIRECTIONS = [
-  { code: 'outbound', label: 'Ausgehend' },
-  { code: 'inbound',  label: 'Eingehend' },
+  { code: 'outbound', get label() { return i18n.t('comm_hub.outbound') } },
+  { code: 'inbound',  get label() { return i18n.t('comm_hub.inbound')  } },
 ]
 
 interface Form {
@@ -79,6 +89,7 @@ interface Props {
 }
 
 export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entryId, createdById }: Props) {
+  const { t } = useTranslation()
   const showPicker = !contactId
   const [pickedContactId, setPickedContactId] = useState<string>('')
   const [people, setPeople] = useState<PersonOption[]>([])
@@ -154,7 +165,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
   async function save() {
     const finalContactId = contactId ?? pickedContactId
     if (!finalContactId) {
-      setError('Bitte eine Person wählen.')
+      setError(t('comm_edit.error_pick_person'))
       return
     }
     setSaving(true)
@@ -184,7 +195,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
 
   async function deleteEntry() {
     if (!isEdit) return
-    if (!confirm('Eintrag wirklich löschen?')) return
+    if (!confirm(t('comm_edit.confirm_delete'))) return
     setSaving(true)
     const { error: e } = await supabase.from('communication_entries').delete().eq('id', entryId!)
     setSaving(false)
@@ -222,14 +233,14 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title={isEdit ? 'Touchpoint bearbeiten' : 'Neuer Touchpoint'} width={520}>
+    <Sheet open={open} onClose={onClose} title={isEdit ? t('comm_edit.title_edit') : t('comm_edit.title_new')} width={520}>
       <div style={{ display: 'grid', gap: 14 }}>
         {showPicker && (
-          <Field label="Person">
+          <Field label={t('assignment_edit.label_person')}>
             <input
               value={pickerSearch}
               onChange={(e) => setPickerSearch(e.target.value)}
-              placeholder="Name suchen…"
+              placeholder={t('comm_edit.search_name')}
               style={inputStyle}
             />
             <div style={{ marginTop: 6, maxHeight: 180, overflow: 'auto', display: 'grid', gap: 4 }}>
@@ -254,8 +265,8 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
                     }}
                   >
                     {p.name}
-                    {p.is_candidate && <span style={{ marginLeft: 8, opacity: 0.6, fontSize: 11 }}>· Kandidat</span>}
-                    {p.is_student && !p.is_candidate && <span style={{ marginLeft: 8, opacity: 0.6, fontSize: 11 }}>· Schüler</span>}
+                    {p.is_candidate && <span style={{ marginLeft: 8, opacity: 0.6, fontSize: 11 }}>· {t('student_edit.stage_candidate')}</span>}
+                    {p.is_student && !p.is_candidate && <span style={{ marginLeft: 8, opacity: 0.6, fontSize: 11 }}>· {t('comm_hub.student_badge')}</span>}
                   </button>
                 ))}
             </div>
@@ -263,12 +274,12 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <Field label="Kanal">
+          <Field label={t('comm_edit.label_channel')}>
             <select value={form.channel} onChange={(e) => set('channel', e.target.value)} style={inputStyle}>
               {CHANNELS.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
             </select>
           </Field>
-          <Field label="Richtung">
+          <Field label={t('comm_edit.label_direction')}>
             <select value={form.direction} onChange={(e) => set('direction', e.target.value)} style={inputStyle}>
               {DIRECTIONS.map((d) => <option key={d.code} value={d.code}>{d.label}</option>)}
             </select>
@@ -276,7 +287,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <Field label="Datum & Uhrzeit">
+          <Field label={t('comm_edit.label_datetime')}>
             <input
               type="datetime-local"
               value={form.occurred_on}
@@ -284,24 +295,24 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
               style={inputStyle}
             />
           </Field>
-          <Field label="Bearbeiter (TSK-Team)">
+          <Field label={t('comm_edit.label_handler')}>
             <select value={form.created_by} onChange={(e) => set('created_by', e.target.value)} style={inputStyle}>
-              <option value="">— wählen —</option>
+              <option value="">— {t('course_edit.choose')} —</option>
               {instructors.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
             </select>
           </Field>
         </div>
 
-        <Field label="Betreff">
+        <Field label={t('comm_edit.label_subject')}>
           <input
             value={form.subject}
             onChange={(e) => set('subject', e.target.value)}
-            placeholder={form.channel === 'meeting' ? 'z.B. Kennenlern-Gespräch' : 'kurze Beschreibung'}
+            placeholder={form.channel === 'meeting' ? t('comm_edit.subject_meeting_placeholder') : t('comm_edit.subject_placeholder')}
             style={inputStyle}
           />
         </Field>
 
-        <Field label="Inhalt / Notiz">
+        <Field label={t('comm_edit.label_body')}>
           <textarea
             value={form.body}
             onChange={(e) => set('body', e.target.value)}
@@ -311,23 +322,23 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
         </Field>
 
         {showDuration && (
-          <Field label="Dauer (Minuten)">
+          <Field label={t('comm_edit.label_duration')}>
             <input
               type="number"
               min={0}
               value={form.duration_minutes}
               onChange={(e) => set('duration_minutes', e.target.value)}
-              placeholder="z.B. 15"
+              placeholder={t('comm_edit.duration_placeholder')}
               style={{ ...inputStyle, width: 120 }}
             />
           </Field>
         )}
 
-        <Field label="Outcome / Ergebnis">
+        <Field label={t('comm_edit.label_outcome')}>
           <input
             value={form.outcome}
             onChange={(e) => set('outcome', e.target.value)}
-            placeholder="z.B. interessiert, follow-up nötig, kein Interesse, …"
+            placeholder={t('comm_edit.outcome_placeholder')}
             style={inputStyle}
           />
         </Field>
@@ -335,7 +346,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
         {/* Direkt-Senden über Mail / WhatsApp / iMessage */}
         {contactInfo && (contactInfo.email || contactInfo.phone) && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', padding: '8px 10px', borderRadius: 10, background: 'rgba(0,122,255,.08)' }}>
-            <span className="caption-2" style={{ marginRight: 4 }}>Senden:</span>
+            <span className="caption-2" style={{ marginRight: 4 }}>{t('comm_edit.send_label')}:</span>
             {contactInfo.email && (
               <button
                 type="button"
@@ -343,7 +354,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
                 className="btn-secondary btn"
                 style={{ height: 28, padding: '0 12px', fontSize: 12 }}
               >
-                ✉ Mail
+                ✉ {t('comm_edit.channel_email')}
               </button>
             )}
             {contactInfo.phone && (
@@ -367,7 +378,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
               </>
             )}
             <span className="caption-2" style={{ marginLeft: 'auto', opacity: 0.6 }}>
-              setzt Kanal + Richtung „ausgehend"
+              {t('comm_edit.sets_outbound')}
             </span>
           </div>
         )}
@@ -382,12 +393,12 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
               disabled={saving}
               style={{ color: '#FF3B30' }}
             >
-              <Icon name="x" size={12} /> Löschen
+              <Icon name="x" size={12} /> {t('common.delete')}
             </button>
           )}
-          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button className="btn" onClick={save} disabled={saving} style={{ flex: 1 }}>
-            {saving ? 'Speichere…' : isEdit ? 'Speichern' : 'Anlegen'}
+            {saving ? t('common.saving') : isEdit ? t('common.save') : t('course_edit.create')}
           </button>
         </div>
       </div>
