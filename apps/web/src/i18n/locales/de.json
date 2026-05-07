@@ -166,6 +166,25 @@
     "day_of": "Tag {{current}}/{{total}}",
     "more_count": "+{{count}} mehr"
   },
+  "instructor_edit": {
+    "title_new": "Neuer TL/DM",
+    "title_edit": "Person bearbeiten",
+    "avatar_preview": "Vorschau Avatar",
+    "label_initials": "Initialen (1–4)",
+    "label_padi_level": "PADI-Level",
+    "label_avatar_color": "Avatar-Farbe",
+    "label_phone": "Telefon / WhatsApp (optional)",
+    "phone_hint": "Internationales Format. Aktiviert den \"WhatsApp-Direkt\"-Button im TL/DM-Detail.",
+    "label_role": "Rolle",
+    "active_label": "Aktiv (erscheint in Dispo-Vorschlägen)",
+    "skills_label": "SKILLS ({{selected}}/{{total}})",
+    "all_categories_short": "Alle",
+    "skills_hint": "Klick zum An-/Abwählen. Speichert sofort, kein \"Speichern\"-Klick nötig.",
+    "skills_post_create_hint": "💡 Skills kannst du nach dem Anlegen vergeben — entweder im TL/DM-Detail \"Bearbeiten\" oder in der Skill-Matrix.",
+    "warning_label": "Achtung",
+    "lockout_warning": "Du änderst gerade deine eigene Rolle weg von dispatcher. Wenn du speicherst, kommst du nach dem nächsten Login nicht mehr an die Admin-Bereiche heran.",
+    "error_first_name_required": "Vorname ist Pflicht."
+  },
   "student_detail": {
     "no_padi": "Kein PADI",
     "field_phone": "Telefon",

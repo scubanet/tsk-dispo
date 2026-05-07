@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { Avatar } from '@/components/Avatar'
@@ -63,6 +64,7 @@ const EMPTY_FORM: Form = {
 }
 
 export function InstructorEditSheet({ instructorId, open, onClose, onSaved, currentUserAuthId }: Props) {
+  const { t } = useTranslation()
   const isEdit = !!instructorId
   const [form, setForm] = useState<Form | null>(null)
   const [authUserId, setAuthUserId] = useState<string | null>(null)
@@ -160,7 +162,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
   async function save() {
     if (!form) return
     if (!form.first_name.trim()) {
-      setError('Vorname ist Pflicht.')
+      setError(t('instructor_edit.error_first_name_required'))
       return
     }
     setSaving(true)
@@ -216,9 +218,9 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
   const willLockSelfOut = isEditingSelf && form?.role !== 'dispatcher'
 
   return (
-    <Sheet open={open} onClose={onClose} title={isEdit ? 'Person bearbeiten' : 'Neuer TL/DM'} width={560}>
+    <Sheet open={open} onClose={onClose} title={isEdit ? t('instructor_edit.title_edit') : t('instructor_edit.title_new')} width={560}>
       {!form ? (
-        <div className="caption">Lade…</div>
+        <div className="caption">{t('common.loading')}</div>
       ) : (
         <div style={{ display: 'grid', gap: 14 }}>
           {/* Avatar preview */}
@@ -228,12 +230,12 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
               color={form.color}
               size="lg"
             />
-            <div className="caption">Vorschau Avatar</div>
+            <div className="caption">{t('instructor_edit.avatar_preview')}</div>
           </div>
 
           <div style={{ display: 'flex', gap: 10 }}>
             <div style={{ flex: 1 }}>
-              <Field label="Vorname">
+              <Field label={t('student_edit.label_first_name')}>
                 <input
                   value={form.first_name}
                   onChange={(e) => set('first_name', e.target.value)}
@@ -242,7 +244,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
               </Field>
             </div>
             <div style={{ flex: 1 }}>
-              <Field label="Nachname">
+              <Field label={t('student_edit.label_last_name')}>
                 <input
                   value={form.last_name}
                   onChange={(e) => set('last_name', e.target.value)}
@@ -252,7 +254,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
             </div>
           </div>
 
-          <Field label="Initialen (1–4)">
+          <Field label={t('instructor_edit.label_initials')}>
             <input
               value={form.initials}
               onChange={(e) => set('initials', e.target.value.toUpperCase().slice(0, 4))}
@@ -261,7 +263,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
             />
           </Field>
 
-          <Field label="PADI-Level">
+          <Field label={t('instructor_edit.label_padi_level')}>
             <select
               value={form.padi_level}
               onChange={(e) => set('padi_level', e.target.value)}
@@ -271,7 +273,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
             </select>
           </Field>
 
-          <Field label="Avatar-Farbe">
+          <Field label={t('instructor_edit.label_avatar_color')}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {COLORS.map((c) => (
                 <button
@@ -289,7 +291,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
             </div>
           </Field>
 
-          <Field label="Email">
+          <Field label={t('student_edit.label_email')}>
             <input
               type="email"
               value={form.email}
@@ -299,7 +301,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
             />
           </Field>
 
-          <Field label="Telefon / WhatsApp (optional)">
+          <Field label={t('instructor_edit.label_phone')}>
             <input
               value={form.phone}
               onChange={(e) => set('phone', e.target.value)}
@@ -307,11 +309,11 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
               style={inputStyle}
             />
             <div className="caption-2" style={{ marginTop: 4 }}>
-              Internationales Format. Aktiviert den "WhatsApp-Direkt"-Button im TL/DM-Detail.
+              {t('instructor_edit.phone_hint')}
             </div>
           </Field>
 
-          <Field label="Rolle">
+          <Field label={t('instructor_edit.label_role')}>
             <select
               value={form.role}
               onChange={(e) => set('role', e.target.value)}
@@ -328,14 +330,14 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
               checked={form.active}
               onChange={(e) => set('active', e.target.checked)}
             />
-            <label htmlFor="active">Aktiv (erscheint in Dispo-Vorschlägen)</label>
+            <label htmlFor="active">{t('instructor_edit.active_label')}</label>
           </div>
 
           {isEdit ? (
             <div style={{ marginTop: 6 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <div className="caption-2">
-                  SKILLS ({skillSet.size}/{allSkills.length})
+                  {t('instructor_edit.skills_label', { selected: skillSet.size, total: allSkills.length })}
                 </div>
                 <select
                   value={skillCategory}
@@ -343,12 +345,12 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
                   style={{ ...inputStyle, width: 'auto', padding: '4px 8px' }}
                 >
                   {categories.map((c) => (
-                    <option key={c} value={c}>{c === 'all' ? 'Alle' : c}</option>
+                    <option key={c} value={c}>{c === 'all' ? t('instructor_edit.all_categories_short') : c}</option>
                   ))}
                 </select>
               </div>
               <div className="caption-2" style={{ marginBottom: 8 }}>
-                Klick zum An-/Abwählen. Speichert sofort, kein "Speichern"-Klick nötig.
+                {t('instructor_edit.skills_hint')}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 220, overflow: 'auto', padding: 4 }}>
                 {filteredSkills.map((s) => {
@@ -377,8 +379,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
             </div>
           ) : (
             <div className="caption" style={{ padding: 12, background: 'rgba(120,120,128,.08)', borderRadius: 8 }}>
-              💡 Skills kannst du nach dem Anlegen vergeben — entweder im TL/DM-Detail "Bearbeiten"
-              oder in der Skill-Matrix.
+              {t('instructor_edit.skills_post_create_hint')}
             </div>
           )}
 
@@ -389,8 +390,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
             >
               <Icon name="bell" size={16} />
               <div>
-                <strong>Achtung:</strong> Du änderst gerade <em>deine eigene</em> Rolle weg von <code>dispatcher</code>.
-                Wenn du speicherst, kommst du nach dem nächsten Login nicht mehr an die Admin-Bereiche heran.
+                <strong>{t('instructor_edit.warning_label')}:</strong> {t('instructor_edit.lockout_warning')}
               </div>
             </div>
           )}
@@ -398,9 +398,9 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
           {error && <div className="chip chip-red">{error}</div>}
 
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+            <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
             <button className="btn" onClick={save} disabled={saving || !form.first_name.trim()} style={{ flex: 1 }}>
-              {saving ? 'Speichere…' : 'Speichern'}
+              {saving ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </div>

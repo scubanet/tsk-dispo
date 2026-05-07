@@ -166,6 +166,25 @@
     "day_of": "Day {{current}}/{{total}}",
     "more_count": "+{{count}} more"
   },
+  "instructor_edit": {
+    "title_new": "New TL/DM",
+    "title_edit": "Edit person",
+    "avatar_preview": "Avatar preview",
+    "label_initials": "Initials (1–4)",
+    "label_padi_level": "PADI level",
+    "label_avatar_color": "Avatar color",
+    "label_phone": "Phone / WhatsApp (optional)",
+    "phone_hint": "International format. Enables the \"WhatsApp direct\" button in the TL/DM detail.",
+    "label_role": "Role",
+    "active_label": "Active (appears in dispo suggestions)",
+    "skills_label": "SKILLS ({{selected}}/{{total}})",
+    "all_categories_short": "All",
+    "skills_hint": "Click to toggle. Saves immediately, no \"Save\" click needed.",
+    "skills_post_create_hint": "💡 You can assign skills after creation — either in the TL/DM detail \"Edit\" or in the skill matrix.",
+    "warning_label": "Heads up",
+    "lockout_warning": "You're changing your own role away from dispatcher. If you save, you'll lose access to admin areas after your next login.",
+    "error_first_name_required": "First name is required."
+  },
   "student_detail": {
     "no_padi": "No PADI",
     "field_phone": "Phone",
