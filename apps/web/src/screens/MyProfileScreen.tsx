@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { format } from 'date-fns'
-import { de } from 'date-fns/locale'
+import { de, enGB } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { Chip } from '@/components/Chip'
@@ -38,6 +39,7 @@ const inputStyle = {
 }
 
 export function MyProfileScreen() {
+  const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [skills, setSkills] = useState<MySkill[]>([])
@@ -69,11 +71,11 @@ export function MyProfileScreen() {
   if (!user.instructorId) {
     return (
       <>
-        <Topbar title="Mein Profil" />
+        <Topbar title={t('nav.my_profile')} />
         <EmptyState
           icon="tag"
-          title="Kein Instructor verknüpft"
-          description="Bitte den Dispatcher um die Login-Verknüpfung."
+          title={t('my_profile.no_link_title')}
+          description={t('my_profile.no_link_desc')}
         />
       </>
     )
@@ -82,15 +84,15 @@ export function MyProfileScreen() {
   if (!profile) {
     return (
       <>
-        <Topbar title="Mein Profil" />
-        <div style={{ padding: 40 }} className="caption">Lade…</div>
+        <Topbar title={t('nav.my_profile')} />
+        <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
       </>
     )
   }
 
   return (
     <>
-      <Topbar title="Mein Profil" />
+      <Topbar title={t('nav.my_profile')} />
 
       <div className="screen-fade scroll" style={{ flex: 1, padding: '20px 24px 40px' }}>
         <div className="glass card" style={{ marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center' }}>
@@ -103,16 +105,16 @@ export function MyProfileScreen() {
             </div>
           </div>
           <button className="btn-secondary btn" onClick={() => setShowEditProfile(true)}>
-            <Icon name="settings" size={14} /> Bearbeiten
+            <Icon name="settings" size={14} /> {t('common.edit')}
           </button>
         </div>
 
         <div className="glass card" style={{ marginBottom: 16 }}>
           <div className="title-3" style={{ marginBottom: 12 }}>
-            Meine Skills <span className="caption">({skills.length})</span>
+            {t('my_profile.my_skills')} <span className="caption">({skills.length})</span>
           </div>
           {skills.length === 0 ? (
-            <div className="caption">Keine Skills hinterlegt — Dispatcher kann sie in der Skill-Matrix setzen.</div>
+            <div className="caption">{t('my_profile.no_skills')}</div>
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {skills.map((s) => <Chip key={s.code} tone="accent">{s.label}</Chip>)}
@@ -122,16 +124,15 @@ export function MyProfileScreen() {
 
         <div className="glass card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div className="title-3">Verfügbarkeit / Abwesenheit</div>
+            <div className="title-3">{t('my_profile.availability')}</div>
             <button className="btn" onClick={() => setShowAddAvail(true)}>
-              <Icon name="plus" size={14} /> Eintragen
+              <Icon name="plus" size={14} /> {t('my_profile.add_entry')}
             </button>
           </div>
 
           {availability.length === 0 ? (
             <div className="caption">
-              Hier kannst du Urlaub, Krankheit oder andere Abwesenheiten eintragen.
-              Der Dispatcher sieht das beim Planen.
+              {t('my_profile.availability_hint')}
             </div>
           ) : (
             <div style={{ display: 'grid', gap: 6 }}>
@@ -170,6 +171,7 @@ function ProfileEditSheet({
   instructorId: string
   currentEmail: string | null
 }) {
+  const { t } = useTranslation()
   const [phone, setPhone] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -199,14 +201,14 @@ function ProfileEditSheet({
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title="Mein Profil bearbeiten">
+    <Sheet open={open} onClose={onClose} title={t('my_profile.edit_title')}>
       <div style={{ display: 'grid', gap: 14 }}>
         <div className="caption">
-          Email + Name + Skills sind fix vom Dispatcher gesetzt. Du kannst aber deine Telefon-/WhatsApp-Nummer eintragen.
+          {t('my_profile.edit_hint')}
         </div>
 
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>EMAIL (FIX)</div>
+          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_email_fix')}</div>
           <input
             value={currentEmail ?? ''}
             disabled
@@ -215,7 +217,7 @@ function ProfileEditSheet({
         </div>
 
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>TELEFON / WHATSAPP</div>
+          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_phone')}</div>
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -223,16 +225,16 @@ function ProfileEditSheet({
             style={inputStyle}
           />
           <div className="caption-2" style={{ marginTop: 4 }}>
-            Internationales Format. Wird im TL/DM-Verzeichnis sichtbar — der Dispatcher kann dich darüber anschreiben.
+            {t('my_profile.phone_hint')}
           </div>
         </div>
 
         {error && <div className="chip chip-red">{error}</div>}
 
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button className="btn" onClick={save} disabled={saving} style={{ flex: 1 }}>
-            {saving ? 'Speichere…' : 'Speichern'}
+            {saving ? t('common.saving') : t('common.save')}
           </button>
         </div>
       </div>
@@ -241,25 +243,27 @@ function ProfileEditSheet({
 }
 
 function AvailabilityRowView({ row, onDeleted }: { row: AvailabilityRow; onDeleted: () => void }) {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
   const tone =
     row.kind === 'urlaub'    ? 'accent' :
     row.kind === 'abwesend'  ? 'orange' : 'green'
   async function del() {
-    if (!confirm(`Eintrag "${row.kind}" wirklich löschen?`)) return
+    if (!confirm(t('my_profile.confirm_delete', { kind: t(`my_profile.kind_${row.kind}`) }))) return
     await supabase.from('availability').delete().eq('id', row.id)
     onDeleted()
   }
   return (
     <div className="glass-thin" style={{ padding: 10, borderRadius: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
-      <Chip tone={tone}>{row.kind}</Chip>
+      <Chip tone={tone}>{t(`my_profile.kind_${row.kind}`)}</Chip>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 13 }}>
-          {format(new Date(row.from_date), 'd. MMM', { locale: de })}
-          {row.from_date !== row.to_date && ` – ${format(new Date(row.to_date), 'd. MMM yyyy', { locale: de })}`}
+          {format(new Date(row.from_date), 'd. MMM', { locale: dfLocale })}
+          {row.from_date !== row.to_date && ` – ${format(new Date(row.to_date), 'd. MMM yyyy', { locale: dfLocale })}`}
         </div>
         {row.note && <div className="caption-2" style={{ marginTop: 2 }}>{row.note}</div>}
       </div>
-      <button className="btn-icon" onClick={del} title="Löschen">
+      <button className="btn-icon" onClick={del} title={t('common.delete')}>
         <Icon name="x" size={14} />
       </button>
     </div>
@@ -274,6 +278,7 @@ function AvailabilityAddSheet({
   onCreated: () => void
   instructorId: string
 }) {
+  const { t } = useTranslation()
   const [kind, setKind] = useState<'urlaub' | 'abwesend' | 'verfügbar'>('urlaub')
   const [fromDate, setFromDate] = useState(new Date().toISOString().slice(0, 10))
   const [toDate, setToDate] = useState(new Date().toISOString().slice(0, 10))
@@ -291,7 +296,7 @@ function AvailabilityAddSheet({
     })
     setSaving(false)
     if (error) {
-      alert('Fehler: ' + error.message)
+      alert(t('settings.recalc.error_prefix') + error.message)
       return
     }
     onCreated()
@@ -301,19 +306,19 @@ function AvailabilityAddSheet({
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title="Verfügbarkeit eintragen">
+    <Sheet open={open} onClose={onClose} title={t('my_profile.add_availability')}>
       <div style={{ display: 'grid', gap: 14 }}>
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>ART</div>
+          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_kind')}</div>
           <select value={kind} onChange={(e) => setKind(e.target.value as typeof kind)} style={inputStyle}>
-            <option value="urlaub">Urlaub</option>
-            <option value="abwesend">Abwesend</option>
-            <option value="verfügbar">Explizit verfügbar</option>
+            <option value="urlaub">{t('my_profile.kind_urlaub')}</option>
+            <option value="abwesend">{t('my_profile.kind_abwesend')}</option>
+            <option value="verfügbar">{t('my_profile.kind_verfügbar_long')}</option>
           </select>
         </div>
 
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>VON</div>
+          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_from')}</div>
           <input
             type="date"
             value={fromDate}
@@ -323,7 +328,7 @@ function AvailabilityAddSheet({
         </div>
 
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>BIS</div>
+          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_to')}</div>
           <input
             type="date"
             value={toDate}
@@ -333,19 +338,19 @@ function AvailabilityAddSheet({
         </div>
 
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>NOTIZ (OPTIONAL)</div>
+          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_note')}</div>
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="z.B. Tessin, mit Familie"
+            placeholder={t('my_profile.note_placeholder')}
             style={inputStyle}
           />
         </div>
 
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button className="btn" onClick={save} disabled={saving} style={{ flex: 1 }}>
-            {saving ? 'Speichere…' : 'Eintragen'}
+            {saving ? t('common.saving') : t('my_profile.add_entry')}
           </button>
         </div>
       </div>

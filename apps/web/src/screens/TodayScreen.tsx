@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { format, addDays, isSameDay, isWithinInterval, startOfDay } from 'date-fns'
-import { de } from 'date-fns/locale'
+import { de, enGB } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
@@ -27,6 +28,8 @@ export function TodayScreen() {
 }
 
 function DispatcherToday() {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [kpis, setKpis] = useState<Kpis | null>(null)
@@ -91,7 +94,7 @@ function DispatcherToday() {
     [candidates],
   )
 
-  const todayLabel = format(new Date(), 'EEEE, d. MMMM', { locale: de })
+  const todayLabel = format(new Date(), 'EEEE, d. MMMM', { locale: dfLocale })
   const weekCount = thisWeek.length
 
   // WhatsApp daily digest — uses today's courses + their haupt-instructor
@@ -108,13 +111,13 @@ function DispatcherToday() {
   return (
     <>
       <Topbar
-        title={(user.role === 'dispatcher' || user.role === 'cd') ? 'Heute' : `Hi, ${user.name.split(' ')[0]}`}
-        subtitle={`${todayLabel} · ${weekCount} Kurse diese Woche`}
+        title={(user.role === 'dispatcher' || user.role === 'cd') ? t('nav.today') : t('today.greeting', { name: user.name.split(' ')[0] })}
+        subtitle={t('today.topbar_subtitle', { date: todayLabel, count: weekCount })}
       >
-        <WhatsAppButton url={digestUrl} label="Tagesdigest" />
-        <button className="btn-icon" title="Benachrichtigungen"><Icon name="bell" size={16} /></button>
+        <WhatsAppButton url={digestUrl} label={t('today.daily_digest')} />
+        <button className="btn-icon" title={t('today.notifications')}><Icon name="bell" size={16} /></button>
         {(user.role === 'dispatcher' || user.role === 'cd') && (
-          <button className="btn"><Icon name="plus" size={14} /> Neuer Kurs</button>
+          <button className="btn"><Icon name="plus" size={14} /> {t('courses.new_course')}</button>
         )}
       </Topbar>
 
@@ -149,27 +152,29 @@ function DispatcherToday() {
                 zIndex: 1,
               }}
             >
-              {today.length === 0 ? 'Heute keine Kurse' : `${today.length} ${today.length === 1 ? 'Kurs' : 'Kurse'} heute`}
+              {today.length === 0
+                ? t('today.no_courses_today')
+                : t('today.subtitle', { count: today.length })}
             </div>
             <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4, position: 'relative', zIndex: 1 }}>
-              {today.reduce((sum, c) => sum + (c.num_participants || 0), 0)} Teilnehmer insgesamt
+              {t('today.participants_total', { count: today.reduce((sum, c) => sum + (c.num_participants || 0), 0) })}
             </div>
           </div>
 
           {kpis && (
             <>
-              <StatCard num={kpis.confirmedCourses} total={kpis.totalCourses} label="Bestätigte Kurse" />
-              <StatCard num={kpis.instructorCount} label="Aktive Instructors" />
-              <StatCard num={kpis.assignmentsThisWeek} label="Einsätze ab heute" />
+              <StatCard num={kpis.confirmedCourses} total={kpis.totalCourses} label={t('today.kpi_confirmed')} />
+              <StatCard num={kpis.instructorCount} label={t('today.kpi_active_instructors')} />
+              <StatCard num={kpis.assignmentsThisWeek} label={t('today.kpi_assignments_from_today')} />
             </>
           )}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 14 }}>
           <div className="glass card">
-            <div className="title-3" style={{ marginBottom: 10 }}>Heutige Kurse</div>
+            <div className="title-3" style={{ marginBottom: 10 }}>{t('today.todays_courses')}</div>
             {today.length === 0 ? (
-              <div className="caption">Heute frei. ☀️ Genieß den Tag.</div>
+              <div className="caption">{t('today.empty_day')}</div>
             ) : (
               <div className="timeline">
                 {today.map((c) => {
@@ -188,9 +193,9 @@ function DispatcherToday() {
           </div>
 
           <div className="glass card">
-            <div className="title-3" style={{ marginBottom: 10 }}>Nächste Woche</div>
+            <div className="title-3" style={{ marginBottom: 10 }}>{t('today.next_week')}</div>
             {thisWeek.length === 0 ? (
-              <div className="caption">Keine Kurse die nächsten 7 Tage.</div>
+              <div className="caption">{t('today.no_next_week')}</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {thisWeek.slice(0, 8).map((c) => {
@@ -215,7 +220,7 @@ function DispatcherToday() {
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
                     <div className="mono caption" style={{ width: 50, flexShrink: 0 }}>
-                      {relevantDate ? format(relevantDate, 'd. MMM', { locale: de }) : '—'}
+                      {relevantDate ? format(relevantDate, 'd. MMM', { locale: dfLocale }) : '—'}
                     </div>
                     <div style={{ flex: 1, fontSize: 13 }}>
                       <div style={{ fontWeight: 500 }}>{c.title}</div>
@@ -253,6 +258,8 @@ function StatCard({
 }
 
 function InstructorToday() {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [mine, setMine] = useState<MyAssignment[]>([])
@@ -269,13 +276,13 @@ function InstructorToday() {
   const upcoming = mine
     .filter((m) => m.course && new Date(m.course.start_date) > today)
     .slice(0, 8)
-  const todayLabel = format(today, 'EEEE, d. MMMM', { locale: de })
+  const todayLabel = format(today, 'EEEE, d. MMMM', { locale: dfLocale })
 
   return (
     <>
       <Topbar
-        title={`Hi, ${user.name.split(' ')[0]}`}
-        subtitle={`${todayLabel} · ${mine.length} Einsätze 2026`}
+        title={t('today.greeting', { name: user.name.split(' ')[0] })}
+        subtitle={t('today.instructor_topbar_subtitle', { date: todayLabel, count: mine.length, year: 2026 })}
       />
 
       <div className="screen-fade scroll" style={{ flex: 1, padding: '20px 24px 28px' }}>
@@ -296,14 +303,14 @@ function InstructorToday() {
             }}
           >
             {todays.length === 0
-              ? 'Heute hast du keine Einsätze'
-              : `${todays.length} ${todays.length === 1 ? 'Einsatz' : 'Einsätze'} heute`}
+              ? t('today.no_assignments_today')
+              : t('today.assignments_today', { count: todays.length })}
           </div>
         </div>
 
         {todays.length > 0 && (
           <div className="glass card" style={{ marginBottom: 16 }}>
-            <div className="title-3" style={{ marginBottom: 10 }}>Heute</div>
+            <div className="title-3" style={{ marginBottom: 10 }}>{t('today.header_today')}</div>
             <div style={{ display: 'grid', gap: 8 }}>
               {todays.map((a) =>
                 a.course ? (
@@ -334,13 +341,13 @@ function InstructorToday() {
 
         <div className="glass card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <div className="title-3">Nächste Einsätze</div>
+            <div className="title-3">{t('today.upcoming_assignments')}</div>
             <button className="btn-ghost btn" onClick={() => navigate('/einsaetze')}>
-              Alle ansehen <Icon name="chevron-right" size={12} />
+              {t('today.see_all')} <Icon name="chevron-right" size={12} />
             </button>
           </div>
           {upcoming.length === 0 ? (
-            <div className="caption">Aktuell sind keine weiteren Einsätze geplant.</div>
+            <div className="caption">{t('today.no_upcoming')}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {upcoming.map((a) =>
@@ -357,7 +364,7 @@ function InstructorToday() {
                     }}
                   >
                     <div className="mono caption" style={{ width: 60, flexShrink: 0 }}>
-                      {format(new Date(a.course.start_date), 'd. MMM', { locale: de })}
+                      {format(new Date(a.course.start_date), 'd. MMM', { locale: dfLocale })}
                     </div>
                     <div style={{ flex: 1, fontSize: 13 }}>
                       <div style={{ fontWeight: 500 }}>{a.course.title}</div>
@@ -368,7 +375,7 @@ function InstructorToday() {
                     {a.confirmed ? (
                       <Chip tone="green">✓</Chip>
                     ) : (
-                      <Chip tone="orange">offen</Chip>
+                      <Chip tone="orange">{t('my_assignments.open')}</Chip>
                     )}
                   </div>
                 ) : null
@@ -390,6 +397,7 @@ function Session({
   assignments: AssignmentRow[]
   onClick?: () => void
 }) {
+  const { t } = useTranslation()
   const tone =
     course.status === 'cancelled' ? 'red' :
     course.status === 'tentative' ? 'orange' :
@@ -406,7 +414,7 @@ function Session({
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600, fontSize: 14 }}>{course.title}</div>
             <div className="caption" style={{ marginTop: 3 }}>
-              {course.num_participants > 0 && `${course.num_participants} TN`}
+              {course.num_participants > 0 && t('today.participants_short', { count: course.num_participants })}
             </div>
           </div>
           <Chip tone={tone}>{course.status}</Chip>
@@ -424,7 +432,7 @@ function Session({
             ) : null,
           )}
           <span className="caption" style={{ marginLeft: 4 }}>
-            {assignments.length} Instructor{assignments.length === 1 ? '' : 's'}
+            {t('today.instructor_count', { count: assignments.length })}
           </span>
         </div>
       </div>
