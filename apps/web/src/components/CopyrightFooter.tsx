@@ -1,5 +1,5 @@
 /**
- * Copyright-Footer für ATOLL / atoll.swiss
+ * Copyright-Footer für ATOLL / atoll-os.com
  *
  * Variante "compact" → einzeilig, sehr dezent (für Sidebar-Bottom)
  * Variante "full"    → mehrzeilig mit ATOLL-Wordmark (für Login/About)
@@ -34,12 +34,12 @@ export function CopyrightFooter({ variant = 'compact', align = 'center' }: Props
         <div style={{ opacity: 0.7, marginTop: 2 }}>
           ATOLL® und{' '}
           <a
-            href="https://atoll.swiss"
+            href="https://atoll-os.com"
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: 'inherit', textDecoration: 'none', borderBottom: '0.5px solid currentColor' }}
           >
-            atoll.swiss
+            atoll-os.com
           </a>{' '}
           sind Marken von Dominik Weckherlin
         </div>
@@ -58,9 +58,9 @@ export function CopyrightFooter({ variant = 'compact', align = 'center' }: Props
         letterSpacing: '.02em',
         lineHeight: 1.4,
       }}
-      title={`ATOLL® / atoll.swiss — © ${YEAR} Dominik Weckherlin · alle Rechte vorbehalten`}
+      title={`ATOLL® / atoll-os.com — © ${YEAR} Dominik Weckherlin · alle Rechte vorbehalten`}
     >
-      © {YEAR} <strong style={{ fontWeight: 600 }}>D. Weckherlin</strong> · ATOLL® · atoll.swiss
+      © {YEAR} <strong style={{ fontWeight: 600 }}>D. Weckherlin</strong> · ATOLL® · atoll-os.com
     </div>
   )
 }
