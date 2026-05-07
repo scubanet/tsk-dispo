@@ -166,6 +166,38 @@
     "day_of": "Tag {{current}}/{{total}}",
     "more_count": "+{{count}} mehr"
   },
+  "cd_pipeline": {
+    "subtitle": "Sales-Stages für Tauch- & Instructor-Kandidat:innen",
+    "no_access_title": "Kein Zugriff",
+    "no_access_desc": "Diese Ansicht ist nur für die CD-Rolle.",
+    "col_customer": "Kunde"
+  },
+  "cd_orgs": {
+    "no_access_desc": "Diese Ansicht ist nur für CD, Dispatcher oder Owner.",
+    "subtitle": "{{total}} Einträge · {{active}} aktiv",
+    "search_placeholder": "Name, Ort, Email…",
+    "empty_first_time": "Noch keine Organisationen erfasst — Tauchclubs, Firmen, Schulen, Agenturen.",
+    "inactive": "inaktiv"
+  },
+  "org_edit": {
+    "title_new": "Neue Organisation",
+    "title_edit": "Organisation bearbeiten",
+    "label_name_required": "Name *",
+    "name_placeholder": "z.B. Tauchclub Zürich",
+    "label_kind": "Art",
+    "kind_dive_school": "Tauchschule",
+    "kind_partner": "Partner",
+    "kind_association": "Verband",
+    "kind_company": "Firma",
+    "kind_school": "Schule",
+    "kind_agency": "Agentur",
+    "kind_resort": "Resort / Tauchbasis",
+    "kind_other": "Andere",
+    "section_contact": "Kontakt",
+    "label_website": "Website",
+    "active": "Aktiv",
+    "confirm_delete": "Organisation wirklich löschen? Verknüpfte Kontakte verlieren die Org-Zuordnung (werden nicht gelöscht)."
+  },
   "correction": {
     "title_new": "Saldo-Korrektur",
     "title_edit_correction": "Korrektur bearbeiten",

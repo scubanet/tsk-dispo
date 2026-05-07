@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -17,17 +18,7 @@ interface Form {
   active: boolean
 }
 
-const KINDS = [
-  { code: '',            label: '— Bitte wählen —' },
-  { code: 'dive_school', label: 'Tauchschule' },
-  { code: 'partner',     label: 'Partner' },
-  { code: 'association', label: 'Verband' },
-  { code: 'company',     label: 'Firma' },
-  { code: 'school',      label: 'Schule' },
-  { code: 'agency',      label: 'Agentur' },
-  { code: 'resort',      label: 'Resort / Tauchbasis' },
-  { code: 'other',       label: 'Andere' },
-]
+const KIND_CODES = ['dive_school', 'partner', 'association', 'company', 'school', 'agency', 'resort', 'other'] as const
 
 const EMPTY: Form = {
   name: '',
@@ -62,7 +53,12 @@ interface Props {
 }
 
 export function OrganizationEditSheet({ open, onClose, onSaved, orgId }: Props) {
+  const { t } = useTranslation()
   const isEdit = !!orgId
+  const KINDS = [
+    { code: '', label: `— ${t('enroll.please_choose')} —` },
+    ...KIND_CODES.map((code) => ({ code, label: t(`org_edit.kind_${code}`) })),
+  ]
   const [form, setForm] = useState<Form>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -136,7 +132,7 @@ export function OrganizationEditSheet({ open, onClose, onSaved, orgId }: Props) 
 
   async function deleteOrg() {
     if (!isEdit) return
-    if (!confirm('Organisation wirklich löschen? Verknüpfte Kontakte verlieren die Org-Zuordnung (werden nicht gelöscht).')) return
+    if (!confirm(t('org_edit.confirm_delete'))) return
     setSaving(true)
     const { error: delErr } = await supabase.from('organizations').delete().eq('id', orgId!)
     setSaving(false)
@@ -146,57 +142,57 @@ export function OrganizationEditSheet({ open, onClose, onSaved, orgId }: Props) 
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title={isEdit ? 'Organisation bearbeiten' : 'Neue Organisation'} width={520}>
+    <Sheet open={open} onClose={onClose} title={isEdit ? t('org_edit.title_edit') : t('org_edit.title_new')} width={520}>
       <div style={{ display: 'grid', gap: 14 }}>
-        <Field label="Name *">
-          <input value={form.name} onChange={(e) => set('name', e.target.value)} style={inputStyle} placeholder="z.B. Tauchclub Zürich" />
+        <Field label={t('org_edit.label_name_required')}>
+          <input value={form.name} onChange={(e) => set('name', e.target.value)} style={inputStyle} placeholder={t('org_edit.name_placeholder')} />
         </Field>
 
-        <Field label="Art">
+        <Field label={t('org_edit.label_kind')}>
           <select value={form.kind} onChange={(e) => set('kind', e.target.value)} style={inputStyle}>
             {KINDS.map((k) => <option key={k.code} value={k.code}>{k.label}</option>)}
           </select>
         </Field>
 
         <div className="caption-2" style={{ marginTop: 6, opacity: 0.6, letterSpacing: '.08em' }}>
-          ADRESSE
+          {t('student_edit.section_address').toUpperCase()}
         </div>
 
-        <Field label="Strasse">
+        <Field label={t('student_edit.label_street')}>
           <input value={form.address} onChange={(e) => set('address', e.target.value)} style={inputStyle} />
         </Field>
 
         <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12 }}>
-          <Field label="PLZ">
+          <Field label={t('student_edit.label_zip')}>
             <input value={form.postal_code} onChange={(e) => set('postal_code', e.target.value)} style={inputStyle} />
           </Field>
-          <Field label="Ort">
+          <Field label={t('student_edit.label_city')}>
             <input value={form.city} onChange={(e) => set('city', e.target.value)} style={inputStyle} />
           </Field>
         </div>
 
-        <Field label="Land">
+        <Field label={t('student_edit.label_country')}>
           <input value={form.country} onChange={(e) => set('country', e.target.value)} style={inputStyle} />
         </Field>
 
         <div className="caption-2" style={{ marginTop: 6, opacity: 0.6, letterSpacing: '.08em' }}>
-          KONTAKT
+          {t('org_edit.section_contact').toUpperCase()}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <Field label="Email">
+          <Field label={t('student_edit.label_email')}>
             <input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} style={inputStyle} placeholder="info@…" />
           </Field>
-          <Field label="Telefon">
+          <Field label={t('student_detail.field_phone')}>
             <input value={form.phone} onChange={(e) => set('phone', e.target.value)} style={inputStyle} placeholder="+41 …" />
           </Field>
         </div>
 
-        <Field label="Website">
+        <Field label={t('org_edit.label_website')}>
           <input value={form.website} onChange={(e) => set('website', e.target.value)} style={inputStyle} placeholder="https://…" />
         </Field>
 
-        <Field label="Notizen">
+        <Field label={t('student_edit.label_notes').replace(/ \(.*\)/, '')}>
           <textarea
             value={form.notes}
             onChange={(e) => set('notes', e.target.value)}
@@ -212,7 +208,7 @@ export function OrganizationEditSheet({ open, onClose, onSaved, orgId }: Props) 
             checked={form.active}
             onChange={(e) => set('active', e.target.checked)}
           />
-          <label htmlFor="org_active">Aktiv</label>
+          <label htmlFor="org_active">{t('org_edit.active')}</label>
         </div>
 
         {error && <div className="chip chip-red">{error}</div>}
@@ -225,17 +221,17 @@ export function OrganizationEditSheet({ open, onClose, onSaved, orgId }: Props) 
               disabled={saving}
               style={{ color: '#FF3B30' }}
             >
-              <Icon name="x" size={12} /> Löschen
+              <Icon name="x" size={12} /> {t('common.delete')}
             </button>
           )}
-          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button
             className="btn"
             onClick={save}
             disabled={saving || !form.name.trim()}
             style={{ flex: 1 }}
           >
-            {saving ? 'Speichere…' : isEdit ? 'Speichern' : 'Anlegen'}
+            {saving ? t('common.saving') : isEdit ? t('common.save') : t('course_edit.create')}
           </button>
         </div>
       </div>

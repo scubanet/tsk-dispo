@@ -166,6 +166,38 @@
     "day_of": "Day {{current}}/{{total}}",
     "more_count": "+{{count}} more"
   },
+  "cd_pipeline": {
+    "subtitle": "Sales stages for diving and instructor candidates",
+    "no_access_title": "No access",
+    "no_access_desc": "This view is for the CD role only.",
+    "col_customer": "Customer"
+  },
+  "cd_orgs": {
+    "no_access_desc": "This view is for CD, Dispatcher or Owner.",
+    "subtitle": "{{total}} entries · {{active}} active",
+    "search_placeholder": "Name, city, email…",
+    "empty_first_time": "No organizations recorded yet — dive clubs, companies, schools, agencies.",
+    "inactive": "inactive"
+  },
+  "org_edit": {
+    "title_new": "New organization",
+    "title_edit": "Edit organization",
+    "label_name_required": "Name *",
+    "name_placeholder": "e.g. Tauchclub Zürich",
+    "label_kind": "Type",
+    "kind_dive_school": "Dive school",
+    "kind_partner": "Partner",
+    "kind_association": "Association",
+    "kind_company": "Company",
+    "kind_school": "School",
+    "kind_agency": "Agency",
+    "kind_resort": "Resort / dive center",
+    "kind_other": "Other",
+    "section_contact": "Contact",
+    "label_website": "Website",
+    "active": "Active",
+    "confirm_delete": "Really delete this organization? Linked contacts will lose the org reference (they are not deleted)."
+  },
   "correction": {
     "title_new": "Balance correction",
     "title_edit_correction": "Edit correction",

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Topbar } from '@/components/Topbar'
 import type { OutletCtx } from '@/layout/AppShell'
@@ -12,15 +13,14 @@ interface Row {
   stage_changed_on: string
 }
 
-const COLS = [
-  { code: 'lead',        label: 'Lead' },
-  { code: 'qualified',   label: 'Qualifiziert' },
-  { code: 'opportunity', label: 'Opportunity' },
-  { code: 'customer',    label: 'Kunde' },
-  { code: 'lost',        label: 'Verloren' },
-]
+const COL_CODES = ['lead', 'qualified', 'opportunity', 'customer', 'lost'] as const
 
 export function CDPipelineScreen() {
+  const { t } = useTranslation()
+  const COLS = COL_CODES.map((code) => ({
+    code,
+    label: code === 'customer' ? t('cd_pipeline.col_customer') : t(`student_edit.stage_${code}`),
+  }))
   const { user } = useOutletContext<OutletCtx>()
   const [rows, setRows] = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,17 +44,17 @@ export function CDPipelineScreen() {
   if (user.role !== 'cd') {
     return (
       <div style={{ padding: 40 }}>
-        <div className="title-2">Kein Zugriff</div>
-        <div className="caption">Diese Ansicht ist nur für die CD-Rolle.</div>
+        <div className="title-2">{t('cd_pipeline.no_access_title')}</div>
+        <div className="caption">{t('cd_pipeline.no_access_desc')}</div>
       </div>
     )
   }
 
   return (
     <>
-      <Topbar title="Pipeline" subtitle="Sales-Stages für Tauch- & Instructor-Kandidat:innen" />
+      <Topbar title={t('nav.pipeline')} subtitle={t('cd_pipeline.subtitle')} />
       {loading ? (
-        <div style={{ padding: 40 }} className="caption">Lade…</div>
+        <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
       ) : (
         <div style={{ padding: '0 24px 24px', display: 'grid', gridTemplateColumns: `repeat(${COLS.length}, 1fr)`, gap: 12 }}>
           {COLS.map((col) => {
