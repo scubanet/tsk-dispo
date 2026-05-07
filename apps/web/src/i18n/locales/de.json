@@ -166,6 +166,26 @@
     "day_of": "Tag {{current}}/{{total}}",
     "more_count": "+{{count}} mehr"
   },
+  "correction": {
+    "title_new": "Saldo-Korrektur",
+    "title_edit_correction": "Korrektur bearbeiten",
+    "title_edit_carryover": "Übertrag bearbeiten",
+    "edit_intro_prefix": "Bearbeitet eine bestehende ",
+    "edit_intro_suffix": "-Buchung. Audit-Spur bleibt über das Datum erhalten.",
+    "new_intro": "Manuelle Buchung ausserhalb der Kurs-Vergütung — z.B. Spesen, Guru-Bezug, Bonus. Wird im Bewegungs-Journal als korrektur sichtbar.",
+    "label_date": "Datum",
+    "label_amount": "Betrag CHF (negativ für Abzüge, z.B. Guru-Bezug)",
+    "amount_placeholder": "z.B. 50.00 oder -120.50",
+    "preview": "Vorschau",
+    "label_reason": "Begründung",
+    "reason_placeholder": "z.B. \"Guru-Bezug VK-0146302\" oder \"Reisekosten Tessin\"",
+    "deleting": "Lösche…",
+    "movement_not_found": "Bewegung nicht gefunden.",
+    "only_corrections_editable": "Nur Korrektur und Übertrag können bearbeitet werden.",
+    "error_amount_zero": "Betrag muss eine Zahl ungleich 0 sein.",
+    "error_reason_required": "Begründung ist Pflicht (für die Audit-Spur).",
+    "confirm_delete": "Diese Buchung wirklich löschen? Diese Aktion ist nicht umkehrbar."
+  },
   "cert_edit": {
     "title_new": "Zertifikat erfassen",
     "title_edit": "Zertifikat bearbeiten",

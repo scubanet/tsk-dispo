@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -30,6 +31,7 @@ const inputStyle = {
 }
 
 export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, movementId }: Props) {
+  const { t } = useTranslation()
   const isEdit = !!movementId
   const [instructors, setInstructors] = useState<Instructor[]>([])
   const [instructorId, setInstructorId] = useState(defaultInstructorId ?? '')
@@ -72,11 +74,11 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
       .single()
       .then(({ data, error: loadErr }) => {
         if (loadErr || !data) {
-          setError(loadErr?.message ?? 'Bewegung nicht gefunden.')
+          setError(loadErr?.message ?? t('correction.movement_not_found'))
           return
         }
         if (data.kind !== 'korrektur' && data.kind !== 'übertrag') {
-          setError('Nur Korrektur und Übertrag können bearbeitet werden.')
+          setError(t('correction.only_corrections_editable'))
           return
         }
         setInstructorId(data.instructor_id)
@@ -92,12 +94,12 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
     setError(null)
     const num = Number(amount.replace(',', '.'))
     if (isNaN(num) || num === 0) {
-      setError('Betrag muss eine Zahl ungleich 0 sein.')
+      setError(t('correction.error_amount_zero'))
       setSaving(false)
       return
     }
     if (!description.trim()) {
-      setError('Begründung ist Pflicht (für die Audit-Spur).')
+      setError(t('correction.error_reason_required'))
       setSaving(false)
       return
     }
@@ -141,7 +143,7 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
 
   async function remove() {
     if (!movementId) return
-    if (!confirm('Diese Buchung wirklich löschen? Diese Aktion ist nicht umkehrbar.')) return
+    if (!confirm(t('correction.confirm_delete'))) return
     setDeleting(true)
     setError(null)
     const { error: delErr } = await supabase
@@ -160,30 +162,29 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
 
   const previewAmount = Number(amount.replace(',', '.'))
   const title = isEdit
-    ? (kind === 'übertrag' ? 'Übertrag bearbeiten' : 'Korrektur bearbeiten')
-    : 'Saldo-Korrektur'
+    ? (kind === 'übertrag' ? t('correction.title_edit_carryover') : t('correction.title_edit_correction'))
+    : t('correction.title_new')
 
   return (
     <Sheet open={open} onClose={onClose} title={title}>
       <div style={{ display: 'grid', gap: 14 }}>
         <div className="caption">
           {isEdit ? (
-            <>Bearbeitet eine bestehende <code>{kind}</code>-Buchung. Audit-Spur bleibt über das Datum erhalten.</>
+            <>{t('correction.edit_intro_prefix')} <code>{kind}</code>{t('correction.edit_intro_suffix')}</>
           ) : (
-            <>Manuelle Buchung außerhalb der Kurs-Vergütung — z.B. Spesen, Guru-Bezug, Bonus.
-            Wird im Bewegungs-Journal als <code>korrektur</code> sichtbar.</>
+            t('correction.new_intro')
           )}
         </div>
 
         <div>
-          <Label>Person</Label>
+          <Label>{t('assignment_edit.label_person')}</Label>
           <select
             value={instructorId}
             onChange={(e) => setInstructorId(e.target.value)}
             style={inputStyle}
             disabled={isEdit}
           >
-            <option value="">— wählen —</option>
+            <option value="">— {t('course_edit.choose')} —</option>
             {instructors.map((i) => (
               <option key={i.id} value={i.id}>{i.name} ({i.padi_level})</option>
             ))}
@@ -191,7 +192,7 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
         </div>
 
         <div>
-          <Label>Datum</Label>
+          <Label>{t('correction.label_date')}</Label>
           <input
             type="date"
             value={date}
@@ -201,26 +202,26 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
         </div>
 
         <div>
-          <Label>Betrag CHF (negativ für Abzüge, z.B. Guru-Bezug)</Label>
+          <Label>{t('correction.label_amount')}</Label>
           <input
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="z.B. 50.00 oder -120.50"
+            placeholder={t('correction.amount_placeholder')}
             style={{ ...inputStyle, fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace' }}
           />
           {!isNaN(previewAmount) && previewAmount !== 0 && (
             <div className="caption-2" style={{ marginTop: 4 }}>
-              Vorschau: <strong style={{ color: previewAmount < 0 ? '#FF3B30' : 'inherit' }}>{chf(previewAmount)}</strong>
+              {t('correction.preview')}: <strong style={{ color: previewAmount < 0 ? '#FF3B30' : 'inherit' }}>{chf(previewAmount)}</strong>
             </div>
           )}
         </div>
 
         <div>
-          <Label>Begründung</Label>
+          <Label>{t('correction.label_reason')}</Label>
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder='z.B. "Guru-Bezug VK-0146302" oder "Reisekosten Tessin"'
+            placeholder={t('correction.reason_placeholder')}
             style={inputStyle}
           />
         </div>
@@ -240,17 +241,17 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
               disabled={saving || deleting}
               style={{ color: '#FF3B30' }}
             >
-              <Icon name="x" size={14} /> {deleting ? 'Lösche…' : 'Löschen'}
+              <Icon name="x" size={14} /> {deleting ? t('correction.deleting') : t('common.delete')}
             </button>
           )}
-          <button className="btn-secondary btn" onClick={onClose}>Abbrechen</button>
+          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button
             className="btn"
             onClick={save}
             disabled={saving || deleting || !instructorId || !amount || !description.trim()}
             style={{ flex: 1 }}
           >
-            {saving ? 'Speichere…' : (isEdit ? 'Speichern' : 'Korrektur buchen')}
+            {saving ? t('common.saving') : (isEdit ? t('common.save') : t('instructor_detail.book_correction'))}
           </button>
         </div>
       </div>

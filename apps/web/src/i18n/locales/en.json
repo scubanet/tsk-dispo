@@ -166,6 +166,26 @@
     "day_of": "Day {{current}}/{{total}}",
     "more_count": "+{{count}} more"
   },
+  "correction": {
+    "title_new": "Balance correction",
+    "title_edit_correction": "Edit correction",
+    "title_edit_carryover": "Edit carryover",
+    "edit_intro_prefix": "Editing an existing ",
+    "edit_intro_suffix": " entry. Audit trail is preserved via the date.",
+    "new_intro": "Manual entry outside course pay — e.g. expenses, guru advance, bonus. Appears in the movements journal as correction.",
+    "label_date": "Date",
+    "label_amount": "Amount CHF (negative for deductions, e.g. guru advance)",
+    "amount_placeholder": "e.g. 50.00 or -120.50",
+    "preview": "Preview",
+    "label_reason": "Reason",
+    "reason_placeholder": "e.g. \"Guru advance VK-0146302\" or \"Travel expenses Ticino\"",
+    "deleting": "Deleting…",
+    "movement_not_found": "Movement not found.",
+    "only_corrections_editable": "Only corrections and carryovers can be edited.",
+    "error_amount_zero": "Amount must be a non-zero number.",
+    "error_reason_required": "Reason is required (for the audit trail).",
+    "confirm_delete": "Really delete this entry? This action is not reversible."
+  },
   "cert_edit": {
     "title_new": "Add certification",
     "title_edit": "Edit certification",
