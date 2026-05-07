@@ -55,7 +55,29 @@
     "magic_link_prompt": "Magic link to your email",
     "email_placeholder": "you@email.com",
     "send_magic_link": "Send magic link",
-    "link_sent": "✉️ Link sent — check your inbox"
+    "link_sent": "✉️ Link sent — check your inbox",
+    "completing_login": "Completing login…"
+  },
+  "people": {
+    "total": "{{count}} total",
+    "search_placeholder": "Name, email, PADI no…",
+    "tab_all": "All",
+    "tab_students": "Students",
+    "tab_candidates": "Candidates",
+    "tab_orgs": "Org/CRM",
+    "level_beginner": "Beginner",
+    "pick_person": "Pick a person",
+    "pick_person_desc": "Click an entry on the left to see details."
+  },
+  "instructors": {
+    "count": "{{count}} person",
+    "count_other": "{{count}} people"
+  },
+  "skill_matrix": {
+    "subtitle": "{{people}} people × {{skills}} skills",
+    "search_placeholder": "Search person…",
+    "all_categories": "All categories",
+    "col_person": "Person"
   },
   "today": {
     "subtitle": "{{count}} course today",

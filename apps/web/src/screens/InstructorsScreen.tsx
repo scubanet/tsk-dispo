@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { Avatar } from '@/components/Avatar'
@@ -23,6 +24,7 @@ interface Row {
 }
 
 export function InstructorsScreen() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const { user } = useOutletContext<OutletCtx>()
@@ -69,18 +71,18 @@ export function InstructorsScreen() {
 
   return (
     <>
-      <Topbar title="TL/DM" subtitle={`${rows.length} Personen`}>
+      <Topbar title={t('nav.tldm')} subtitle={t('instructors.count', { count: rows.length })}>
         <div className="search" style={{ width: 220 }}>
           <Icon name="search" size={14} />
           <input
-            placeholder="Suchen…"
+            placeholder={t('common.search') + '…'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         {isDispatcher && (
           <button className="btn" onClick={() => setCreateOpen(true)}>
-            <Icon name="plus" size={14} /> Neu
+            <Icon name="plus" size={14} /> {t('courses.new')}
           </button>
         )}
       </Topbar>
@@ -118,7 +120,7 @@ export function InstructorsScreen() {
           {selected ? (
             <InstructorDetailPanel instructorId={selected.id} key={selected.id} />
           ) : (
-            <EmptyState icon="users" title="Wähle eine Person" />
+            <EmptyState icon="users" title={t('people.pick_person')} />
           )}
         </div>
       </div>

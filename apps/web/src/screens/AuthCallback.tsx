@@ -1,8 +1,10 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 
 export function AuthCallback() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -15,5 +17,5 @@ export function AuthCallback() {
     })
   }, [navigate])
 
-  return <div style={{ padding: 40 }}>Login wird abgeschlossen…</div>
+  return <div style={{ padding: 40 }}>{t('auth.completing_login')}</div>
 }

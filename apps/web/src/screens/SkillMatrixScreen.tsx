@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -18,6 +19,7 @@ interface Inst {
 }
 
 export function SkillMatrixScreen() {
+  const { t } = useTranslation()
   const [skills, setSkills] = useState<Skill[]>([])
   const [instructors, setInstructors] = useState<Inst[]>([])
   const [matrix, setMatrix] = useState<Set<string>>(new Set())
@@ -74,11 +76,14 @@ export function SkillMatrixScreen() {
 
   return (
     <>
-      <Topbar title="Skill-Matrix" subtitle={`${instructors.length} Personen × ${skills.length} Skills`}>
+      <Topbar
+        title={t('nav.skills')}
+        subtitle={t('skill_matrix.subtitle', { people: instructors.length, skills: skills.length })}
+      >
         <div className="search" style={{ width: 200 }}>
           <Icon name="search" size={14} />
           <input
-            placeholder="Person suchen…"
+            placeholder={t('skill_matrix.search_placeholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -89,7 +94,7 @@ export function SkillMatrixScreen() {
           style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid var(--hairline)' }}
         >
           {categories.map((c) => (
-            <option key={c} value={c}>{c === 'all' ? 'Alle Kategorien' : c}</option>
+            <option key={c} value={c}>{c === 'all' ? t('skill_matrix.all_categories') : c}</option>
           ))}
         </select>
       </Topbar>
@@ -112,7 +117,7 @@ export function SkillMatrixScreen() {
                     zIndex: 2,
                   }}
                 >
-                  Person
+                  {t('skill_matrix.col_person')}
                 </th>
                 {filteredSkills.map((s) => (
                   <th

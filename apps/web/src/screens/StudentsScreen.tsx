@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import type { OutletCtx } from '@/layout/AppShell'
 import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { Avatar } from '@/components/Avatar'
@@ -15,6 +16,7 @@ import { StudentEditSheet } from './StudentEditSheet'
 type Tab = 'all' | 'students' | 'candidates' | 'orgs'
 
 export function StudentsScreen() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const { user } = useOutletContext<OutletCtx>()
@@ -64,17 +66,17 @@ export function StudentsScreen() {
 
   return (
     <>
-      <Topbar title="Personen" subtitle={`${rows.length} insgesamt`}>
+      <Topbar title={t('nav.people')} subtitle={t('people.total', { count: rows.length })}>
         <div className="search" style={{ width: 220 }}>
           <Icon name="search" size={14} />
           <input
-            placeholder="Name, Email, PADI-Nr…"
+            placeholder={t('people.search_placeholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <button className="btn" onClick={() => setCreateOpen(true)}>
-          <Icon name="plus" size={14} /> Neu
+          <Icon name="plus" size={14} /> {t('courses.new')}
         </button>
       </Topbar>
 
@@ -82,15 +84,15 @@ export function StudentsScreen() {
         <div className="master">
           <div style={{ padding: '12px 16px', borderBottom: '0.5px solid var(--separator)', display: 'grid', gap: 8 }}>
             <div className="seg">
-              <button className={clsx(tab === 'all' && 'active')}        onClick={() => setTab('all')}>Alle <span style={{opacity:.6}}>· {counts.all}</span></button>
-              <button className={clsx(tab === 'students' && 'active')}   onClick={() => setTab('students')}>Schüler <span style={{opacity:.6}}>· {counts.students}</span></button>
-              <button className={clsx(tab === 'candidates' && 'active')} onClick={() => setTab('candidates')}>Kandidaten <span style={{opacity:.6}}>· {counts.candidates}</span></button>
-              <button className={clsx(tab === 'orgs' && 'active')}       onClick={() => setTab('orgs')}>Org/CRM <span style={{opacity:.6}}>· {counts.orgs}</span></button>
+              <button className={clsx(tab === 'all' && 'active')}        onClick={() => setTab('all')}>{t('people.tab_all')} <span style={{opacity:.6}}>· {counts.all}</span></button>
+              <button className={clsx(tab === 'students' && 'active')}   onClick={() => setTab('students')}>{t('people.tab_students')} <span style={{opacity:.6}}>· {counts.students}</span></button>
+              <button className={clsx(tab === 'candidates' && 'active')} onClick={() => setTab('candidates')}>{t('people.tab_candidates')} <span style={{opacity:.6}}>· {counts.candidates}</span></button>
+              <button className={clsx(tab === 'orgs' && 'active')}       onClick={() => setTab('orgs')}>{t('people.tab_orgs')} <span style={{opacity:.6}}>· {counts.orgs}</span></button>
             </div>
           </div>
 
           {filtered.length === 0 ? (
-            <EmptyState icon="users" title="Keine Treffer" />
+            <EmptyState icon="users" title={t('courses.no_matches')} />
           ) : (
             filtered.map((r) => (
               <div
@@ -116,7 +118,7 @@ export function StudentsScreen() {
                     {r.padi_nr ? `PADI ${r.padi_nr}` : (r.email || r.phone || '—')}
                   </div>
                 </div>
-                <Chip tone="accent">{r.level || 'Anfänger'}</Chip>
+                <Chip tone="accent">{r.level || t('people.level_beginner')}</Chip>
               </div>
             ))
           )}
@@ -126,7 +128,7 @@ export function StudentsScreen() {
           {selected ? (
             <StudentDetailPanel studentId={selected.id} key={selected.id} />
           ) : (
-            <EmptyState icon="users" title="Wähle eine Person" description="Klick links auf einen Eintrag, um Details zu sehen." />
+            <EmptyState icon="users" title={t('people.pick_person')} description={t('people.pick_person_desc')} />
           )}
         </div>
       </div>
