@@ -32,7 +32,11 @@ export function useLanguage() {
       }
       await i18n.changeLanguage(newLang)
 
-      // Background-persist to DB (don't await — UI must not wait on the network)
+      // Background-persist to DB (don't await — UI must not wait on the network).
+      // Mirror the choice into BOTH tables that store preferred_language:
+      //   - people.preferred_language       (used by app UI)
+      //   - instructors.preferred_language  (used by edge functions for emails + APNs push)
+      // The two tables are linked via auth_user_id.
       const { data: auth } = await supabase.auth.getUser()
       const userId = auth?.user?.id
       if (!userId) return
@@ -43,7 +47,17 @@ export function useLanguage() {
         .then(({ error }) => {
           if (error) {
             // eslint-disable-next-line no-console
-            console.warn('[i18n] could not persist language to DB:', error.message)
+            console.warn('[i18n] could not persist language to people:', error.message)
+          }
+        })
+      void supabase
+        .from('instructors')
+        .update({ preferred_language: newLang })
+        .eq('auth_user_id', userId)
+        .then(({ error }) => {
+          if (error) {
+            // eslint-disable-next-line no-console
+            console.warn('[i18n] could not persist language to instructors:', error.message)
           }
         })
     },

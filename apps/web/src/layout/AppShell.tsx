@@ -1,11 +1,13 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sidebar } from '@/components/Sidebar'
 import { FloatingTabBar } from '@/components/FloatingTabBar'
 import { Wallpaper } from '@/components/Wallpaper'
 import { StatusBar } from '@/components/StatusBar'
 import { useTweaks } from '@/lib/tweaks'
 import { fetchCurrentUser, type CurrentUser } from '@/lib/auth'
+import { useSyncRemoteLanguage } from '@/i18n/useLanguage'
 import { supabase } from '@/lib/supabase'
 
 export interface OutletCtx {
@@ -13,10 +15,14 @@ export interface OutletCtx {
 }
 
 export function AppShell() {
+  const { t } = useTranslation()
   const [user, setUser] = useState<CurrentUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [tweaks] = useTweaks()
   const navigate = useNavigate()
+
+  // Pull preferred language from DB after auth — runs once authUserId is known.
+  useSyncRemoteLanguage(user?.authUserId ?? null)
 
   useEffect(() => {
     fetchCurrentUser().then((u) => {
@@ -30,7 +36,7 @@ export function AppShell() {
     navigate('/login', { replace: true })
   }
 
-  if (loading) return <div style={{ padding: 40 }}>Lade…</div>
+  if (loading) return <div style={{ padding: 40 }}>{t('common.loading')}</div>
   if (!user) {
     navigate('/login', { replace: true })
     return null
