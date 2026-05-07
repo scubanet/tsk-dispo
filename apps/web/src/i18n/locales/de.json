@@ -37,7 +37,17 @@
     "section_cd": "CD-Modul",
     "pipeline": "Pipeline",
     "section_admin": "Verwaltung",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "tab_today": "Heute",
+    "tab_courses": "Kurse",
+    "tab_calendar": "Kalender",
+    "tab_tldm": "TL/DM",
+    "tab_students": "Schüler",
+    "tab_balances": "Saldi",
+    "tab_assignments": "Einsätze",
+    "tab_balance": "Saldo",
+    "tab_profile": "Profil",
+    "tab_logout": "Logout"
   },
   "auth": {
     "logout": "Abmelden",
@@ -46,6 +56,76 @@
     "email_placeholder": "deine@email.ch",
     "send_magic_link": "Magic-Link senden",
     "link_sent": "✉️ Link gesendet — schau in deine Inbox"
+  },
+  "today": {
+    "subtitle": "{{count}} Kurs heute",
+    "subtitle_other": "{{count}} Kurse heute",
+    "subtitle_none": "Heute keine Kurse",
+    "kpi_confirmed": "Bestätigte Kurse",
+    "kpi_open": "Offene Kurse",
+    "kpi_courses_today": "Kurse heute",
+    "kpi_active_tls": "Aktive TLs",
+    "daily_digest": "Tagesdigest",
+    "no_courses_today": "Heute keine Kurse",
+    "next_days": "Nächste Tage",
+    "no_assignments": "Keine Einsätze",
+    "header_today": "Heute"
+  },
+  "cockpit": {
+    "title": "Cockpit",
+    "kpi_courses": "Kurse",
+    "kpi_active_tls": "Aktive TLs",
+    "kpi_students": "Schüler",
+    "kpi_total": "Total",
+    "pipeline_today": "Heute",
+    "pipeline_this_week": "Diese Woche",
+    "pipeline_next_30": "Nächste 30 Tage",
+    "range_week": "Woche",
+    "range_month": "Monat",
+    "range_quarter": "Quartal",
+    "range_year": "Jahr"
+  },
+  "calendar": {
+    "title": "Kalender",
+    "view_week": "Woche",
+    "view_month": "Monat",
+    "today": "Heute",
+    "no_events": "Keine Termine"
+  },
+  "courses": {
+    "title": "Kurse",
+    "count_year": "{{count}} Kurse {{year}}",
+    "count_year_one": "{{count}} Kurs {{year}}",
+    "filter_active": "Aktiv",
+    "filter_certain": "Sicher",
+    "filter_tentative": "Evtl.",
+    "filter_all": "Alle",
+    "new_course": "Neuer Kurs",
+    "search_placeholder": "Suchen…",
+    "empty": "Keine Kurse"
+  },
+  "pool": {
+    "title": "Pool",
+    "subtitle": "Pool-Belegung der Kurse",
+    "reserved": "Pool reserviert ✓",
+    "open": "Pool noch offen",
+    "legend_reserved": "Pool reserviert",
+    "legend_open": "Pool noch offen",
+    "no_pool_days": "Keine Pool-Tage",
+    "summary": "{{total}} Pool-Slots in dieser Woche · {{reserved}} reserviert · {{open}} offen"
+  },
+  "balances": {
+    "title": "Saldi",
+    "subtitle": "Saldi pro Person · Stand des laufenden Jahres",
+    "col_name": "Name",
+    "col_role": "Rolle",
+    "col_courses": "Kurse",
+    "col_chf": "CHF",
+    "col_excel": "Excel",
+    "col_export": "Export",
+    "export": "Excel exportieren",
+    "exporting": "Exportiere…",
+    "empty": "Keine Saldi"
   },
   "settings": {
     "title": "Einstellungen",

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { addDays, format, startOfWeek, addWeeks, subWeeks } from 'date-fns'
-import { de } from 'date-fns/locale'
+import { de, enGB } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -23,6 +24,8 @@ interface PoolDateRow {
 }
 
 export function PoolScreen() {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
   const navigate = useNavigate()
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }))
   const [rows, setRows] = useState<PoolDateRow[]>([])
@@ -52,14 +55,14 @@ export function PoolScreen() {
   return (
     <>
       <Topbar
-        title="Pool"
-        subtitle={`KW ${format(weekStart, 'w')} · ${format(weekStart, 'd. MMM', { locale: de })} – ${format(addDays(weekStart, 6), 'd. MMM yyyy', { locale: de })}`}
+        title={t('nav.pool')}
+        subtitle={`KW ${format(weekStart, 'w')} · ${format(weekStart, 'd. MMM', { locale: dfLocale })} – ${format(addDays(weekStart, 6), 'd. MMM yyyy', { locale: dfLocale })}`}
       >
         <button className="btn-icon" onClick={() => setWeekStart((w) => subWeeks(w, 1))}>
           <Icon name="chevron-left" size={14} />
         </button>
         <button className="btn-secondary btn" onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}>
-          Heute
+          {t('calendar.today')}
         </button>
         <button className="btn-icon" onClick={() => setWeekStart((w) => addWeeks(w, 1))}>
           <Icon name="chevron-right" size={14} />
@@ -75,9 +78,9 @@ export function PoolScreen() {
                 {days.map((d) => (
                   <th key={d.toISOString()} align="center" style={{ padding: '12px 8px' }}>
                     <div style={{ fontWeight: 600 }}>
-                      {format(d, 'EEE', { locale: de })}
+                      {format(d, 'EEE', { locale: dfLocale })}
                     </div>
-                    <div className="caption">{format(d, 'd. MMM', { locale: de })}</div>
+                    <div className="caption">{format(d, 'd. MMM', { locale: dfLocale })}</div>
                   </th>
                 ))}
               </tr>
@@ -122,7 +125,7 @@ export function PoolScreen() {
                                   fontWeight: 600,
                                   border: s.pool_reserved ? '0.5px solid rgba(52,199,89,.45)' : '0.5px dashed rgba(255,149,0,.55)',
                                 }}
-                                title={`${s.course?.title ?? ''} — ${s.pool_reserved ? 'Pool reserviert ✓' : 'Pool noch offen'}`}
+                                title={`${s.course?.title ?? ''} — ${s.pool_reserved ? t('pool.reserved') : t('pool.open')}`}
                               >
                                 <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {s.course?.course_type?.code ?? '—'}
@@ -145,13 +148,17 @@ export function PoolScreen() {
 
         <div style={{ marginTop: 12, padding: '0 4px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
           <span className="caption">
-            {rows.length} Pool-Slots in dieser Woche · {rows.filter((r) => r.pool_reserved).length} reserviert · {rows.filter((r) => !r.pool_reserved).length} offen
+            {t('pool.summary', {
+              total: rows.length,
+              reserved: rows.filter((r) => r.pool_reserved).length,
+              open: rows.filter((r) => !r.pool_reserved).length,
+            })}
           </span>
           <span className="caption-2" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(52,199,89,.40)', border: '0.5px solid rgba(52,199,89,.6)' }} /> reserviert
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(52,199,89,.40)', border: '0.5px solid rgba(52,199,89,.6)' }} /> {t('pool.legend_reserved')}
           </span>
           <span className="caption-2" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(255,149,0,.40)', border: '0.5px dashed rgba(255,149,0,.6)' }} /> offen
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(255,149,0,.40)', border: '0.5px dashed rgba(255,149,0,.6)' }} /> {t('pool.legend_open')}
           </span>
         </div>
       </div>

@@ -37,7 +37,17 @@
     "section_cd": "CD module",
     "pipeline": "Pipeline",
     "section_admin": "Admin",
-    "settings": "Settings"
+    "settings": "Settings",
+    "tab_today": "Today",
+    "tab_courses": "Courses",
+    "tab_calendar": "Calendar",
+    "tab_tldm": "TL/DM",
+    "tab_students": "Students",
+    "tab_balances": "Balances",
+    "tab_assignments": "Assignments",
+    "tab_balance": "Balance",
+    "tab_profile": "Profile",
+    "tab_logout": "Logout"
   },
   "auth": {
     "logout": "Sign out",
@@ -46,6 +56,76 @@
     "email_placeholder": "you@email.com",
     "send_magic_link": "Send magic link",
     "link_sent": "✉️ Link sent — check your inbox"
+  },
+  "today": {
+    "subtitle": "{{count}} course today",
+    "subtitle_other": "{{count}} courses today",
+    "subtitle_none": "No courses today",
+    "kpi_confirmed": "Confirmed courses",
+    "kpi_open": "Open courses",
+    "kpi_courses_today": "Courses today",
+    "kpi_active_tls": "Active TLs",
+    "daily_digest": "Daily digest",
+    "no_courses_today": "No courses today",
+    "next_days": "Next days",
+    "no_assignments": "No assignments",
+    "header_today": "Today"
+  },
+  "cockpit": {
+    "title": "Cockpit",
+    "kpi_courses": "Courses",
+    "kpi_active_tls": "Active TLs",
+    "kpi_students": "Students",
+    "kpi_total": "Total",
+    "pipeline_today": "Today",
+    "pipeline_this_week": "This week",
+    "pipeline_next_30": "Next 30 days",
+    "range_week": "Week",
+    "range_month": "Month",
+    "range_quarter": "Quarter",
+    "range_year": "Year"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "view_week": "Week",
+    "view_month": "Month",
+    "today": "Today",
+    "no_events": "No events"
+  },
+  "courses": {
+    "title": "Courses",
+    "count_year": "{{count}} courses {{year}}",
+    "count_year_one": "{{count}} course {{year}}",
+    "filter_active": "Active",
+    "filter_certain": "Confirmed",
+    "filter_tentative": "Tentative",
+    "filter_all": "All",
+    "new_course": "New course",
+    "search_placeholder": "Search…",
+    "empty": "No courses"
+  },
+  "pool": {
+    "title": "Pool",
+    "subtitle": "Pool occupancy of courses",
+    "reserved": "Pool reserved ✓",
+    "open": "Pool not yet reserved",
+    "legend_reserved": "Pool reserved",
+    "legend_open": "Pool not yet reserved",
+    "no_pool_days": "No pool days",
+    "summary": "{{total}} pool slots this week · {{reserved}} reserved · {{open}} open"
+  },
+  "balances": {
+    "title": "Balances",
+    "subtitle": "Balances per person · Year-to-date",
+    "col_name": "Name",
+    "col_role": "Role",
+    "col_courses": "Courses",
+    "col_chf": "CHF",
+    "col_excel": "Excel",
+    "col_export": "Export",
+    "export": "Export to Excel",
+    "exporting": "Exporting…",
+    "empty": "No balances"
   },
   "settings": {
     "title": "Settings",
