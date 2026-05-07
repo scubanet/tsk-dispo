@@ -186,7 +186,6 @@
     "error_first_name_required": "Vorname ist Pflicht."
   },
   "student_detail": {
-    "no_padi": "Kein PADI",
     "field_phone": "Telefon",
     "field_notes": "Notizen",
     "intake_title": "Intake-Checkliste",

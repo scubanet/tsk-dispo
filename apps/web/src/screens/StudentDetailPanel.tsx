@@ -152,8 +152,10 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
             <Chip tone="accent">{student.level}</Chip>
           </div>
           <div className="caption" style={{ marginTop: 4 }}>
-            {student.padi_nr ? `PADI ${student.padi_nr}` : t('student_detail.no_padi')}
-            {student.birthday && ` · *${format(new Date(student.birthday), 'd. MMM yyyy', { locale: dfLocale })}`}
+            {[
+              student.padi_nr ? `PADI ${student.padi_nr}` : null,
+              student.birthday ? `*${format(new Date(student.birthday), 'd. MMM yyyy', { locale: dfLocale })}` : null,
+            ].filter(Boolean).join(' · ') || '—'}
           </div>
         </div>
         {isDispatcher && student.phone && (

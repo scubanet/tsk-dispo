@@ -186,7 +186,6 @@
     "error_first_name_required": "First name is required."
   },
   "student_detail": {
-    "no_padi": "No PADI",
     "field_phone": "Phone",
     "field_notes": "Notes",
     "intake_title": "Intake checklist",
