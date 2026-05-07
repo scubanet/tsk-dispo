@@ -56,6 +56,14 @@ serve(async (req) => {
       return jsonResponse({ error: "course not found", details: courseErr }, 404)
     }
 
+    // Sprache des Instructors laden
+    const { data: instructor } = await supa
+      .from("instructors")
+      .select("preferred_language")
+      .eq("id", instructor_id)
+      .maybeSingle()
+    const lang: "de" | "en" = instructor?.preferred_language === "en" ? "en" : "de"
+
     // Device-Tokens des Instructors
     const { data: tokens, error: tokenErr } = await supa
       .from("device_tokens")
@@ -72,17 +80,26 @@ serve(async (req) => {
     // APNs-JWT generieren
     const jwt = await buildApnsJwt()
 
-    // Notification-Body bauen
-    const startDate = new Date(course.start_date).toLocaleDateString("de-CH", {
+    // Notification-Body bauen — locale-abhängig
+    const dateLocale = lang === "en" ? "en-GB" : "de-CH"
+    const startDate = new Date(course.start_date).toLocaleDateString(dateLocale, {
       day: "numeric",
       month: "long",
     })
     const ctype = (course.course_types as { code?: string; label?: string } | null)
+    const titleByLang = {
+      de: "Neue Zuteilung 🤿",
+      en: "New assignment 🤿",
+    }
+    const bodyConnectorByLang = {
+      de: "am",
+      en: "on",
+    }
     const apnsPayload = {
       aps: {
         alert: {
-          title: "Neue Zuteilung 🤿",
-          body: `${ctype?.code ? `${ctype.code}: ` : ""}${course.title} am ${startDate}`,
+          title: titleByLang[lang],
+          body: `${ctype?.code ? `${ctype.code}: ` : ""}${course.title} ${bodyConnectorByLang[lang]} ${startDate}`,
         },
         sound: "default",
         "thread-id": "assignments",
@@ -123,6 +140,7 @@ serve(async (req) => {
     return jsonResponse({
       sent: results.length,
       environment: env,
+      lang,
       results,
     })
   } catch (err) {

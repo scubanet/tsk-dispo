@@ -11,8 +11,106 @@ interface WebhookPayload {
 }
 
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY')
-const FROM_EMAIL = Deno.env.get('NOTIFICATION_FROM_EMAIL') ?? 'no-reply@course-director.ch'
+const FROM_EMAIL = Deno.env.get('NOTIFICATION_FROM_EMAIL') ?? 'no-reply@atoll-os.com'
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://dispo.course-director.ch'
+
+type Lang = 'de' | 'en'
+
+// =============================================================
+// Email templates — DE / EN
+// =============================================================
+
+interface AssignmentTemplateInput {
+  firstName: string
+  courseTitle: string
+  courseTypeLabel: string
+  startDate: string
+  role: string
+  appUrl: string
+}
+
+const T = {
+  de: {
+    assigned: {
+      subject: (i: AssignmentTemplateInput) => `Neuer Einsatz: ${i.courseTitle}`,
+      headline: 'Neuer Einsatz zugewiesen',
+      greeting: (firstName: string) => `Hi ${firstName},`,
+      role: 'Rolle',
+      cta: 'In ATOLL öffnen',
+      footer: 'ATOLL · automatische Nachricht · keine Antwort nötig',
+    },
+    cancelled: {
+      subject: (i: AssignmentTemplateInput) => `Einsatz storniert: ${i.courseTitle}`,
+      headline: 'Einsatz storniert',
+      greeting: (firstName: string) => `Hi ${firstName},`,
+      was: 'War',
+      footer: 'ATOLL · automatische Nachricht',
+    },
+  },
+  en: {
+    assigned: {
+      subject: (i: AssignmentTemplateInput) => `New assignment: ${i.courseTitle}`,
+      headline: 'New assignment',
+      greeting: (firstName: string) => `Hi ${firstName},`,
+      role: 'Role',
+      cta: 'Open in ATOLL',
+      footer: 'ATOLL · automated message · no reply needed',
+    },
+    cancelled: {
+      subject: (i: AssignmentTemplateInput) => `Assignment cancelled: ${i.courseTitle}`,
+      headline: 'Assignment cancelled',
+      greeting: (firstName: string) => `Hi ${firstName},`,
+      was: 'Was on',
+      footer: 'ATOLL · automated message',
+    },
+  },
+} as const
+
+function pickLang(value: unknown): Lang {
+  return value === 'en' ? 'en' : 'de'
+}
+
+function renderAssignedHtml(lang: Lang, i: AssignmentTemplateInput): string {
+  const tt = T[lang].assigned
+  return `<div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+    <h2 style="color: #0A84FF; margin: 0 0 8px;">${tt.headline}</h2>
+    <p style="color: #666; margin: 0 0 24px;">${tt.greeting(i.firstName)}</p>
+    <div style="background: #f5f5f7; padding: 16px; border-radius: 12px; border-left: 3px solid #0A84FF;">
+      <div style="font-weight: 600; font-size: 16px;">${i.courseTitle}</div>
+      <div style="color: #666; margin-top: 4px;">
+        ${i.courseTypeLabel} · ${i.startDate}
+      </div>
+      <div style="color: #666; margin-top: 4px;">
+        ${tt.role}: <strong>${i.role}</strong>
+      </div>
+    </div>
+    <p style="margin: 24px 0 8px;">
+      <a href="${i.appUrl}/heute" style="background: #0A84FF; color: white; padding: 10px 18px; border-radius: 999px; text-decoration: none; display: inline-block;">
+        ${tt.cta}
+      </a>
+    </p>
+    <p style="color: #999; font-size: 12px; margin-top: 32px;">
+      ${tt.footer}
+    </p>
+  </div>`
+}
+
+function renderCancelledHtml(lang: Lang, i: { firstName: string; courseTitle: string; startDate: string }): string {
+  const tt = T[lang].cancelled
+  return `<div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+    <h2 style="color: #FF9500; margin: 0 0 8px;">${tt.headline}</h2>
+    <p style="color: #666; margin: 0 0 24px;">${tt.greeting(i.firstName)}</p>
+    <div style="background: #f5f5f7; padding: 16px; border-radius: 12px; border-left: 3px solid #FF9500;">
+      <div style="font-weight: 600; font-size: 16px;">${i.courseTitle}</div>
+      <div style="color: #666; margin-top: 4px;">${tt.was}: ${i.startDate}</div>
+    </div>
+    <p style="color: #999; font-size: 12px; margin-top: 32px;">
+      ${tt.footer}
+    </p>
+  </div>`
+}
+
+// =============================================================
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -64,12 +162,12 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
 
-  // INSERT — neuer Einsatz
+  // INSERT — neuer Einsatz / new assignment
   if (payload.type === 'INSERT') {
     const a = payload.record
     const { data: inst } = await supabase
       .from('instructors')
-      .select('name, email')
+      .select('name, email, preferred_language')
       .eq('id', a.instructor_id)
       .maybeSingle()
     const { data: course } = await supabase
@@ -80,40 +178,30 @@ serve(async (req) => {
 
     if (!inst?.email || !course) return respond({ skipped: 'missing email or course' })
 
+    const lang = pickLang(inst.preferred_language)
+    const tInput: AssignmentTemplateInput = {
+      firstName: inst.name?.split(' ')[0] ?? '',
+      courseTitle: course.title,
+      courseTypeLabel: (course as any).course_types?.label ?? '—',
+      startDate: course.start_date,
+      role: a.role,
+      appUrl: APP_URL,
+    }
+
     const result = await sendEmail(
       inst.email,
-      `Neuer Einsatz: ${course.title}`,
-      `<div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-        <h2 style="color: #0A84FF; margin: 0 0 8px;">Neuer Einsatz zugewiesen</h2>
-        <p style="color: #666; margin: 0 0 24px;">Hi ${inst.name?.split(' ')[0] ?? ''},</p>
-        <div style="background: #f5f5f7; padding: 16px; border-radius: 12px; border-left: 3px solid #0A84FF;">
-          <div style="font-weight: 600; font-size: 16px;">${course.title}</div>
-          <div style="color: #666; margin-top: 4px;">
-            ${(course as any).course_types?.label ?? '—'} · ${course.start_date}
-          </div>
-          <div style="color: #666; margin-top: 4px;">
-            Rolle: <strong>${a.role}</strong>
-          </div>
-        </div>
-        <p style="margin: 24px 0 8px;">
-          <a href="${APP_URL}/heute" style="background: #0A84FF; color: white; padding: 10px 18px; border-radius: 999px; text-decoration: none; display: inline-block;">
-            In TSK Dispo öffnen
-          </a>
-        </p>
-        <p style="color: #999; font-size: 12px; margin-top: 32px;">
-          TSK Dispo · automatische Nachricht · keine Antwort nötig
-        </p>
-      </div>`,
+      T[lang].assigned.subject(tInput),
+      renderAssignedHtml(lang, tInput),
     )
-    return respond({ ok: true, sent_to: inst.email, result })
+    return respond({ ok: true, sent_to: inst.email, lang, result })
   }
 
-  // DELETE — Einsatz gestrichen
+  // DELETE — Einsatz gestrichen / assignment removed
   if (payload.type === 'DELETE') {
     const a = payload.old_record
     const { data: inst } = await supabase
       .from('instructors')
-      .select('name, email')
+      .select('name, email, preferred_language')
       .eq('id', a.instructor_id)
       .maybeSingle()
     const { data: course } = await supabase
@@ -124,22 +212,19 @@ serve(async (req) => {
 
     if (!inst?.email || !course) return respond({ skipped: 'missing email or course' })
 
+    const lang = pickLang(inst.preferred_language)
+    const tInput = {
+      firstName: inst.name?.split(' ')[0] ?? '',
+      courseTitle: course.title,
+      startDate: course.start_date,
+    }
+
     const result = await sendEmail(
       inst.email,
-      `Einsatz storniert: ${course.title}`,
-      `<div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-        <h2 style="color: #FF9500; margin: 0 0 8px;">Einsatz storniert</h2>
-        <p style="color: #666; margin: 0 0 24px;">Hi ${inst.name?.split(' ')[0] ?? ''},</p>
-        <div style="background: #f5f5f7; padding: 16px; border-radius: 12px; border-left: 3px solid #FF9500;">
-          <div style="font-weight: 600; font-size: 16px;">${course.title}</div>
-          <div style="color: #666; margin-top: 4px;">War: ${course.start_date}</div>
-        </div>
-        <p style="color: #999; font-size: 12px; margin-top: 32px;">
-          TSK Dispo · automatische Nachricht
-        </p>
-      </div>`,
+      T[lang].cancelled.subject({ ...tInput, courseTypeLabel: '', role: '', appUrl: APP_URL }),
+      renderCancelledHtml(lang, tInput),
     )
-    return respond({ ok: true, sent_to: inst.email, result })
+    return respond({ ok: true, sent_to: inst.email, lang, result })
   }
 
   return respond({ ignored: payload.type })
