@@ -90,7 +90,15 @@
     "view_week": "Week",
     "view_month": "Month",
     "today": "Today",
-    "no_events": "No events"
+    "no_events": "No events",
+    "tooltip_no_haupt": "No lead instructor assigned",
+    "tooltip_tentative": "Tentative — not yet confirmed",
+    "legend_no_haupt": "⚠ no lead instructor",
+    "legend_tentative": "? tentative",
+    "legend_cancelled": "cancelled",
+    "legend_today": "today",
+    "day_of": "Day {{current}}/{{total}}",
+    "more_count": "+{{count}} more"
   },
   "courses": {
     "title": "Courses",

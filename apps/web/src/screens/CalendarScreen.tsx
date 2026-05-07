@@ -14,8 +14,10 @@ import {
   startOfWeek,
   subMonths,
   subWeeks,
+  type Locale,
 } from 'date-fns'
-import { de } from 'date-fns/locale'
+import { de, enGB } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import { Topbar } from '@/components/Topbar'
 import { Icon } from '@/components/Icon'
 import { SegmentedControl } from '@/components/SegmentedControl'
@@ -48,13 +50,18 @@ function colorForType(code?: string): string {
 }
 
 /** Visuelle Priorität: kein Haupt > tentative > normal. Cancelled wird separat über opacity gehandelt. */
-function statusStyle(c: CourseRow, hasHaupt: boolean, baseColor: string) {
+function statusStyle(
+  c: CourseRow,
+  hasHaupt: boolean,
+  baseColor: string,
+  t: (key: string) => string,
+) {
   const noHaupt = !hasHaupt && c.status !== 'cancelled'
   if (noHaupt) {
-    return { bg: '#FF3B3022', border: '#FF3B30', text: '#c4302a', prefix: '⚠ ', tooltip: 'Kein Haupt-Instructor zugewiesen' }
+    return { bg: '#FF3B3022', border: '#FF3B30', text: '#c4302a', prefix: '⚠ ', tooltip: t('calendar.tooltip_no_haupt') }
   }
   if (c.status === 'tentative') {
-    return { bg: '#FF950022', border: '#FF9500', text: '#c47200', prefix: '? ', tooltip: 'Evtl. — noch nicht bestätigt' }
+    return { bg: '#FF950022', border: '#FF9500', text: '#c47200', prefix: '? ', tooltip: t('calendar.tooltip_tentative') }
   }
   return { bg: baseColor + '22', border: baseColor, text: baseColor, prefix: '', tooltip: '' }
 }
@@ -72,6 +79,8 @@ function coursesOnDay(all: CourseRow[], day: Date): CourseRow[] {
 }
 
 export function CalendarScreen() {
+  const { t, i18n } = useTranslation()
+  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
   const navigate = useNavigate()
   const { user } = useOutletContext<OutletCtx>()
   const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
@@ -115,26 +124,26 @@ export function CalendarScreen() {
   function today() { setAnchor(new Date()) }
 
   const title = mode === 'week'
-    ? `KW ${format(range.start, 'w')} · ${format(range.start, 'd. MMM', { locale: de })} – ${format(range.end, 'd. MMM yyyy', { locale: de })}`
-    : format(anchor, 'MMMM yyyy', { locale: de })
+    ? `KW ${format(range.start, 'w')} · ${format(range.start, 'd. MMM', { locale: dfLocale })} – ${format(range.end, 'd. MMM yyyy', { locale: dfLocale })}`
+    : format(anchor, 'MMMM yyyy', { locale: dfLocale })
 
   return (
     <>
-      <Topbar title="Kalender" subtitle={title}>
+      <Topbar title={t('nav.calendar')} subtitle={title}>
         <SegmentedControl
           value={mode}
           options={[
-            { value: 'week', label: 'Woche' },
-            { value: 'month', label: 'Monat' },
+            { value: 'week', label: t('calendar.view_week') },
+            { value: 'month', label: t('calendar.view_month') },
           ]}
           onChange={setMode}
         />
         <button className="btn-icon" onClick={prev}><Icon name="chevron-left" size={14} /></button>
-        <button className="btn-secondary btn" onClick={today}>Heute</button>
+        <button className="btn-secondary btn" onClick={today}>{t('calendar.today')}</button>
         <button className="btn-icon" onClick={next}><Icon name="chevron-right" size={14} /></button>
         {isDispatcher && (
           <button className="btn" onClick={() => setEditOpen(true)}>
-            <Icon name="plus" size={14} /> Neuer Kurs
+            <Icon name="plus" size={14} /> {t('courses.new_course')}
           </button>
         )}
       </Topbar>
@@ -153,6 +162,8 @@ export function CalendarScreen() {
             courses={courses}
             hauptByCourse={hauptByCourse}
             onClickCourse={(id) => navigate(`/kurse/${id}`)}
+            t={t}
+            dfLocale={dfLocale}
           />
         ) : (
           <MonthView
@@ -160,25 +171,27 @@ export function CalendarScreen() {
             courses={courses}
             hauptByCourse={hauptByCourse}
             onClickCourse={(id) => navigate(`/kurse/${id}`)}
+            t={t}
+            dfLocale={dfLocale}
           />
         )}
 
         <div className="caption-2" style={{ marginTop: 12, padding: '0 4px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
             <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: '#FF3B3022', borderLeft: '2px solid #FF3B30' }} />
-            ⚠ ohne Haupt-Instructor
+            {t('calendar.legend_no_haupt')}
           </span>
           <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
             <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: '#FF950022', borderLeft: '2px dashed #FF9500' }} />
-            ? evtl. (tentative)
+            {t('calendar.legend_tentative')}
           </span>
           <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', textDecoration: 'line-through', opacity: 0.6 }}>
             <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: 'rgba(0,0,0,.08)' }} />
-            abgesagt
+            {t('calendar.legend_cancelled')}
           </span>
           <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
             <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: 'var(--accent-soft)' }} />
-            heute
+            {t('calendar.legend_today')}
           </span>
         </div>
       </div>
@@ -191,11 +204,15 @@ function WeekView({
   courses,
   hauptByCourse,
   onClickCourse,
+  t,
+  dfLocale,
 }: {
   range: { start: Date; end: Date }
   courses: CourseRow[]
   hauptByCourse: Set<string>
   onClickCourse: (id: string) => void
+  t: (key: string, opts?: Record<string, unknown>) => string
+  dfLocale: Locale
 }) {
   const days = eachDayOfInterval(range)
   return (
@@ -212,9 +229,9 @@ function WeekView({
             }}
           >
             <div style={{ fontWeight: 600, fontSize: 13 }}>
-              {format(d, 'EEE', { locale: de })}
+              {format(d, 'EEE', { locale: dfLocale })}
             </div>
-            <div className="caption">{format(d, 'd. MMM', { locale: de })}</div>
+            <div className="caption">{format(d, 'd. MMM', { locale: dfLocale })}</div>
           </div>
         ))}
       </div>
@@ -240,7 +257,7 @@ function WeekView({
                 const dayIndex = allDates.findIndex((dt) => dt && isSameDay(new Date(dt), d))
                 const hasHaupt = hauptByCourse.has(c.id)
                 const baseColor = colorForType(c.course_type?.code)
-                const s = statusStyle(c, hasHaupt, baseColor)
+                const s = statusStyle(c, hasHaupt, baseColor, t)
                 const isTentative = c.status === 'tentative'
                 return (
                   <div
@@ -293,7 +310,7 @@ function WeekView({
                       </span>
                       {isMultiDay && (
                         <span style={{ fontSize: 9.5, color: 'var(--ink-3)' }}>
-                          Tag {dayIndex + 1}/{allDates.length}
+                          {t('calendar.day_of', { current: dayIndex + 1, total: allDates.length })}
                         </span>
                       )}
                     </div>
@@ -313,20 +330,27 @@ function MonthView({
   courses,
   hauptByCourse,
   onClickCourse,
+  t,
+  dfLocale,
 }: {
   anchor: Date
   courses: CourseRow[]
   hauptByCourse: Set<string>
   onClickCourse: (id: string) => void
+  t: (key: string, opts?: Record<string, unknown>) => string
+  dfLocale: Locale
 }) {
   const start = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 })
   const end = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 })
   const days = eachDayOfInterval({ start, end })
+  // Header weekday labels — derive from a known Monday so they follow the active locale.
+  const monday = startOfWeek(new Date(2024, 0, 1), { weekStartsOn: 1 })
+  const weekdays = Array.from({ length: 7 }, (_, i) => format(addDays(monday, i), 'EEEEEE', { locale: dfLocale }))
 
   return (
     <div className="glass card" style={{ padding: 0 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '0.5px solid var(--hairline)' }}>
-        {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((d) => (
+        {weekdays.map((d) => (
           <div key={d} style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 600, fontSize: 12 }}>
             {d}
           </div>
@@ -349,14 +373,14 @@ function MonthView({
               }}
             >
               <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 4 }}>
-                {format(d, 'd', { locale: de })}
+                {format(d, 'd', { locale: dfLocale })}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {dayCourses.slice(0, 4).map((c) => {
                   const isMultiDay = (c.additional_dates?.length ?? 0) > 0
                   const hasHaupt = hauptByCourse.has(c.id)
                   const baseColor = colorForType(c.course_type?.code)
-                  const s = statusStyle(c, hasHaupt, baseColor)
+                  const s = statusStyle(c, hasHaupt, baseColor, t)
                   const isTentative = c.status === 'tentative'
                   const showBorder = !!s.prefix || isMultiDay
                   return (
@@ -387,7 +411,7 @@ function MonthView({
                   )
                 })}
                 {dayCourses.length > 4 && (
-                  <div className="caption-2">+{dayCourses.length - 4} mehr</div>
+                  <div className="caption-2">{t('calendar.more_count', { count: dayCourses.length - 4 })}</div>
                 )}
               </div>
             </div>

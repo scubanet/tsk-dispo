@@ -90,7 +90,15 @@
     "view_week": "Woche",
     "view_month": "Monat",
     "today": "Heute",
-    "no_events": "Keine Termine"
+    "no_events": "Keine Termine",
+    "tooltip_no_haupt": "Kein Haupt-Instructor zugewiesen",
+    "tooltip_tentative": "Evtl. — noch nicht bestätigt",
+    "legend_no_haupt": "⚠ ohne Haupt-Instructor",
+    "legend_tentative": "? evtl. (tentative)",
+    "legend_cancelled": "abgesagt",
+    "legend_today": "heute",
+    "day_of": "Tag {{current}}/{{total}}",
+    "more_count": "+{{count}} mehr"
   },
   "courses": {
     "title": "Kurse",
