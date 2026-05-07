@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts'
@@ -45,13 +46,14 @@ interface CockpitData {
 type PeriodKey = 'month' | 'quarter' | 'ytd'
 
 export function CockpitScreen() {
+  const { t, i18n } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
   const [data, setData] = useState<CockpitData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [period, setPeriod] = useState<PeriodKey>('month')
 
-  const range = useMemo(() => periodRange(period), [period])
+  const range = useMemo(() => periodRange(period, i18n.resolvedLanguage ?? 'de'), [period, i18n.resolvedLanguage])
 
   useEffect(() => {
     setLoading(true)
@@ -69,9 +71,9 @@ export function CockpitScreen() {
   if (!accessAllowed) {
     return (
       <>
-        <Topbar title="Cockpit" />
+        <Topbar title={t('cockpit.title')} />
         <div style={{ padding: 40, textAlign: 'center' }} className="caption">
-          Cockpit ist nur für Owner und Dispatcher zugänglich.
+          {t('cockpit.no_access')}
         </div>
       </>
     )
@@ -79,13 +81,13 @@ export function CockpitScreen() {
 
   return (
     <>
-      <Topbar title="Cockpit" subtitle={range.label}>
+      <Topbar title={t('cockpit.title')} subtitle={range.label}>
         <PeriodSeg value={period} onChange={setPeriod} />
       </Topbar>
 
       <div className="screen-fade scroll" style={{ padding: '20px 24px 60px', flex: 1 }}>
         {loading && !data ? (
-          <div className="caption" style={{ padding: 80, textAlign: 'center' }}>Lade Cockpit-Daten…</div>
+          <div className="caption" style={{ padding: 80, textAlign: 'center' }}>{t('cockpit.loading')}</div>
         ) : error ? (
           <div className="chip chip-red" style={{ padding: 16, borderRadius: 12 }}>{error}</div>
         ) : data ? (
@@ -105,11 +107,12 @@ export function CockpitScreen() {
 // Period Helpers
 // =================================================================
 
-function periodRange(p: PeriodKey): { start: string; end: string; label: string } {
+function periodRange(p: PeriodKey, lang: string): { start: string; end: string; label: string } {
   const now = new Date()
   const y = now.getFullYear()
   const m = now.getMonth()
   const fmt = (d: Date) => d.toISOString().slice(0, 10)
+  const dateLocale = lang.startsWith('en') ? 'en-GB' : 'de-CH'
 
   if (p === 'month') {
     const start = new Date(y, m, 1)
@@ -117,7 +120,7 @@ function periodRange(p: PeriodKey): { start: string; end: string; label: string 
     return {
       start: fmt(start),
       end: fmt(end),
-      label: start.toLocaleDateString('de-CH', { month: 'long', year: 'numeric' }),
+      label: start.toLocaleDateString(dateLocale, { month: 'long', year: 'numeric' }),
     }
   }
   if (p === 'quarter') {
@@ -139,11 +142,12 @@ function periodRange(p: PeriodKey): { start: string; end: string; label: string 
 }
 
 function PeriodSeg({ value, onChange }: { value: PeriodKey; onChange: (v: PeriodKey) => void }) {
+  const { t } = useTranslation()
   return (
     <div className="seg">
-      <button className={value === 'month' ? 'active' : ''} onClick={() => onChange('month')}>Monat</button>
-      <button className={value === 'quarter' ? 'active' : ''} onClick={() => onChange('quarter')}>Quartal</button>
-      <button className={value === 'ytd' ? 'active' : ''} onClick={() => onChange('ytd')}>YTD</button>
+      <button className={value === 'month' ? 'active' : ''} onClick={() => onChange('month')}>{t('cockpit.range_month')}</button>
+      <button className={value === 'quarter' ? 'active' : ''} onClick={() => onChange('quarter')}>{t('cockpit.range_quarter')}</button>
+      <button className={value === 'ytd' ? 'active' : ''} onClick={() => onChange('ytd')}>{t('cockpit.range_ytd')}</button>
     </div>
   )
 }
@@ -153,6 +157,7 @@ function PeriodSeg({ value, onChange }: { value: PeriodKey; onChange: (v: Period
 // =================================================================
 
 function KpiRow({ kpis }: { kpis: KPIs }) {
+  const { t } = useTranslation()
   return (
     <div style={{
       display: 'grid',
@@ -161,25 +166,25 @@ function KpiRow({ kpis }: { kpis: KPIs }) {
       marginBottom: 24,
     }}>
       <KpiCard
-        label="Vergütungen"
+        label={t('cockpit.kpi_payments')}
         value={chf(kpis.payments_chf)}
-        sub={`${kpis.payments_count} Buchungen`}
+        sub={t('cockpit.kpi_payments_sub', { count: kpis.payments_count })}
         accent="linear-gradient(135deg, #0A84FF, #30B0C7)"
       />
       <KpiCard
-        label="Kurse"
+        label={t('cockpit.kpi_courses')}
         value={String(kpis.courses_in_period)}
-        sub="im Zeitraum (ohne CXL)"
+        sub={t('cockpit.kpi_courses_sub')}
       />
       <KpiCard
-        label="Aktive TLs"
+        label={t('cockpit.kpi_active_tls')}
         value={`${kpis.active_instructors_in_period} / ${kpis.total_active_instructors}`}
-        sub="im Zeitraum / total"
+        sub={t('cockpit.kpi_active_tls_sub')}
       />
       <KpiCard
-        label="Schüler"
+        label={t('cockpit.kpi_students')}
         value={String(kpis.active_students)}
-        sub="aktive Datensätze"
+        sub={t('cockpit.kpi_students_sub')}
       />
     </div>
   )
@@ -218,25 +223,27 @@ function KpiCard({ label, value, sub, accent }: {
 // =================================================================
 
 function MonthlyChart({ data }: { data: MonthlyPayment[] }) {
+  const { t, i18n } = useTranslation()
+  const dateLocale = i18n.resolvedLanguage?.startsWith('en') ? 'en-GB' : 'de-CH'
   // Daten formatieren für recharts
   const chartData = data.map((d) => {
     const [y, m] = d.month.split('-').map(Number)
     const date = new Date(y, m - 1, 1)
     return {
-      month: date.toLocaleDateString('de-CH', { month: 'short', year: '2-digit' }),
+      month: date.toLocaleDateString(dateLocale, { month: 'short', year: '2-digit' }),
       total: Number(d.total),
     }
   })
 
-  const currentMonth = new Date().toLocaleDateString('de-CH', { month: 'short', year: '2-digit' })
+  const currentMonth = new Date().toLocaleDateString(dateLocale, { month: 'short', year: '2-digit' })
 
   return (
     <div className="glass card" style={{ padding: 20, marginBottom: 24 }}>
-      <div className="title-3" style={{ marginBottom: 4 }}>Vergütungen pro Monat</div>
-      <div className="caption" style={{ marginBottom: 14 }}>Letzte 12 Monate · alle Instruktoren</div>
+      <div className="title-3" style={{ marginBottom: 4 }}>{t('cockpit.monthly_title')}</div>
+      <div className="caption" style={{ marginBottom: 14 }}>{t('cockpit.monthly_subtitle')}</div>
       {chartData.length === 0 ? (
         <div className="caption" style={{ padding: 40, textAlign: 'center' }}>
-          Noch keine completed-Vergütungen in den letzten 12 Monaten.
+          {t('cockpit.monthly_empty')}
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
@@ -263,7 +270,7 @@ function MonthlyChart({ data }: { data: MonthlyPayment[] }) {
                 boxShadow: '0 4px 14px rgba(0,0,0,.1)',
                 fontSize: 13,
               }}
-              formatter={(value: number) => [chf(value), 'Total']}
+              formatter={(value: number) => [chf(value), t('cockpit.kpi_total')]}
             />
             <Bar dataKey="total" radius={[6, 6, 0, 0]}>
               {chartData.map((d, i) => (
@@ -282,34 +289,35 @@ function MonthlyChart({ data }: { data: MonthlyPayment[] }) {
 // =================================================================
 
 function TopInstructorsCard({ top }: { top: TopInstructor[] }) {
-  const max = Math.max(...top.map((t) => Number(t.total_chf)), 1)
+  const { t } = useTranslation()
+  const max = Math.max(...top.map((row) => Number(row.total_chf)), 1)
   return (
     <div className="glass card" style={{ padding: 20, marginBottom: 24 }}>
-      <div className="title-3" style={{ marginBottom: 4 }}>Top 10 TL/DM</div>
-      <div className="caption" style={{ marginBottom: 14 }}>Nach Vergütung im gewählten Zeitraum</div>
+      <div className="title-3" style={{ marginBottom: 4 }}>{t('cockpit.top_title')}</div>
+      <div className="caption" style={{ marginBottom: 14 }}>{t('cockpit.top_subtitle')}</div>
       {top.length === 0 ? (
         <div className="caption" style={{ padding: 30, textAlign: 'center' }}>
-          Keine Vergütungen im Zeitraum.
+          {t('cockpit.top_empty')}
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 10 }}>
-          {top.map((t, i) => (
-            <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {top.map((row, i) => (
+            <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div className="mono" style={{ fontSize: 12, color: 'var(--ink-2)', width: 18, textAlign: 'right' }}>
                 {i + 1}.
               </div>
               <Avatar
-                initials={t.initials || t.name.slice(0, 2).toUpperCase()}
-                color={t.color || '#0A84FF'}
+                initials={row.initials || row.name.slice(0, 2).toUpperCase()}
+                color={row.color || '#0A84FF'}
                 size="sm"
               />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
                   <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {t.name}
+                    {row.name}
                   </div>
                   <div className="mono" style={{ fontSize: 13, fontWeight: 600 }}>
-                    {chf(t.total_chf)}
+                    {chf(row.total_chf)}
                   </div>
                 </div>
                 {/* Bar */}
@@ -319,13 +327,13 @@ function TopInstructorsCard({ top }: { top: TopInstructor[] }) {
                 }}>
                   <div style={{
                     height: '100%',
-                    width: `${(Number(t.total_chf) / max) * 100}%`,
+                    width: `${(Number(row.total_chf) / max) * 100}%`,
                     background: 'linear-gradient(90deg, #0A84FF, #30B0C7)',
                     borderRadius: 999,
                   }} />
                 </div>
                 <div className="caption-2" style={{ marginTop: 2 }}>
-                  {t.padi_level} · {t.course_count} Kurse
+                  {row.padi_level} · {t('cockpit.course_count', { count: row.course_count })}
                 </div>
               </div>
             </div>
@@ -341,6 +349,7 @@ function TopInstructorsCard({ top }: { top: TopInstructor[] }) {
 // =================================================================
 
 function BottomGrid({ pipeline, attention }: { pipeline: Pipeline; attention: Attention }) {
+  const { t } = useTranslation()
   return (
     <div style={{
       display: 'grid',
@@ -348,31 +357,31 @@ function BottomGrid({ pipeline, attention }: { pipeline: Pipeline; attention: At
       gap: 14,
     }}>
       <div className="glass card" style={{ padding: 18 }}>
-        <div className="title-3" style={{ marginBottom: 12 }}>Pipeline</div>
-        <Row label="Heute"           value={pipeline.today} />
-        <Row label="Diese Woche"     value={pipeline.this_week} />
-        <Row label="Nächste 30 Tage" value={pipeline.next_30_days} />
+        <div className="title-3" style={{ marginBottom: 12 }}>{t('nav.pipeline')}</div>
+        <Row label={t('cockpit.pipeline_today')}     value={pipeline.today} />
+        <Row label={t('cockpit.pipeline_this_week')} value={pipeline.this_week} />
+        <Row label={t('cockpit.pipeline_next_30')}   value={pipeline.next_30_days} />
       </div>
 
       <div className="glass card" style={{ padding: 18 }}>
-        <div className="title-3" style={{ marginBottom: 12 }}>Achtung</div>
+        <div className="title-3" style={{ marginBottom: 12 }}>{t('cockpit.attention')}</div>
         <AttentionRow
-          label="Kurse ohne Haupt-TL"
+          label={t('cockpit.attention_no_haupt')}
           value={attention.courses_without_haupt}
           severity={attention.courses_without_haupt > 0 ? 'red' : 'ok'}
-          hint="Kritisch — Kurs kann nicht stattfinden ohne Haupt-Leiter"
+          hint={t('cockpit.attention_no_haupt_hint')}
         />
         <AttentionRow
-          label="Tentative im Monat"
+          label={t('cockpit.attention_tentative')}
           value={attention.long_tentative}
           severity={attention.long_tentative > 0 ? 'orange' : 'ok'}
-          hint="Noch nicht bestätigte Kurse in den nächsten 30 Tagen"
+          hint={t('cockpit.attention_tentative_hint')}
         />
         <AttentionRow
-          label="TLs > 6 Wochen ohne Einsatz"
+          label={t('cockpit.attention_idle')}
           value={attention.idle_instructors_6w}
           severity={attention.idle_instructors_6w > 0 ? 'yellow' : 'ok'}
-          hint="Hinweis — diese TLs könnten Einsätze brauchen"
+          hint={t('cockpit.attention_idle_hint')}
         />
       </div>
     </div>
