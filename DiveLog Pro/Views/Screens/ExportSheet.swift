@@ -347,9 +347,9 @@ struct ExportSheet: View {
     private func logbookFilename() -> String {
         let df = DateFormatter()
         df.dateFormat = "yyyy-MM-dd"
-        let name = (profile?.name ?? "DiveLog")
+        let name = (profile?.name ?? "AtollLog")
             .replacingOccurrences(of: " ", with: "_")
-        return "DiveLog_\(name)_\(df.string(from: .now)).pdf"
+        return "AtollLog_\(name)_\(df.string(from: .now)).pdf"
     }
 
     private func csvFilename() -> String {

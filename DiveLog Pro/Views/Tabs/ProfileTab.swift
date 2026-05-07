@@ -73,7 +73,7 @@ struct ProfileTab: View {
 
                         // App info
                         VStack(spacing: 4) {
-                            Text("DiveLog Pro")
+                            Text("AtollLog")
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundStyle(.tertiary)
                             Text("Version 1.0")

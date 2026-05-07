@@ -68,7 +68,7 @@ struct SignInView: View {
                 .frame(width: 110, height: 110)
 
             VStack(spacing: 8) {
-                Text("DiveLog Pro")
+                Text("AtollLog")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundStyle(.primary)
 

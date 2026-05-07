@@ -18,7 +18,7 @@ public struct SharedDiveLogSnapshot: Codable, Sendable, Equatable {
     public let conservationProjects: [Project]
     public let snapshotUpdatedAt: Date
 
-    public init(
+    public nonisolated init(
         schemaVersion: Int = 1,
         appleUserId: String,
         displayName: String,
@@ -52,7 +52,7 @@ public struct SharedDiveLogSnapshot: Codable, Sendable, Equatable {
         public let agency: String      // PADI/SSI/SDI/TDI/CMAS/RAID/NAUI/BSAC/Other
         public let level: String       // free text — "OWD", "Course Director", …
         public let issuedAt: Date?
-        public init(agency: String, level: String, issuedAt: Date?) {
+        public nonisolated init(agency: String, level: String, issuedAt: Date?) {
             self.agency = agency
             self.level = level
             self.issuedAt = issuedAt
@@ -62,7 +62,7 @@ public struct SharedDiveLogSnapshot: Codable, Sendable, Equatable {
     public struct Project: Codable, Sendable, Equatable {
         public let title: String
         public let impactText: String?
-        public init(title: String, impactText: String?) {
+        public nonisolated init(title: String, impactText: String?) {
             self.title = title
             self.impactText = impactText
         }

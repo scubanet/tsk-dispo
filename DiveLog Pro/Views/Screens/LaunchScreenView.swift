@@ -53,16 +53,15 @@ struct LaunchScreenView: View {
 
                 // Wordmark
                 VStack(spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text("DIVELOG")
+                    HStack(spacing: 0) {
+                        Text("ATOLL")
                             .font(.system(size: 28, weight: .bold))
                             .tracking(2.5)
                             .foregroundStyle(.primary)
-                        Text("PRO")
-                            .font(.system(size: 16, weight: .bold))
-                            .tracking(2)
+                        Text("LOG")
+                            .font(.system(size: 28, weight: .bold))
+                            .tracking(2.5)
                             .foregroundStyle(Color.appEmphasis)
-                            .padding(.top, 2)
                     }
                     Text(L10n.currentLanguage == "de" ? "DEIN TAUCHLOGBUCH" : "YOUR DIVE LOG")
                         .font(.system(size: 10, weight: .semibold))

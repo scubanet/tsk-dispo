@@ -4,7 +4,8 @@ import os
 /// Read/write the App Group snapshot exchange between DiveLog Pro and
 /// Atoll Hub. `containerURL` defaults to the production App Group
 /// container; future tests can inject a temp directory.
-public actor DiveLogBridge {
+@MainActor
+public final class DiveLogBridge {
     public static let appGroupId = "group.com.atollhub.shared"
     public static let diveLogSnapshotFile = "dive-log-snapshot.json"
     public static let atollHubSnapshotFile = "atoll-hub-snapshot.json"

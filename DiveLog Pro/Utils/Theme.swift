@@ -153,8 +153,8 @@ enum L10n {
     static var generatingLink: String { loc("Creating secure link…", de: "Link wird erstellt…") }
     static var linkReady: String { loc("Link ready", de: "Link bereit") }
     static var linkShareHint: String {
-        loc("Share this link with your buddy. Tapping it opens DiveLog Pro so they can sign remotely.",
-            de: "Teile den Link mit deinem Buddy. Beim Öffnen startet DiveLog Pro, damit er aus der Ferne unterschreiben kann.")
+        loc("Share this link with your buddy. Tapping it opens AtollLog so they can sign remotely.",
+            de: "Teile den Link mit deinem Buddy. Beim Öffnen startet AtollLog, damit er aus der Ferne unterschreiben kann.")
     }
     static var shareLink: String { loc("Share Link", de: "Link teilen") }
     static var copyLink: String { loc("Copy Link", de: "Link kopieren") }

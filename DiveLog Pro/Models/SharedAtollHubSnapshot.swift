@@ -12,7 +12,7 @@ public struct SharedAtollHubSnapshot: Codable, Sendable, Equatable {
     public let avatarFileName: String?
     public let snapshotUpdatedAt: Date
 
-    public init(
+    public nonisolated init(
         schemaVersion: Int = 1,
         appleUserId: String,
         displayName: String,
@@ -33,7 +33,7 @@ public struct SharedAtollHubSnapshot: Codable, Sendable, Equatable {
 // sides agree on. These MUST match Atoll Hub's helpers byte-for-byte.
 // Scoped to the Atoll Hub bridge wire format — do not repurpose.
 public extension JSONDecoder {
-    static func atollBridge() -> JSONDecoder {
+    nonisolated static func atollBridge() -> JSONDecoder {
         let d = JSONDecoder()
         d.keyDecodingStrategy = .convertFromSnakeCase
         d.dateDecodingStrategy = .iso8601
@@ -43,7 +43,7 @@ public extension JSONDecoder {
 
 // Scoped to the Atoll Hub bridge wire format — do not repurpose.
 public extension JSONEncoder {
-    static func atollBridge() -> JSONEncoder {
+    nonisolated static func atollBridge() -> JSONEncoder {
         let e = JSONEncoder()
         e.keyEncodingStrategy = .convertToSnakeCase
         e.dateEncodingStrategy = .iso8601
