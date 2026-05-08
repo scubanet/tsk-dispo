@@ -1,8 +1,25 @@
+/**
+ * SkillMatrixScreen — Foundation-based rewrite.
+ *
+ * Layout:
+ *   PageHeader (search + category dropdown as actions)
+ *   ┌─ Foundation card ───────────────────────────────────────┐
+ *   │  Sticky-header matrix:                                  │
+ *   │   first column: instructor name + padi_level            │
+ *   │   skill columns: rotated label headers                  │
+ *   │   cells: tap to toggle (filled = teal check, else dot)  │
+ *   └─────────────────────────────────────────────────────────┘
+ */
+
 import { useEffect, useMemo, useState } from 'react'
-import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
-import { Topbar } from '@/components/Topbar'
-import { Icon } from '@/components/Icon'
+import {
+  PageHeader,
+  SearchInput,
+  SortDropdown,
+  EmptyState,
+  Icon,
+} from '@/foundation'
 import { supabase } from '@/lib/supabase'
 
 interface Skill {
@@ -29,12 +46,23 @@ export function SkillMatrixScreen() {
   useEffect(() => {
     Promise.all([
       supabase.from('skills').select('id, code, label, category').order('label'),
-      supabase.from('instructors').select('id, name, padi_level').eq('active', true).order('last_name').order('first_name'),
+      supabase
+        .from('instructors')
+        .select('id, name, padi_level')
+        .eq('active', true)
+        .order('last_name')
+        .order('first_name'),
       supabase.from('instructor_skills').select('instructor_id, skill_id'),
     ]).then(([s, i, m]) => {
       setSkills((s.data ?? []) as Skill[])
       setInstructors((i.data ?? []) as Inst[])
-      setMatrix(new Set((m.data ?? []).map((r: any) => `${r.instructor_id}|${r.skill_id}`)))
+      setMatrix(
+        new Set(
+          ((m.data ?? []) as { instructor_id: string; skill_id: string }[]).map(
+            (r) => `${r.instructor_id}|${r.skill_id}`,
+          ),
+        ),
+      )
     })
   }, [])
 
@@ -51,7 +79,10 @@ export function SkillMatrixScreen() {
 
   const filteredInstructors = useMemo(() => {
     if (!search) return instructors
-    return instructors.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()))
+    const q = search.toLowerCase()
+    return instructors.filter(
+      (i) => i.name.toLowerCase().includes(q) || i.padi_level.toLowerCase().includes(q),
+    )
   }, [instructors, search])
 
   async function toggle(instId: string, skillId: string) {
@@ -74,119 +105,86 @@ export function SkillMatrixScreen() {
     }
   }
 
-  return (
-    <>
-      <Topbar
-        title={t('nav.skills')}
-        subtitle={t('skill_matrix.subtitle', { people: instructors.length, skills: skills.length })}
-      >
-        <div className="search" style={{ width: 200 }}>
-          <Icon name="search" size={14} />
-          <input
-            placeholder={t('skill_matrix.search_placeholder')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid var(--hairline)' }}
-        >
-          {categories.map((c) => (
-            <option key={c} value={c}>{c === 'all' ? t('skill_matrix.all_categories') : c}</option>
-          ))}
-        </select>
-      </Topbar>
+  const categoryOptions = categories.map((c) => ({
+    id: c,
+    label: c === 'all' ? t('skill_matrix.all_categories') : c,
+  }))
 
-      <div className="scroll" style={{ flex: 1, padding: 16, overflow: 'auto' }}>
-        <div className="glass card" style={{ padding: 0, overflow: 'auto' }}>
-          <table style={{ borderCollapse: 'collapse', fontSize: 12 }}>
-            <thead>
-              <tr>
-                <th
-                  style={{
-                    position: 'sticky',
-                    left: 0,
-                    top: 0,
-                    background: 'var(--surface-strong)',
-                    backdropFilter: 'blur(20px)',
-                    textAlign: 'left',
-                    padding: 8,
-                    minWidth: 200,
-                    zIndex: 2,
-                  }}
-                >
-                  {t('skill_matrix.col_person')}
-                </th>
-                {filteredSkills.map((s) => (
-                  <th
-                    key={s.id}
-                    style={{
-                      padding: '8px 4px',
-                      writingMode: 'vertical-rl',
-                      whiteSpace: 'nowrap',
-                      verticalAlign: 'bottom',
-                      height: 140,
-                      fontWeight: 500,
-                      fontSize: 11,
-                      background: 'var(--surface-strong)',
-                      backdropFilter: 'blur(20px)',
-                      position: 'sticky',
-                      top: 0,
-                      zIndex: 1,
-                    }}
-                  >
-                    {s.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredInstructors.map((i) => (
-                <tr key={i.id}>
-                  <td
-                    style={{
-                      position: 'sticky',
-                      left: 0,
-                      background: 'var(--surface-strong)',
-                      backdropFilter: 'blur(20px)',
-                      padding: 8,
-                      fontWeight: 500,
-                      fontSize: 12,
-                      borderTop: '0.5px solid var(--separator)',
-                    }}
-                  >
-                    {i.name}
-                    <div className="caption-2">{i.padi_level}</div>
-                  </td>
-                  {filteredSkills.map((s) => {
-                    const has = matrix.has(`${i.id}|${s.id}`)
-                    return (
-                      <td
-                        key={s.id}
-                        onClick={() => toggle(i.id, s.id)}
-                        className={clsx(has && 'has')}
-                        style={{
-                          textAlign: 'center',
-                          padding: 6,
-                          cursor: 'pointer',
-                          background: has ? 'var(--accent-soft)' : undefined,
-                          color: has ? 'var(--accent)' : 'var(--ink-4)',
-                          fontWeight: has ? 700 : 400,
-                          borderTop: '0.5px solid var(--separator)',
-                        }}
-                      >
-                        {has ? '✓' : '·'}
+  return (
+    <div className="atoll-screen">
+      <PageHeader
+        title={t('nav.skills')}
+        subtitle={t('skill_matrix.subtitle', {
+          people: instructors.length,
+          skills: skills.length,
+        })}
+        actions={
+          <>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              ariaLabel={t('skill_matrix.search_placeholder')}
+              placeholder={t('skill_matrix.search_placeholder')}
+            />
+            <SortDropdown
+              options={categoryOptions}
+              value={category}
+              onChange={setCategory}
+              ariaLabel={t('skill_matrix.all_categories')}
+            />
+          </>
+        }
+      />
+
+      <div className="atoll-screen__body">
+        <section className="atoll-cockpit__card atoll-skillmatrix__card">
+          {filteredInstructors.length === 0 || filteredSkills.length === 0 ? (
+            <EmptyState
+              icon={<Icon.Users size={20} />}
+              title={t('courses.no_matches')}
+            />
+          ) : (
+            <div className="atoll-skillmatrix__scroll">
+              <table className="atoll-skillmatrix__table">
+                <thead>
+                  <tr>
+                    <th className="atoll-skillmatrix__corner">
+                      {t('skill_matrix.col_person')}
+                    </th>
+                    {filteredSkills.map((s) => (
+                      <th key={s.id} className="atoll-skillmatrix__skill-head">
+                        <span>{s.label}</span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredInstructors.map((i) => (
+                    <tr key={i.id}>
+                      <td className="atoll-skillmatrix__name">
+                        <div className="atoll-skillmatrix__name-text">{i.name}</div>
+                        <div className="atoll-skillmatrix__name-sub">{i.padi_level}</div>
                       </td>
-                    )
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      {filteredSkills.map((s) => {
+                        const has = matrix.has(`${i.id}|${s.id}`)
+                        return (
+                          <td
+                            key={s.id}
+                            className={`atoll-skillmatrix__cell${has ? ' atoll-skillmatrix__cell--has' : ''}`}
+                            onClick={() => toggle(i.id, s.id)}
+                          >
+                            {has ? <Icon.Check size={12} /> : <span aria-hidden>·</span>}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </div>
-    </>
+    </div>
   )
 }

@@ -632,3 +632,112 @@
   background: var(--brand-amber-50);
   border: 1px dashed var(--brand-amber-100);
 }
+
+/* ──────────────────────── Skill matrix ──────────────────────── */
+
+.atoll-skillmatrix__card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.atoll-skillmatrix__scroll {
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+  max-height: calc(100vh - 220px);
+}
+.atoll-skillmatrix__scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.atoll-skillmatrix__scroll::-webkit-scrollbar-track { background: transparent; }
+.atoll-skillmatrix__scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+}
+
+.atoll-skillmatrix__table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+}
+
+.atoll-skillmatrix__corner {
+  position: sticky;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  background: var(--bg-card);
+  text-align: left;
+  padding: var(--space-3);
+  min-width: 200px;
+  border-bottom: 1px solid var(--border-tertiary);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  color: var(--text-tertiary);
+}
+
+.atoll-skillmatrix__skill-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-card);
+  padding: var(--space-2) 4px;
+  border-bottom: 1px solid var(--border-tertiary);
+  height: 140px;
+  vertical-align: bottom;
+  font-weight: var(--weight-medium);
+  font-size: var(--text-badge);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.atoll-skillmatrix__skill-head span {
+  display: inline-block;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--text-secondary);
+}
+
+.atoll-skillmatrix__name {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--bg-card);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border-tertiary);
+  border-right: 1px solid var(--border-tertiary);
+  min-width: 200px;
+}
+
+.atoll-skillmatrix__name-text {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+.atoll-skillmatrix__name-sub {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.atoll-skillmatrix__cell {
+  text-align: center;
+  padding: 6px;
+  cursor: pointer;
+  color: var(--text-disabled);
+  border-top: 1px solid var(--border-tertiary);
+  transition: background 120ms ease, color 120ms ease;
+  user-select: none;
+  min-width: 28px;
+}
+.atoll-skillmatrix__cell:hover {
+  background: var(--bg-sand);
+}
+.atoll-skillmatrix__cell--has {
+  background: var(--brand-teal-50);
+  color: var(--brand-teal-800);
+}
+.atoll-skillmatrix__cell--has:hover {
+  background: var(--brand-teal-100);
+}
