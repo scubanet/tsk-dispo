@@ -1,5 +1,22 @@
+/**
+ * Sheet — thin compatibility wrapper around the Foundation `Drawer`.
+ *
+ * All edit sheets (CourseEditSheet, AssignmentEditSheet, StudentEditSheet,
+ * EnrollStudentSheet, CertificationEditSheet, CommunicationEditSheet,
+ * IntakeChecklistSheet, OrganizationEditSheet, CorrectionSheet, …) import
+ * `Sheet` from here. Routing them through Foundation `Drawer` gives every
+ * sheet the same backdrop, slide-in animation, body-scroll lock, ESC-close,
+ * focus trap and soft scrollbar — without touching each individual sheet.
+ *
+ * Behavior preserved from the legacy implementation:
+ *   - `open` / `onClose` semantics
+ *   - `width` prop (default 520 — matches the legacy default)
+ *   - `title` rendered in the drawer header
+ *   - Children rendered inside the scrollable body
+ */
+
 import type { ReactNode } from 'react'
-import { Icon } from './Icon'
+import { Drawer } from '@/foundation'
 
 interface SheetProps {
   open: boolean
@@ -10,28 +27,9 @@ interface SheetProps {
 }
 
 export function Sheet({ open, onClose, title, width = 520, children }: SheetProps) {
-  if (!open) return null
   return (
-    <div className="sheet-overlay">
-      <div className="sheet-backdrop" onClick={onClose} />
-      <div className="sheet-panel glass-strong" style={{ width }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 14,
-          }}
-        >
-          <div className="title-2">{title}</div>
-          <button className="btn-icon" onClick={onClose}>
-            <Icon name="x" size={14} />
-          </button>
-        </div>
-        <div className="scroll" style={{ flex: 1, marginRight: -8, paddingRight: 8 }}>
-          {children}
-        </div>
-      </div>
-    </div>
+    <Drawer open={open} onClose={onClose} title={title} width={width}>
+      {children}
+    </Drawer>
   )
 }
