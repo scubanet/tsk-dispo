@@ -1,16 +1,25 @@
 .atoll-filter-tabbar {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0;
   border-bottom: 1px solid var(--border-tertiary);
   padding: 0;
+  /* In narrow containers (e.g. 320px ListPane), overflow scrolls horizontally
+     instead of pushing tabs out of the box. The scrollbar is hidden — the
+     soft fade on the right edge hints at additional content. */
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  width: 100%;
+  position: relative;
 }
+.atoll-filter-tabbar::-webkit-scrollbar { display: none; }
 
 .atoll-filter-tabbar__tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 4px;
+  padding: 8px 8px;
   font-family: var(--font-sans);
   font-size: var(--text-label);
   font-weight: var(--weight-regular);
@@ -20,6 +29,8 @@
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;       /* overlap container border */
   cursor: pointer;
+  white-space: nowrap;       /* never wrap "Kandidaten" mid-word */
+  flex-shrink: 0;
   transition: color 120ms ease, border-color 120ms ease;
 }
 
