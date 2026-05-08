@@ -1,30 +1,65 @@
-import { useEffect, useState } from 'react'
+/**
+ * InstructorDetailPanel — Foundation-based rewrite.
+ *
+ * Layout:
+ *   Header: Avatar (padiLevelColor) + Name + meta line + WhatsApp + Edit
+ *   Tabs: Übersicht | Skills | Einsätze | Zertifikate | Saldo
+ *   Tab panels:
+ *     overview     — Field list + BrevetsView (cert-first)
+ *     skills       — Pill grid
+ *     assignments  — list of past/upcoming assignments (clickable)
+ *     certs        — issued-cert stats from v_instructor_certifications_by_level
+ *     saldo        — total + correction button + movements list
+ */
+
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
-import clsx from 'clsx'
-import { format } from 'date-fns'
-import { de, enGB } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
-import { Avatar, padiLevelColor } from '@/foundation'
-import { Chip } from '@/components/Chip'
-import { Icon } from '@/components/Icon'
+import {
+  Avatar,
+  Tabs,
+  Pill,
+  EmptyState,
+  Icon,
+  BrevetsView,
+  padiLevelColor,
+  chf,
+  dateMedium,
+} from '@/foundation'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { supabase } from '@/lib/supabase'
-import { chf } from '@/lib/format'
 import { waDirectUrl, tplDirect } from '@/lib/whatsapp'
 import type { OutletCtx } from '@/layout/AppShell'
 import { InstructorEditSheet } from './InstructorEditSheet'
 import { CorrectionSheet } from './CorrectionSheet'
-import { BrevetsView } from '@/foundation'
 import { fetchCertifications } from '@/lib/queries'
 import type { Certification } from '@/types/foundation'
 
-type Tab = 'overview' | 'skills' | 'assignments' | 'saldo' | 'certs'
+type Tab = 'overview' | 'skills' | 'assignments' | 'certs' | 'saldo'
 
 interface CertStat {
   level_code: string
   level_label: string
   count: number
   most_recent: string | null
+}
+
+interface Skill { code: string; label: string; category: string | null }
+
+interface AssignmentRow {
+  id: string
+  role: string
+  courses: { id: string; title: string; start_date: string; status: string } | null
+}
+
+interface Movement {
+  id: string
+  date: string
+  amount_chf: number | string
+  kind: string
+  description: string | null
+  ref_assignment_id: string | null
+  course_assignments?: { courses?: { status: string } | null } | null
 }
 
 interface Instructor {
@@ -41,28 +76,23 @@ interface Instructor {
 }
 
 export function InstructorDetailPanel({ instructorId }: { instructorId: string }) {
-  const { t, i18n } = useTranslation()
-  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
-  const TABS: { value: Tab; label: string }[] = [
-    { value: 'overview',    label: t('instructor_detail.tab_overview') },
-    { value: 'skills',      label: t('instructor_detail.tab_skills') },
-    { value: 'assignments', label: t('instructor_detail.tab_assignments') },
-    { value: 'certs',       label: t('instructor_detail.tab_certs') },
-    { value: 'saldo',       label: t('instructor_detail.tab_saldo') },
-  ]
+  const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [inst, setInst] = useState<Instructor | null>(null)
   const [tab, setTab] = useState<Tab>('overview')
-  const [skills, setSkills] = useState<any[]>([])
-  const [assignments, setAssignments] = useState<any[]>([])
-  const [movements, setMovements] = useState<any[]>([])
+  const [skills, setSkills] = useState<Skill[]>([])
+  const [assignments, setAssignments] = useState<AssignmentRow[]>([])
+  const [movements, setMovements] = useState<Movement[]>([])
   const [certStats, setCertStats] = useState<CertStat[]>([])
   const [brevets, setBrevets] = useState<Certification[]>([])
   const [editOpen, setEditOpen] = useState(false)
   const [correctionOpen, setCorrectionOpen] = useState(false)
   const [editMovementId, setEditMovementId] = useState<string | null>(null)
   const [refreshTick, setRefreshTick] = useState(0)
+
+  const isStaff =
+    user.role === 'dispatcher' || user.role === 'cd' || user.role === 'owner'
 
   useEffect(() => {
     supabase
@@ -76,17 +106,23 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
       .from('instructor_skills')
       .select('skills(code, label, category)')
       .eq('instructor_id', instructorId)
-      .then(({ data }) => setSkills((data ?? []).map((d: any) => d.skills).filter(Boolean)))
+      .then(({ data }) =>
+        setSkills(
+          ((data ?? []) as unknown as Array<{ skills: Skill | Skill[] | null }>)
+            .flatMap((d) => (Array.isArray(d.skills) ? d.skills : d.skills ? [d.skills] : []))
+            .filter((s): s is Skill => !!s),
+        ),
+      )
 
     supabase
       .from('course_assignments')
       .select('id, role, courses(id, title, start_date, status)')
       .eq('instructor_id', instructorId)
       .then(({ data }) => {
-        const sorted = (data ?? []).sort((a: any, b: any) =>
+        const list = ((data ?? []) as unknown as AssignmentRow[]).slice().sort((a, b) =>
           (b.courses?.start_date ?? '').localeCompare(a.courses?.start_date ?? ''),
         )
-        setAssignments(sorted)
+        setAssignments(list)
       })
 
     supabase
@@ -100,16 +136,13 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
       .eq('instructor_id', instructorId)
       .order('date', { ascending: false })
       .then(({ data }) => {
-        // Vergütungen nur anzeigen, wenn Kurs auf 'completed'.
-        // Übertrag/Korrektur (ohne ref_assignment_id) immer.
-        const visible = (data ?? []).filter((m: any) => {
+        const visible = ((data ?? []) as unknown as Movement[]).filter((m) => {
           if (!m.ref_assignment_id) return true
           return m.course_assignments?.courses?.status === 'completed'
         })
         setMovements(visible)
       })
 
-    // Zertifikat-Statistik (aus v_instructor_certifications_by_level View)
     supabase
       .from('v_instructor_certifications_by_level')
       .select('level_code, level_label, count, most_recent')
@@ -117,49 +150,249 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
       .order('count', { ascending: false })
       .then(({ data }) => setCertStats((data ?? []) as CertStat[]))
 
-    // Cert-first: load brevets from `certifications` table for BrevetsView.
     fetchCertifications(instructorId).then(setBrevets)
   }, [instructorId, refreshTick])
 
-  if (!inst) return <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
+  const balance = useMemo(
+    () => movements.reduce((sum, m) => sum + Number(m.amount_chf), 0),
+    [movements],
+  )
 
-  const balance = movements.reduce((sum, m) => sum + Number(m.amount_chf), 0)
+  if (!inst) {
+    return (
+      <div className="atoll-cockpit__loading">{t('common.loading')}</div>
+    )
+  }
+
+  const tabs = [
+    { id: 'overview' as const, label: t('instructor_detail.tab_overview') },
+    { id: 'skills' as const, label: t('instructor_detail.tab_skills'), count: skills.length },
+    { id: 'assignments' as const, label: t('instructor_detail.tab_assignments'), count: assignments.length },
+    { id: 'certs' as const, label: t('instructor_detail.tab_certs') },
+    { id: 'saldo' as const, label: t('instructor_detail.tab_saldo') },
+  ]
+
+  const totalCerts = certStats.reduce((s, c) => s + c.count, 0)
 
   return (
-    <div className="screen-fade" style={{ padding: '20px 24px 40px' }}>
-      <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
+    <div className="atoll-detail">
+      {/* Header */}
+      <header className="atoll-detail__head">
         <Avatar
           id={instructorId}
           name={inst.name}
           size="lg"
           color={padiLevelColor(inst.padi_level)}
         />
-        <div style={{ flex: 1 }}>
-          <div className="title-1">{inst.name}</div>
-          <div className="caption">
-            {[inst.padi_level, inst.padi_nr ? `PADI ${inst.padi_nr}` : null, inst.email]
-              .filter(Boolean)
-              .join(' · ') || '—'}
+        <div className="atoll-detail__head-main">
+          <div className="atoll-detail__name">{inst.name}</div>
+          <div className="atoll-detail__head-meta">
+            <Pill tone="pro" size="sm">{inst.padi_level}</Pill>
+            {inst.padi_nr && (
+              <span className="atoll-myprofile__padi-nr">PADI {inst.padi_nr}</span>
+            )}
+            {inst.email && <span className="atoll-detail__contact">{inst.email}</span>}
           </div>
         </div>
-        {(user.role === 'dispatcher' || user.role === 'cd') && inst.phone && (
+        {isStaff && inst.phone && (
           <WhatsAppButton
             url={waDirectUrl(inst.phone, tplDirect({ to_name: inst.name.split(' ')[0], message: '' }))}
             label={t('instructor_detail.message')}
           />
         )}
-        {(user.role === 'dispatcher' || user.role === 'cd') && (
-          <button className="btn-secondary btn" onClick={() => setEditOpen(true)}>
-            <Icon name="settings" size={14} /> {t('common.edit')}
+        {isStaff && (
+          <button type="button" className="atoll-btn" onClick={() => setEditOpen(true)}>
+            <Icon.Settings size={14} /> {t('common.edit')}
           </button>
         )}
-      </div>
+      </header>
+
+      <Tabs<Tab>
+        tabs={tabs}
+        active={tab}
+        onChange={setTab}
+        ariaLabel={inst.name}
+        panels={{
+          overview: (
+            <div className="atoll-detail__overview">
+              <div className="atoll-detail__fields">
+                <Field label={t('instructor_edit.label_padi_level')} value={inst.padi_level} />
+                <Field label={t('instructor_edit.label_padi_nr', 'PADI-Nummer')} value={inst.padi_nr || '—'} />
+                <Field label={t('student_edit.label_email')} value={inst.email || '—'} />
+                <Field label={t('instructor_detail.opening_2026')} value={chf(inst.opening_balance_chf)} />
+                <Field label={t('instructor_detail.excel_saldo')} value={chf(inst.excel_saldo_chf)} />
+                <Field label={t('instructor_detail.current_app_balance')} value={chf(balance)} />
+                <Field label={t('instructor_detail.skill_count')} value={String(skills.length)} />
+                <Field
+                  label={t('instructor_detail.assignments_year', { year: new Date().getFullYear() })}
+                  value={String(assignments.length)}
+                />
+              </div>
+
+              {brevets.length > 0 && <BrevetsView certifications={brevets} />}
+            </div>
+          ),
+          skills: skills.length === 0 ? (
+            <EmptyState
+              icon={<Icon.Brevet size={20} />}
+              title={t('instructor_detail.no_skills')}
+            />
+          ) : (
+            <div className="atoll-myprofile__skills">
+              {skills.map((s) => (
+                <Pill key={s.code} tone="brand" size="sm">{s.label}</Pill>
+              ))}
+            </div>
+          ),
+          assignments: assignments.length === 0 ? (
+            <EmptyState
+              icon={<Icon.Calendar size={20} />}
+              title={t('instructor_detail.no_assignments')}
+            />
+          ) : (
+            <div className="atoll-detail__list">
+              {assignments.map((a) => {
+                const c = a.courses
+                if (!c) return null
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    className="atoll-detail__row"
+                    onClick={() => navigate(`/kurse/${c.id}`)}
+                  >
+                    <div className="atoll-detail__row-main">
+                      <div className="atoll-detail__row-title">{c.title}</div>
+                      <div className="atoll-detail__row-meta tabular-nums">
+                        {dateMedium(c.start_date)}
+                      </div>
+                    </div>
+                    <div className="atoll-detail__row-pills">
+                      <Pill tone="brand" size="sm">{a.role}</Pill>
+                      <Pill
+                        tone={
+                          c.status === 'confirmed' ? 'success' :
+                          c.status === 'tentative' ? 'warning' :
+                          c.status === 'completed' ? 'pro' : 'danger'
+                        }
+                        size="sm"
+                      >
+                        {c.status}
+                      </Pill>
+                    </div>
+                    <Icon.ChevronRight size={16} className="atoll-orgs__chevron" aria-hidden />
+                  </button>
+                )
+              })}
+            </div>
+          ),
+          certs: (
+            <div>
+              <div className="atoll-detail__certs-head">
+                <div className="atoll-cockpit__card-title">{t('instructor_detail.certs_title')}</div>
+                <div className="atoll-cockpit__card-sub" style={{ margin: 0 }}>
+                  {t('student_detail.total_count', { count: totalCerts })}
+                </div>
+              </div>
+              {certStats.length === 0 ? (
+                <EmptyState
+                  icon={<Icon.Brevet size={20} />}
+                  title={t('instructor_detail.certs_empty_hint')}
+                />
+              ) : (
+                <div className="atoll-detail__list">
+                  {certStats.map((c) => (
+                    <div key={c.level_code} className="atoll-detail__cert-row">
+                      <Pill tone="brand" size="sm">{c.level_code}</Pill>
+                      <div className="atoll-detail__row-main">
+                        <div className="atoll-detail__row-title">{c.level_label}</div>
+                        {c.most_recent && (
+                          <div className="atoll-detail__row-meta tabular-nums">
+                            {t('instructor_detail.last_cert', {
+                              date: dateMedium(c.most_recent),
+                            })}
+                          </div>
+                        )}
+                      </div>
+                      <span className="atoll-detail__cert-count tabular-nums">{c.count}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ),
+          saldo: (
+            <div className="atoll-detail__saldo">
+              <div className="atoll-detail__saldo-head">
+                <div
+                  className={`atoll-detail__saldo-total tabular-nums${balance < 0 ? ' atoll-detail__saldo-total--neg' : ''}`}
+                >
+                  {chf(balance)}
+                </div>
+                {isStaff && (
+                  <button
+                    type="button"
+                    className="atoll-btn"
+                    onClick={() => setCorrectionOpen(true)}
+                  >
+                    <Icon.Plus size={14} /> {t('instructor_detail.book_correction')}
+                  </button>
+                )}
+              </div>
+              <div className="atoll-cockpit__card-sub" style={{ margin: 0 }}>
+                {t('instructor_detail.balance_summary', { count: movements.length })}
+              </div>
+              <div className="atoll-detail__list">
+                {movements.map((m) => {
+                  const editable = isStaff && (m.kind === 'korrektur' || m.kind === 'übertrag')
+                  const negative = Number(m.amount_chf) < 0
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      className="atoll-detail__row"
+                      onClick={() => {
+                        if (!editable) return
+                        setEditMovementId(m.id)
+                        setCorrectionOpen(true)
+                      }}
+                      disabled={!editable}
+                      title={
+                        editable
+                          ? t('common.click_to_edit')
+                          : m.kind === 'vergütung'
+                          ? t('instructor_detail.movement_readonly_tooltip')
+                          : ''
+                      }
+                    >
+                      <div className="atoll-detail__row-main">
+                        <div className="atoll-detail__row-title">
+                          {m.description || m.kind}
+                        </div>
+                        <div className="atoll-detail__row-meta tabular-nums">
+                          {dateMedium(m.date)} · {m.kind}
+                        </div>
+                      </div>
+                      <span
+                        className={`atoll-detail__row-amount tabular-nums${negative ? ' atoll-detail__row-amount--neg' : ''}`}
+                      >
+                        {chf(Number(m.amount_chf))}
+                      </span>
+                      {editable && <Icon.Settings size={14} aria-hidden />}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ),
+        }}
+      />
 
       <InstructorEditSheet
         instructorId={instructorId}
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        onSaved={() => setRefreshTick((t) => t + 1)}
+        onSaved={() => setRefreshTick((tick) => tick + 1)}
         currentUserAuthId={user.authUserId}
       />
 
@@ -169,213 +402,19 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
           setCorrectionOpen(false)
           setEditMovementId(null)
         }}
-        onSaved={() => setRefreshTick((t) => t + 1)}
+        onSaved={() => setRefreshTick((tick) => tick + 1)}
         defaultInstructorId={instructorId}
         movementId={editMovementId}
       />
-
-      <div className="seg" style={{ marginBottom: 20 }}>
-        {TABS.map((tabDef) => (
-          <button
-            key={tabDef.value}
-            className={clsx(tab === tabDef.value && 'active')}
-            onClick={() => setTab(tabDef.value)}
-          >
-            {tabDef.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'overview' && (
-        <div style={{ display: 'grid', gap: 24 }}>
-          <div style={{ display: 'grid', gap: 12 }}>
-            <Field label={t('instructor_edit.label_padi_level')} value={inst.padi_level} />
-            <Field label={t('instructor_edit.label_padi_nr', 'PADI-Nummer')} value={inst.padi_nr || '—'} />
-            <Field label={t('student_edit.label_email')} value={inst.email || '—'} />
-            <Field label={t('instructor_detail.opening_2026')} value={chf(inst.opening_balance_chf)} />
-            <Field label={t('instructor_detail.excel_saldo')} value={chf(inst.excel_saldo_chf)} />
-            <Field label={t('instructor_detail.current_app_balance')} value={chf(balance)} />
-            <Field label={t('instructor_detail.skill_count')} value={String(skills.length)} />
-            <Field label={t('instructor_detail.assignments_year', { year: 2026 })} value={String(assignments.length)} />
-          </div>
-
-          {/* Cert-first brevet display (Foundation) */}
-          {brevets.length > 0 && <BrevetsView certifications={brevets} />}
-        </div>
-      )}
-
-      {tab === 'skills' && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {skills.length === 0 ? (
-            <div className="caption">{t('instructor_detail.no_skills')}</div>
-          ) : (
-            skills.map((s) => <Chip key={s.code} tone="accent">{s.label}</Chip>)
-          )}
-        </div>
-      )}
-
-      {tab === 'assignments' && (
-        <div style={{ display: 'grid', gap: 8 }}>
-          {assignments.length === 0 ? (
-            <div className="caption">{t('instructor_detail.no_assignments')}</div>
-          ) : (
-            assignments.map((a) => {
-              const courseId = a.courses?.id
-              const clickable = !!courseId
-              return (
-                <div
-                  key={a.id}
-                  className="glass-thin"
-                  role={clickable ? 'button' : undefined}
-                  tabIndex={clickable ? 0 : undefined}
-                  onClick={() => clickable && navigate(`/kurse/${courseId}`)}
-                  onKeyDown={(e) => {
-                    if (clickable && (e.key === 'Enter' || e.key === ' ')) {
-                      e.preventDefault()
-                      navigate(`/kurse/${courseId}`)
-                    }
-                  }}
-                  style={{
-                    padding: 12,
-                    borderRadius: 12,
-                    cursor: clickable ? 'pointer' : 'default',
-                    transition: 'transform 0.08s ease',
-                  }}
-                  onMouseEnter={(e) => clickable && (e.currentTarget.style.transform = 'translateY(-1px)')}
-                  onMouseLeave={(e) => clickable && (e.currentTarget.style.transform = 'translateY(0)')}
-                  title={clickable ? t('instructor_detail.open_course') : undefined}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 500 }}>{a.courses?.title ?? '—'}</span>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <Chip tone="accent">{a.role}</Chip>
-                      {clickable && (
-                        <Icon name="chevron-right" size={14} className="caption" />
-                      )}
-                    </div>
-                  </div>
-                  <div className="caption" style={{ marginTop: 4, display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {a.courses?.start_date && format(new Date(a.courses.start_date), 'd. MMM yyyy', { locale: dfLocale })}
-                    <Chip tone={a.courses?.status === 'confirmed' ? 'green' : a.courses?.status === 'tentative' ? 'orange' : 'red'}>
-                      {a.courses?.status}
-                    </Chip>
-                  </div>
-                </div>
-              )
-            })
-          )}
-        </div>
-      )}
-
-      {tab === 'certs' && (
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div className="title-2">{t('instructor_detail.certs_title')}</div>
-            <div className="caption">
-              {t('student_detail.total_count', { count: certStats.reduce((s, c) => s + c.count, 0) })}
-            </div>
-          </div>
-          {certStats.length === 0 ? (
-            <div className="caption">
-              {t('instructor_detail.certs_empty_hint')}
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gap: 8 }}>
-              {certStats.map((c) => (
-                <div
-                  key={c.level_code}
-                  className="glass-thin"
-                  style={{ padding: 12, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}
-                >
-                  <Chip tone="accent">{c.level_code}</Chip>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 500 }}>{c.level_label}</div>
-                    {c.most_recent && (
-                      <div className="caption-2">
-                        {t('instructor_detail.last_cert', { date: format(new Date(c.most_recent), 'd. MMM yyyy', { locale: dfLocale }) })}
-                      </div>
-                    )}
-                  </div>
-                  <div className="title-2 mono" style={{ fontWeight: 700 }}>{c.count}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {tab === 'saldo' && (
-        <>
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div
-              className="title-1 mono"
-              style={{ color: balance < 0 ? '#FF3B30' : 'var(--ink)' }}
-            >
-              {chf(balance)}
-            </div>
-            {(user.role === 'dispatcher' || user.role === 'cd') && (
-              <button className="btn-secondary btn" onClick={() => setCorrectionOpen(true)}>
-                <Icon name="plus" size={14} /> {t('instructor_detail.book_correction')}
-              </button>
-            )}
-          </div>
-          <div className="caption" style={{ marginBottom: 12 }}>
-            {t('instructor_detail.balance_summary', { count: movements.length })}
-          </div>
-          <div style={{ display: 'grid', gap: 6 }}>
-            {movements.map((m) => {
-              const editable = (user.role === 'dispatcher' || user.role === 'cd') && (m.kind === 'korrektur' || m.kind === 'übertrag')
-              return (
-                <div
-                  key={m.id}
-                  className="glass-thin"
-                  style={{
-                    padding: 10,
-                    borderRadius: 10,
-                    display: 'flex',
-                    gap: 12,
-                    alignItems: 'center',
-                    cursor: editable ? 'pointer' : 'default',
-                  }}
-                  onClick={() => {
-                    if (!editable) return
-                    setEditMovementId(m.id)
-                    setCorrectionOpen(true)
-                  }}
-                  title={editable ? t('common.click_to_edit') : m.kind === 'vergütung' ? t('instructor_detail.movement_readonly_tooltip') : ''}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {m.description || m.kind}
-                    </div>
-                    <div className="caption-2">
-                      {format(new Date(m.date), 'd. MMM yyyy', { locale: dfLocale })} · {m.kind}
-                    </div>
-                  </div>
-                  <div
-                    className="mono"
-                    style={{ fontWeight: 600, color: Number(m.amount_chf) < 0 ? '#FF3B30' : 'inherit' }}
-                  >
-                    {chf(m.amount_chf)}
-                  </div>
-                  {editable && (
-                    <Icon name="settings" size={14} />
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </>
-      )}
     </div>
   )
 }
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <div className="caption-2">{label.toUpperCase()}</div>
-      <div style={{ fontSize: 14 }}>{value}</div>
+    <div className="atoll-detail__field">
+      <div className="atoll-detail__field-label small-caps">{label}</div>
+      <div className="atoll-detail__field-value">{value}</div>
     </div>
   )
 }

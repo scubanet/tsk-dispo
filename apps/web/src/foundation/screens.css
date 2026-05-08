@@ -1575,3 +1575,186 @@
   color: var(--text-tertiary);
   margin-top: 2px;
 }
+
+/* ──────────────────────── Detail Panels (shared) ──────────────────────── */
+
+.atoll-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.atoll-detail__head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-tertiary);
+}
+
+.atoll-detail__head-main {
+  flex: 1;
+  min-width: 200px;
+}
+
+.atoll-detail__name {
+  font-size: var(--text-h2);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.atoll-detail__head-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-detail__contact {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+/* Overview tab */
+.atoll-detail__overview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding-top: var(--space-4);
+}
+
+.atoll-detail__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+.atoll-detail__field-label {
+  margin-bottom: 2px;
+}
+
+.atoll-detail__field-value {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+/* Lists & rows */
+.atoll-detail__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: var(--space-3);
+}
+
+.atoll-detail__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+.atoll-detail__row:hover:not(:disabled) {
+  border-color: var(--border-secondary);
+}
+.atoll-detail__row:disabled {
+  cursor: default;
+}
+
+.atoll-detail__row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.atoll-detail__row-title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-detail__row-meta {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.atoll-detail__row-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.atoll-detail__row-amount {
+  font-weight: var(--weight-medium);
+  font-feature-settings: "tnum" 1;
+}
+.atoll-detail__row-amount--neg {
+  color: var(--brand-red);
+}
+
+/* Certs tab */
+.atoll-detail__certs-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+}
+
+.atoll-detail__cert-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.atoll-detail__cert-count {
+  font-family: var(--font-sans);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  font-feature-settings: "tnum" 1;
+}
+
+/* Saldo tab */
+.atoll-detail__saldo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: var(--space-3);
+}
+
+.atoll-detail__saldo-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.atoll-detail__saldo-total {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  font-feature-settings: "tnum" 1;
+}
+.atoll-detail__saldo-total--neg {
+  color: var(--brand-red);
+}
