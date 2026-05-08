@@ -741,3 +741,108 @@
 .atoll-skillmatrix__cell--has:hover {
   background: var(--brand-teal-100);
 }
+
+/* ──────────────────────── Settings ──────────────────────── */
+
+.atoll-settings__banner-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.atoll-settings__banner-row > span {
+  flex: 1;
+  min-width: 200px;
+}
+
+.atoll-settings__lang-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.atoll-settings__lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.atoll-settings__lang:hover { border-color: var(--border-secondary); }
+.atoll-settings__lang--active {
+  background: var(--brand-blue-50);
+  border-color: var(--brand-blue-100);
+  color: var(--brand-blue-800);
+  font-weight: var(--weight-medium);
+}
+.atoll-settings__lang-flag { font-size: 16px; }
+
+.atoll-settings__numcell {
+  display: inline-block;
+  padding: 2px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  color: inherit;
+  cursor: pointer;
+  font-feature-settings: "tnum" 1;
+}
+.atoll-settings__numcell:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-tertiary);
+}
+
+.atoll-settings__numinput {
+  width: 80px;
+  padding: 2px 6px;
+  text-align: right;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--brand-blue);
+  background: var(--bg-card);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  font-feature-settings: "tnum" 1;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--brand-blue-50);
+}
+
+.atoll-settings__table-scroll {
+  overflow-x: auto;
+}
+
+.atoll-settings__pay-table {
+  min-width: 560px;
+}
+
+.atoll-settings__col-divider {
+  border-left: 1px solid var(--border-tertiary);
+}
+
+.atoll-settings__total {
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.atoll-settings__users-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+}
+.atoll-settings__users-scroll::-webkit-scrollbar { width: 8px; }
+.atoll-settings__users-scroll::-webkit-scrollbar-track { background: transparent; }
+.atoll-settings__users-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+}
