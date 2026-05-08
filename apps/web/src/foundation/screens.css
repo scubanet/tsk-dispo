@@ -439,3 +439,52 @@
 .atoll-cockpit__dot--info { background: var(--brand-blue); }
 .atoll-cockpit__dot--warning { background: var(--brand-amber); }
 .atoll-cockpit__dot--danger { background: var(--brand-red); }
+
+/* ──────────────────────── Saldi ──────────────────────── */
+
+.atoll-saldi__toolbar {
+  margin-bottom: var(--space-3);
+}
+
+.atoll-saldi__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+}
+
+.atoll-saldi__table thead th {
+  padding: 6px 4px;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-tertiary);
+  text-align: left;
+}
+.atoll-saldi__table thead th[align="right"] { text-align: right; }
+
+.atoll-saldi__table td {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border-tertiary);
+}
+
+.atoll-saldi__row {
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.atoll-saldi__row:hover {
+  background: var(--bg-sand);
+}
+.atoll-saldi__row:last-child td { border-bottom: none; }
+
+.atoll-saldi__excel {
+  color: var(--text-tertiary);
+}
+
+.atoll-saldi__diff {
+  color: var(--text-tertiary);
+}
+.atoll-saldi__diff--off {
+  color: var(--brand-red);
+  font-weight: var(--weight-medium);
+}

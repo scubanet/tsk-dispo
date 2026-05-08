@@ -1,11 +1,33 @@
+/**
+ * SaldiScreen — Foundation-based rewrite.
+ *
+ * Layout:
+ *   PageHeader (search action)
+ *   ┌─ KpiGrid (3) ───────────────────────────────────────────┐
+ *   │  Hero: Total App-Saldo                                  │
+ *   │  Stat: # Instructors                                     │
+ *   │  Alert: # mit |Δ| > 50 CHF (warning oder ok)             │
+ *   └─────────────────────────────────────────────────────────┘
+ *   ┌─ Card: Saldi-Tabelle ───────────────────────────────────┐
+ *   │   FilterTabBar (sort: Name / App / |Δ|)                 │
+ *   │   table — Name | App-Saldo | Excel | Δ                  │
+ *   └─────────────────────────────────────────────────────────┘
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
-import { Topbar } from '@/components/Topbar'
-import { Icon } from '@/components/Icon'
+import {
+  PageHeader,
+  KpiGrid,
+  KpiCard,
+  FilterTabBar,
+  SearchInput,
+  EmptyState,
+  Icon,
+  chf,
+} from '@/foundation'
 import { supabase } from '@/lib/supabase'
-import { chf } from '@/lib/format'
 
 interface Row {
   instructor_id: string
@@ -30,7 +52,13 @@ export function SaldiScreen() {
       .select('*')
       .then(({ data }) => {
         setRows(
-          ((data ?? []) as any[]).map((d) => ({
+          ((data ?? []) as Array<{
+            instructor_id: string
+            name: string
+            app_balance: number | string | null
+            excel_saldo: number | string | null
+            diff: number | string | null
+          }>).map((d) => ({
             instructor_id: d.instructor_id,
             name: d.name,
             app_balance: Number(d.app_balance ?? 0),
@@ -56,89 +84,115 @@ export function SaldiScreen() {
     return arr
   }, [rows, search, sortBy])
 
-  const within50 = rows.filter((r) => Math.abs(r.diff) <= 50).length
   const total = rows.length || 1
+  const within50 = rows.filter((r) => Math.abs(r.diff) <= 50).length
   const ratio = ((within50 / total) * 100).toFixed(0)
   const totalAppBalance = rows.reduce((s, r) => s + r.app_balance, 0)
+  const offCount = rows.length - within50
+  const allWithin50 = offCount === 0
+
+  const sortTabs = [
+    { id: 'name' as const, label: t('balances.col_name') },
+    { id: 'app_balance' as const, label: t('balances.sort_app_balance') },
+    { id: 'diff' as const, label: t('balances.sort_diff') },
+  ]
 
   return (
-    <>
-      <Topbar
+    <div className="atoll-screen">
+      <PageHeader
         title={t('nav.balances')}
         subtitle={t('balances.topbar_subtitle', { count: rows.length, sum: chf(totalAppBalance) })}
-      >
-        <div className="search" style={{ width: 220 }}>
-          <Icon name="search" size={14} />
-          <input
-            placeholder={t('common.search') + '…'}
+        actions={
+          <SearchInput
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={setSearch}
+            ariaLabel={t('common.search')}
+            placeholder={t('common.search') + '…'}
           />
-        </div>
-      </Topbar>
+        }
+      />
 
-      <div className="screen-fade scroll" style={{ flex: 1, padding: '20px 24px 40px' }}>
-        <div className="glass card" style={{ marginBottom: 16 }}>
-          <div className="title-3" style={{ marginBottom: 8 }}>{t('balances.compare_title')}</div>
-          <div className="caption">
-            {t('balances.compare_summary', { within: within50, total, ratio })}
+      <div className="atoll-screen__body">
+        <KpiGrid columns={3} gap="md">
+          <KpiCard
+            variant="hero"
+            label={t('nav.balances')}
+            value={chf(totalAppBalance)}
+            sub={t('balances.topbar_subtitle', { count: rows.length, sum: '' })
+              .replace(/·\s*$/, '')
+              .trim()}
+          />
+          <KpiCard
+            variant="stat"
+            label={t('balances.compare_title')}
+            value={
+              <>
+                {within50}
+                <span className="atoll-kpi__total"> / {rows.length}</span>
+              </>
+            }
+            sub={`${ratio}%`}
+          />
+          <KpiCard
+            variant={allWithin50 ? 'stat' : 'alert'}
+            alertTone={offCount > 0 ? 'warning' : undefined}
+            label={t('balances.sort_diff')}
+            value={offCount}
+            sub={allWithin50 ? t('balances.compare_summary', { within: within50, total, ratio }) : undefined}
+          />
+        </KpiGrid>
+
+        <section className="atoll-cockpit__card">
+          <div className="atoll-saldi__toolbar">
+            <FilterTabBar<SortKey>
+              tabs={sortTabs}
+              active={sortBy}
+              onChange={setSortBy}
+              ariaLabel={t('balances.compare_title')}
+            />
           </div>
-        </div>
 
-        <div className="glass card">
-          <div className="seg" style={{ marginBottom: 12 }}>
-            <button className={clsx(sortBy === 'name' && 'active')} onClick={() => setSortBy('name')}>
-              {t('balances.col_name')}
-            </button>
-            <button className={clsx(sortBy === 'app_balance' && 'active')} onClick={() => setSortBy('app_balance')}>
-              {t('balances.sort_app_balance')}
-            </button>
-            <button className={clsx(sortBy === 'diff' && 'active')} onClick={() => setSortBy('diff')}>
-              {t('balances.sort_diff')}
-            </button>
-          </div>
-
-          <table style={{ width: '100%', fontSize: 13 }}>
-            <thead>
-              <tr style={{ borderBottom: '0.5px solid var(--hairline)' }}>
-                <th align="left" style={{ padding: '6px 4px' }}>{t('balances.col_name')}</th>
-                <th align="right" style={{ padding: '6px 4px' }}>{t('balances.col_app')}</th>
-                <th align="right" style={{ padding: '6px 4px' }}>{t('balances.col_excel')}</th>
-                <th align="right" style={{ padding: '6px 4px' }}>Δ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((r) => (
-                <tr
-                  key={r.instructor_id}
-                  onClick={() => navigate(`/tldm/${r.instructor_id}`)}
-                  style={{ cursor: 'pointer' }}
-                  className="list-row"
-                >
-                  <td style={{ padding: '8px 4px' }}>{r.name}</td>
-                  <td align="right" className="mono" style={{ padding: '8px 4px' }}>
-                    {chf(r.app_balance)}
-                  </td>
-                  <td align="right" className="mono" style={{ padding: '8px 4px' }}>
-                    {chf(r.excel_saldo)}
-                  </td>
-                  <td
-                    align="right"
-                    className="mono"
-                    style={{
-                      padding: '8px 4px',
-                      color: Math.abs(r.diff) > 50 ? '#FF3B30' : 'var(--ink-3)',
-                      fontWeight: Math.abs(r.diff) > 50 ? 600 : 400,
-                    }}
-                  >
-                    {chf(r.diff)}
-                  </td>
+          {filtered.length === 0 ? (
+            <EmptyState
+              icon={<Icon.Info size={20} />}
+              title={t('courses.no_matches')}
+            />
+          ) : (
+            <table className="atoll-saldi__table">
+              <thead>
+                <tr>
+                  <th align="left">{t('balances.col_name')}</th>
+                  <th align="right">{t('balances.col_app')}</th>
+                  <th align="right">{t('balances.col_excel')}</th>
+                  <th align="right">Δ</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.map((r) => {
+                  const off = Math.abs(r.diff) > 50
+                  return (
+                    <tr
+                      key={r.instructor_id}
+                      onClick={() => navigate(`/tldm/${r.instructor_id}`)}
+                      className="atoll-saldi__row"
+                    >
+                      <td>{r.name}</td>
+                      <td align="right" className="tabular-nums">{chf(r.app_balance)}</td>
+                      <td align="right" className="tabular-nums atoll-saldi__excel">{chf(r.excel_saldo)}</td>
+                      <td
+                        align="right"
+                        className={`tabular-nums${off ? ' atoll-saldi__diff--off' : ' atoll-saldi__diff'}`}
+                      >
+                        {chf(r.diff)}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
+        </section>
       </div>
-    </>
+    </div>
   )
 }
