@@ -51,12 +51,19 @@ export function courseTypeColor(course: CourseType): string {
   switch (course) {
     case 'OWD':
     case 'OWD_DRY':
+    case 'ADVENTURE_DIVER':
     case 'AOWD':
+    case 'AOWD_DRY':
       return 'var(--brand-blue)'
     case 'RESCUE':
+    case 'MASTER_SCUBA_DIVER':
       return 'var(--brand-teal)'
     case 'DSD':
     case 'TSCHIGGI':
+    case 'SEAL_TEAM':
+    case 'SNORKELING':
+    case 'ADV_SNORKELING':
+    case 'REACTIVATE':
       return 'var(--brand-amber)'
     case 'DM':
       return 'var(--brand-purple)'
@@ -65,6 +72,7 @@ export function courseTypeColor(course: CourseType): string {
       return 'var(--brand-pink)'
     case 'EFR':
     case 'EFR_REFRESHER':
+    case 'EFR_IT':
       return 'var(--brand-red)'
     default:
       return 'var(--brand-gray-60)'

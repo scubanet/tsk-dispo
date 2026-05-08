@@ -16,7 +16,9 @@ export type DiverBrevetCode =
   | 'SCUBA_DIVER'
   | 'OWD'
   | 'OWD_DRY'              // OWD bundle with Dry Suit specialty
+  | 'ADVENTURE_DIVER'      // Intermediate (3 adventure dives) — pre-AOWD
   | 'AOWD'
+  | 'AOWD_DRY'             // AOWD bundle with Dry Suit specialty (TSK-specific)
   | 'RESCUE_DIVER'
   | 'MASTER_SCUBA_DIVER'
 
@@ -60,9 +62,23 @@ export type SpecialtyTeacherCode =
   | 'SPEC_TEACHER_SELF_RELIANT'
   | 'SPEC_TEACHER_REBREATHER'
 
+  // Added per official PADI flowchart (2026):
+  | 'SPEC_TEACHER_SIDEMOUNT'
+  | 'SPEC_TEACHER_DSMB'                // Delayed Surface Marker Buoy
+  | 'SPEC_TEACHER_DPV'                 // Diver Propulsion Vehicle
+  | 'SPEC_TEACHER_FULL_FACE_MASK'
+  | 'SPEC_TEACHER_NATURALIST'          // Underwater Naturalist
+  | 'SPEC_TEACHER_FISH_ID'             // Fish Identification
+  | 'SPEC_TEACHER_PUBLIC_SAFETY'
+  | 'SPEC_TEACHER_SHARK_CONSERVATION'  // AWARE Shark Conservation
+  | 'SPEC_TEACHER_ADAPTIVE_SUPPORT'
+  | 'SPEC_TEACHER_ADAPTIVE_TECH'       // Adaptive Techniques (instructor)
+  | 'SPEC_TEACHER_CORAL_REEF'          // Coral Reef Conservation
+
 export type AdditionalCertCode =
   | 'EFRI'                 // Emergency First Response Instructor (24 mo. validity)
   | 'EFR'                  // Emergency First Response (24 mo. validity)
+  | 'EFR_IT'               // Emergency First Response Instructor Trainer
   | 'MEDICAL'              // Medical statement (12 mo. validity)
 
 export type BrevetCode =
@@ -105,6 +121,7 @@ export type DiverTier =
   | 'Schüler'              // Currently enrolled in a course
   | 'Scuba Diver'
   | 'OWD'
+  | 'Adventure Diver'      // Between OWD and AOWD per PADI
   | 'AOWD'
   | 'Rescue Diver'
   | 'Master Scuba Diver'
@@ -126,18 +143,34 @@ export type SpecialtyCode =
   | 'ALTITUDE' | 'RIVER' | 'ICE' | 'CAVERN'
   | 'SELF_RELIANT' | 'REBREATHER'
   | 'AWARE' | 'DEBRIS' | 'PPB'    // Auto-included with OWSI
+  // Added per PADI flowchart (2026):
+  | 'SIDEMOUNT' | 'DSMB' | 'DPV'
+  | 'FULL_FACE_MASK' | 'NATURALIST' | 'FISH_ID'
+  | 'PUBLIC_SAFETY' | 'SHARK_CONSERVATION'
+  | 'ADAPTIVE_SUPPORT' | 'ADAPTIVE_TECH' | 'CORAL_REEF'
 
 /**
  * SPEI is ALWAYS the workshop course type (CD only).
  * NEVER use "SPEI" as a person property — that's `SPEC_TEACHER_*` instead.
  */
 export type CourseType =
-  | 'OWD' | 'OWD_DRY' | 'AOWD' | 'RESCUE'
-  | 'DSD' | 'TSCHIGGI'
-  | { type: 'SPECIALTY'; specialty: SpecialtyCode }    // Student specialty course
+  // Diver training
+  | 'OWD' | 'OWD_DRY'
+  | 'ADVENTURE_DIVER'                                  // Intermediate (3 adv. dives)
+  | 'AOWD' | 'AOWD_DRY' | 'RESCUE' | 'MASTER_SCUBA_DIVER'
+  // Discovery / kids / refresher / snorkel programs
+  | 'DSD' | 'TSCHIGGI'                                 // Discover Scuba / Bubblemaker
+  | 'SEAL_TEAM'                                        // PADI Seal Team
+  | 'SNORKELING' | 'ADV_SNORKELING'                    // Discover / Advanced Snorkeler
+  | 'REACTIVATE'                                       // Refresher
+  // Specialty student course
+  | { type: 'SPECIALTY'; specialty: SpecialtyCode }
+  // Pro training
   | 'DM' | 'IDC' | 'IDC_STAFF'
-  | { type: 'SPEI'; specialty: SpecialtyCode }         // Teacher workshop, CD only
-  | 'EFR' | 'EFR_REFRESHER'
+  // Specialty Instructor workshop (CD only)
+  | { type: 'SPEI'; specialty: SpecialtyCode }
+  // First aid
+  | 'EFR' | 'EFR_REFRESHER' | 'EFR_IT'                 // Provider / Refresher / Instructor Trainer
 
 // ─────────────────────────────── Person ───────────────────────────────
 

@@ -64,10 +64,17 @@ export function canTeach(
   switch (course) {
     case 'OWD':
     case 'OWD_DRY':
+    case 'ADVENTURE_DIVER':
     case 'AOWD':
+    case 'AOWD_DRY':
     case 'RESCUE':
+    case 'MASTER_SCUBA_DIVER':
     case 'DSD':
     case 'TSCHIGGI':
+    case 'SEAL_TEAM':
+    case 'SNORKELING':
+    case 'ADV_SNORKELING':
+    case 'REACTIVATE':
       return requireProTier(certs, 'OWSI', course)
 
     case 'DM':
@@ -82,6 +89,14 @@ export function canTeach(
     case 'EFR':
     case 'EFR_REFRESHER':
       return canTeachEfr(certs)
+
+    case 'EFR_IT':
+      // EFR Instructor Trainer training — only EFR ITs (or higher) can train new EFRIs.
+      // Pragmatic check: requires EFRI + CD tier.
+      if (!hasActiveCode(certs, 'EFRI')) {
+        return { canTeach: false, reason: 'EFR-IT-Kurse erfordern EFRI-Zertifizierung.' }
+      }
+      return requireProTier(certs, 'CD', 'EFR Instructor Trainer')
 
     default:
       // Exhaustive check — TS will flag unhandled cases at compile time

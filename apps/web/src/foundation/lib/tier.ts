@@ -32,7 +32,9 @@ const DIVER_TIER_ORDER: Record<DiverBrevetCode, DiverTier> = {
   SCUBA_DIVER: 'Scuba Diver',
   OWD: 'OWD',
   OWD_DRY: 'OWD',                  // dry-suit bundle still counts as OWD tier
+  ADVENTURE_DIVER: 'Adventure Diver',
   AOWD: 'AOWD',
+  AOWD_DRY: 'AOWD',                // dry-suit bundle still counts as AOWD tier
   RESCUE_DIVER: 'Rescue Diver',
   MASTER_SCUBA_DIVER: 'Master Scuba Diver',
 }
@@ -42,6 +44,7 @@ const DIVER_TIER_RANK: DiverTier[] = [
   'Schüler',
   'Scuba Diver',
   'OWD',
+  'Adventure Diver',
   'AOWD',
   'Rescue Diver',
   'Master Scuba Diver',
