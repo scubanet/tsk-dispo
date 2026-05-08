@@ -3,12 +3,11 @@ import { useNavigate, useOutletContext } from 'react-router-dom'
 import { format } from 'date-fns'
 import { de, enGB } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
-import { Avatar } from '@/components/Avatar'
+import { Avatar } from '@/foundation'
 import { Chip } from '@/components/Chip'
 import { Icon } from '@/components/Icon'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { supabase } from '@/lib/supabase'
-import { initialsFromName } from '@/lib/format'
 import {
   fetchStudentCourses,
   fetchStudentCertifications,
@@ -142,7 +141,6 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
   if (!student) return <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
 
   const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
-  const initials = initialsFromName(student.name)
   const certified = courses.filter((c) => c.status === 'certified')
   const enrolled = courses.filter((c) => c.status === 'enrolled')
   const dropped = courses.filter((c) => c.status === 'dropped')
@@ -150,7 +148,16 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
   return (
     <div className="screen-fade" style={{ padding: '20px 24px 40px' }}>
       <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
-        <Avatar initials={initials} color="#34C759" size="lg" />
+        <Avatar
+          id={student.id}
+          name={student.name}
+          size="lg"
+          color={
+            student.is_candidate ? 'var(--brand-red)'
+            : student.is_student ? 'var(--brand-blue)'
+            : undefined  /* falls back to deterministic avatarColor(id) */
+          }
+        />
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <div className="title-1">{student.name}</div>
