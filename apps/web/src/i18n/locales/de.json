@@ -375,6 +375,7 @@
     "avatar_preview": "Vorschau Avatar",
     "label_initials": "Initialen (1–4)",
     "label_padi_level": "PADI-Level",
+    "label_padi_nr": "PADI-Nummer",
     "label_avatar_color": "Avatar-Farbe",
     "label_phone": "Telefon / WhatsApp (optional)",
     "phone_hint": "Internationales Format. Aktiviert den \"WhatsApp-Direkt\"-Button im TL/DM-Detail.",

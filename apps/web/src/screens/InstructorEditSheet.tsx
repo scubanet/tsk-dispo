@@ -28,6 +28,7 @@ interface Form {
   first_name: string
   last_name: string
   padi_level: string
+  padi_nr: string
   email: string
   phone: string
   color: string
@@ -55,6 +56,7 @@ const EMPTY_FORM: Form = {
   first_name: '',
   last_name: '',
   padi_level: 'OWSI',
+  padi_nr: '',
   email: '',
   phone: '',
   color: '#0A84FF',
@@ -95,7 +97,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
 
     supabase
       .from('instructors')
-      .select('first_name, last_name, name, padi_level, email, phone, color, initials, active, role, auth_user_id')
+      .select('first_name, last_name, name, padi_level, padi_nr, email, phone, color, initials, active, role, auth_user_id')
       .eq('id', instructorId)
       .single()
       .then(({ data }) => {
@@ -107,6 +109,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
           first_name: first,
           last_name: last,
           padi_level: data.padi_level ?? 'OWSI',
+          padi_nr: data.padi_nr ?? '',
           email: data.email ?? '',
           phone: data.phone ?? '',
           color: data.color ?? '#0A84FF',
@@ -173,6 +176,7 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
       first_name: form.first_name.trim(),
       last_name: form.last_name.trim(),
       padi_level: form.padi_level,
+      padi_nr: form.padi_nr.trim() || null,
       email: form.email.trim() || null,
       phone: form.phone.trim() || null,
       color: form.color,
@@ -271,6 +275,17 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
             >
               {PADI_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
+          </Field>
+
+          <Field label={t('instructor_edit.label_padi_nr', 'PADI-Nummer')}>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={form.padi_nr}
+              onChange={(e) => set('padi_nr', e.target.value)}
+              placeholder="123456"
+              style={inputStyle}
+            />
           </Field>
 
           <Field label={t('instructor_edit.label_avatar_color')}>

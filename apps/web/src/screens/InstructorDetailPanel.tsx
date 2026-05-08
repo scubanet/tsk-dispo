@@ -33,6 +33,7 @@ interface Instructor {
   initials: string
   color: string
   padi_level: string
+  padi_nr: string | null
   email: string | null
   phone: string | null
   opening_balance_chf: number
@@ -66,7 +67,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
   useEffect(() => {
     supabase
       .from('instructors')
-      .select('id, name, initials, color, padi_level, email, phone, opening_balance_chf, excel_saldo_chf')
+      .select('id, name, initials, color, padi_level, padi_nr, email, phone, opening_balance_chf, excel_saldo_chf')
       .eq('id', instructorId)
       .single()
       .then(({ data }) => setInst(data as Instructor | null))
@@ -130,7 +131,11 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
         <Avatar id={instructorId} name={inst.name} size="lg" />
         <div style={{ flex: 1 }}>
           <div className="title-1">{inst.name}</div>
-          <div className="caption">{inst.padi_level} · {inst.email || '—'}</div>
+          <div className="caption">
+            {[inst.padi_level, inst.padi_nr ? `PADI ${inst.padi_nr}` : null, inst.email]
+              .filter(Boolean)
+              .join(' · ') || '—'}
+          </div>
         </div>
         {(user.role === 'dispatcher' || user.role === 'cd') && inst.phone && (
           <WhatsAppButton
@@ -180,6 +185,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
         <div style={{ display: 'grid', gap: 24 }}>
           <div style={{ display: 'grid', gap: 12 }}>
             <Field label={t('instructor_edit.label_padi_level')} value={inst.padi_level} />
+            <Field label={t('instructor_edit.label_padi_nr', 'PADI-Nummer')} value={inst.padi_nr || '—'} />
             <Field label={t('student_edit.label_email')} value={inst.email || '—'} />
             <Field label={t('instructor_detail.opening_2026')} value={chf(inst.opening_balance_chf)} />
             <Field label={t('instructor_detail.excel_saldo')} value={chf(inst.excel_saldo_chf)} />

@@ -34,6 +34,7 @@ interface Row {
   id: string
   name: string
   padi_level: string
+  padi_nr: string | null
   email: string | null
   active: boolean
   balance_chf: number
@@ -52,7 +53,7 @@ export function InstructorsScreen() {
     Promise.all([
       supabase
         .from('instructors')
-        .select('id, name, padi_level, email, active')
+        .select('id, name, padi_level, padi_nr, email, active')
         .order('last_name')
         .order('first_name'),
       supabase.from('v_instructor_balance').select('instructor_id, balance_chf'),
@@ -81,6 +82,7 @@ export function InstructorsScreen() {
       return (
         r.name.toLowerCase().includes(q) ||
         (r.padi_level ?? '').toLowerCase().includes(q) ||
+        (r.padi_nr ?? '').toLowerCase().includes(q) ||
         (r.email ?? '').toLowerCase().includes(q)
       )
     })
@@ -141,7 +143,9 @@ export function InstructorsScreen() {
                           )}
                         </div>
                         <div className="atoll-people-row__sub">
-                          {r.padi_level || '—'}
+                          {[r.padi_level, r.padi_nr ? `PADI ${r.padi_nr}` : null]
+                            .filter(Boolean)
+                            .join(' · ') || '—'}
                         </div>
                       </div>
                       <span
