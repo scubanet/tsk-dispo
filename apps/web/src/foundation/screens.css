@@ -1141,3 +1141,129 @@
 .atoll-comm__entry-outcome {
   font-style: italic;
 }
+
+/* ──────────────────────── CD Pipeline ──────────────────────── */
+
+.atoll-pipeline__cols {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-3);
+}
+
+@media (max-width: 1100px) {
+  .atoll-pipeline__cols { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .atoll-pipeline__cols { grid-template-columns: 1fr; }
+}
+
+.atoll-pipeline__col {
+  min-height: 240px;
+  padding: var(--space-3);
+  gap: var(--space-2);
+}
+
+.atoll-pipeline__col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.atoll-pipeline__count {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-pipeline__items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.atoll-pipeline__empty {
+  font-size: var(--text-meta);
+  color: var(--text-disabled);
+  padding: 4px;
+  text-align: center;
+}
+
+.atoll-pipeline__person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-sand);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.atoll-pipeline__person:hover {
+  border-color: var(--border-secondary);
+  background: var(--bg-card);
+}
+
+.atoll-pipeline__person-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: var(--weight-medium);
+}
+
+/* ──────────────────────── CD Organizations ──────────────────────── */
+
+.atoll-orgs__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.atoll-orgs__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+.atoll-orgs__row:hover { border-color: var(--border-secondary); }
+.atoll-orgs__row--inactive { opacity: 0.55; }
+
+.atoll-orgs__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.atoll-orgs__name {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
+}
+
+.atoll-orgs__meta {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-orgs__chevron {
+  color: var(--text-disabled);
+  flex-shrink: 0;
+}
