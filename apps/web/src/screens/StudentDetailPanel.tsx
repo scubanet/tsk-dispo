@@ -12,10 +12,13 @@ import { initialsFromName } from '@/lib/format'
 import {
   fetchStudentCourses,
   fetchStudentCertifications,
+  fetchCertifications,
   type CourseParticipant,
   type Student,
   type StudentCertification,
 } from '@/lib/queries'
+import type { Certification } from '@/types/foundation'
+import { BrevetsView } from '@/foundation'
 import { waDirectUrl, tplDirect } from '@/lib/whatsapp'
 import type { OutletCtx } from '@/layout/AppShell'
 import { StudentEditSheet } from './StudentEditSheet'
@@ -88,6 +91,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
   const [cdInfo, setCdInfo] = useState<CdInfo | null>(null)
   const [courses, setCourses] = useState<CourseParticipant[]>([])
   const [certifications, setCertifications] = useState<StudentCertification[]>([])
+  const [brevets, setBrevets] = useState<Certification[]>([])
   const [editOpen, setEditOpen] = useState(false)
   const [certOpen, setCertOpen] = useState(false)
   const [editingCert, setEditingCert] = useState<StudentCertification | null>(null)
@@ -109,6 +113,7 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
       .then(({ data }) => setStudent(data as Student | null))
     fetchStudentCourses(studentId).then(setCourses)
     fetchStudentCertifications(studentId).then(setCertifications)
+    fetchCertifications(studentId).then(setBrevets)
 
     if (isCD) {
       supabase
@@ -390,12 +395,22 @@ export function StudentDetailPanel({ studentId }: { studentId: string }) {
         </>
       )}
 
-      {/* Externe / historische Zertifikate */}
-      <div style={{ marginBottom: 24 }}>
+      {/* ─── Cert-first view (Foundation) — primary brevet display ─── */}
+      {brevets.length > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <BrevetsView certifications={brevets} />
+        </div>
+      )}
+
+      {/* ─── Legacy: externe / historische Zertifikate (student_certifications table)
+            Kept temporarily for write operations until CertificationEditSheet
+            is migrated to write to the `certifications` table. Data migrated
+            via 0076 — values are duplicated above in BrevetsView. ─── */}
+      <div style={{ marginBottom: 24, opacity: brevets.length > 0 ? 0.6 : 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
           <div className="title-3">
             {t('student_detail.certifications')}{' '}
-            <span className="caption">· {certifications.length}</span>
+            <span className="caption">· {certifications.length}{brevets.length > 0 ? ' (legacy)' : ''}</span>
           </div>
           {isDispatcher && (
             <button

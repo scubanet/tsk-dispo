@@ -2,3 +2,5 @@
 @import './tokens.css';
 @import './glass.css';
 @import './components.css';
+/* Foundation utilities — used by Tag-4 cutover screens. */
+@import '../foundation/screens.css';

@@ -1,0 +1,216 @@
+/**
+ * Foundation screen-level utility classes.
+ *
+ * Used by Tag-4 cutover screens. Applies the foundation page layout:
+ *   - Sand background page-wide
+ *   - PageHeader sticks at top
+ *   - Body scrolls under it
+ *
+ * Keep these stable — screens import them, never override them.
+ */
+
+.atoll-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-page);
+}
+
+.atoll-screen__body {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ──────────────────────── Today columns ──────────────────────── */
+
+.atoll-today__columns {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 960px) {
+  .atoll-today__columns { grid-template-columns: 1fr; }
+}
+
+.atoll-today__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  min-width: 0;
+}
+
+.atoll-today__col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.atoll-today__col-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.atoll-today__list {
+  display: flex;
+  flex-direction: column;
+  /* Removes the bottom border of the last CourseRow inside the card. */
+}
+
+.atoll-today__list > .atoll-courserow:last-child {
+  border-bottom: none;
+}
+
+/* ──────────────────────── Inline buttons ──────────────────────── */
+
+.atoll-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+.atoll-iconbtn:hover {
+  border-color: var(--border-secondary);
+  color: var(--text-primary);
+}
+
+.atoll-linkbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--brand-blue);
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+.atoll-linkbtn:hover {
+  background: var(--brand-blue-50);
+}
+
+/* KpiCard total ratio: "12 / 24" — make denominator subtle. */
+.atoll-kpi__total {
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--text-tertiary);
+  margin-left: 4px;
+}
+
+/* ──────────────────────── Buttons ──────────────────────── */
+
+.atoll-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.atoll-btn:hover {
+  border-color: var(--border-secondary);
+}
+.atoll-btn--primary {
+  background: var(--brand-blue);
+  color: #fff;
+  border-color: var(--brand-blue);
+}
+.atoll-btn--primary:hover {
+  background: var(--brand-blue-800);
+  border-color: var(--brand-blue-800);
+}
+
+/* ──────────────────────── Body variant: full-bleed ──────────────────────── */
+
+.atoll-screen__body--full {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ──────────────────────── People list ──────────────────────── */
+
+.atoll-people-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.atoll-people-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-tertiary);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.atoll-people-row:hover {
+  background: var(--bg-sand);
+}
+
+.atoll-people-row--active {
+  background: var(--brand-blue-50);
+}
+.atoll-people-row--active .atoll-people-row__name {
+  color: var(--brand-blue-800);
+}
+
+.atoll-people-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.atoll-people-row__name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-people-row__sub {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

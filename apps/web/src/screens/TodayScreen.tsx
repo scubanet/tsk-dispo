@@ -1,12 +1,37 @@
+/**
+ * TodayScreen — Foundation-based rewrite (Tag 4 cutover).
+ *
+ * Layout:
+ *   PageHeader (title + subtitle + actions)
+ *   ┌─ KpiGrid ──────────────────────────────────────────────┐
+ *   │  Hero: today's date + count                            │
+ *   │  Stat: confirmed / total                               │
+ *   │  Stat: active instructors                              │
+ *   │  Stat: assignments this week                           │
+ *   └────────────────────────────────────────────────────────┘
+ *   ┌─ Today's courses ────────┐  ┌─ Next 7 days ────────────┐
+ *   │  CourseRow × N           │  │  CourseRow × 8 (compact) │
+ *   └──────────────────────────┘  └──────────────────────────┘
+ *
+ * Dispatcher/CD see the full dashboard. Instructors see their personal view.
+ */
+
 import { useEffect, useMemo, useState } from 'react'
-import { format, addDays, isSameDay, isWithinInterval, startOfDay } from 'date-fns'
-import { de, enGB } from 'date-fns/locale'
+import { addDays, isSameDay, isWithinInterval, startOfDay } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext } from 'react-router-dom'
-import { Topbar } from '@/components/Topbar'
-import { Icon } from '@/components/Icon'
-import { Avatar } from '@/components/Avatar'
-import { Chip } from '@/components/Chip'
+import {
+  PageHeader,
+  KpiGrid,
+  KpiCard,
+  CourseRow,
+  EmptyState,
+  Pill,
+  Icon,
+  dateLong,
+  dateShort,
+  toISODate,
+} from '@/foundation'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { tplDailyDigest, waGroupShareUrl } from '@/lib/whatsapp'
 import {
@@ -14,55 +39,71 @@ import {
   fetchAssignmentsForCourses,
   fetchKpis,
   fetchMyAssignments,
-  type CourseRow,
+  type CourseRow as CourseRowData,
   type AssignmentRow,
   type Kpis,
   type MyAssignment,
 } from '@/lib/queries'
 import type { OutletCtx } from '@/layout/AppShell'
+import type { CourseType } from '@/types/foundation'
 
 export function TodayScreen() {
   const { user } = useOutletContext<OutletCtx>()
-  if ((user.role === 'dispatcher' || user.role === 'cd')) return <DispatcherToday />
+  if (user.role === 'dispatcher' || user.role === 'cd' || user.role === 'owner') {
+    return <DispatcherToday />
+  }
   return <InstructorToday />
 }
 
+// ──────────────────────── Helpers ────────────────────────
+
+/**
+ * Map the legacy `course_type.code` string to the foundation `CourseType` union.
+ * Falls through gracefully — unknown codes render as a generic course.
+ */
+function asCourseType(code: string | undefined | null): CourseType {
+  if (!code) return 'OWD'
+  if (code.startsWith('SPEI_')) {
+    return { type: 'SPEI', specialty: code.slice(5) as never }
+  }
+  if (code.startsWith('SP_')) {
+    return { type: 'SPECIALTY', specialty: code.slice(3) as never }
+  }
+  // Direct codes
+  return code as CourseType
+}
+
+function courseDates(c: CourseRowData): Date[] {
+  return [c.start_date, ...(c.additional_dates ?? [])]
+    .filter(Boolean)
+    .map((d) => new Date(d))
+}
+
+// ──────────────────────── Dispatcher view ────────────────────────
+
 function DispatcherToday() {
-  const { t, i18n } = useTranslation()
-  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
-  const { user } = useOutletContext<OutletCtx>()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [kpis, setKpis] = useState<Kpis | null>(null)
-  /** All candidate courses (start_date in [today-60d .. today+7d]) — filtered client-side. */
-  const [candidates, setCandidates] = useState<CourseRow[]>([])
+  const [candidates, setCandidates] = useState<CourseRowData[]>([])
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
 
   useEffect(() => {
-    const startStr = format(startOfDay(new Date()), 'yyyy-MM-dd')
-    const weekEnd = format(addDays(new Date(), 7), 'yyyy-MM-dd')
-    Promise.all([
-      fetchKpis(),
-      // Lower bound is widened by 60d inside fetchCoursesInRange, so courses
-      // that started weeks ago but have an additional_date today are included.
-      fetchCoursesInRange(startStr, weekEnd),
-    ]).then(async ([k, all]) => {
-      setKpis(k)
-      setCandidates(all)
-      const ids = all.map((c) => c.id)
-      const a = await fetchAssignmentsForCourses(ids)
-      setAssignments(a)
-    })
+    const startStr = toISODate(startOfDay(new Date()))
+    const weekEnd = toISODate(addDays(new Date(), 7))
+    Promise.all([fetchKpis(), fetchCoursesInRange(startStr, weekEnd)]).then(
+      async ([k, all]) => {
+        setKpis(k)
+        setCandidates(all)
+        const ids = all.map((c) => c.id)
+        const a = await fetchAssignmentsForCourses(ids)
+        setAssignments(a)
+      },
+    )
   }, [])
 
   const todayDate = startOfDay(new Date())
   const weekEndDate = addDays(todayDate, 7)
-
-  /** Returns the union of start_date and additional_dates for a course. */
-  function courseDates(c: CourseRow): Date[] {
-    return [c.start_date, ...(c.additional_dates ?? [])]
-      .filter(Boolean)
-      .map((d) => new Date(d))
-  }
 
   const today = useMemo(
     () =>
@@ -81,7 +122,6 @@ function DispatcherToday() {
             isWithinInterval(d, { start: todayDate, end: weekEndDate }),
           ),
         )
-        // Sort by earliest matching date inside the interval
         .sort((a, b) => {
           const aDate = courseDates(a).find((d) =>
             isWithinInterval(d, { start: todayDate, end: weekEndDate }),
@@ -94,10 +134,10 @@ function DispatcherToday() {
     [candidates],
   )
 
-  const todayLabel = format(new Date(), 'EEEE, d. MMMM', { locale: dfLocale })
-  const weekCount = thisWeek.length
+  const todayLabel = dateLong(new Date())
+  const todayParticipants = today.reduce((sum, c) => sum + (c.num_participants || 0), 0)
 
-  // WhatsApp daily digest — uses today's courses + their haupt-instructor
+  // WhatsApp daily digest
   const digestEntries = today.map((c) => {
     const a = assignments.filter((x) => x.course_id === c.id)
     return {
@@ -109,157 +149,137 @@ function DispatcherToday() {
   const digestUrl = waGroupShareUrl(tplDailyDigest(new Date(), digestEntries))
 
   return (
-    <>
-      <Topbar
-        title={(user.role === 'dispatcher' || user.role === 'cd') ? t('nav.today') : t('today.greeting', { name: user.name.split(' ')[0] })}
-        subtitle={t('today.topbar_subtitle', { date: todayLabel, count: weekCount })}
-      >
-        <WhatsAppButton url={digestUrl} label={t('today.daily_digest')} />
-        <button className="btn-icon" title={t('today.notifications')}><Icon name="bell" size={16} /></button>
-        {(user.role === 'dispatcher' || user.role === 'cd') && (
-          <button className="btn"><Icon name="plus" size={14} /> {t('courses.new_course')}</button>
-        )}
-      </Topbar>
+    <div className="atoll-screen">
+      <PageHeader
+        title={t('nav.today')}
+        subtitle={t('today.topbar_subtitle', {
+          date: todayLabel,
+          count: thisWeek.length,
+        })}
+        actions={
+          <>
+            <WhatsAppButton url={digestUrl} label={t('today.daily_digest')} />
+            <button
+              type="button"
+              className="atoll-iconbtn"
+              title={t('today.notifications')}
+            >
+              <Icon.Info size={16} />
+            </button>
+          </>
+        }
+      />
 
-      <div className="screen-fade scroll" style={{ flex: 1, padding: '20px 24px 28px' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1.4fr 1fr 1fr 1fr',
-            gap: 14,
-            marginBottom: 16,
-          }}
-        >
-          <div className="tile-now">
-            <div
-              style={{
-                fontSize: 12,
-                opacity: 0.85,
-                letterSpacing: '.02em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-              }}
-            >
-              {todayLabel}
-            </div>
-            <div
-              style={{
-                fontSize: 26,
-                fontWeight: 700,
-                marginTop: 8,
-                letterSpacing: '-.02em',
-                position: 'relative',
-                zIndex: 1,
-              }}
-            >
-              {today.length === 0
+      <div className="atoll-screen__body" data-scroll>
+        <KpiGrid columns={4} gap="md">
+          <KpiCard
+            variant="hero"
+            label={todayLabel}
+            value={
+              today.length === 0
                 ? t('today.no_courses_today')
-                : t('today.subtitle', { count: today.length })}
-            </div>
-            <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4, position: 'relative', zIndex: 1 }}>
-              {t('today.participants_total', { count: today.reduce((sum, c) => sum + (c.num_participants || 0), 0) })}
-            </div>
-          </div>
-
+                : t('today.subtitle', { count: today.length })
+            }
+            sub={t('today.participants_total', { count: todayParticipants })}
+          />
           {kpis && (
             <>
-              <StatCard num={kpis.confirmedCourses} total={kpis.totalCourses} label={t('today.kpi_confirmed')} />
-              <StatCard num={kpis.instructorCount} label={t('today.kpi_active_instructors')} />
-              <StatCard num={kpis.assignmentsThisWeek} label={t('today.kpi_assignments_from_today')} />
+              <KpiCard
+                variant="stat"
+                label={t('today.kpi_confirmed')}
+                value={
+                  <>
+                    {kpis.confirmedCourses}
+                    <span className="atoll-kpi__total"> / {kpis.totalCourses}</span>
+                  </>
+                }
+              />
+              <KpiCard
+                variant="stat"
+                label={t('today.kpi_active_instructors')}
+                value={kpis.instructorCount}
+              />
+              <KpiCard
+                variant="stat"
+                label={t('today.kpi_assignments_from_today')}
+                value={kpis.assignmentsThisWeek}
+              />
             </>
           )}
-        </div>
+        </KpiGrid>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 14 }}>
-          <div className="glass card">
-            <div className="title-3" style={{ marginBottom: 10 }}>{t('today.todays_courses')}</div>
+        <div className="atoll-today__columns">
+          <section className="atoll-today__col atoll-today__col--main">
+            <h2 className="atoll-today__col-title">{t('today.todays_courses')}</h2>
             {today.length === 0 ? (
-              <div className="caption">{t('today.empty_day')}</div>
+              <EmptyState
+                icon={<Icon.Calendar size={20} />}
+                title={t('today.empty_day')}
+              />
             ) : (
-              <div className="timeline">
+              <div className="atoll-today__list">
                 {today.map((c) => {
                   const a = assignments.filter((x) => x.course_id === c.id)
+                  const haupt = a.find((x) => x.role === 'haupt')?.instructor?.name
                   return (
-                    <Session
+                    <CourseRow
                       key={c.id}
-                      course={c}
-                      assignments={a}
+                      courseType={asCourseType(c.course_type?.code)}
+                      title={c.title}
+                      sub={
+                        <>
+                          {haupt ? `${haupt} · ` : ''}
+                          {c.num_participants > 0
+                            ? t('today.participants_short', { count: c.num_participants })
+                            : ''}
+                        </>
+                      }
+                      meta={statusLabel(c.status, t)}
+                      trailing={statusPill(c.status)}
                       onClick={() => navigate(`/kurse/${c.id}`)}
                     />
                   )
                 })}
               </div>
             )}
-          </div>
+          </section>
 
-          <div className="glass card">
-            <div className="title-3" style={{ marginBottom: 10 }}>{t('today.next_week')}</div>
+          <section className="atoll-today__col">
+            <h2 className="atoll-today__col-title">{t('today.next_week')}</h2>
             {thisWeek.length === 0 ? (
-              <div className="caption">{t('today.no_next_week')}</div>
+              <EmptyState
+                icon={<Icon.Calendar size={20} />}
+                title={t('today.no_next_week')}
+              />
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div className="atoll-today__list">
                 {thisWeek.slice(0, 8).map((c) => {
-                  // Find the earliest date of this course that falls inside the week interval
                   const relevantDate = courseDates(c).find((d) =>
                     isWithinInterval(d, { start: todayDate, end: weekEndDate }),
                   )
                   return (
-                  <div
-                    key={c.id}
-                    onClick={() => navigate(`/kurse/${c.id}`)}
-                    style={{
-                      display: 'flex',
-                      gap: 10,
-                      padding: '6px 4px',
-                      borderBottom: '0.5px solid var(--separator)',
-                      cursor: 'pointer',
-                      borderRadius: 6,
-                      transition: 'background .12s',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0,0,0,.04)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <div className="mono caption" style={{ width: 50, flexShrink: 0 }}>
-                      {relevantDate ? format(relevantDate, 'd. MMM', { locale: dfLocale }) : '—'}
-                    </div>
-                    <div style={{ flex: 1, fontSize: 13 }}>
-                      <div style={{ fontWeight: 500 }}>{c.title}</div>
-                    </div>
-                  </div>
+                    <CourseRow
+                      key={c.id}
+                      courseType={asCourseType(c.course_type?.code)}
+                      title={c.title}
+                      meta={relevantDate ? dateShort(relevantDate) : '—'}
+                      onClick={() => navigate(`/kurse/${c.id}`)}
+                    />
                   )
                 })}
               </div>
             )}
-          </div>
+          </section>
         </div>
       </div>
-    </>
-  )
-}
-
-function StatCard({
-  num,
-  total,
-  label,
-}: {
-  num: number
-  total?: number
-  label: string
-}) {
-  return (
-    <div className="glass card stat-card">
-      <div className="stat-num">
-        {num}
-        {total != null && <span className="caption" style={{ marginLeft: 4 }}> / {total}</span>}
-      </div>
-      <div className="stat-label">{label}</div>
     </div>
   )
 }
 
+// ──────────────────────── Instructor view ────────────────────────
+
 function InstructorToday() {
-  const { t, i18n } = useTranslation()
-  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
+  const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [mine, setMine] = useState<MyAssignment[]>([])
@@ -269,173 +289,129 @@ function InstructorToday() {
     fetchMyAssignments(user.instructorId).then(setMine)
   }, [user.instructorId])
 
-  const today = startOfDay(new Date())
+  const todayDate = startOfDay(new Date())
   const todays = mine.filter(
-    (m) => m.course && isSameDay(new Date(m.course.start_date), today),
+    (m) => m.course && isSameDay(new Date(m.course.start_date), todayDate),
   )
   const upcoming = mine
-    .filter((m) => m.course && new Date(m.course.start_date) > today)
+    .filter((m) => m.course && new Date(m.course.start_date) > todayDate)
     .slice(0, 8)
-  const todayLabel = format(today, 'EEEE, d. MMMM', { locale: dfLocale })
+  const todayLabel = dateLong(todayDate)
 
   return (
-    <>
-      <Topbar
+    <div className="atoll-screen">
+      <PageHeader
         title={t('today.greeting', { name: user.name.split(' ')[0] })}
-        subtitle={t('today.instructor_topbar_subtitle', { date: todayLabel, count: mine.length, year: 2026 })}
+        subtitle={t('today.instructor_topbar_subtitle', {
+          date: todayLabel,
+          count: mine.length,
+          year: new Date().getFullYear(),
+        })}
       />
 
-      <div className="screen-fade scroll" style={{ flex: 1, padding: '20px 24px 28px' }}>
-        <div className="tile-now" style={{ marginBottom: 16 }}>
-          <div
-            style={{
-              fontSize: 12, opacity: 0.85,
-              letterSpacing: '.02em', textTransform: 'uppercase',
-              fontWeight: 600,
-            }}
-          >
-            {todayLabel}
-          </div>
-          <div
-            style={{
-              fontSize: 26, fontWeight: 700, marginTop: 8,
-              letterSpacing: '-.02em', position: 'relative', zIndex: 1,
-            }}
-          >
-            {todays.length === 0
-              ? t('today.no_assignments_today')
-              : t('today.assignments_today', { count: todays.length })}
-          </div>
-        </div>
+      <div className="atoll-screen__body" data-scroll>
+        <KpiGrid columns={2} gap="md">
+          <KpiCard
+            variant="hero"
+            label={todayLabel}
+            value={
+              todays.length === 0
+                ? t('today.no_assignments_today')
+                : t('today.assignments_today', { count: todays.length })
+            }
+          />
+          <KpiCard
+            variant="stat"
+            label={t('today.upcoming_assignments')}
+            value={upcoming.length}
+          />
+        </KpiGrid>
 
         {todays.length > 0 && (
-          <div className="glass card" style={{ marginBottom: 16 }}>
-            <div className="title-3" style={{ marginBottom: 10 }}>{t('today.header_today')}</div>
-            <div style={{ display: 'grid', gap: 8 }}>
+          <section className="atoll-today__col">
+            <h2 className="atoll-today__col-title">{t('today.header_today')}</h2>
+            <div className="atoll-today__list">
               {todays.map((a) =>
                 a.course ? (
-                  <div
+                  <CourseRow
                     key={a.id}
-                    className="glass-thin"
-                    style={{
-                      padding: 12,
-                      borderRadius: 12,
-                      cursor: 'pointer',
-                      borderLeft: `3px solid var(--accent)`,
-                    }}
+                    courseType={asCourseType(a.course.course_type?.code)}
+                    title={a.course.title}
+                    sub={a.course.info ?? undefined}
+                    trailing={
+                      <Pill tone={a.role === 'haupt' ? 'brand' : 'neutral'} size="sm">
+                        {a.role}
+                      </Pill>
+                    }
                     onClick={() => navigate(`/kurse/${a.course?.id}`)}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <div style={{ fontWeight: 600 }}>{a.course.title}</div>
-                      <Chip tone={a.role === 'haupt' ? 'accent' : 'neutral'}>{a.role}</Chip>
-                    </div>
-                    {a.course.info && (
-                      <div className="caption" style={{ marginTop: 4 }}>{a.course.info}</div>
-                    )}
-                  </div>
-                ) : null
+                  />
+                ) : null,
               )}
             </div>
-          </div>
+          </section>
         )}
 
-        <div className="glass card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <div className="title-3">{t('today.upcoming_assignments')}</div>
-            <button className="btn-ghost btn" onClick={() => navigate('/einsaetze')}>
-              {t('today.see_all')} <Icon name="chevron-right" size={12} />
+        <section className="atoll-today__col">
+          <div className="atoll-today__col-head">
+            <h2 className="atoll-today__col-title">{t('today.upcoming_assignments')}</h2>
+            <button
+              type="button"
+              className="atoll-linkbtn"
+              onClick={() => navigate('/einsaetze')}
+            >
+              {t('today.see_all')} <Icon.ChevronRight size={12} />
             </button>
           </div>
           {upcoming.length === 0 ? (
-            <div className="caption">{t('today.no_upcoming')}</div>
+            <EmptyState title={t('today.no_upcoming')} />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className="atoll-today__list">
               {upcoming.map((a) =>
                 a.course ? (
-                  <div
+                  <CourseRow
                     key={a.id}
+                    courseType={asCourseType(a.course.course_type?.code)}
+                    title={a.course.title}
+                    meta={dateShort(a.course.start_date)}
+                    sub={`${a.course.course_type?.code ?? '—'} · ${a.role}`}
+                    trailing={
+                      a.confirmed ? (
+                        <Pill tone="success" size="sm">
+                          ✓
+                        </Pill>
+                      ) : (
+                        <Pill tone="warning" size="sm">
+                          {t('my_assignments.open')}
+                        </Pill>
+                      )
+                    }
                     onClick={() => navigate(`/kurse/${a.course?.id}`)}
-                    style={{
-                      display: 'flex',
-                      gap: 10,
-                      padding: '8px 0',
-                      borderBottom: '0.5px solid var(--separator)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <div className="mono caption" style={{ width: 60, flexShrink: 0 }}>
-                      {format(new Date(a.course.start_date), 'd. MMM', { locale: dfLocale })}
-                    </div>
-                    <div style={{ flex: 1, fontSize: 13 }}>
-                      <div style={{ fontWeight: 500 }}>{a.course.title}</div>
-                      <div className="caption">
-                        {a.course.course_type?.code} · {a.role}
-                      </div>
-                    </div>
-                    {a.confirmed ? (
-                      <Chip tone="green">✓</Chip>
-                    ) : (
-                      <Chip tone="orange">{t('my_assignments.open')}</Chip>
-                    )}
-                  </div>
-                ) : null
+                  />
+                ) : null,
               )}
             </div>
           )}
-        </div>
+        </section>
       </div>
-    </>
+    </div>
   )
 }
 
-function Session({
-  course,
-  assignments,
-  onClick,
-}: {
-  course: CourseRow
-  assignments: AssignmentRow[]
-  onClick?: () => void
-}) {
-  const { t } = useTranslation()
+// ──────────────────────── Status mappers ────────────────────────
+
+function statusLabel(status: CourseRowData['status'], t: ReturnType<typeof useTranslation>['t']): string {
+  switch (status) {
+    case 'confirmed': return t('common.confirmed', 'bestätigt')
+    case 'tentative': return t('common.tentative', 'tentativ')
+    case 'completed': return t('common.completed', 'abgeschlossen')
+    case 'cancelled': return t('common.cancelled', 'abgesagt')
+  }
+}
+
+function statusPill(status: CourseRowData['status']) {
   const tone =
-    course.status === 'cancelled' ? 'red' :
-    course.status === 'tentative' ? 'orange' :
-    course.status === 'completed' ? 'purple' : 'accent'
-  return (
-    <>
-      <div className="tl-time">{course.course_type?.code ?? '—'}</div>
-      <div
-        className="tl-event"
-        onClick={onClick}
-        style={onClick ? { cursor: 'pointer' } : undefined}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 600, fontSize: 14 }}>{course.title}</div>
-            <div className="caption" style={{ marginTop: 3 }}>
-              {course.num_participants > 0 && t('today.participants_short', { count: course.num_participants })}
-            </div>
-          </div>
-          <Chip tone={tone}>{course.status}</Chip>
-        </div>
-        <div style={{ display: 'flex', gap: 6, marginTop: 10, alignItems: 'center' }}>
-          {assignments.map((a) =>
-            a.instructor ? (
-              <div key={a.id} title={`${a.instructor.name} (${a.role})`}>
-                <Avatar
-                  initials={a.instructor.initials}
-                  color={a.instructor.color}
-                  size="sm"
-                />
-              </div>
-            ) : null,
-          )}
-          <span className="caption" style={{ marginLeft: 4 }}>
-            {t('today.instructor_count', { count: assignments.length })}
-          </span>
-        </div>
-      </div>
-    </>
-  )
+    status === 'cancelled' ? 'danger' :
+    status === 'tentative' ? 'warning' :
+    status === 'completed' ? 'pro' : 'success'
+  return <Pill tone={tone} size="sm">{status}</Pill>
 }

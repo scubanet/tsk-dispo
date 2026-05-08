@@ -290,6 +290,79 @@ export async function fetchStudentCertifications(studentId: string): Promise<Stu
   return (data ?? []) as StudentCertification[]
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// Cert-first model — `certifications` table (Foundation Tag 1).
+// ──────────────────────────────────────────────────────────────────────────
+
+import type { Certification } from '@/types/foundation'
+
+/**
+ * Cert-first read API. Fetch all certifications for a person
+ * (works for both `people.id` and `instructors.id` — see migration 0076).
+ *
+ * Returns the data shaped for the foundation `Certification` interface
+ * (camelCase fields).
+ */
+export async function fetchCertifications(personId: string): Promise<Certification[]> {
+  const { data, error } = await supabase
+    .from('certifications')
+    .select(
+      'id, person_id, agency, category, code, number, issued_at, ' +
+      'issued_by_person_id, issued_by_name, issued_by_pro_tier, origin, ' +
+      'evidence, notes, invalidated_at, invalidated_reason, created_at'
+    )
+    .eq('person_id', personId)
+    .order('issued_at', { ascending: false, nullsFirst: false })
+  if (error) throw error
+  return ((data ?? []) as unknown as CertificationRow[]).map(rowToCertification)
+}
+
+interface CertificationRow {
+  id: string
+  person_id: string
+  agency: string
+  category: string
+  code: string
+  number: string | null
+  issued_at: string
+  issued_by_person_id: string | null
+  issued_by_name: string | null
+  issued_by_pro_tier: string | null
+  origin: string
+  evidence: { url: string; filename: string }[] | null
+  notes: string | null
+  invalidated_at: string | null
+  invalidated_reason: string | null
+  created_at: string
+}
+
+function rowToCertification(r: CertificationRow): Certification {
+  return {
+    id: r.id,
+    personId: r.person_id,
+    agency: r.agency as Certification['agency'],
+    category: r.category as Certification['category'],
+    code: r.code as Certification['code'],
+    number: r.number ?? '',
+    issuedAt: r.issued_at,
+    issuedBy: r.issued_by_person_id
+      ? {
+          personId: r.issued_by_person_id,
+          name: r.issued_by_name ?? '',
+          proTier: (r.issued_by_pro_tier ?? null) as Certification['issuedBy'] extends infer T
+            ? T extends { proTier: infer P } ? P : never
+            : never,
+        }
+      : undefined,
+    origin: r.origin as Certification['origin'],
+    evidence: r.evidence ?? undefined,
+    notes: r.notes ?? undefined,
+    invalidatedAt: r.invalidated_at ?? undefined,
+    invalidatedReason: r.invalidated_reason ?? undefined,
+    createdAt: r.created_at,
+  }
+}
+
 export interface CourseParticipant {
   id: string
   course_id: string
