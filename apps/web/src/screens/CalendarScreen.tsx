@@ -1,3 +1,21 @@
+/**
+ * CalendarScreen — Foundation-based rewrite.
+ *
+ * Layout:
+ *   PageHeader
+ *     ├── FilterTabBar (week / month)
+ *     ├── ← / Heute / →
+ *     └── + Neuer Kurs (dispatcher)
+ *   ┌─ Foundation card ───────────────────────────────────────┐
+ *   │  WeekView OR MonthView                                  │
+ *   └─────────────────────────────────────────────────────────┘
+ *   Legend (no haupt / tentative / cancelled / today)
+ *
+ * Colors come from foundation tokens via `courseTypeColor()` — no more
+ * hand-rolled hex. Status overrides (no haupt / tentative) use semantic
+ * tokens (red / amber).
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import {
@@ -18,52 +36,76 @@ import {
 } from 'date-fns'
 import { de, enGB } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
-import { Topbar } from '@/components/Topbar'
-import { Icon } from '@/components/Icon'
-import { SegmentedControl } from '@/components/SegmentedControl'
+import {
+  PageHeader,
+  FilterTabBar,
+  Icon,
+  courseTypeColor,
+  toISODate,
+} from '@/foundation'
+import type { CourseType } from '@/types/foundation'
 import { fetchCoursesInRange, fetchAssignmentsForCourses, type CourseRow } from '@/lib/queries'
 import { CourseEditSheet } from './CourseEditSheet'
 import type { OutletCtx } from '@/layout/AppShell'
 
 type Mode = 'week' | 'month'
 
-const TYPE_COLORS: Record<string, string> = {
-  OWD: '#0A84FF',
-  AOWD: '#5856D6',
-  DSD: '#34C759',
-  BUBB: '#34C759',
-  DRY: '#30B0C7',
-  DM: '#AF52DE',
-  EFR: '#FFCC00',
-  EFRI: '#FFCC00',
-  RESC: '#FF3B30',
-  EAN: '#5AC8FA',
-  IDC: '#FF2D55',
+/** Map legacy course-type-code string → foundation `CourseType`. */
+function asCourseType(code: string | undefined | null): CourseType {
+  if (!code) return 'OWD'
+  if (code.startsWith('SPEI_')) return { type: 'SPEI', specialty: code.slice(5) as never }
+  if (code.startsWith('SP_')) return { type: 'SPECIALTY', specialty: code.slice(3) as never }
+  return code as CourseType
 }
 
-function colorForType(code?: string): string {
-  if (!code) return '#8E8E93'
-  if (TYPE_COLORS[code]) return TYPE_COLORS[code]
-  if (code.startsWith('SPEI_')) return '#AF52DE'   // alle SPEIs in lila
-  if (code.startsWith('SPEC_')) return '#30B0C7'   // alle Specialties in türkis
-  return '#8E8E93'
+interface SlotStyle {
+  bg: string
+  border: string
+  text: string
+  prefix: string
+  tooltip: string
+  isTentative: boolean
 }
 
-/** Visuelle Priorität: kein Haupt > tentative > normal. Cancelled wird separat über opacity gehandelt. */
+/**
+ * Visual priority: no-haupt > tentative > normal.
+ * Cancelled is handled separately via opacity + line-through.
+ */
 function statusStyle(
   c: CourseRow,
   hasHaupt: boolean,
   baseColor: string,
   t: (key: string) => string,
-) {
+): SlotStyle {
   const noHaupt = !hasHaupt && c.status !== 'cancelled'
   if (noHaupt) {
-    return { bg: '#FF3B3022', border: '#FF3B30', text: '#c4302a', prefix: '⚠ ', tooltip: t('calendar.tooltip_no_haupt') }
+    return {
+      bg: 'var(--brand-red-50)',
+      border: 'var(--brand-red)',
+      text: 'var(--brand-red-800)',
+      prefix: '⚠ ',
+      tooltip: t('calendar.tooltip_no_haupt'),
+      isTentative: false,
+    }
   }
   if (c.status === 'tentative') {
-    return { bg: '#FF950022', border: '#FF9500', text: '#c47200', prefix: '? ', tooltip: t('calendar.tooltip_tentative') }
+    return {
+      bg: 'var(--brand-amber-50)',
+      border: 'var(--brand-amber)',
+      text: 'var(--brand-amber-800)',
+      prefix: '? ',
+      tooltip: t('calendar.tooltip_tentative'),
+      isTentative: true,
+    }
   }
-  return { bg: baseColor + '22', border: baseColor, text: baseColor, prefix: '', tooltip: '' }
+  return {
+    bg: 'var(--bg-card)',
+    border: baseColor,
+    text: 'var(--text-primary)',
+    prefix: '',
+    tooltip: '',
+    isTentative: false,
+  }
 }
 
 /** All dates a course occupies (start + zero or more additional). */
@@ -83,7 +125,8 @@ export function CalendarScreen() {
   const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
   const navigate = useNavigate()
   const { user } = useOutletContext<OutletCtx>()
-  const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
+  const isDispatcher =
+    user.role === 'dispatcher' || user.role === 'cd' || user.role === 'owner'
   const [mode, setMode] = useState<Mode>('month')
   const [anchor, setAnchor] = useState<Date>(new Date())
   const [courses, setCourses] = useState<CourseRow[]>([])
@@ -101,10 +144,7 @@ export function CalendarScreen() {
   }, [anchor, mode])
 
   useEffect(() => {
-    fetchCoursesInRange(
-      format(range.start, 'yyyy-MM-dd'),
-      format(range.end, 'yyyy-MM-dd'),
-    ).then(async (cs) => {
+    fetchCoursesInRange(toISODate(range.start), toISODate(range.end)).then(async (cs) => {
       setCourses(cs)
       const ids = cs.map((c) => c.id)
       const assignments = await fetchAssignmentsForCourses(ids)
@@ -128,76 +168,80 @@ export function CalendarScreen() {
     : format(anchor, 'MMMM yyyy', { locale: dfLocale })
 
   return (
-    <>
-      <Topbar title={t('nav.calendar')} subtitle={title}>
-        <SegmentedControl
-          value={mode}
-          options={[
-            { value: 'week', label: t('calendar.view_week') },
-            { value: 'month', label: t('calendar.view_month') },
-          ]}
-          onChange={setMode}
-        />
-        <button className="btn-icon" onClick={prev}><Icon name="chevron-left" size={14} /></button>
-        <button className="btn-secondary btn" onClick={today}>{t('calendar.today')}</button>
-        <button className="btn-icon" onClick={next}><Icon name="chevron-right" size={14} /></button>
-        {isDispatcher && (
-          <button className="btn" onClick={() => setEditOpen(true)}>
-            <Icon name="plus" size={14} /> {t('courses.new_course')}
-          </button>
-        )}
-      </Topbar>
+    <div className="atoll-screen">
+      <PageHeader
+        title={t('nav.calendar')}
+        subtitle={title}
+        actions={
+          <>
+            <FilterTabBar<Mode>
+              tabs={[
+                { id: 'week', label: t('calendar.view_week') },
+                { id: 'month', label: t('calendar.view_month') },
+              ]}
+              active={mode}
+              onChange={setMode}
+              ariaLabel={t('nav.calendar')}
+            />
+            <button type="button" className="atoll-iconbtn" onClick={prev} aria-label={t('calendar.prev_week', 'Zurück')}>
+              <Icon.ChevronLeft size={14} />
+            </button>
+            <button type="button" className="atoll-btn" onClick={today}>
+              {t('calendar.today')}
+            </button>
+            <button type="button" className="atoll-iconbtn" onClick={next} aria-label={t('calendar.next_week', 'Weiter')}>
+              <Icon.ChevronRight size={14} />
+            </button>
+            {isDispatcher && (
+              <button
+                type="button"
+                className="atoll-btn atoll-btn--primary"
+                onClick={() => setEditOpen(true)}
+              >
+                <Icon.Plus size={14} /> {t('courses.new_course')}
+              </button>
+            )}
+          </>
+        }
+      />
 
       <CourseEditSheet
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        onSaved={() => setRefreshTick((t) => t + 1)}
+        onSaved={() => setRefreshTick((tick) => tick + 1)}
         courseId={null}
       />
 
-      <div className="scroll" style={{ flex: 1, padding: 16, overflow: 'auto' }}>
-        {mode === 'week' ? (
-          <WeekView
-            range={range}
-            courses={courses}
-            hauptByCourse={hauptByCourse}
-            onClickCourse={(id) => navigate(`/kurse/${id}`)}
-            t={t}
-            dfLocale={dfLocale}
-          />
-        ) : (
-          <MonthView
-            anchor={anchor}
-            courses={courses}
-            hauptByCourse={hauptByCourse}
-            onClickCourse={(id) => navigate(`/kurse/${id}`)}
-            t={t}
-            dfLocale={dfLocale}
-          />
-        )}
+      <div className="atoll-screen__body">
+        <section className="atoll-cockpit__card atoll-cal__card">
+          {mode === 'week' ? (
+            <WeekView
+              range={range}
+              courses={courses}
+              hauptByCourse={hauptByCourse}
+              onClickCourse={(id) => navigate(`/kurse/${id}`)}
+              t={t}
+              dfLocale={dfLocale}
+            />
+          ) : (
+            <MonthView
+              anchor={anchor}
+              courses={courses}
+              hauptByCourse={hauptByCourse}
+              onClickCourse={(id) => navigate(`/kurse/${id}`)}
+              t={t}
+              dfLocale={dfLocale}
+            />
+          )}
+        </section>
 
-        <div className="caption-2" style={{ marginTop: 12, padding: '0 4px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-            <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: '#FF3B3022', borderLeft: '2px solid #FF3B30' }} />
-            {t('calendar.legend_no_haupt')}
-          </span>
-          <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-            <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: '#FF950022', borderLeft: '2px dashed #FF9500' }} />
-            {t('calendar.legend_tentative')}
-          </span>
-          <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', textDecoration: 'line-through', opacity: 0.6 }}>
-            <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: 'rgba(0,0,0,.08)' }} />
-            {t('calendar.legend_cancelled')}
-          </span>
-          <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-            <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 2, background: 'var(--accent-soft)' }} />
-            {t('calendar.legend_today')}
-          </span>
-        </div>
+        <Legend t={t} />
       </div>
-    </>
+    </div>
   )
 }
+
+// ──────────────────────── Week view ────────────────────────
 
 function WeekView({
   range,
@@ -216,105 +260,61 @@ function WeekView({
 }) {
   const days = eachDayOfInterval(range)
   return (
-    <div className="glass card" style={{ padding: 0 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '0.5px solid var(--hairline)' }}>
+    <div className="atoll-cal__week">
+      <div className="atoll-cal__week-head">
         {days.map((d) => (
           <div
             key={d.toISOString()}
-            style={{
-              padding: 12,
-              textAlign: 'center',
-              borderRight: '0.5px solid var(--separator)',
-              background: isSameDay(d, new Date()) ? 'var(--accent-soft)' : undefined,
-            }}
+            className={`atoll-cal__day-head${isSameDay(d, new Date()) ? ' atoll-cal__day-head--today' : ''}`}
           >
-            <div style={{ fontWeight: 600, fontSize: 13 }}>
-              {format(d, 'EEE', { locale: dfLocale })}
-            </div>
-            <div className="caption">{format(d, 'd. MMM', { locale: dfLocale })}</div>
+            <div className="atoll-cal__day-name">{format(d, 'EEE', { locale: dfLocale })}</div>
+            <div className="atoll-cal__day-date">{format(d, 'd. MMM', { locale: dfLocale })}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minHeight: 400 }}>
+      <div className="atoll-cal__week-grid">
         {days.map((d) => {
           const dayCourses = coursesOnDay(courses, d)
           return (
-            <div
-              key={d.toISOString()}
-              style={{
-                padding: 8,
-                borderRight: '0.5px solid var(--separator)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6,
-                minHeight: 200,
-              }}
-            >
+            <div key={d.toISOString()} className="atoll-cal__week-cell">
               {dayCourses.map((c) => {
                 const allDates = courseDates(c)
                 const isMultiDay = allDates.length > 1
                 const dayIndex = allDates.findIndex((dt) => dt && isSameDay(new Date(dt), d))
                 const hasHaupt = hauptByCourse.has(c.id)
-                const baseColor = colorForType(c.course_type?.code)
+                const baseColor = courseTypeColor(asCourseType(c.course_type?.code))
                 const s = statusStyle(c, hasHaupt, baseColor, t)
-                const isTentative = c.status === 'tentative'
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={c.id}
                     onClick={() => onClickCourse(c.id)}
+                    className={`atoll-cal__slot${c.status === 'cancelled' ? ' atoll-cal__slot--cancelled' : ''}`}
                     style={{
-                      background: s.prefix ? s.bg : 'var(--surface-strong)',
-                      borderLeft: `3px ${isTentative ? 'dashed' : 'solid'} ${s.border}`,
-                      borderRadius: 8,
-                      padding: '6px 8px',
-                      fontSize: 11,
-                      cursor: 'pointer',
-                      opacity: c.status === 'cancelled' ? 0.5 : 1,
-                      textDecoration: c.status === 'cancelled' ? 'line-through' : 'none',
+                      background: s.prefix ? s.bg : 'var(--bg-card)',
+                      borderLeft: `3px ${s.isTentative ? 'dashed' : 'solid'} ${s.border}`,
+                      color: s.prefix ? s.text : 'var(--text-primary)',
                     }}
                     title={s.tooltip || c.title}
                   >
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        fontSize: 11.5,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        color: s.prefix ? s.text : 'inherit',
-                      }}
-                    >
+                    <div className="atoll-cal__slot-title">
                       {s.prefix}{c.title}
                     </div>
-                    <div
-                      className="caption-2"
-                      style={{
-                        marginTop: 2,
-                        display: 'flex',
-                        gap: 6,
-                        alignItems: 'center',
-                      }}
-                    >
+                    <div className="atoll-cal__slot-meta">
                       <span
-                        style={{
-                          background: baseColor + '22',
-                          color: baseColor,
-                          padding: '0 6px',
-                          borderRadius: 4,
-                          fontWeight: 600,
-                          fontSize: 9.5,
-                        }}
+                        className="atoll-cal__slot-pill"
+                        style={{ background: `${baseColor}1f`, color: baseColor }}
                       >
                         {c.course_type?.code ?? '—'}
                       </span>
                       {isMultiDay && (
-                        <span style={{ fontSize: 9.5, color: 'var(--ink-3)' }}>
+                        <span className="atoll-cal__slot-multiday">
                           {t('calendar.day_of', { current: dayIndex + 1, total: allDates.length })}
                         </span>
                       )}
                     </div>
-                  </div>
+                  </button>
                 )
               })}
             </div>
@@ -324,6 +324,8 @@ function WeekView({
     </div>
   )
 }
+
+// ──────────────────────── Month view ────────────────────────
 
 function MonthView({
   anchor,
@@ -343,81 +345,90 @@ function MonthView({
   const start = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 })
   const end = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 })
   const days = eachDayOfInterval({ start, end })
-  // Header weekday labels — derive from a known Monday so they follow the active locale.
   const monday = startOfWeek(new Date(2024, 0, 1), { weekStartsOn: 1 })
-  const weekdays = Array.from({ length: 7 }, (_, i) => format(addDays(monday, i), 'EEEEEE', { locale: dfLocale }))
+  const weekdays = Array.from({ length: 7 }, (_, i) =>
+    format(addDays(monday, i), 'EEEEEE', { locale: dfLocale }),
+  )
 
   return (
-    <div className="glass card" style={{ padding: 0 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '0.5px solid var(--hairline)' }}>
+    <div className="atoll-cal__month">
+      <div className="atoll-cal__month-head">
         {weekdays.map((d) => (
-          <div key={d} style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 600, fontSize: 12 }}>
-            {d}
-          </div>
+          <div key={d} className="atoll-cal__weekday">{d}</div>
         ))}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+      <div className="atoll-cal__month-grid">
         {days.map((d) => {
           const dayCourses = coursesOnDay(courses, d)
           const inMonth = isSameMonth(d, anchor)
+          const isToday = isSameDay(d, new Date())
           return (
             <div
               key={d.toISOString()}
-              style={{
-                padding: 8,
-                minHeight: 110,
-                borderRight: '0.5px solid var(--separator)',
-                borderTop: '0.5px solid var(--separator)',
-                opacity: inMonth ? 1 : 0.4,
-                background: isSameDay(d, new Date()) ? 'var(--accent-soft)' : undefined,
-              }}
+              className={`atoll-cal__month-cell${inMonth ? '' : ' atoll-cal__month-cell--out'}${isToday ? ' atoll-cal__month-cell--today' : ''}`}
             >
-              <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 4 }}>
-                {format(d, 'd', { locale: dfLocale })}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div className="atoll-cal__month-day">{format(d, 'd', { locale: dfLocale })}</div>
+              <div className="atoll-cal__month-slots">
                 {dayCourses.slice(0, 4).map((c) => {
                   const isMultiDay = (c.additional_dates?.length ?? 0) > 0
                   const hasHaupt = hauptByCourse.has(c.id)
-                  const baseColor = colorForType(c.course_type?.code)
+                  const baseColor = courseTypeColor(asCourseType(c.course_type?.code))
                   const s = statusStyle(c, hasHaupt, baseColor, t)
-                  const isTentative = c.status === 'tentative'
                   const showBorder = !!s.prefix || isMultiDay
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={c.id}
                       onClick={() => onClickCourse(c.id)}
                       title={s.tooltip ? `${c.title} — ${s.tooltip}` : c.title}
+                      className={`atoll-cal__month-slot${c.status === 'cancelled' ? ' atoll-cal__slot--cancelled' : ''}`}
                       style={{
-                        fontSize: 10.5,
-                        padding: '2px 6px',
-                        borderRadius: 4,
-                        background: s.bg,
-                        color: s.text,
-                        cursor: 'pointer',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        fontWeight: 500,
-                        opacity: c.status === 'cancelled' ? 0.5 : 1,
-                        textDecoration: c.status === 'cancelled' ? 'line-through' : 'none',
+                        background: s.prefix ? s.bg : `${baseColor}1f`,
+                        color: s.prefix ? s.text : baseColor,
                         borderLeft: showBorder
-                          ? `2px ${isTentative ? 'dashed' : 'solid'} ${s.border}`
+                          ? `2px ${s.isTentative ? 'dashed' : 'solid'} ${s.border}`
                           : undefined,
                       }}
                     >
                       {s.prefix}{c.title}
-                    </div>
+                    </button>
                   )
                 })}
                 {dayCourses.length > 4 && (
-                  <div className="caption-2">{t('calendar.more_count', { count: dayCourses.length - 4 })}</div>
+                  <div className="atoll-cal__more">
+                    {t('calendar.more_count', { count: dayCourses.length - 4 })}
+                  </div>
                 )}
               </div>
             </div>
           )
         })}
       </div>
+    </div>
+  )
+}
+
+// ──────────────────────── Legend ────────────────────────
+
+function Legend({ t }: { t: (key: string) => string }) {
+  return (
+    <div className="atoll-cal__legend">
+      <span className="atoll-cal__legend-item">
+        <span className="atoll-cal__legend-chip atoll-cal__legend-chip--no-haupt" />
+        {t('calendar.legend_no_haupt')}
+      </span>
+      <span className="atoll-cal__legend-item">
+        <span className="atoll-cal__legend-chip atoll-cal__legend-chip--tentative" />
+        {t('calendar.legend_tentative')}
+      </span>
+      <span className="atoll-cal__legend-item atoll-cal__legend-item--cancelled">
+        <span className="atoll-cal__legend-chip atoll-cal__legend-chip--cancelled" />
+        {t('calendar.legend_cancelled')}
+      </span>
+      <span className="atoll-cal__legend-item">
+        <span className="atoll-cal__legend-chip atoll-cal__legend-chip--today" />
+        {t('calendar.legend_today')}
+      </span>
     </div>
   )
 }
