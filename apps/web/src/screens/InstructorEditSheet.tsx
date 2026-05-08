@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { initialsFromName } from '@/lib/format'
 
 const PADI_LEVELS = ['DM', 'AI', 'OWSI', 'MSDT', 'IDC Staff', 'MI', 'CD', 'Shop Staff', 'Andere'] as const
-const ROLES = ['instructor', 'dispatcher', 'owner'] as const
+const ROLES = ['instructor', 'dispatcher', 'cd', 'owner'] as const
 // Avatar color is derived from padi_level via Foundation `padiLevelColor()` —
 // no manual color picker any more.
 

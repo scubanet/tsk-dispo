@@ -1,18 +1,28 @@
+/**
+ * MySaldoScreen — Foundation-based rewrite (instructor view).
+ *
+ * Layout:
+ *   PageHeader
+ *   ┌─ Hero KpiCard: current balance + sub-stats (opening / payments / corr.) ─┐
+ *   ┌─ Movements list (expandable cards with breakdown table) ─────────────────┐
+ */
+
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { format } from 'date-fns'
-import { de, enGB } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
-import { Topbar } from '@/components/Topbar'
-import { Chip } from '@/components/Chip'
-import { EmptyState } from '@/components/EmptyState'
+import {
+  PageHeader,
+  EmptyState,
+  Pill,
+  Icon,
+  chf,
+  dateMedium,
+} from '@/foundation'
 import { fetchMyMovements, type MyMovement } from '@/lib/queries'
-import { chf } from '@/lib/format'
 import type { OutletCtx } from '@/layout/AppShell'
 
 export function MySaldoScreen() {
-  const { t, i18n } = useTranslation()
-  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
+  const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
   const [movements, setMovements] = useState<MyMovement[]>([])
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -24,14 +34,16 @@ export function MySaldoScreen() {
 
   if (!user.instructorId) {
     return (
-      <>
-        <Topbar title={t('nav.my_balance')} />
-        <EmptyState
-          icon="wallet"
-          title={t('my_balance.no_link_title')}
-          description={t('my_balance.no_link_desc')}
-        />
-      </>
+      <div className="atoll-screen">
+        <PageHeader title={t('nav.my_balance')} />
+        <div className="atoll-screen__body">
+          <EmptyState
+            icon={<Icon.Info size={20} />}
+            title={t('my_balance.no_link_title')}
+            body={t('my_balance.no_link_desc')}
+          />
+        </div>
+      </div>
     )
   }
 
@@ -47,127 +59,101 @@ export function MySaldoScreen() {
     .reduce((s, m) => s + Number(m.amount_chf), 0)
 
   return (
-    <>
-      <Topbar title={t('nav.my_balance')} subtitle={t('my_balance.movement_count', { count: movements.length })} />
+    <div className="atoll-screen">
+      <PageHeader
+        title={t('nav.my_balance')}
+        subtitle={t('my_balance.movement_count', { count: movements.length })}
+      />
 
-      <div className="screen-fade scroll" style={{ flex: 1, padding: '20px 24px 40px' }}>
-        <div className="tile-now" style={{ marginBottom: 16 }}>
-          <div
-            style={{
-              fontSize: 12,
-              opacity: 0.85,
-              letterSpacing: '.02em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-            }}
-          >
-            {t('my_balance.current_balance')}
-          </div>
-          <div
-            className="mono"
-            style={{
-              fontSize: 38,
-              fontWeight: 700,
-              marginTop: 8,
-              letterSpacing: '-.02em',
-              position: 'relative',
-              zIndex: 1,
-            }}
-          >
-            {chf(balance)}
-          </div>
-          <div style={{ display: 'flex', gap: 18, marginTop: 18, position: 'relative', zIndex: 1 }}>
+      <div className="atoll-screen__body">
+        {/* Hero balance — Foundation hero KPI variant. */}
+        <section className="atoll-mysaldo__hero">
+          <div className="atoll-mysaldo__hero-label">{t('my_balance.current_balance')}</div>
+          <div className="atoll-mysaldo__hero-value tabular-nums">{chf(balance)}</div>
+          <div className="atoll-mysaldo__hero-substats">
             <SubStat label={t('my_balance.opening')} value={chf(opening)} />
-            <Divider />
             <SubStat label={t('my_balance.payments')} value={chf(compTotal)} />
             {corrections !== 0 && (
-              <>
-                <Divider />
-                <SubStat label={t('my_balance.corrections')} value={chf(corrections)} />
-              </>
+              <SubStat label={t('my_balance.corrections')} value={chf(corrections)} />
             )}
           </div>
-        </div>
+        </section>
 
-        <div className="title-3" style={{ marginBottom: 8 }}>{t('my_balance.movements')}</div>
+        <h2 className="atoll-cockpit__card-title">{t('my_balance.movements')}</h2>
 
         {movements.length === 0 ? (
-          <EmptyState icon="wallet" title={t('my_balance.no_movements')} />
+          <EmptyState
+            icon={<Icon.Info size={20} />}
+            title={t('my_balance.no_movements')}
+          />
         ) : (
-          <div style={{ display: 'grid', gap: 6 }}>
+          <div className="atoll-mysaldo__list">
             {movements.map((m) => {
               const expanded = expandedId === m.id
               const negative = Number(m.amount_chf) < 0
+              const tone =
+                m.kind === 'vergütung' ? 'success' :
+                m.kind === 'übertrag' ? 'neutral' :
+                'warning'
               return (
-                <div
+                <button
                   key={m.id}
-                  className="glass-thin"
-                  style={{ padding: 12, borderRadius: 12, cursor: 'pointer' }}
+                  type="button"
+                  className="atoll-mysaldo__row"
                   onClick={() => setExpandedId(expanded ? null : m.id)}
+                  aria-expanded={expanded}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div className="atoll-mysaldo__row-head">
+                    <div className="atoll-mysaldo__row-main">
+                      <div className="atoll-mysaldo__row-desc">
                         {m.description || m.kind}
                       </div>
-                      <div className="caption-2" style={{ marginTop: 2, display: 'flex', gap: 8, alignItems: 'center' }}>
-                        {format(new Date(m.date), 'd. MMM yyyy', { locale: dfLocale })}
-                        <Chip tone={
-                          m.kind === 'vergütung' ? 'accent' :
-                          m.kind === 'übertrag'  ? 'neutral' : 'orange'
-                        }>
-                          {m.kind}
-                        </Chip>
+                      <div className="atoll-mysaldo__row-meta">
+                        <span className="tabular-nums">{dateMedium(m.date)}</span>
+                        <Pill tone={tone} size="sm">{m.kind}</Pill>
                       </div>
                     </div>
                     <div
-                      className="mono"
-                      style={{
-                        fontWeight: 600,
-                        color: negative ? '#FF3B30' : 'inherit',
-                      }}
+                      className={`atoll-mysaldo__row-amount tabular-nums${negative ? ' atoll-mysaldo__row-amount--neg' : ''}`}
                     >
                       {chf(m.amount_chf)}
                     </div>
                   </div>
 
                   {expanded && m.breakdown_json && (
-                    <div
-                      style={{
-                        marginTop: 12,
-                        padding: 12,
-                        background: 'rgba(0,0,0,.04)',
-                        borderRadius: 8,
-                      }}
-                    >
-                      <div className="caption-2" style={{ marginBottom: 6 }}>{t('my_balance.calculation')}</div>
+                    <div className="atoll-mysaldo__breakdown">
+                      <div className="atoll-mysaldo__breakdown-title">
+                        {t('my_balance.calculation')}
+                      </div>
                       <BreakdownTable breakdown={m.breakdown_json} t={t} />
                     </div>
                   )}
-                </div>
+                </button>
               )
             })}
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }
 
 function SubStat({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <div className="mono" style={{ fontSize: 18, fontWeight: 700 }}>{value}</div>
-      <div style={{ fontSize: 11, opacity: 0.85 }}>{label}</div>
+    <div className="atoll-mysaldo__substat">
+      <div className="atoll-mysaldo__substat-value tabular-nums">{value}</div>
+      <div className="atoll-mysaldo__substat-label">{label}</div>
     </div>
   )
 }
 
-function Divider() {
-  return <div style={{ width: 0.5, background: 'rgba(255,255,255,.3)' }} />
-}
-
-function BreakdownTable({ breakdown, t }: { breakdown: Record<string, unknown>; t: (key: string) => string }) {
+function BreakdownTable({
+  breakdown,
+  t,
+}: {
+  breakdown: Record<string, unknown>
+  t: (key: string) => string
+}) {
   const rows = [
     [t('my_balance.bd_course_type'), breakdown.course_type_code as string],
     [t('my_balance.bd_role'), breakdown.role as string],
@@ -181,12 +167,12 @@ function BreakdownTable({ breakdown, t }: { breakdown: Record<string, unknown>; 
   ].filter((r) => r[1] !== undefined && r[1] !== null && r[1] !== '')
 
   return (
-    <table style={{ fontSize: 12, width: '100%' }}>
+    <table className="atoll-mysaldo__breakdown-table">
       <tbody>
         {rows.map(([k, v]) => (
           <tr key={String(k)}>
-            <td className="caption" style={{ padding: '2px 0' }}>{String(k)}</td>
-            <td align="right" className="mono" style={{ padding: '2px 0' }}>{String(v)}</td>
+            <td>{String(k)}</td>
+            <td align="right" className="tabular-nums">{String(v)}</td>
           </tr>
         ))}
       </tbody>

@@ -1,21 +1,41 @@
+/**
+ * MyProfileScreen — Foundation-based rewrite (instructor view).
+ *
+ * Layout:
+ *   PageHeader
+ *   ┌─ Profile header card: Avatar + Name + level + email/phone + Edit ─┐
+ *   ┌─ BrevetsView (cert-first, when present) ─────────────────────────┐
+ *   ┌─ Skills card ─────────────────────────────────────────────────────┐
+ *   ┌─ Availability card with add button ───────────────────────────────┐
+ *
+ * Edit/Add sheets stay as legacy `Sheet` components — they are local to
+ * this screen and will get the Foundation Drawer treatment in a separate
+ * pass alongside the other Edit Sheets.
+ */
+
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { format } from 'date-fns'
-import { de, enGB } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
-import { Topbar } from '@/components/Topbar'
-import { Icon } from '@/components/Icon'
-import { Chip } from '@/components/Chip'
-import { Avatar } from '@/components/Avatar'
-import { EmptyState } from '@/components/EmptyState'
+import {
+  PageHeader,
+  EmptyState,
+  Avatar,
+  Pill,
+  Icon,
+  padiLevelColor,
+  dateMedium,
+  BrevetsView,
+} from '@/foundation'
 import { Sheet } from '@/components/Sheet'
 import { supabase } from '@/lib/supabase'
 import {
   fetchMySkills,
   fetchMyAvailability,
+  fetchCertifications,
   type MySkill,
   type AvailabilityRow,
 } from '@/lib/queries'
+import type { Certification } from '@/types/foundation'
 import type { OutletCtx } from '@/layout/AppShell'
 
 interface Profile {
@@ -23,16 +43,17 @@ interface Profile {
   initials: string
   color: string
   padi_level: string
+  padi_nr: string | null
   email: string | null
   phone: string | null
 }
 
-const inputStyle = {
+const sheetInputStyle = {
   padding: '8px 10px',
   borderRadius: 8,
-  border: '0.5px solid var(--hairline)',
-  background: 'var(--surface-strong)',
-  color: 'var(--ink)',
+  border: '1px solid var(--border-tertiary)',
+  background: 'var(--bg-card)',
+  color: 'var(--text-primary)',
   font: 'inherit',
   fontSize: 13.5,
   width: '100%',
@@ -44,6 +65,7 @@ export function MyProfileScreen() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [skills, setSkills] = useState<MySkill[]>([])
   const [availability, setAvailability] = useState<AvailabilityRow[]>([])
+  const [brevets, setBrevets] = useState<Certification[]>([])
   const [showAddAvail, setShowAddAvail] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
 
@@ -55,7 +77,7 @@ export function MyProfileScreen() {
     if (!user.instructorId) return
     supabase
       .from('instructors')
-      .select('name, initials, color, padi_level, email, phone')
+      .select('name, initials, color, padi_level, padi_nr, email, phone')
       .eq('id', user.instructorId)
       .single()
       .then(({ data }) => setProfile(data as Profile | null))
@@ -66,82 +88,116 @@ export function MyProfileScreen() {
     refetchProfile()
     fetchMySkills(user.instructorId).then(setSkills)
     refetchAvail()
+    fetchCertifications(user.instructorId).then(setBrevets)
   }, [user.instructorId])
 
   if (!user.instructorId) {
     return (
-      <>
-        <Topbar title={t('nav.my_profile')} />
-        <EmptyState
-          icon="tag"
-          title={t('my_profile.no_link_title')}
-          description={t('my_profile.no_link_desc')}
-        />
-      </>
+      <div className="atoll-screen">
+        <PageHeader title={t('nav.my_profile')} />
+        <div className="atoll-screen__body">
+          <EmptyState
+            icon={<Icon.User size={20} />}
+            title={t('my_profile.no_link_title')}
+            body={t('my_profile.no_link_desc')}
+          />
+        </div>
+      </div>
     )
   }
 
   if (!profile) {
     return (
-      <>
-        <Topbar title={t('nav.my_profile')} />
-        <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
-      </>
+      <div className="atoll-screen">
+        <PageHeader title={t('nav.my_profile')} />
+        <div className="atoll-screen__body">
+          <div className="atoll-cockpit__loading">{t('common.loading')}</div>
+        </div>
+      </div>
     )
   }
 
   return (
-    <>
-      <Topbar title={t('nav.my_profile')} />
+    <div className="atoll-screen">
+      <PageHeader title={t('nav.my_profile')} />
 
-      <div className="screen-fade scroll" style={{ flex: 1, padding: '20px 24px 40px' }}>
-        <div className="glass card" style={{ marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center' }}>
-          <Avatar initials={profile.initials} color={profile.color} size="lg" />
-          <div style={{ flex: 1 }}>
-            <div className="title-2">{profile.name}</div>
-            <div className="caption">{profile.padi_level}</div>
-            <div className="caption" style={{ marginTop: 4 }}>
-              {profile.email || '—'}{profile.phone ? ` · ${profile.phone}` : ''}
+      <div className="atoll-screen__body">
+        {/* Profile header */}
+        <section className="atoll-cockpit__card atoll-myprofile__head">
+          <Avatar
+            id={user.instructorId}
+            name={profile.name}
+            size="xl"
+            color={padiLevelColor(profile.padi_level)}
+          />
+          <div className="atoll-myprofile__head-main">
+            <div className="atoll-myprofile__name">{profile.name}</div>
+            <div className="atoll-myprofile__head-meta">
+              <Pill tone="pro" size="sm">{profile.padi_level}</Pill>
+              {profile.padi_nr && (
+                <span className="atoll-myprofile__padi-nr">PADI {profile.padi_nr}</span>
+              )}
+            </div>
+            <div className="atoll-myprofile__contact">
+              {[profile.email, profile.phone].filter(Boolean).join(' · ') || '—'}
             </div>
           </div>
-          <button className="btn-secondary btn" onClick={() => setShowEditProfile(true)}>
-            <Icon name="settings" size={14} /> {t('common.edit')}
+          <button
+            type="button"
+            className="atoll-btn"
+            onClick={() => setShowEditProfile(true)}
+          >
+            <Icon.Settings size={14} /> {t('common.edit')}
           </button>
-        </div>
+        </section>
 
-        <div className="glass card" style={{ marginBottom: 16 }}>
-          <div className="title-3" style={{ marginBottom: 12 }}>
-            {t('my_profile.my_skills')} <span className="caption">({skills.length})</span>
-          </div>
+        {/* Cert-first brevets */}
+        {brevets.length > 0 && (
+          <section className="atoll-cockpit__card">
+            <h2 className="atoll-cockpit__card-title">{t('student_detail.certifications')}</h2>
+            <BrevetsView certifications={brevets} />
+          </section>
+        )}
+
+        {/* Skills */}
+        <section className="atoll-cockpit__card">
+          <h2 className="atoll-cockpit__card-title">
+            {t('my_profile.my_skills')}{' '}
+            <span className="atoll-myprofile__count">({skills.length})</span>
+          </h2>
           {skills.length === 0 ? (
-            <div className="caption">{t('my_profile.no_skills')}</div>
+            <p className="atoll-cockpit__card-sub">{t('my_profile.no_skills')}</p>
           ) : (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {skills.map((s) => <Chip key={s.code} tone="accent">{s.label}</Chip>)}
+            <div className="atoll-myprofile__skills">
+              {skills.map((s) => (
+                <Pill key={s.code} tone="brand" size="sm">{s.label}</Pill>
+              ))}
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="glass card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div className="title-3">{t('my_profile.availability')}</div>
-            <button className="btn" onClick={() => setShowAddAvail(true)}>
-              <Icon name="plus" size={14} /> {t('my_profile.add_entry')}
+        {/* Availability */}
+        <section className="atoll-cockpit__card">
+          <div className="atoll-myprofile__avail-head">
+            <h2 className="atoll-cockpit__card-title">{t('my_profile.availability')}</h2>
+            <button
+              type="button"
+              className="atoll-btn atoll-btn--primary"
+              onClick={() => setShowAddAvail(true)}
+            >
+              <Icon.Plus size={14} /> {t('my_profile.add_entry')}
             </button>
           </div>
-
           {availability.length === 0 ? (
-            <div className="caption">
-              {t('my_profile.availability_hint')}
-            </div>
+            <p className="atoll-cockpit__card-sub">{t('my_profile.availability_hint')}</p>
           ) : (
-            <div style={{ display: 'grid', gap: 6 }}>
+            <div className="atoll-myprofile__avail-list">
               {availability.map((a) => (
                 <AvailabilityRowView key={a.id} row={a} onDeleted={refetchAvail} />
               ))}
             </div>
           )}
-        </div>
+        </section>
       </div>
 
       <AvailabilityAddSheet
@@ -158,9 +214,55 @@ export function MyProfileScreen() {
         instructorId={user.instructorId}
         currentEmail={profile.email}
       />
-    </>
+    </div>
   )
 }
+
+// ──────────────────────── Availability Row ────────────────────────
+
+function AvailabilityRowView({
+  row,
+  onDeleted,
+}: {
+  row: AvailabilityRow
+  onDeleted: () => void
+}) {
+  const { t } = useTranslation()
+  const tone =
+    row.kind === 'urlaub' ? 'brand' :
+    row.kind === 'abwesend' ? 'warning' :
+    'success'
+
+  async function del() {
+    if (!confirm(t('my_profile.confirm_delete', { kind: t(`my_profile.kind_${row.kind}`) }))) return
+    await supabase.from('availability').delete().eq('id', row.id)
+    onDeleted()
+  }
+
+  return (
+    <div className="atoll-myprofile__avail-row">
+      <Pill tone={tone} size="sm">{t(`my_profile.kind_${row.kind}`)}</Pill>
+      <div className="atoll-myprofile__avail-body">
+        <div className="atoll-myprofile__avail-date tabular-nums">
+          {dateMedium(row.from_date)}
+          {row.from_date !== row.to_date && ` – ${dateMedium(row.to_date)}`}
+        </div>
+        {row.note && <div className="atoll-myprofile__avail-note">{row.note}</div>}
+      </div>
+      <button
+        type="button"
+        className="atoll-iconbtn"
+        onClick={del}
+        title={t('common.delete')}
+        aria-label={t('common.delete')}
+      >
+        <Icon.Close size={14} />
+      </button>
+    </div>
+  )
+}
+
+// ──────────────────────── Profile Edit Sheet ────────────────────────
 
 function ProfileEditSheet({
   open, onClose, onSaved, instructorId, currentEmail,
@@ -203,17 +305,11 @@ function ProfileEditSheet({
   return (
     <Sheet open={open} onClose={onClose} title={t('my_profile.edit_title')}>
       <div style={{ display: 'grid', gap: 14 }}>
-        <div className="caption">
-          {t('my_profile.edit_hint')}
-        </div>
+        <div className="caption">{t('my_profile.edit_hint')}</div>
 
         <div>
           <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_email_fix')}</div>
-          <input
-            value={currentEmail ?? ''}
-            disabled
-            style={{ ...inputStyle, opacity: 0.5 }}
-          />
+          <input value={currentEmail ?? ''} disabled style={{ ...sheetInputStyle, opacity: 0.5 }} />
         </div>
 
         <div>
@@ -222,18 +318,21 @@ function ProfileEditSheet({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+41 79 123 45 67"
-            style={inputStyle}
+            style={sheetInputStyle}
           />
-          <div className="caption-2" style={{ marginTop: 4 }}>
-            {t('my_profile.phone_hint')}
-          </div>
+          <div className="caption-2" style={{ marginTop: 4 }}>{t('my_profile.phone_hint')}</div>
         </div>
 
         {error && <div className="chip chip-red">{error}</div>}
 
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
-          <button className="btn" onClick={save} disabled={saving} style={{ flex: 1 }}>
+          <button className="atoll-btn" onClick={onClose}>{t('common.cancel')}</button>
+          <button
+            className="atoll-btn atoll-btn--primary"
+            onClick={save}
+            disabled={saving}
+            style={{ flex: 1 }}
+          >
             {saving ? t('common.saving') : t('common.save')}
           </button>
         </div>
@@ -242,33 +341,7 @@ function ProfileEditSheet({
   )
 }
 
-function AvailabilityRowView({ row, onDeleted }: { row: AvailabilityRow; onDeleted: () => void }) {
-  const { t, i18n } = useTranslation()
-  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
-  const tone =
-    row.kind === 'urlaub'    ? 'accent' :
-    row.kind === 'abwesend'  ? 'orange' : 'green'
-  async function del() {
-    if (!confirm(t('my_profile.confirm_delete', { kind: t(`my_profile.kind_${row.kind}`) }))) return
-    await supabase.from('availability').delete().eq('id', row.id)
-    onDeleted()
-  }
-  return (
-    <div className="glass-thin" style={{ padding: 10, borderRadius: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
-      <Chip tone={tone}>{t(`my_profile.kind_${row.kind}`)}</Chip>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13 }}>
-          {format(new Date(row.from_date), 'd. MMM', { locale: dfLocale })}
-          {row.from_date !== row.to_date && ` – ${format(new Date(row.to_date), 'd. MMM yyyy', { locale: dfLocale })}`}
-        </div>
-        {row.note && <div className="caption-2" style={{ marginTop: 2 }}>{row.note}</div>}
-      </div>
-      <button className="btn-icon" onClick={del} title={t('common.delete')}>
-        <Icon name="x" size={14} />
-      </button>
-    </div>
-  )
-}
+// ──────────────────────── Availability Add Sheet ────────────────────────
 
 function AvailabilityAddSheet({
   open, onClose, onCreated, instructorId,
@@ -310,7 +383,11 @@ function AvailabilityAddSheet({
       <div style={{ display: 'grid', gap: 14 }}>
         <div>
           <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_kind')}</div>
-          <select value={kind} onChange={(e) => setKind(e.target.value as typeof kind)} style={inputStyle}>
+          <select
+            value={kind}
+            onChange={(e) => setKind(e.target.value as typeof kind)}
+            style={sheetInputStyle}
+          >
             <option value="urlaub">{t('my_profile.kind_urlaub')}</option>
             <option value="abwesend">{t('my_profile.kind_abwesend')}</option>
             <option value="verfügbar">{t('my_profile.kind_verfügbar_long')}</option>
@@ -323,7 +400,7 @@ function AvailabilityAddSheet({
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            style={inputStyle}
+            style={sheetInputStyle}
           />
         </div>
 
@@ -333,7 +410,7 @@ function AvailabilityAddSheet({
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            style={inputStyle}
+            style={sheetInputStyle}
           />
         </div>
 
@@ -343,13 +420,18 @@ function AvailabilityAddSheet({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder={t('my_profile.note_placeholder')}
-            style={inputStyle}
+            style={sheetInputStyle}
           />
         </div>
 
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
-          <button className="btn" onClick={save} disabled={saving} style={{ flex: 1 }}>
+          <button className="atoll-btn" onClick={onClose}>{t('common.cancel')}</button>
+          <button
+            className="atoll-btn atoll-btn--primary"
+            onClick={save}
+            disabled={saving}
+            style={{ flex: 1 }}
+          >
             {saving ? t('common.saving') : t('my_profile.add_entry')}
           </button>
         </div>

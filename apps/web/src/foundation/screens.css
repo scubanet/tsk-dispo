@@ -1350,3 +1350,228 @@
   color: var(--text-tertiary);
   font-style: italic;
 }
+
+/* ──────────────────────── My Saldo ──────────────────────── */
+
+.atoll-mysaldo__hero {
+  background: var(--brand-deep);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  color: #fff;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.atoll-mysaldo__hero-label {
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.atoll-mysaldo__hero-value {
+  font-size: 38px;
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-mysaldo__hero-substats {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.atoll-mysaldo__substat-value {
+  font-size: 18px;
+  font-weight: var(--weight-medium);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-mysaldo__substat-label {
+  font-size: var(--text-badge);
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.atoll-mysaldo__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.atoll-mysaldo__row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+.atoll-mysaldo__row:hover { border-color: var(--border-secondary); }
+
+.atoll-mysaldo__row-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.atoll-mysaldo__row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.atoll-mysaldo__row-desc {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-mysaldo__row-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-mysaldo__row-amount {
+  font-weight: var(--weight-medium);
+  font-feature-settings: "tnum" 1;
+}
+.atoll-mysaldo__row-amount--neg {
+  color: var(--brand-red);
+}
+
+.atoll-mysaldo__breakdown {
+  padding: 12px;
+  background: var(--bg-sand);
+  border-radius: var(--radius-sm);
+}
+
+.atoll-mysaldo__breakdown-title {
+  font-size: var(--text-badge);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+
+.atoll-mysaldo__breakdown-table {
+  width: 100%;
+  font-size: var(--text-meta);
+}
+.atoll-mysaldo__breakdown-table td {
+  padding: 2px 0;
+  color: var(--text-secondary);
+}
+
+/* ──────────────────────── My Profile ──────────────────────── */
+
+.atoll-myprofile__head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.atoll-myprofile__head-main {
+  flex: 1;
+  min-width: 200px;
+}
+
+.atoll-myprofile__name {
+  font-size: var(--text-h2);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.atoll-myprofile__head-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.atoll-myprofile__padi-nr {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-myprofile__contact {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.atoll-myprofile__count {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-weight: var(--weight-regular);
+}
+
+.atoll-myprofile__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.atoll-myprofile__avail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.atoll-myprofile__avail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.atoll-myprofile__avail-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-sand);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.atoll-myprofile__avail-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.atoll-myprofile__avail-date {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.atoll-myprofile__avail-note {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
