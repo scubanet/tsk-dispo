@@ -9,8 +9,12 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-right: 1px solid var(--border-tertiary);
+  /* No hard border-right — let the bg-color contrast carry the divide,
+     reinforced by a soft outward shadow that fades into the detail pane. */
   background: var(--bg-card);
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.025), 4px 0 12px rgba(0, 0, 0, 0.025);
+  position: relative;
+  z-index: 1;
 }
 
 .atoll-md__list-toolbar {
@@ -19,7 +23,18 @@
   z-index: 1;
   padding: var(--space-3);
   background: var(--bg-card);
-  border-bottom: 1px solid var(--border-tertiary);
+  /* Soft fade instead of a hard line under the toolbar */
+}
+
+.atoll-md__list-toolbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  height: 8px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.02), transparent);
 }
 
 .atoll-md__list-body {

@@ -1,7 +1,19 @@
 .atoll-pageheader {
   padding: var(--space-6) var(--space-6) var(--space-4);
-  border-bottom: 1px solid var(--border-tertiary);
+  /* Subtle fade-out instead of a hard border line */
   background: var(--bg-page);
+  position: relative;
+}
+
+.atoll-pageheader::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.025), transparent);
 }
 
 .atoll-pageheader__row {

@@ -62,9 +62,9 @@
   --text-tertiary: var(--brand-gray-60);
   --text-disabled: #B4B2A9;
 
-  --border-tertiary: rgba(0, 0, 0, 0.08);
-  --border-secondary: rgba(0, 0, 0, 0.15);
-  --border-primary: rgba(0, 0, 0, 0.25);
+  --border-tertiary: rgba(0, 0, 0, 0.045);   /* hairlines — barely visible */
+  --border-secondary: rgba(0, 0, 0, 0.10);
+  --border-primary: rgba(0, 0, 0, 0.18);
 
   /* Backwards-compat aliases for legacy components during migration.
      New components must use the semantic token names above. */
