@@ -1,0 +1,53 @@
+.atoll-filter-tabbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border-bottom: 1px solid var(--border-tertiary);
+  padding: 0;
+}
+
+.atoll-filter-tabbar__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  font-weight: var(--weight-regular);
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;       /* overlap container border */
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.atoll-filter-tabbar__tab:hover {
+  color: var(--text-primary);
+}
+
+.atoll-filter-tabbar__tab--active {
+  color: var(--brand-blue);
+  font-weight: var(--weight-medium);
+  border-bottom-color: var(--brand-blue);
+}
+
+.atoll-filter-tabbar__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  padding: 0 5px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: var(--text-badge);
+  font-weight: var(--weight-medium);
+}
+
+.atoll-filter-tabbar__tab--active .atoll-filter-tabbar__count {
+  background: var(--brand-blue-50);
+  color: var(--brand-blue-800);
+}

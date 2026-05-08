@@ -1,0 +1,35 @@
+.atoll-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.atoll-sort__label {
+  color: var(--text-tertiary);
+}
+
+.atoll-sort__select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  height: 32px;
+  padding: 0 28px 0 10px;
+  background-color: var(--bg-card);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235F5E5A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.atoll-sort__select:hover { border-color: var(--border-secondary); }
+.atoll-sort__select:focus-visible {
+  outline: none;
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 2px var(--brand-blue-50);
+}

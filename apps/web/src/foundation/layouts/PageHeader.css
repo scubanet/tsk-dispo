@@ -1,0 +1,41 @@
+.atoll-pageheader {
+  padding: var(--space-6) var(--space-6) var(--space-4);
+  border-bottom: 1px solid var(--border-tertiary);
+  background: var(--bg-page);
+}
+
+.atoll-pageheader__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.atoll-pageheader__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.atoll-pageheader__title {
+  margin: 0;
+  font-size: var(--text-h1);
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.atoll-pageheader__subtitle {
+  margin-top: 4px;
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+
+.atoll-pageheader__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.atoll-pageheader__below {
+  margin-top: var(--space-4);
+}

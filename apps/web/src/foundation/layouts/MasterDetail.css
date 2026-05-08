@@ -1,0 +1,51 @@
+.atoll-md {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100%;
+  background: var(--bg-page);
+}
+
+.atoll-md__list {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--border-tertiary);
+  background: var(--bg-card);
+}
+
+.atoll-md__list-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--space-3);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-tertiary);
+}
+
+.atoll-md__list-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.atoll-md__detail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg-page);
+}
+
+.atoll-md__detail-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.atoll-md__detail-body {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-6);
+}
+
+@media (max-width: 720px) {
+  .atoll-md { grid-template-columns: 1fr; }
+}

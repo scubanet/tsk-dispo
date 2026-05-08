@@ -1,0 +1,104 @@
+.atoll-drawer-root {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawer);
+  display: flex;
+}
+
+.atoll-drawer__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 44, 83, 0.32);    /* brand-deep at 32% */
+  animation: atoll-drawer-fade 160ms ease-out;
+}
+
+.atoll-drawer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 100%;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border-tertiary);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.08);
+  animation: atoll-drawer-slide-right 200ms ease-out;
+}
+
+.atoll-drawer--right {
+  margin-left: auto;
+}
+
+.atoll-drawer--left {
+  margin-right: auto;
+  border-left: none;
+  border-right: 1px solid var(--border-tertiary);
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.08);
+  animation-name: atoll-drawer-slide-left;
+}
+
+.atoll-drawer__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--border-tertiary);
+  flex-shrink: 0;
+}
+
+.atoll-drawer__title {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.atoll-drawer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.atoll-drawer__close:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.atoll-drawer__body {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-6);
+}
+
+.atoll-drawer__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: var(--space-3) var(--space-6);
+  border-top: 1px solid var(--border-tertiary);
+  flex-shrink: 0;
+  background: var(--bg-card);
+}
+
+@keyframes atoll-drawer-slide-right {
+  from { transform: translateX(8%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes atoll-drawer-slide-left {
+  from { transform: translateX(-8%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes atoll-drawer-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atoll-drawer,
+  .atoll-drawer__backdrop { animation: none; }
+}

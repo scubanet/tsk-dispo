@@ -1,0 +1,22 @@
+.atoll-kpigrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.atoll-kpigrid--gap-sm { gap: var(--space-2); }
+.atoll-kpigrid--gap-md { gap: var(--space-3); }
+.atoll-kpigrid--gap-lg { gap: var(--space-4); }
+
+.atoll-kpigrid--cols-2 { grid-template-columns: repeat(2, 1fr); }
+.atoll-kpigrid--cols-3 { grid-template-columns: repeat(3, 1fr); }
+.atoll-kpigrid--cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 720px) {
+  .atoll-kpigrid--cols-3,
+  .atoll-kpigrid--cols-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .atoll-kpigrid--cols-2,
+  .atoll-kpigrid--cols-3,
+  .atoll-kpigrid--cols-4 { grid-template-columns: 1fr; }
+}

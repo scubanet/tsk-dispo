@@ -1,0 +1,65 @@
+.atoll-touchpoint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.atoll-touchpoint__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.atoll-touchpoint__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.atoll-touchpoint__head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+}
+
+.atoll-touchpoint__when {
+  margin-left: auto;
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-touchpoint__summary {
+  font-size: var(--text-body);
+  line-height: 1.4;
+}
+
+.atoll-touchpoint__by {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+/* Channel tints */
+.atoll-touchpoint--mail .atoll-touchpoint__icon { background: var(--brand-blue-50); color: var(--brand-blue-800); }
+.atoll-touchpoint--phone .atoll-touchpoint__icon { background: var(--brand-purple-50); color: var(--brand-purple-800); }
+.atoll-touchpoint--whatsapp .atoll-touchpoint__icon { background: var(--brand-teal-50); color: var(--brand-teal-800); }
+.atoll-touchpoint--imessage .atoll-touchpoint__icon { background: var(--brand-blue-50); color: var(--brand-blue-800); }
+.atoll-touchpoint--note .atoll-touchpoint__icon { background: var(--bg-sand); color: var(--text-secondary); }
+
+.atoll-touchpoint--clickable { cursor: pointer; transition: border-color 120ms ease; }
+.atoll-touchpoint--clickable:hover { border-color: var(--border-secondary); }

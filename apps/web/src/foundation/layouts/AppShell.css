@@ -1,0 +1,25 @@
+.atoll-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: 100vh;
+  background: var(--bg-page);
+}
+
+.atoll-shell__sidebar {
+  background: var(--bg-sand);
+  border-right: 1px solid var(--border-tertiary);
+  z-index: var(--z-sidebar);
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.atoll-shell__main {
+  height: 100vh;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .atoll-shell { grid-template-columns: 1fr; }
+  .atoll-shell__sidebar { display: none; }
+}

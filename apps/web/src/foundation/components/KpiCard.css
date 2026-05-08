@@ -1,0 +1,97 @@
+.atoll-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  text-align: left;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.atoll-kpi__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+}
+
+.atoll-kpi__icon {
+  display: inline-flex;
+  align-items: center;
+  width: 14px;
+  height: 14px;
+}
+
+.atoll-kpi__label {
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0;
+}
+
+.atoll-kpi__value {
+  font-size: 28px;
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.atoll-kpi__sub {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+/* ───────── Hero ───────── */
+.atoll-kpi--hero {
+  background: var(--brand-deep);
+  border-radius: var(--radius-lg);
+  border-color: transparent;
+  padding: 18px 20px;
+  color: #fff;
+  box-shadow: var(--shadow-card);
+}
+.atoll-kpi--hero .atoll-kpi__head { color: rgba(255, 255, 255, 0.7); }
+.atoll-kpi--hero .atoll-kpi__sub { color: rgba(255, 255, 255, 0.7); }
+.atoll-kpi--hero .atoll-kpi__value {
+  font-size: 32px;
+  color: #fff;
+}
+
+/* ───────── Stat ───────── */
+.atoll-kpi--stat {
+  box-shadow: var(--shadow-card);
+}
+
+/* ───────── Alert ───────── */
+.atoll-kpi--alert {
+  box-shadow: var(--shadow-card);
+}
+.atoll-kpi--alert-warning {
+  background: var(--brand-amber-50);
+  border-color: var(--brand-amber-100);
+}
+.atoll-kpi--alert-warning .atoll-kpi__value { color: var(--brand-amber-800); }
+.atoll-kpi--alert-warning .atoll-kpi__head { color: var(--brand-amber-800); }
+
+.atoll-kpi--alert-danger {
+  background: var(--brand-red-50);
+  border-color: var(--brand-red-100);
+}
+.atoll-kpi--alert-danger .atoll-kpi__value { color: var(--brand-red-800); }
+.atoll-kpi--alert-danger .atoll-kpi__head { color: var(--brand-red-800); }
+
+/* ───────── Interactive ───────── */
+.atoll-kpi--clickable {
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.atoll-kpi--clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+.atoll-kpi--clickable:active {
+  transform: translateY(0);
+}

@@ -1,0 +1,64 @@
+.atoll-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.4;
+}
+
+.atoll-banner__icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.atoll-banner__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.atoll-banner__title {
+  font-weight: var(--weight-medium);
+  margin-bottom: 2px;
+}
+
+.atoll-banner__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.atoll-banner__close:hover { opacity: 1; }
+
+/* ───── Tones ───── */
+.atoll-banner--info {
+  background: var(--brand-blue-50);
+  border-color: var(--brand-blue-100);
+  color: var(--brand-blue-800);
+}
+.atoll-banner--warning {
+  background: var(--brand-amber-50);
+  border-color: var(--brand-amber-100);
+  color: var(--brand-amber-800);
+}
+.atoll-banner--danger {
+  background: var(--brand-red-50);
+  border-color: var(--brand-red-100);
+  color: var(--brand-red-800);
+}
+.atoll-banner--success {
+  background: var(--brand-teal-50);
+  border-color: var(--brand-teal-100);
+  color: var(--brand-teal-800);
+}

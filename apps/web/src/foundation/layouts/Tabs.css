@@ -1,0 +1,62 @@
+.atoll-tabs {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.atoll-tabs__strip {
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-tertiary);
+  height: 36px;
+}
+
+.atoll-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  font-weight: var(--weight-regular);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.atoll-tabs__tab:hover { color: var(--text-primary); }
+
+.atoll-tabs__tab--active {
+  color: var(--brand-blue);
+  font-weight: var(--weight-medium);
+  border-bottom-color: var(--brand-blue);
+}
+
+.atoll-tabs__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  padding: 0 5px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: var(--text-badge);
+  font-weight: var(--weight-medium);
+}
+
+.atoll-tabs__tab--active .atoll-tabs__count {
+  background: var(--brand-blue-50);
+  color: var(--brand-blue-800);
+}
+
+.atoll-tabs__panel {
+  flex: 1;
+  min-height: 0;
+}

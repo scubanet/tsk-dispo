@@ -1,0 +1,71 @@
+.atoll-checklist {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.atoll-checklist__indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-secondary);
+  background: var(--bg-card);
+  color: transparent;
+  flex-shrink: 0;
+}
+
+.atoll-checklist__label {
+  flex: 1;
+  min-width: 0;
+}
+
+.atoll-checklist__meta {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+}
+
+/* ───────── States ───────── */
+.atoll-checklist--done .atoll-checklist__indicator {
+  background: var(--brand-teal);
+  border-color: var(--brand-teal);
+  color: #fff;
+}
+
+.atoll-checklist--warning .atoll-checklist__indicator {
+  background: var(--brand-amber-50);
+  border-color: var(--brand-amber);
+  color: var(--brand-amber-800);
+}
+.atoll-checklist--warning .atoll-checklist__label {
+  color: var(--brand-amber-800);
+}
+
+.atoll-checklist--na {
+  color: var(--text-disabled);
+}
+.atoll-checklist--na .atoll-checklist__indicator {
+  background: var(--bg-tertiary);
+  border-color: var(--border-tertiary);
+}
+
+.atoll-checklist--clickable {
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.atoll-checklist--clickable:hover {
+  background: var(--bg-tertiary);
+}
