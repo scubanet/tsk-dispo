@@ -1,41 +1,163 @@
+/**
+ * ATOLL Design Tokens
+ *
+ * All tokens are CSS variables on :root. Components reference them via
+ * `var(--token-name)`. Never hardcode pixel values or colors.
+ *
+ * Three-radii rule: 6px / 10px / 14px. Nothing else.
+ * Two-weight rule: 400 / 500 only. Never 600/700.
+ * Sentence-case rule: small-caps reserved for section dividers ("PRO · KANDIDAT").
+ */
+
 :root {
-  --accent: #0A84FF;
-  --accent-soft: rgba(10, 132, 255, 0.12);
-  --bg: #f2f1ee;
-  --bg-deep: #e9e8e3;
-  --surface: rgba(255, 255, 255, 0.62);
-  --surface-strong: rgba(255, 255, 255, 0.84);
-  --surface-thin: rgba(255, 255, 255, 0.42);
-  --hairline: rgba(0, 0, 0, 0.08);
-  --hairline-strong: rgba(0, 0, 0, 0.14);
-  --ink: #1c1c1e;
-  --ink-2: rgba(28, 28, 30, 0.72);
-  --ink-3: rgba(28, 28, 30, 0.5);
-  --ink-4: rgba(28, 28, 30, 0.32);
-  --separator: rgba(60, 60, 67, 0.12);
-  --shadow-card:
-    0 1px 0 rgba(255,255,255,.6) inset,
-    0 12px 36px rgba(20, 30, 60, .08),
-    0 1px 2px rgba(20, 30, 60, .06);
-  --radius: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 26px;
+  /* ─────────────────────────── Brand colors ─────────────────────────── */
+  --brand-deep: #042C53;        /* Hero KPI bg, brand anchor */
+  --brand-blue: #185FA5;        /* Primary action, OWD/AOWD */
+  --brand-blue-50: #E6F1FB;
+  --brand-blue-100: #B5D4F4;
+  --brand-blue-800: #0C447C;
+  --brand-blue-900: #042C53;
+
+  --brand-teal: #1D9E75;        /* Success, Specialty, Rescue */
+  --brand-teal-50: #E1F5EE;
+  --brand-teal-100: #9FE1CB;
+  --brand-teal-800: #085041;
+
+  --brand-amber: #BA7517;       /* Warning, tentative, Anfänger */
+  --brand-amber-50: #FAEEDA;
+  --brand-amber-100: #FAC775;
+  --brand-amber-800: #633806;
+  --brand-amber-900: #412402;
+
+  --brand-red: #A32D2D;         /* Danger, blocked, neg. balance */
+  --brand-red-50: #FCEBEB;
+  --brand-red-100: #F7C1C1;
+  --brand-red-200: #F09595;
+  --brand-red-800: #791F1F;
+  --brand-red-900: #501313;
+
+  --brand-purple: #534AB7;      /* Pro/DM, telephone touchpoint */
+  --brand-purple-50: #EEEDFE;
+  --brand-purple-800: #3C3489;
+
+  --brand-pink: #D4537E;        /* Freedive, CD/OWSI/IDC level, SPEI */
+  --brand-pink-50: #FBEAF0;
+  --brand-pink-800: #72243E;
+
+  --brand-gray-60: #888780;     /* Neutrals, REAC/CXL, DM/Andere */
+  --brand-gray-80: #5F5E5A;
+
+  --brand-sand: #FAF9F4;        /* Sidebar, page bg */
+  --brand-sand-200: #F1EFE8;    /* Divider tint */
+
+  /* ───────────────────────── Semantic colors ────────────────────────── */
+  --bg-page: var(--brand-sand-200);
+  --bg-card: #FFFFFF;
+  --bg-sand: var(--brand-sand);
+  --bg-tertiary: var(--brand-sand-200);
+  --bg-today-tint: #F8FBFE;     /* Subtle blue for "heute" highlight */
+
+  --text-primary: #1A1A1A;
+  --text-secondary: #4A4A4A;
+  --text-tertiary: var(--brand-gray-60);
+  --text-disabled: #B4B2A9;
+
+  --border-tertiary: rgba(0, 0, 0, 0.08);
+  --border-secondary: rgba(0, 0, 0, 0.15);
+  --border-primary: rgba(0, 0, 0, 0.25);
+
+  /* Backwards-compat aliases for legacy components during migration.
+     New components must use the semantic token names above. */
+  --accent: var(--brand-blue);
+  --accent-soft: var(--brand-blue-50);
+  --bg: var(--bg-page);
+  --bg-deep: var(--bg-page);
+  --ink: var(--text-primary);
+  --ink-2: var(--text-secondary);
+  --ink-3: var(--text-tertiary);
+  --ink-4: var(--text-disabled);
+  --hairline: var(--border-tertiary);
+  --separator: var(--border-tertiary);
+  --surface-strong: var(--bg-card);
+
+  /* ─────────────────────────── Typography ───────────────────────────── */
+  --font-sans: "Inter", system-ui, -apple-system, "SF Pro Text", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+
+  /* Type scale — semantic, not bound to HTML tag */
+  --text-h1: 22px;        /* Page titles */
+  --text-h2: 18px;        /* Section headings */
+  --text-h3: 14px;        /* Section subheadings */
+  --text-body: 13px;
+  --text-label: 12px;     /* Buttons, labels */
+  --text-meta: 11px;      /* Helper text */
+  --text-small-caps: 10px;
+  --text-badge: 9px;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+
+  /* ───────────────────────────── Layout ─────────────────────────────── */
+  --radius-sm: 6px;       /* Badges, pills */
+  --radius-md: 10px;      /* KPI cards, list rows, default */
+  --radius-lg: 14px;      /* Large cards, modals, browser frame */
+
+  /* Spacing — rem-based for predictability */
+  --space-1: 0.25rem;     /* 4px */
+  --space-2: 0.5rem;      /* 8px */
+  --space-3: 0.75rem;     /* 12px */
+  --space-4: 1rem;        /* 16px */
+  --space-6: 1.5rem;      /* 24px */
+  --space-8: 2rem;        /* 32px */
+
+  /* Shadows — only soft elevation, no glow */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.02);
+  --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+
+  /* Z-index */
+  --z-sidebar: 10;
+  --z-drawer: 50;
+  --z-modal: 60;
+  --z-toast: 70;
 }
-.dark {
-  --bg: #000;
-  --bg-deep: #0a0a0c;
-  --surface: rgba(28, 28, 30, 0.55);
-  --surface-strong: rgba(36, 36, 38, 0.78);
-  --surface-thin: rgba(255, 255, 255, 0.06);
-  --hairline: rgba(255, 255, 255, 0.08);
-  --hairline-strong: rgba(255, 255, 255, 0.16);
-  --ink: #f5f5f7;
-  --ink-2: rgba(245, 245, 247, 0.72);
-  --ink-3: rgba(245, 245, 247, 0.5);
-  --ink-4: rgba(245, 245, 247, 0.32);
-  --separator: rgba(120, 120, 128, 0.32);
-  --shadow-card:
-    0 1px 0 rgba(255,255,255,.06) inset,
-    0 12px 36px rgba(0, 0, 0, .4),
-    0 1px 2px rgba(0, 0, 0, .3);
+
+/* ───────────────────────── Utility classes ──────────────────────────── */
+
+/**
+ * Tabular numbers — apply to ANY displayed number (counts, money, dates, %).
+ * Required by foundation rule.
+ */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/**
+ * Mono utility for code-style numbers (PADI numbers, IDs, etc.).
+ */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/**
+ * Small-caps section dividers — only place where ALL CAPS is allowed.
+ * Use sparingly for "PRO · KANDIDAT", "VERWALTUNG", "DIVER-BREVETS".
+ */
+.small-caps {
+  font-size: var(--text-small-caps);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* prefers-reduced-motion: kill all transitions */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
