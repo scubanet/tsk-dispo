@@ -214,3 +214,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ──────────────────────── Courses list toolbar ──────────────────────── */
+
+.atoll-courses__toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.atoll-courses__list {
+  display: flex;
+  flex-direction: column;
+}
+.atoll-courses__list > .atoll-courserow:last-child {
+  border-bottom: none;
+}
