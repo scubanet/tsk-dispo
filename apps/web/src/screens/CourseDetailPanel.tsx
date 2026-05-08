@@ -578,6 +578,7 @@ function PrTab({
   firstCourseDate: string
   onSaved: () => void
 }) {
+  const { t } = useTranslation()
   const [openSkill, setOpenSkill] = useState<{
     code: string
     title: string
@@ -589,7 +590,7 @@ function PrTab({
   if (!catalog) {
     return (
       <div className="caption" style={{ padding: 20 }}>
-        Lade PR-Katalog…
+        {t('pr_tab.loading_catalog')}
       </div>
     )
   }
@@ -628,11 +629,11 @@ function PrTab({
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700 }}>{catalog.data.title}</div>
           <div className="caption">
-            {catalog.course_type} · v{catalog.version} · {catalog.data.slots.length} Slots, {totalSkills} Skills
+            {catalog.course_type} · v{catalog.version} · {t('pr_tab.slots_skills', { slots: catalog.data.slots.length, skills: totalSkills })}
           </div>
           {catalog.course_type === 'DM' && (
             <div className="caption-2" style={{ marginTop: 6, opacity: 0.75 }}>
-              Hinweis: DM ist kein klassischer CD-Kurs — wird hier geführt um Kandidat:innen für den IDC anzuwerben.
+              {t('pr_tab.dm_hint')}
             </div>
           )}
         </div>
@@ -641,16 +642,16 @@ function PrTab({
       {/* Pre-Reqs */}
       {(catalog.data.prerequisites?.requiredCerts?.length || catalog.data.prerequisites?.requiredELearning) && (
         <div className="glass-thin" style={{ padding: 14, borderRadius: 12 }}>
-          <div className="caption-2" style={{ marginBottom: 6, opacity: 0.7 }}>VORAUSSETZUNGEN</div>
+          <div className="caption-2" style={{ marginBottom: 6, opacity: 0.7 }}>{t('pr_tab.prerequisites')}</div>
           <div style={{ display: 'grid', gap: 4, fontSize: 13 }}>
             {catalog.data.prerequisites?.minAge && (
-              <div>· Mindestalter {catalog.data.prerequisites.minAge}</div>
+              <div>· {t('pr_tab.min_age', { age: catalog.data.prerequisites.minAge })}</div>
             )}
             {catalog.data.prerequisites?.requiredCerts?.map((c) => (
               <div key={c.kind}>
                 · {c.kind}
-                {c.maxMonthsAgo ? ` (max. ${c.maxMonthsAgo} Mt. alt)` : ''}
-                {c.minMonthsAgo ? ` (min. ${c.minMonthsAgo} Mt. her)` : ''}
+                {c.maxMonthsAgo ? ` ${t('pr_tab.max_months_old', { count: c.maxMonthsAgo })}` : ''}
+                {c.minMonthsAgo ? ` ${t('pr_tab.min_months_ago', { count: c.minMonthsAgo })}` : ''}
                 {c.note ? ` — ${c.note}` : ''}
               </div>
             ))}
@@ -659,7 +660,7 @@ function PrTab({
                 · {catalog.data.prerequisites.requiredELearning.kind} eLearning
                 {catalog.data.prerequisites.requiredELearning.minProgressPercent !== undefined &&
                   ` (${catalog.data.prerequisites.requiredELearning.minProgressPercent}%)`}
-                {catalog.data.prerequisites.requiredELearning.examRequired && ' · Exam'}
+                {catalog.data.prerequisites.requiredELearning.examRequired && ` · ${t('pr_tab.exam')}`}
               </div>
             )}
           </div>
@@ -669,7 +670,7 @@ function PrTab({
       {/* Kandidaten-Coverage */}
       {cands.length > 0 && (
         <div>
-          <div className="title-3" style={{ marginBottom: 8 }}>Kandidaten · {cands.length}</div>
+          <div className="title-3" style={{ marginBottom: 8 }}>{t('pr_tab.candidates_count', { count: cands.length })}</div>
           <div style={{ display: 'grid', gap: 6 }}>
             {cands.map((c) => {
               const cov = coverageByStudent.get(c.student!.id) ?? { done: 0, inProg: 0, rem: 0 }
@@ -681,7 +682,7 @@ function PrTab({
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 500 }}>{c.student?.name}</div>
-                    <div className="caption-2">{cov.done}/{totalSkills} abgenommen ({pct}%) · {cov.inProg} laufend · {cov.rem} Remediation</div>
+                    <div className="caption-2">{t('pr_tab.coverage_summary', { done: cov.done, total: totalSkills, pct, in_progress: cov.inProg, remediation: cov.rem })}</div>
                   </div>
                   <div style={{ width: 100, height: 6, borderRadius: 3, background: 'rgba(255,255,255,.10)', overflow: 'hidden' }}>
                     <div style={{ width: `${pct}%`, height: '100%', background: pct >= 80 ? '#34C759' : pct >= 40 ? '#FFCC00' : '#FF9500' }} />
@@ -802,11 +803,11 @@ function PrTab({
                   </div>
                   <div className="caption-2">
                     {slot.code} · {slot.kind}
-                    {slot.scoreSchema === 'score1to5' && slot.passThreshold ? ` · Pass ≥ ${slot.passThreshold}/5` : ''}
-                    {slot.scoreSchema === 'score1to5_decimal' && slot.passThreshold ? ` · Pass ≥ ${slot.passThreshold.toFixed(2)}/5` : ''}
-                    {slot.scoreSchema === 'percent' && slot.passThreshold ? ` · Pass ≥ ${slot.passThreshold}%` : ''}
-                    {slot.scoreSchema === 'passFail' ? ' · Pass/Fail' : ''}
-                    {slot.minRequired ? ` · min. ${slot.minRequired}` : ''}
+                    {slot.scoreSchema === 'score1to5' && slot.passThreshold ? ` · ${t('pr_tab.pass_threshold_5', { value: slot.passThreshold })}` : ''}
+                    {slot.scoreSchema === 'score1to5_decimal' && slot.passThreshold ? ` · ${t('pr_tab.pass_threshold_5', { value: slot.passThreshold.toFixed(2) })}` : ''}
+                    {slot.scoreSchema === 'percent' && slot.passThreshold ? ` · ${t('pr_tab.pass_threshold_pct', { value: slot.passThreshold })}` : ''}
+                    {slot.scoreSchema === 'passFail' ? ` · ${t('pr_tab.pass_fail')}` : ''}
+                    {slot.minRequired ? ` · ${t('pr_tab.min_required', { count: slot.minRequired })}` : ''}
                   </div>
                 </div>
                 {slotTotal > 0 && (
@@ -824,7 +825,7 @@ function PrTab({
                     }}
                   >
                     {(isMinOnePassed || isMinOnePairPassed)
-                      ? (slotPassed ? '✓ Pass' : 'offen')
+                      ? (slotPassed ? t('pr_tab.pass_check') : t('pr_tab.open'))
                       : `${slotDone}/${slotTotal}`}
                   </div>
                 )}
@@ -883,7 +884,7 @@ function PrTab({
                         <span className="mono" style={{ opacity: 0.5, marginRight: 8, fontSize: 11 }}>{sk.code}</span>
                         {sk.title}
                         {sk.repeatable && (
-                          <span className="caption-2" style={{ marginLeft: 8, opacity: 0.6 }}>(repeatable)</span>
+                          <span className="caption-2" style={{ marginLeft: 8, opacity: 0.6 }}>{t('pr_tab.repeatable')}</span>
                         )}
                       </div>
                       {cands.length > 0 && (
@@ -954,13 +955,13 @@ function PrTab({
                           border: p.passed ? '0.5px solid rgba(52,199,89,.40)' : '0.5px dashed rgba(255,255,255,.20)',
                         }}
                       >
-                        <span style={{ fontWeight: 600 }}>Pärchen {p.group}</span>
+                        <span style={{ fontWeight: 600 }}>{t('pr_tab.pair_label', { group: p.group })}</span>
                         <span className="caption-2">
-                          Schnitt: {p.avg != null ? p.avg.toFixed(2) : '—'}
+                          {t('pr_tab.average')}: {p.avg != null ? p.avg.toFixed(2) : '—'}
                           {' / '}{(slot.pairAverageThreshold ?? 3.4).toFixed(2)}
                         </span>
                         <span style={{ marginLeft: 'auto', fontWeight: 600 }}>
-                          {p.passed ? '✓ Pass' : p.avg != null ? '⟲ unter Schnitt' : 'offen'}
+                          {p.passed ? t('pr_tab.pass_check') : p.avg != null ? t('pr_tab.below_average') : t('pr_tab.open')}
                         </span>
                       </div>
                     ))}
@@ -972,7 +973,7 @@ function PrTab({
       </div>
 
       <div className="caption-2" style={{ opacity: 0.5, padding: '8px 0' }}>
-        Tipp: Klick auf einen Skill zum Live Check-Off — Status, Score, Pass/Fail, Datum + Notiz pro Kandidat:in.
+        {t('pr_tab.tip_click')}
       </div>
 
       <PrCheckOffSheet

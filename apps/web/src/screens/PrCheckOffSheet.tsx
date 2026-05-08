@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
@@ -49,11 +50,11 @@ interface Props {
   defaultDate?: string
 }
 
-const STATUS_OPTIONS = [
-  { code: 'not_started', label: 'Offen',         tone: 'rgba(255,255,255,.10)' },
-  { code: 'in_progress', label: 'Laufend',       tone: 'rgba(255,204,0,.18)' },
-  { code: 'completed',   label: 'Abgenommen',    tone: 'rgba(52,199,89,.20)' },
-  { code: 'remediation', label: 'Remediation',   tone: 'rgba(255,69,58,.18)' },
+const STATUS_DEFS = [
+  { code: 'not_started', tone: 'rgba(255,255,255,.10)' },
+  { code: 'in_progress', tone: 'rgba(255,204,0,.18)' },
+  { code: 'completed',   tone: 'rgba(52,199,89,.20)' },
+  { code: 'remediation', tone: 'rgba(255,69,58,.18)' },
 ]
 
 export function PrCheckOffSheet({
@@ -66,6 +67,11 @@ export function PrCheckOffSheet({
   defaultAssessor,
   defaultDate,
 }: Props) {
+  const { t } = useTranslation()
+  const STATUS_OPTIONS = STATUS_DEFS.map((s) => ({
+    ...s,
+    label: t(`pr_checkoff.status_${s.code}`),
+  }))
   const [rows, setRows] = useState<Record<string, RowState>>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -196,7 +202,7 @@ export function PrCheckOffSheet({
   const dirtyCount = Object.values(rows).filter((r) => r.dirty).length
 
   return (
-    <Sheet open={open} onClose={onClose} title="PR Check-Off" width={640}>
+    <Sheet open={open} onClose={onClose} title={t('pr_checkoff.title')} width={640}>
       <div style={{ display: 'grid', gap: 14 }}>
         <div className="glass-thin" style={{ padding: 12, borderRadius: 12 }}>
           <div className="caption-2" style={{ opacity: 0.6, marginBottom: 4 }}>
@@ -204,16 +210,16 @@ export function PrCheckOffSheet({
           </div>
           <div style={{ fontWeight: 700, fontSize: 15 }}>{skill.title}</div>
           <div className="caption" style={{ marginTop: 4 }}>
-            Schema: {labelFor(skill.scoreSchema)}
-            {skill.scoreSchema === 'score1to5' && skill.passThreshold ? ` · Pass ≥ ${skill.passThreshold}/5` : ''}
-            {skill.scoreSchema === 'score1to5_decimal' && skill.passThreshold ? ` · Pass ≥ ${skill.passThreshold.toFixed(2)}/5` : ''}
-            {skill.scoreSchema === 'percent' && skill.passThreshold ? ` · Pass ≥ ${skill.passThreshold}%` : ''}
+            {t('pr_checkoff.schema')}: {labelFor(skill.scoreSchema, t)}
+            {skill.scoreSchema === 'score1to5' && skill.passThreshold ? ` · ${t('pr_tab.pass_threshold_5', { value: skill.passThreshold })}` : ''}
+            {skill.scoreSchema === 'score1to5_decimal' && skill.passThreshold ? ` · ${t('pr_tab.pass_threshold_5', { value: skill.passThreshold.toFixed(2) })}` : ''}
+            {skill.scoreSchema === 'percent' && skill.passThreshold ? ` · ${t('pr_tab.pass_threshold_pct', { value: skill.passThreshold })}` : ''}
           </div>
         </div>
 
         {cands.length === 0 ? (
           <div className="caption" style={{ padding: 20 }}>
-            Keine Kandidat:innen im Kurs — über den „Teilnehmer"-Tab erst Personen einschreiben.
+            {t('pr_checkoff.no_candidates')}
           </div>
         ) : (
           <div style={{ display: 'grid', gap: 10 }}>
@@ -232,7 +238,7 @@ export function PrCheckOffSheet({
                     </div>
                     <div style={{ fontWeight: 600, flex: 1 }}>{c.student!.name}</div>
                     {row.dirty && (
-                      <span className="caption-2" style={{ color: '#FFCC00' }}>· geändert</span>
+                      <span className="caption-2" style={{ color: '#FFCC00' }}>· {t('pr_checkoff.changed')}</span>
                     )}
                   </div>
 
@@ -262,15 +268,15 @@ export function PrCheckOffSheet({
                                 cursor: 'pointer',
                                 color: 'var(--ink)',
                               }}
-                              title={passes ? 'Pass' : 'unter Threshold → Remediation'}
+                              title={passes ? t('pr_checkoff.title_pass') : t('pr_checkoff.title_below_threshold')}
                             >
                               {n}
                             </button>
                           )
                         })}
                       </div>
-                      {row.status === 'completed' && <span className="caption-2" style={{ color: '#34C759' }}>✓ Abgenommen</span>}
-                      {row.status === 'remediation' && <span className="caption-2" style={{ color: '#FF9500' }}>⟲ Remediation</span>}
+                      {row.status === 'completed' && <span className="caption-2" style={{ color: '#34C759' }}>✓ {t('pr_checkoff.signed_off')}</span>}
+                      {row.status === 'remediation' && <span className="caption-2" style={{ color: '#FF9500' }}>⟲ {t('pr_checkoff.status_remediation')}</span>}
                       {row.score && (
                         <button
                           onClick={() => setScore(c.student!.id, '')}
@@ -285,7 +291,7 @@ export function PrCheckOffSheet({
                             cursor: 'pointer',
                           }}
                         >
-                          zurücksetzen
+                          {t('pr_checkoff.reset')}
                         </button>
                       )}
                     </div>
@@ -348,8 +354,8 @@ export function PrCheckOffSheet({
                         placeholder="0–100"
                       />
                       <span className="caption-2">%</span>
-                      {row.status === 'completed' && <span className="caption-2" style={{ color: '#34C759' }}>✓ Pass</span>}
-                      {row.status === 'remediation' && <span className="caption-2" style={{ color: '#FF9500' }}>⟲ unter Threshold</span>}
+                      {row.status === 'completed' && <span className="caption-2" style={{ color: '#34C759' }}>{t('pr_tab.pass_check')}</span>}
+                      {row.status === 'remediation' && <span className="caption-2" style={{ color: '#FF9500' }}>⟲ {t('pr_checkoff.below_threshold')}</span>}
                     </div>
                   )}
 
@@ -367,7 +373,7 @@ export function PrCheckOffSheet({
                           fontSize: 14,
                           cursor: 'pointer',
                         }}
-                      >✓ Pass</button>
+                      >{t('pr_tab.pass_check')}</button>
                       <button
                         onClick={() => setPass(c.student!.id, 'no')}
                         style={{
@@ -380,7 +386,7 @@ export function PrCheckOffSheet({
                           fontSize: 14,
                           cursor: 'pointer',
                         }}
-                      >✗ Fail</button>
+                      >{t('pr_checkoff.fail')}</button>
                     </div>
                   )}
 
@@ -405,7 +411,7 @@ export function PrCheckOffSheet({
                         style={{ width: 18, height: 18, cursor: 'pointer' }}
                       />
                       <span style={{ fontWeight: 600 }}>
-                        {row.status === 'completed' ? '✓ Erledigt' : 'als erledigt markieren'}
+                        {row.status === 'completed' ? t('pr_checkoff.done_check') : t('pr_checkoff.mark_done')}
                       </span>
                     </label>
                   )}
@@ -456,7 +462,7 @@ export function PrCheckOffSheet({
                         onChange={(e) => update(c.student!.id, { with_assistant: e.target.checked })}
                         style={{ cursor: 'pointer' }}
                       />
-                      Mit Assistent
+                      {t('pr_checkoff.with_assistant')}
                     </label>
                   )}
 
@@ -478,7 +484,7 @@ export function PrCheckOffSheet({
                       type="text"
                       value={row.notes}
                       onChange={(e) => update(c.student!.id, { notes: e.target.value })}
-                      placeholder="Notiz (optional)"
+                      placeholder={t('pr_checkoff.note_placeholder')}
                       style={{
                         padding: '6px 10px',
                         borderRadius: 8,
@@ -499,13 +505,13 @@ export function PrCheckOffSheet({
 
         <div style={{ display: 'flex', gap: 8, marginTop: 4, alignItems: 'center' }}>
           <span className="caption">
-            Assessor: <strong>{defaultAssessor}</strong> · {dirtyCount} Änderung{dirtyCount === 1 ? '' : 'en'}
+            {t('pr_checkoff.assessor')}: <strong>{defaultAssessor}</strong> · {t('pr_checkoff.changes_count', { count: dirtyCount })}
           </span>
           <button className="btn-secondary btn" onClick={onClose} style={{ marginLeft: 'auto' }}>
-            Abbrechen
+            {t('common.cancel')}
           </button>
           <button className="btn" onClick={save} disabled={saving || dirtyCount === 0}>
-            {saving ? 'Speichere…' : <><Icon name="check" size={12} /> Speichern</>}
+            {saving ? t('common.saving') : <><Icon name="check" size={12} /> {t('common.save')}</>}
           </button>
         </div>
       </div>
@@ -513,13 +519,13 @@ export function PrCheckOffSheet({
   )
 }
 
-function labelFor(s: ScoreSchema): string {
+function labelFor(s: ScoreSchema, t: (key: string) => string): string {
   switch (s) {
-    case 'score1to5':         return '1–5 Demonstration'
-    case 'score1to5_decimal': return '1.00–5.00 Lehrprobe'
-    case 'percent':           return 'Prozent'
-    case 'passFail':          return 'Pass / Fail'
-    case 'rubric':            return 'Rubric'
-    case 'done':              return 'Erledigt-Toggle'
+    case 'score1to5':         return t('pr_checkoff.schema_score1to5')
+    case 'score1to5_decimal': return t('pr_checkoff.schema_score1to5_decimal')
+    case 'percent':           return t('pr_checkoff.schema_percent')
+    case 'passFail':          return t('pr_checkoff.schema_passFail')
+    case 'rubric':            return t('pr_checkoff.schema_rubric')
+    case 'done':              return t('pr_checkoff.schema_done')
   }
 }
