@@ -1,6 +1,8 @@
 .atoll-md {
   display: grid;
   grid-template-columns: 320px 1fr;
+  flex: 1;            /* fill remaining space inside .atoll-screen__body */
+  min-height: 0;      /* allow children to use overflow: auto */
   height: 100%;
   background: var(--bg-page);
 }
@@ -40,6 +42,18 @@
 .atoll-md__list-body {
   flex: 1;
   min-height: 0;
+  overflow-y: auto;             /* scroll inner list when it overflows */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+}
+.atoll-md__list-body::-webkit-scrollbar { width: 8px; }
+.atoll-md__list-body::-webkit-scrollbar-track { background: transparent; }
+.atoll-md__list-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+}
+.atoll-md__list-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.28);
 }
 
 .atoll-md__detail {
@@ -59,6 +73,18 @@
   flex: 1;
   min-height: 0;
   padding: var(--space-6);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+}
+.atoll-md__detail-body::-webkit-scrollbar { width: 8px; }
+.atoll-md__detail-body::-webkit-scrollbar-track { background: transparent; }
+.atoll-md__detail-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+}
+.atoll-md__detail-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.28);
 }
 
 @media (max-width: 720px) {
