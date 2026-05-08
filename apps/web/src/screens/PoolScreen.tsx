@@ -1,10 +1,26 @@
+/**
+ * PoolScreen — Foundation-based rewrite.
+ *
+ * Layout:
+ *   PageHeader (Week navigator: ←  Heute  →)
+ *   ┌─ Card ──────────────────────────────────────────────────┐
+ *   │  Wochenplan-Tabelle (Pool-Location × Wochentag)         │
+ *   │   Slot-Zelle: bestätigt = teal, offen = amber           │
+ *   └─────────────────────────────────────────────────────────┘
+ *   ┌─ Legend + Summary ──────────────────────────────────────┐
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { addDays, format, startOfWeek, addWeeks, subWeeks } from 'date-fns'
-import { de, enGB } from 'date-fns/locale'
+import { addDays, startOfWeek, addWeeks, subWeeks } from 'date-fns'
 import { useTranslation } from 'react-i18next'
-import { Topbar } from '@/components/Topbar'
-import { Icon } from '@/components/Icon'
+import {
+  PageHeader,
+  Icon,
+  toISODate,
+  weekday,
+  dateShort,
+} from '@/foundation'
 import { supabase } from '@/lib/supabase'
 import { POOL_LOCATIONS, type PoolLocation } from '@/lib/queries'
 
@@ -24,10 +40,11 @@ interface PoolDateRow {
 }
 
 export function PoolScreen() {
-  const { t, i18n } = useTranslation()
-  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
+  const { t } = useTranslation()
   const navigate = useNavigate()
-  const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }))
+  const [weekStart, setWeekStart] = useState<Date>(() =>
+    startOfWeek(new Date(), { weekStartsOn: 1 }),
+  )
   const [rows, setRows] = useState<PoolDateRow[]>([])
 
   const days = useMemo(
@@ -36,8 +53,8 @@ export function PoolScreen() {
   )
 
   useEffect(() => {
-    const from = format(weekStart, 'yyyy-MM-dd')
-    const to = format(addDays(weekStart, 6), 'yyyy-MM-dd')
+    const from = toISODate(weekStart)
+    const to = toISODate(addDays(weekStart, 6))
     supabase
       .from('course_dates')
       .select(`
@@ -52,91 +69,90 @@ export function PoolScreen() {
       .then(({ data }) => setRows((data ?? []) as unknown as PoolDateRow[]))
   }, [weekStart])
 
-  return (
-    <>
-      <Topbar
-        title={t('nav.pool')}
-        subtitle={`KW ${format(weekStart, 'w')} · ${format(weekStart, 'd. MMM', { locale: dfLocale })} – ${format(addDays(weekStart, 6), 'd. MMM yyyy', { locale: dfLocale })}`}
-      >
-        <button className="btn-icon" onClick={() => setWeekStart((w) => subWeeks(w, 1))}>
-          <Icon name="chevron-left" size={14} />
-        </button>
-        <button className="btn-secondary btn" onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}>
-          {t('calendar.today')}
-        </button>
-        <button className="btn-icon" onClick={() => setWeekStart((w) => addWeeks(w, 1))}>
-          <Icon name="chevron-right" size={14} />
-        </button>
-      </Topbar>
+  const reservedCount = rows.filter((r) => r.pool_reserved).length
+  const openCount = rows.length - reservedCount
 
-      <div className="scroll" style={{ flex: 1, padding: 16, overflow: 'auto' }}>
-        <div className="glass card" style={{ padding: 0 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+  return (
+    <div className="atoll-screen">
+      <PageHeader
+        title={t('nav.pool')}
+        subtitle={`KW ${weekNumber(weekStart)} · ${dateShort(weekStart)} – ${dateShort(addDays(weekStart, 6))}`}
+        actions={
+          <div className="atoll-pool__nav">
+            <button
+              type="button"
+              className="atoll-iconbtn"
+              onClick={() => setWeekStart((w) => subWeeks(w, 1))}
+              aria-label={t('calendar.prev_week', 'Vorige Woche')}
+            >
+              <Icon.ChevronLeft size={14} />
+            </button>
+            <button
+              type="button"
+              className="atoll-btn"
+              onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+            >
+              {t('calendar.today')}
+            </button>
+            <button
+              type="button"
+              className="atoll-iconbtn"
+              onClick={() => setWeekStart((w) => addWeeks(w, 1))}
+              aria-label={t('calendar.next_week', 'Nächste Woche')}
+            >
+              <Icon.ChevronRight size={14} />
+            </button>
+          </div>
+        }
+      />
+
+      <div className="atoll-screen__body">
+        <section className="atoll-cockpit__card atoll-pool__card">
+          <table className="atoll-pool__table">
             <thead>
-              <tr style={{ borderBottom: '0.5px solid var(--hairline)' }}>
-                <th align="left" style={{ padding: '12px 16px', width: 110 }}></th>
+              <tr>
+                <th></th>
                 {days.map((d) => (
-                  <th key={d.toISOString()} align="center" style={{ padding: '12px 8px' }}>
-                    <div style={{ fontWeight: 600 }}>
-                      {format(d, 'EEE', { locale: dfLocale })}
-                    </div>
-                    <div className="caption">{format(d, 'd. MMM', { locale: dfLocale })}</div>
+                  <th key={d.toISOString()}>
+                    <div className="atoll-pool__day-name">{weekday(d)}</div>
+                    <div className="atoll-pool__day-date tabular-nums">{dateShort(d)}</div>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {POOL_LOCATIONS.map((loc) => (
-                <tr key={loc.value} style={{ borderTop: '0.5px solid var(--separator)' }}>
-                  <td style={{ padding: '12px 16px', verticalAlign: 'top', fontWeight: 500 }}>
-                    {loc.label}
-                  </td>
+                <tr key={loc.value}>
+                  <td className="atoll-pool__loc">{loc.label}</td>
                   {days.map((d) => {
-                    const dateStr = format(d, 'yyyy-MM-dd')
+                    const dateStr = toISODate(d)
                     const slots = rows.filter(
                       (r) => r.date === dateStr && r.pool_location === loc.value,
                     )
                     return (
-                      <td
-                        key={d.toISOString()}
-                        style={{
-                          padding: 6,
-                          verticalAlign: 'top',
-                          minHeight: 90,
-                          minWidth: 110,
-                        }}
-                      >
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          {slots.length === 0 ? (
-                            <div className="caption-2" style={{ color: 'var(--ink-4)' }}>—</div>
-                          ) : (
-                            slots.map((s) => (
-                              <div
+                      <td key={d.toISOString()} className="atoll-pool__cell">
+                        {slots.length === 0 ? (
+                          <span className="atoll-pool__empty">—</span>
+                        ) : (
+                          <div className="atoll-pool__slots">
+                            {slots.map((s) => (
+                              <button
                                 key={s.id}
+                                type="button"
+                                className={`atoll-pool__slot atoll-pool__slot--${s.pool_reserved ? 'reserved' : 'open'}`}
                                 onClick={() => s.course && navigate(`/kurse/${s.course.id}`)}
-                                style={{
-                                  cursor: 'pointer',
-                                  // Grün wenn Pool reserviert, Orange wenn noch offen
-                                  background: s.pool_reserved ? 'rgba(52,199,89,.22)' : 'rgba(255,149,0,.22)',
-                                  color: s.pool_reserved ? '#1c8b3c' : '#a04e00',
-                                  padding: '4px 6px',
-                                  borderRadius: 6,
-                                  fontSize: 11,
-                                  fontWeight: 600,
-                                  border: s.pool_reserved ? '0.5px solid rgba(52,199,89,.45)' : '0.5px dashed rgba(255,149,0,.55)',
-                                }}
                                 title={`${s.course?.title ?? ''} — ${s.pool_reserved ? t('pool.reserved') : t('pool.open')}`}
                               >
-                                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <span className="atoll-pool__slot-code">
                                   {s.course?.course_type?.code ?? '—'}
-                                </div>
-                                <div className="caption-2" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', opacity: 0.8 }}>
+                                </span>
+                                <span className="atoll-pool__slot-title">
                                   {s.course?.title ?? ''}
-                                </div>
-                              </div>
-                            ))
-                          )}
-                        </div>
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </td>
                     )
                   })}
@@ -144,24 +160,35 @@ export function PoolScreen() {
               ))}
             </tbody>
           </table>
-        </div>
+        </section>
 
-        <div style={{ marginTop: 12, padding: '0 4px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span className="caption">
+        <div className="atoll-pool__legend">
+          <span className="atoll-pool__summary">
             {t('pool.summary', {
               total: rows.length,
-              reserved: rows.filter((r) => r.pool_reserved).length,
-              open: rows.filter((r) => !r.pool_reserved).length,
+              reserved: reservedCount,
+              open: openCount,
             })}
           </span>
-          <span className="caption-2" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(52,199,89,.40)', border: '0.5px solid rgba(52,199,89,.6)' }} /> {t('pool.legend_reserved')}
+          <span className="atoll-pool__legend-item">
+            <span className="atoll-pool__chip atoll-pool__chip--reserved" />
+            {t('pool.legend_reserved')}
           </span>
-          <span className="caption-2" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(255,149,0,.40)', border: '0.5px dashed rgba(255,149,0,.6)' }} /> {t('pool.legend_open')}
+          <span className="atoll-pool__legend-item">
+            <span className="atoll-pool__chip atoll-pool__chip--open" />
+            {t('pool.legend_open')}
           </span>
         </div>
       </div>
-    </>
+    </div>
   )
+}
+
+/** ISO 8601 week number. */
+function weekNumber(d: Date): number {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+  const dayNum = date.getUTCDay() || 7
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum)
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
+  return Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
 }

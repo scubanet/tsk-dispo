@@ -488,3 +488,147 @@
   color: var(--brand-red);
   font-weight: var(--weight-medium);
 }
+
+/* ──────────────────────── Pool ──────────────────────── */
+
+.atoll-pool__nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.atoll-pool__card {
+  padding: 0;
+}
+
+.atoll-pool__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+}
+
+.atoll-pool__table thead th {
+  padding: var(--space-3) var(--space-2);
+  font-weight: var(--weight-medium);
+  border-bottom: 1px solid var(--border-tertiary);
+  text-align: center;
+}
+.atoll-pool__table thead th:first-child {
+  width: 110px;
+  text-align: left;
+}
+
+.atoll-pool__day-name {
+  font-size: var(--text-label);
+  color: var(--text-primary);
+}
+.atoll-pool__day-date {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-pool__loc {
+  padding: var(--space-3) var(--space-4);
+  vertical-align: top;
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  border-top: 1px solid var(--border-tertiary);
+}
+
+.atoll-pool__cell {
+  padding: 6px;
+  vertical-align: top;
+  min-width: 110px;
+  border-top: 1px solid var(--border-tertiary);
+}
+
+.atoll-pool__slots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.atoll-pool__empty {
+  display: inline-block;
+  color: var(--text-disabled);
+  font-size: var(--text-meta);
+  padding: 4px 6px;
+}
+
+.atoll-pool__slot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  text-align: left;
+  cursor: pointer;
+  transition: filter 120ms ease;
+}
+.atoll-pool__slot:hover { filter: brightness(0.95); }
+
+.atoll-pool__slot--reserved {
+  background: var(--brand-teal-50);
+  color: var(--brand-teal-800);
+  border: 1px solid var(--brand-teal-100);
+}
+
+.atoll-pool__slot--open {
+  background: var(--brand-amber-50);
+  color: var(--brand-amber-800);
+  border: 1px dashed var(--brand-amber-100);
+}
+
+.atoll-pool__slot-code {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-meta);
+}
+.atoll-pool__slot-title {
+  font-size: var(--text-badge);
+  font-weight: var(--weight-regular);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-pool__legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 4px;
+  flex-wrap: wrap;
+}
+
+.atoll-pool__summary {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-pool__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+}
+
+.atoll-pool__chip {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.atoll-pool__chip--reserved {
+  background: var(--brand-teal-50);
+  border: 1px solid var(--brand-teal-100);
+}
+.atoll-pool__chip--open {
+  background: var(--brand-amber-50);
+  border: 1px dashed var(--brand-amber-100);
+}
