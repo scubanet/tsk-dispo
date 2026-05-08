@@ -24,6 +24,7 @@ import {
   Avatar,
   Icon,
   chf,
+  padiLevelColor,
 } from '@/foundation'
 import { supabase } from '@/lib/supabase'
 import type { OutletCtx } from '@/layout/AppShell'
@@ -134,7 +135,12 @@ export function InstructorsScreen() {
                       className={`atoll-people-row${id === r.id ? ' atoll-people-row--active' : ''}`}
                       onClick={() => navigate(`/tldm/${r.id}`)}
                     >
-                      <Avatar id={r.id} name={r.name} size="sm" />
+                      <Avatar
+                        id={r.id}
+                        name={r.name}
+                        size="sm"
+                        color={padiLevelColor(r.padi_level)}
+                      />
                       <div className="atoll-people-row__main">
                         <div className="atoll-people-row__name">
                           {r.name}

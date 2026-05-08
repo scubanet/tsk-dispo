@@ -2,16 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { Avatar } from '@/components/Avatar'
+import { Avatar, padiLevelColor } from '@/foundation'
 import { supabase } from '@/lib/supabase'
 import { initialsFromName } from '@/lib/format'
 
 const PADI_LEVELS = ['DM', 'AI', 'OWSI', 'MSDT', 'IDC Staff', 'MI', 'CD', 'Shop Staff', 'Andere'] as const
 const ROLES = ['instructor', 'dispatcher', 'owner'] as const
-const COLORS = [
-  '#0A84FF', '#30B0C7', '#34C759', '#AF52DE', '#FF9500',
-  '#FF3B30', '#5856D6', '#FF2D55', '#A2845E', '#5AC8FA',
-]
+// Avatar color is derived from padi_level via Foundation `padiLevelColor()` —
+// no manual color picker any more.
 
 const inputStyle = {
   padding: '8px 10px',
@@ -227,12 +225,13 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
         <div className="caption">{t('common.loading')}</div>
       ) : (
         <div style={{ display: 'grid', gap: 14 }}>
-          {/* Avatar preview */}
+          {/* Avatar preview — color follows padi_level automatically. */}
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <Avatar
-              initials={form.initials || initialsFromName(`${form.first_name} ${form.last_name}`.trim())}
-              color={form.color}
+              id={instructorId ?? 'preview'}
+              name={`${form.first_name} ${form.last_name}`.trim() || '—'}
               size="lg"
+              color={padiLevelColor(form.padi_level)}
             />
             <div className="caption">{t('instructor_edit.avatar_preview')}</div>
           </div>
@@ -286,24 +285,6 @@ export function InstructorEditSheet({ instructorId, open, onClose, onSaved, curr
               placeholder="123456"
               style={inputStyle}
             />
-          </Field>
-
-          <Field label={t('instructor_edit.label_avatar_color')}>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {COLORS.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => set('color', c)}
-                  type="button"
-                  style={{
-                    width: 28, height: 28, borderRadius: 999,
-                    border: 0, background: c, cursor: 'pointer',
-                    outline: form.color === c ? '2px solid var(--ink)' : 'none',
-                    outlineOffset: 2,
-                  }}
-                />
-              ))}
-            </div>
           </Field>
 
           <Field label={t('student_edit.label_email')}>

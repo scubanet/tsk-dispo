@@ -75,17 +75,40 @@ export function courseTypeColor(course: CourseType): string {
 
 import type { ProTier } from '@/types/foundation'
 
+/**
+ * Pure cert-first pro-tier color (CD / MI / IDC Staff / OWSI / DM / null).
+ * Hierarchy goes pink → purple → blue-800 → blue → teal → gray.
+ */
 export function proTierColor(tier: ProTier): string {
   switch (tier) {
-    case 'CD':
-    case 'MI':
-      return 'var(--brand-pink)'
-    case 'IDC Staff':
+    case 'CD': return 'var(--brand-pink)'
+    case 'MI': return 'var(--brand-purple)'
+    case 'IDC Staff': return 'var(--brand-blue-800)'
+    case 'OWSI': return 'var(--brand-blue)'
+    case 'DM': return 'var(--brand-teal)'
+    default: return 'var(--brand-gray-60)'
+  }
+}
+
+/**
+ * Legacy padi_level string → avatar color.
+ * Handles all values used in the `instructors.padi_level` column:
+ *   CD, MI, IDC Staff, OWSI, MSDT, AI, DM, Shop Staff, Andere
+ *
+ * MSDT / AI both collapse to OWSI-blue (in cert-first they're OWSIs).
+ * Shop Staff gets amber to distinguish from Andere (gray).
+ */
+export function padiLevelColor(level: string | null | undefined): string {
+  switch (level) {
+    case 'CD': return 'var(--brand-pink)'
+    case 'MI': return 'var(--brand-purple)'
+    case 'IDC Staff': return 'var(--brand-blue-800)'
     case 'OWSI':
-      return 'var(--brand-purple)'
-    case 'DM':
-      return 'var(--brand-purple-50)'
-    default:
-      return 'var(--brand-gray-60)'
+    case 'MSDT':
+    case 'AI':
+      return 'var(--brand-blue)'
+    case 'DM': return 'var(--brand-teal)'
+    case 'Shop Staff': return 'var(--brand-amber)'
+    default: return 'var(--brand-gray-80)'   // 'Andere' or unknown
   }
 }

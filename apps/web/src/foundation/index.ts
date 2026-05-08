@@ -55,7 +55,7 @@ export {
   DEFAULT_RATES,
   type CompensationInput,
 } from './lib/compensation'
-export { avatarColor, courseTypeColor, proTierColor, AVATAR_PALETTE } from './lib/colors'
+export { avatarColor, courseTypeColor, proTierColor, padiLevelColor, AVATAR_PALETTE } from './lib/colors'
 export {
   dateShort,
   dateMedium,

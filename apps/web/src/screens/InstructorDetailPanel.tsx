@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { format } from 'date-fns'
 import { de, enGB } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
-import { Avatar } from '@/foundation'
+import { Avatar, padiLevelColor } from '@/foundation'
 import { Chip } from '@/components/Chip'
 import { Icon } from '@/components/Icon'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
@@ -128,7 +128,12 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
   return (
     <div className="screen-fade" style={{ padding: '20px 24px 40px' }}>
       <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
-        <Avatar id={instructorId} name={inst.name} size="lg" />
+        <Avatar
+          id={instructorId}
+          name={inst.name}
+          size="lg"
+          color={padiLevelColor(inst.padi_level)}
+        />
         <div style={{ flex: 1 }}>
           <div className="title-1">{inst.name}</div>
           <div className="caption">
