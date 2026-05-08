@@ -1,13 +1,31 @@
+/**
+ * InstructorsScreen — Foundation-based rewrite (Tag 6 cutover).
+ *
+ * Layout:
+ *   PageHeader (search + "+New" action for dispatchers/CDs)
+ *   ┌─ MasterDetail ─────────────────────────────────────────┐
+ *   │  ListPane (320px)            │  DetailPane              │
+ *   │   list rows                  │   InstructorDetailPanel  │
+ *   │     Avatar + Name + Level    │     (legacy, stays)      │
+ *   │     Balance (CHF, red < 0)   │                          │
+ *   └────────────────────────────────────────────────────────┘
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
-import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
-import { Topbar } from '@/components/Topbar'
-import { Icon } from '@/components/Icon'
-import { Avatar } from '@/components/Avatar'
-import { EmptyState } from '@/components/EmptyState'
+import {
+  PageHeader,
+  MasterDetail,
+  ListPane,
+  DetailPane,
+  SearchInput,
+  EmptyState,
+  Avatar,
+  Icon,
+  chf,
+} from '@/foundation'
 import { supabase } from '@/lib/supabase'
-import { chf } from '@/lib/format'
 import type { OutletCtx } from '@/layout/AppShell'
 import { InstructorDetailPanel } from './InstructorDetailPanel'
 import { InstructorEditSheet } from './InstructorEditSheet'
@@ -16,8 +34,6 @@ interface Row {
   id: string
   name: string
   padi_level: string
-  initials: string
-  color: string
   email: string | null
   active: boolean
   balance_chf: number
@@ -36,93 +52,121 @@ export function InstructorsScreen() {
     Promise.all([
       supabase
         .from('instructors')
-        .select('id, name, padi_level, initials, color, email, active')
+        .select('id, name, padi_level, email, active')
         .order('last_name')
         .order('first_name'),
       supabase.from('v_instructor_balance').select('instructor_id, balance_chf'),
     ]).then(([i, b]) => {
       const balanceMap = new Map<string, number>()
-      ;(b.data ?? []).forEach((row: any) =>
+      ;(b.data ?? []).forEach((row: { instructor_id: string; balance_chf: number | string }) =>
         balanceMap.set(row.instructor_id, Number(row.balance_chf ?? 0)),
       )
       setRows(
-        (i.data ?? []).map((d: any) => ({
-          ...d,
-          balance_chf: balanceMap.get(d.id) ?? 0,
-        })) as Row[],
+        (i.data ?? []).map((d) => ({
+          ...(d as Omit<Row, 'balance_chf'>),
+          balance_chf: balanceMap.get((d as { id: string }).id) ?? 0,
+        })),
       )
     })
   }
 
-  useEffect(() => { refetch() }, [])
+  useEffect(() => {
+    refetch()
+  }, [])
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {
       if (!search) return true
+      const q = search.toLowerCase()
       return (
-        r.name.toLowerCase().includes(search.toLowerCase()) ||
-        r.padi_level.toLowerCase().includes(search.toLowerCase())
+        r.name.toLowerCase().includes(q) ||
+        (r.padi_level ?? '').toLowerCase().includes(q) ||
+        (r.email ?? '').toLowerCase().includes(q)
       )
     })
   }, [rows, search])
 
-  const selected = rows.find((r) => r.id === id)
-  const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
+  const isDispatcher =
+    user.role === 'dispatcher' || user.role === 'cd' || user.role === 'owner'
 
   return (
-    <>
-      <Topbar title={t('nav.tldm')} subtitle={t('instructors.count', { count: rows.length })}>
-        <div className="search" style={{ width: 220 }}>
-          <Icon name="search" size={14} />
-          <input
-            placeholder={t('common.search') + '…'}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        {isDispatcher && (
-          <button className="btn" onClick={() => setCreateOpen(true)}>
-            <Icon name="plus" size={14} /> {t('courses.new')}
-          </button>
-        )}
-      </Topbar>
-
-      <div className="master-detail">
-        <div className="master">
-          {filtered.map((r) => (
-            <div
-              key={r.id}
-              className={clsx('list-row', selected?.id === r.id && 'selected')}
-              onClick={() => navigate(`/tldm/${r.id}`)}
-              style={{ padding: '12px 16px' }}
-            >
-              <Avatar initials={r.initials} color={r.color} size="sm" />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 500, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {r.name}
-                </div>
-                <div className="caption">{r.padi_level}</div>
-              </div>
-              <div
-                className="mono"
-                style={{
-                  fontSize: 12,
-                  color: r.balance_chf < 0 ? '#FF3B30' : 'var(--ink-2)',
-                }}
+    <div className="atoll-screen">
+      <PageHeader
+        title={t('nav.tldm')}
+        subtitle={t('instructors.count', { count: rows.length })}
+        actions={
+          <>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              ariaLabel={t('common.search')}
+              placeholder={t('common.search') + '…'}
+            />
+            {isDispatcher && (
+              <button
+                type="button"
+                className="atoll-btn atoll-btn--primary"
+                onClick={() => setCreateOpen(true)}
               >
-                {chf(r.balance_chf)}
-              </div>
-            </div>
-          ))}
-        </div>
+                <Icon.Plus size={14} /> {t('courses.new')}
+              </button>
+            )}
+          </>
+        }
+      />
 
-        <div className="detail">
-          {selected ? (
-            <InstructorDetailPanel instructorId={selected.id} key={selected.id} />
-          ) : (
-            <EmptyState icon="users" title={t('people.pick_person')} />
-          )}
-        </div>
+      <div className="atoll-screen__body atoll-screen__body--full">
+        <MasterDetail>
+          <ListPane>
+            {filtered.length === 0 ? (
+              <EmptyState
+                icon={<Icon.Users size={20} />}
+                title={t('courses.no_matches')}
+              />
+            ) : (
+              <ul className="atoll-people-list">
+                {filtered.map((r) => (
+                  <li key={r.id}>
+                    <button
+                      type="button"
+                      className={`atoll-people-row${id === r.id ? ' atoll-people-row--active' : ''}`}
+                      onClick={() => navigate(`/tldm/${r.id}`)}
+                    >
+                      <Avatar id={r.id} name={r.name} size="sm" />
+                      <div className="atoll-people-row__main">
+                        <div className="atoll-people-row__name">
+                          {r.name}
+                          {!r.active && (
+                            <span className="atoll-instructors-row__inactive">{t('common.inactive', 'inaktiv')}</span>
+                          )}
+                        </div>
+                        <div className="atoll-people-row__sub">
+                          {r.padi_level || '—'}
+                        </div>
+                      </div>
+                      <span
+                        className={`atoll-instructors-row__balance tabular-nums${r.balance_chf < 0 ? ' atoll-instructors-row__balance--neg' : ''}`}
+                      >
+                        {chf(r.balance_chf)}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ListPane>
+
+          <DetailPane>
+            {id ? (
+              <InstructorDetailPanel instructorId={id} key={id} />
+            ) : (
+              <EmptyState
+                icon={<Icon.Users size={20} />}
+                title={t('people.pick_person')}
+              />
+            )}
+          </DetailPane>
+        </MasterDetail>
       </div>
 
       <InstructorEditSheet
@@ -135,6 +179,6 @@ export function InstructorsScreen() {
         }}
         currentUserAuthId={user.authUserId}
       />
-    </>
+    </div>
   )
 }

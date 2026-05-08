@@ -215,6 +215,34 @@
   text-overflow: ellipsis;
 }
 
+/* ──────────────────────── Instructors list ──────────────────────── */
+
+.atoll-instructors-row__inactive {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 5px;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: var(--text-badge);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-sm);
+  vertical-align: middle;
+}
+
+.atoll-instructors-row__balance {
+  font-size: var(--text-meta);
+  font-feature-settings: "tnum" 1;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.atoll-instructors-row__balance--neg {
+  color: var(--brand-red);
+}
+
 /* ──────────────────────── Courses list toolbar ──────────────────────── */
 
 .atoll-courses__toolbar {

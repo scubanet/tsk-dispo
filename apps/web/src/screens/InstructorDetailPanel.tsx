@@ -14,6 +14,9 @@ import { waDirectUrl, tplDirect } from '@/lib/whatsapp'
 import type { OutletCtx } from '@/layout/AppShell'
 import { InstructorEditSheet } from './InstructorEditSheet'
 import { CorrectionSheet } from './CorrectionSheet'
+import { BrevetsView } from '@/foundation'
+import { fetchCertifications } from '@/lib/queries'
+import type { Certification } from '@/types/foundation'
 
 type Tab = 'overview' | 'skills' | 'assignments' | 'saldo' | 'certs'
 
@@ -54,6 +57,7 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
   const [assignments, setAssignments] = useState<any[]>([])
   const [movements, setMovements] = useState<any[]>([])
   const [certStats, setCertStats] = useState<CertStat[]>([])
+  const [brevets, setBrevets] = useState<Certification[]>([])
   const [editOpen, setEditOpen] = useState(false)
   const [correctionOpen, setCorrectionOpen] = useState(false)
   const [editMovementId, setEditMovementId] = useState<string | null>(null)
@@ -111,6 +115,9 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
       .eq('instructor_id', instructorId)
       .order('count', { ascending: false })
       .then(({ data }) => setCertStats((data ?? []) as CertStat[]))
+
+    // Cert-first: load brevets from `certifications` table for BrevetsView.
+    fetchCertifications(instructorId).then(setBrevets)
   }, [instructorId, refreshTick])
 
   if (!inst) return <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
@@ -170,14 +177,19 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
       </div>
 
       {tab === 'overview' && (
-        <div style={{ display: 'grid', gap: 12 }}>
-          <Field label={t('instructor_edit.label_padi_level')} value={inst.padi_level} />
-          <Field label={t('student_edit.label_email')} value={inst.email || '—'} />
-          <Field label={t('instructor_detail.opening_2026')} value={chf(inst.opening_balance_chf)} />
-          <Field label={t('instructor_detail.excel_saldo')} value={chf(inst.excel_saldo_chf)} />
-          <Field label={t('instructor_detail.current_app_balance')} value={chf(balance)} />
-          <Field label={t('instructor_detail.skill_count')} value={String(skills.length)} />
-          <Field label={t('instructor_detail.assignments_year', { year: 2026 })} value={String(assignments.length)} />
+        <div style={{ display: 'grid', gap: 24 }}>
+          <div style={{ display: 'grid', gap: 12 }}>
+            <Field label={t('instructor_edit.label_padi_level')} value={inst.padi_level} />
+            <Field label={t('student_edit.label_email')} value={inst.email || '—'} />
+            <Field label={t('instructor_detail.opening_2026')} value={chf(inst.opening_balance_chf)} />
+            <Field label={t('instructor_detail.excel_saldo')} value={chf(inst.excel_saldo_chf)} />
+            <Field label={t('instructor_detail.current_app_balance')} value={chf(balance)} />
+            <Field label={t('instructor_detail.skill_count')} value={String(skills.length)} />
+            <Field label={t('instructor_detail.assignments_year', { year: 2026 })} value={String(assignments.length)} />
+          </div>
+
+          {/* Cert-first brevet display (Foundation) */}
+          {brevets.length > 0 && <BrevetsView certifications={brevets} />}
         </div>
       )}
 
