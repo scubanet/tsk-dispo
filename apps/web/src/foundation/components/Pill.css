@@ -1,0 +1,92 @@
+.atoll-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  font-feature-settings: "tnum" 1;
+  white-space: nowrap;
+  line-height: 1.4;
+  border: 1px solid transparent;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+/* ───────── Sizes ───────── */
+.atoll-pill--sm {
+  padding: 1px 6px;
+  font-size: var(--text-badge);   /* 9px */
+}
+.atoll-pill--md {
+  padding: 2px 8px;
+  font-size: var(--text-meta);    /* 11px */
+}
+.atoll-pill--lg {
+  padding: 4px 12px;
+  font-size: var(--text-label);   /* 12px */
+}
+
+/* ───────── Tones ───────── */
+.atoll-pill--neutral {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-color: var(--border-tertiary);
+}
+.atoll-pill--brand {
+  background: var(--brand-blue-50);
+  color: var(--brand-blue-800);
+  border-color: var(--brand-blue-100);
+}
+.atoll-pill--success {
+  background: var(--brand-teal-50);
+  color: var(--brand-teal-800);
+  border-color: var(--brand-teal-100);
+}
+.atoll-pill--warning {
+  background: var(--brand-amber-50);
+  color: var(--brand-amber-800);
+  border-color: var(--brand-amber-100);
+}
+.atoll-pill--danger {
+  background: var(--brand-red-50);
+  color: var(--brand-red-800);
+  border-color: var(--brand-red-100);
+}
+.atoll-pill--info {
+  background: var(--brand-blue-50);
+  color: var(--brand-blue-800);
+  border-color: var(--brand-blue-100);
+}
+.atoll-pill--pro {
+  background: var(--brand-purple-50);
+  color: var(--brand-purple-800);
+  border-color: var(--brand-purple-50);
+}
+
+/* ───────── Modifiers ───────── */
+.atoll-pill--smallcaps .atoll-pill__label {
+  font-size: var(--text-small-caps);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.atoll-pill--clickable {
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.atoll-pill--clickable:hover {
+  filter: brightness(0.97);
+}
+
+.atoll-pill__icon {
+  display: inline-flex;
+  align-items: center;
+  width: 12px;
+  height: 12px;
+}
+.atoll-pill__icon svg {
+  width: 100%;
+  height: 100%;
+}

@@ -1,0 +1,33 @@
+.atoll-avatar-stack {
+  display: inline-flex;
+  align-items: center;
+}
+
+.atoll-avatar-stack__item {
+  display: inline-flex;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px var(--bg-card);
+}
+
+/* Per-size negative margin: avatars overlap by ~30%. */
+.atoll-avatar-stack--sm .atoll-avatar-stack__item + .atoll-avatar-stack__item { margin-left: -8px; }
+.atoll-avatar-stack--md .atoll-avatar-stack__item + .atoll-avatar-stack__item { margin-left: -10px; }
+.atoll-avatar-stack--lg .atoll-avatar-stack__item + .atoll-avatar-stack__item { margin-left: -12px; }
+.atoll-avatar-stack--xl .atoll-avatar-stack__item + .atoll-avatar-stack__item { margin-left: -16px; }
+
+.atoll-avatar-stack__overflow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  font-feature-settings: "tnum" 1;
+  user-select: none;
+}
+
+.atoll-avatar-stack--sm .atoll-avatar-stack__overflow { width: 24px; height: 24px; font-size: 10px; }
+.atoll-avatar-stack--md .atoll-avatar-stack__overflow { width: 32px; height: 32px; font-size: 11px; }
+.atoll-avatar-stack--lg .atoll-avatar-stack__overflow { width: 40px; height: 40px; font-size: 12px; }
+.atoll-avatar-stack--xl .atoll-avatar-stack__overflow { width: 64px; height: 64px; font-size: 16px; }

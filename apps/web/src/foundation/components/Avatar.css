@@ -1,0 +1,42 @@
+.atoll-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  user-select: none;
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-avatar--sm {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+
+.atoll-avatar--md {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
+.atoll-avatar--lg {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.atoll-avatar--xl {
+  width: 64px;
+  height: 64px;
+  font-size: 22px;
+}
+
+.atoll-avatar--ringed {
+  box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--brand-blue);
+}

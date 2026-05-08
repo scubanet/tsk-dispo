@@ -1,0 +1,79 @@
+.atoll-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.atoll-search--sm {
+  height: 26px;
+  font-size: var(--text-meta);
+}
+
+.atoll-search--md {
+  height: 32px;
+  font-size: var(--text-body);
+}
+
+.atoll-search:focus-within {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 2px var(--brand-blue-50);
+  outline: none;
+}
+
+.atoll-search--disabled {
+  background: var(--bg-tertiary);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.atoll-search__icon {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.atoll-search__input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.atoll-search__input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Hide the native search clear button — we provide our own. */
+.atoll-search__input::-webkit-search-cancel-button,
+.atoll-search__input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.atoll-search__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.atoll-search__clear:hover {
+  background: var(--border-secondary);
+  color: var(--text-primary);
+}
