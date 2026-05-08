@@ -11,7 +11,10 @@
 
 CREATE TABLE IF NOT EXISTS public.certifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  person_id UUID NOT NULL REFERENCES public.people(id) ON DELETE CASCADE,
+  -- person_id can reference either public.people(id) OR public.instructors(id)
+  -- during the transition period. App-level validation ensures integrity.
+  -- A future migration will unify people + instructors and re-introduce the FK.
+  person_id UUID NOT NULL,
   agency TEXT NOT NULL CHECK (agency IN ('PADI','SSI','CMAS','ANDI','TecRec','Other')),
   category TEXT NOT NULL CHECK (category IN ('diver','pro','specialty-teacher','additional')),
   code TEXT NOT NULL,
