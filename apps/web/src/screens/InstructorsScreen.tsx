@@ -111,7 +111,7 @@ export function InstructorsScreen() {
                 className="atoll-btn atoll-btn--primary"
                 onClick={() => setCreateOpen(true)}
               >
-                <Icon.Plus size={14} /> {t('courses.new')}
+                <Icon.Plus size={14} /> {t('instructors.new')}
               </button>
             )}
           </>

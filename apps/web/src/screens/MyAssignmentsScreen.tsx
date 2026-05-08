@@ -1,21 +1,45 @@
+/**
+ * MyAssignmentsScreen — Foundation-based rewrite (instructor view).
+ *
+ * Layout:
+ *   PageHeader (search action)
+ *     belowTitle: FilterTabBar (upcoming / past / all)
+ *   ┌─ list of CourseRow-like cards ──────────────────────────┐
+ *   │  course type color dot + title + status pill            │
+ *   │  date · role · extra dates                              │
+ *   │  optional info line                                     │
+ *   └─────────────────────────────────────────────────────────┘
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
-import clsx from 'clsx'
-import { format, isAfter, isBefore, startOfDay } from 'date-fns'
-import { de, enGB } from 'date-fns/locale'
+import { isAfter, isBefore, startOfDay } from 'date-fns'
 import { useTranslation } from 'react-i18next'
-import { Topbar } from '@/components/Topbar'
-import { Icon } from '@/components/Icon'
-import { Chip } from '@/components/Chip'
-import { EmptyState } from '@/components/EmptyState'
+import {
+  PageHeader,
+  FilterTabBar,
+  SearchInput,
+  EmptyState,
+  Pill,
+  Icon,
+  courseTypeColor,
+  dateLong,
+} from '@/foundation'
+import type { CourseType } from '@/types/foundation'
 import { fetchMyAssignments, type MyAssignment } from '@/lib/queries'
 import type { OutletCtx } from '@/layout/AppShell'
 
 type Filter = 'upcoming' | 'past' | 'all'
 
+function asCourseType(code: string | undefined | null): CourseType {
+  if (!code) return 'OWD'
+  if (code.startsWith('SPEI_')) return { type: 'SPEI', specialty: code.slice(5) as never }
+  if (code.startsWith('SP_')) return { type: 'SPECIALTY', specialty: code.slice(3) as never }
+  return code as CourseType
+}
+
 export function MyAssignmentsScreen() {
-  const { t, i18n } = useTranslation()
-  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
+  const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
   const [rows, setRows] = useState<MyAssignment[]>([])
@@ -26,6 +50,19 @@ export function MyAssignmentsScreen() {
     if (!user.instructorId) return
     fetchMyAssignments(user.instructorId).then(setRows)
   }, [user.instructorId])
+
+  const counts = useMemo(() => {
+    const today = startOfDay(new Date())
+    const c = { upcoming: 0, past: 0, all: 0 }
+    for (const r of rows) {
+      if (!r.course) continue
+      c.all++
+      const d = new Date(r.course.start_date)
+      if (isBefore(d, today)) c.past++
+      else c.upcoming++
+    }
+    return c
+  }, [rows])
 
   const filtered = useMemo(() => {
     const today = startOfDay(new Date())
@@ -48,99 +85,116 @@ export function MyAssignmentsScreen() {
 
   if (!user.instructorId) {
     return (
-      <>
-        <Topbar title={t('nav.my_assignments')} />
-        <EmptyState
-          icon="users"
-          title={t('my_assignments.no_link_title')}
-          description={t('my_assignments.no_link_desc')}
-        />
-      </>
+      <div className="atoll-screen">
+        <PageHeader title={t('nav.my_assignments')} />
+        <div className="atoll-screen__body">
+          <EmptyState
+            icon={<Icon.Users size={20} />}
+            title={t('my_assignments.no_link_title')}
+            body={t('my_assignments.no_link_desc')}
+          />
+        </div>
+      </div>
     )
   }
 
+  const tabs = [
+    { id: 'upcoming' as const, label: t('my_assignments.filter_upcoming'), count: counts.upcoming },
+    { id: 'past' as const, label: t('my_assignments.filter_past'), count: counts.past },
+    { id: 'all' as const, label: t('my_assignments.filter_all'), count: counts.all },
+  ]
+
   return (
-    <>
-      <Topbar
+    <div className="atoll-screen">
+      <PageHeader
         title={t('nav.my_assignments')}
-        subtitle={t('my_assignments.subtitle', { total: rows.length, visible: filtered.length })}
-      >
-        <div className="search" style={{ width: 200 }}>
-          <Icon name="search" size={14} />
-          <input
-            placeholder={t('common.search') + '…'}
+        subtitle={t('my_assignments.subtitle', {
+          total: rows.length,
+          visible: filtered.length,
+        })}
+        actions={
+          <SearchInput
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={setSearch}
+            ariaLabel={t('common.search')}
+            placeholder={t('common.search') + '…'}
           />
-        </div>
-      </Topbar>
+        }
+        belowTitle={
+          <FilterTabBar<Filter>
+            tabs={tabs}
+            active={filter}
+            onChange={setFilter}
+            ariaLabel={t('nav.my_assignments')}
+          />
+        }
+      />
 
-      <div className="screen-fade scroll" style={{ flex: 1, padding: '20px 24px 40px' }}>
-        <div className="seg" style={{ marginBottom: 16 }}>
-          <button className={clsx(filter === 'upcoming' && 'active')} onClick={() => setFilter('upcoming')}>
-            {t('my_assignments.filter_upcoming')}
-          </button>
-          <button className={clsx(filter === 'past' && 'active')} onClick={() => setFilter('past')}>
-            {t('my_assignments.filter_past')}
-          </button>
-          <button className={clsx(filter === 'all' && 'active')} onClick={() => setFilter('all')}>
-            {t('my_assignments.filter_all')}
-          </button>
-        </div>
-
+      <div className="atoll-screen__body">
         {filtered.length === 0 ? (
-          <EmptyState icon="book" title={t('my_assignments.empty_title')} description={t('my_assignments.empty_desc')} />
+          <EmptyState
+            icon={<Icon.Calendar size={20} />}
+            title={t('my_assignments.empty_title')}
+            body={t('my_assignments.empty_desc')}
+          />
         ) : (
-          <div style={{ display: 'grid', gap: 8 }}>
+          <div className="atoll-myasn__list">
             {filtered.map((a) => {
               if (!a.course) return null
-              const dateColor =
-                a.course.status === 'cancelled' ? '#FF3B30' :
-                a.course.status === 'tentative' ? '#FF9500' : 'var(--accent)'
+              const c = a.course
+              const dotColor = courseTypeColor(asCourseType(c.course_type?.code))
               return (
-                <div
+                <button
                   key={a.id}
-                  className="glass card"
-                  style={{
-                    padding: 16,
-                    cursor: 'pointer',
-                    borderLeft: `3px solid ${dateColor}`,
-                  }}
-                  onClick={() => navigate(`/kurse/${a.course?.id}`)}
+                  type="button"
+                  className={`atoll-myasn__card atoll-myasn__card--${c.status}`}
+                  onClick={() => navigate(`/kurse/${c.id}`)}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                    <div>
-                      <div className="title-3">{a.course.title}</div>
-                      <div className="caption" style={{ marginTop: 2 }}>
-                        {a.course.course_type?.label ?? '—'}
+                  <span
+                    className="atoll-myasn__accent"
+                    style={{ background: dotColor }}
+                    aria-hidden
+                  />
+                  <div className="atoll-myasn__main">
+                    <div className="atoll-myasn__head">
+                      <div>
+                        <div className="atoll-myasn__title">{c.title}</div>
+                        <div className="atoll-myasn__sub">
+                          {c.course_type?.label ?? '—'}
+                        </div>
+                      </div>
+                      <div className="atoll-myasn__pills">
+                        <Pill tone={a.role === 'haupt' ? 'brand' : 'neutral'} size="sm">
+                          {a.role}
+                        </Pill>
+                        {a.confirmed ? (
+                          <Pill tone="success" size="sm">
+                            {t('my_assignments.confirmed')}
+                          </Pill>
+                        ) : (
+                          <Pill tone="warning" size="sm">
+                            {t('my_assignments.open')}
+                          </Pill>
+                        )}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 6, flexDirection: 'column', alignItems: 'flex-end' }}>
-                      <Chip tone={a.role === 'haupt' ? 'accent' : 'neutral'}>{a.role}</Chip>
-                      {a.confirmed ? (
-                        <Chip tone="green">{t('my_assignments.confirmed')}</Chip>
-                      ) : (
-                        <Chip tone="orange">{t('my_assignments.open')}</Chip>
+                    <div className="atoll-myasn__meta tabular-nums">
+                      {dateLong(c.start_date)}
+                      {c.additional_dates.length > 0 && (
+                        <span>
+                          {' · '}
+                          {t('my_assignments.extra_dates', { count: c.additional_dates.length })}
+                        </span>
                       )}
                     </div>
+                    {c.info && <div className="atoll-myasn__info">{c.info}</div>}
                   </div>
-                  <div className="caption mono" style={{ marginTop: 8 }}>
-                    {format(new Date(a.course.start_date), 'EEE, d. MMM yyyy', { locale: dfLocale })}
-                    {a.course.additional_dates.length > 0 && (
-                      <span> · +{t('my_assignments.extra_dates', { count: a.course.additional_dates.length })}</span>
-                    )}
-                  </div>
-                  {a.course.info && (
-                    <div className="caption" style={{ marginTop: 6, fontStyle: 'italic' }}>
-                      {a.course.info}
-                    </div>
-                  )}
-                </div>
+                </button>
               )
             })}
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }

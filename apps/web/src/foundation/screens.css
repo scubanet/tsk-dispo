@@ -1267,3 +1267,86 @@
   color: var(--text-disabled);
   flex-shrink: 0;
 }
+
+/* ──────────────────────── My Assignments ──────────────────────── */
+
+.atoll-myasn__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.atoll-myasn__card {
+  display: flex;
+  width: 100%;
+  padding: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 120ms ease;
+}
+.atoll-myasn__card:hover { border-color: var(--border-secondary); }
+
+.atoll-myasn__card--cancelled { opacity: 0.6; }
+.atoll-myasn__card--cancelled .atoll-myasn__title {
+  text-decoration: line-through;
+}
+
+.atoll-myasn__accent {
+  width: 4px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.atoll-myasn__main {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.atoll-myasn__head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.atoll-myasn__title {
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.atoll-myasn__sub {
+  margin-top: 2px;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-myasn__pills {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.atoll-myasn__meta {
+  font-size: var(--text-meta);
+  color: var(--text-secondary);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-myasn__info {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-style: italic;
+}

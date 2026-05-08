@@ -71,7 +71,8 @@
   },
   "instructors": {
     "count": "{{count}} person",
-    "count_other": "{{count}} people"
+    "count_other": "{{count}} people",
+    "new": "New TL/DM"
   },
   "skill_matrix": {
     "subtitle": "{{people}} people × {{skills}} skills",
