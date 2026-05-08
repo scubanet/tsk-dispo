@@ -1,13 +1,36 @@
+/**
+ * CockpitScreen — Foundation-based rewrite.
+ *
+ * Layout:
+ *   PageHeader (period switcher as actions)
+ *   ┌─ KpiGrid ──────────────────────────────────────────────┐
+ *   │  Hero: Auszahlungen CHF                                │
+ *   │  Stat: Kurse / Aktive TLs / Aktive Schüler             │
+ *   └────────────────────────────────────────────────────────┘
+ *   ┌─ Monthly chart card ───────────────────────────────────┐
+ *   ┌─ Top instructors card ─────────────────────────────────┐
+ *   ┌─ Pipeline ─┐ ┌─ Attention ─┐
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts'
-import { Topbar } from '@/components/Topbar'
-import { Avatar } from '@/components/Avatar'
+import {
+  PageHeader,
+  KpiGrid,
+  KpiCard,
+  FilterTabBar,
+  Avatar,
+  Pill,
+  EmptyState,
+  Icon,
+  chf,
+  padiLevelColor,
+} from '@/foundation'
 import { supabase } from '@/lib/supabase'
-import { chf } from '@/lib/format'
 import type { OutletCtx } from '@/layout/AppShell'
 
 interface KPIs {
@@ -22,9 +45,13 @@ interface KPIs {
 interface MonthlyPayment { month: string; total: number }
 
 interface TopInstructor {
-  id: string; name: string; padi_level: string
-  color: string | null; initials: string | null
-  total_chf: number; course_count: number
+  id: string
+  name: string
+  padi_level: string
+  color: string | null
+  initials: string | null
+  total_chf: number
+  course_count: number
 }
 
 interface Pipeline { today: number; this_week: number; next_30_days: number }
@@ -53,7 +80,10 @@ export function CockpitScreen() {
   const [error, setError] = useState<string | null>(null)
   const [period, setPeriod] = useState<PeriodKey>('month')
 
-  const range = useMemo(() => periodRange(period, i18n.resolvedLanguage ?? 'de'), [period, i18n.resolvedLanguage])
+  const range = useMemo(
+    () => periodRange(period, i18n.resolvedLanguage ?? 'de'),
+    [period, i18n.resolvedLanguage],
+  )
 
   useEffect(() => {
     setLoading(true)
@@ -67,45 +97,60 @@ export function CockpitScreen() {
       })
   }, [range.start, range.end])
 
-  const accessAllowed = user.role === 'owner' || user.role === 'dispatcher' || user.role === 'cd'
+  const accessAllowed =
+    user.role === 'owner' || user.role === 'dispatcher' || user.role === 'cd'
+
   if (!accessAllowed) {
     return (
-      <>
-        <Topbar title={t('cockpit.title')} />
-        <div style={{ padding: 40, textAlign: 'center' }} className="caption">
-          {t('cockpit.no_access')}
+      <div className="atoll-screen">
+        <PageHeader title={t('cockpit.title')} />
+        <div className="atoll-screen__body">
+          <EmptyState title={t('cockpit.no_access')} />
         </div>
-      </>
+      </div>
     )
   }
 
-  return (
-    <>
-      <Topbar title={t('cockpit.title')} subtitle={range.label}>
-        <PeriodSeg value={period} onChange={setPeriod} />
-      </Topbar>
+  const periodTabs = [
+    { id: 'month' as const, label: t('cockpit.range_month') },
+    { id: 'quarter' as const, label: t('cockpit.range_quarter') },
+    { id: 'ytd' as const, label: t('cockpit.range_ytd') },
+  ]
 
-      <div className="screen-fade scroll" style={{ padding: '20px 24px 60px', flex: 1 }}>
+  return (
+    <div className="atoll-screen">
+      <PageHeader
+        title={t('cockpit.title')}
+        subtitle={range.label}
+        actions={
+          <FilterTabBar<PeriodKey>
+            tabs={periodTabs}
+            active={period}
+            onChange={setPeriod}
+            ariaLabel={t('cockpit.title')}
+          />
+        }
+      />
+
+      <div className="atoll-screen__body">
         {loading && !data ? (
-          <div className="caption" style={{ padding: 80, textAlign: 'center' }}>{t('cockpit.loading')}</div>
+          <div className="atoll-cockpit__loading">{t('cockpit.loading')}</div>
         ) : error ? (
-          <div className="chip chip-red" style={{ padding: 16, borderRadius: 12 }}>{error}</div>
+          <div className="atoll-cockpit__error">{error}</div>
         ) : data ? (
           <>
-            <KpiRow kpis={data.kpis} />
+            <KpiSection kpis={data.kpis} />
             <MonthlyChart data={data.monthly_payments} />
             <TopInstructorsCard top={data.top_instructors} />
             <BottomGrid pipeline={data.pipeline} attention={data.attention} />
           </>
         ) : null}
       </div>
-    </>
+    </div>
   )
 }
 
-// =================================================================
-// Period Helpers
-// =================================================================
+// ──────────────────────── Period Helpers ────────────────────────
 
 function periodRange(p: PeriodKey, lang: string): { start: string; end: string; label: string } {
   const now = new Date()
@@ -141,91 +186,50 @@ function periodRange(p: PeriodKey, lang: string): { start: string; end: string; 
   }
 }
 
-function PeriodSeg({ value, onChange }: { value: PeriodKey; onChange: (v: PeriodKey) => void }) {
+// ──────────────────────── KPI section ────────────────────────
+
+function KpiSection({ kpis }: { kpis: KPIs }) {
   const { t } = useTranslation()
   return (
-    <div className="seg">
-      <button className={value === 'month' ? 'active' : ''} onClick={() => onChange('month')}>{t('cockpit.range_month')}</button>
-      <button className={value === 'quarter' ? 'active' : ''} onClick={() => onChange('quarter')}>{t('cockpit.range_quarter')}</button>
-      <button className={value === 'ytd' ? 'active' : ''} onClick={() => onChange('ytd')}>{t('cockpit.range_ytd')}</button>
-    </div>
-  )
-}
-
-// =================================================================
-// KPI Row
-// =================================================================
-
-function KpiRow({ kpis }: { kpis: KPIs }) {
-  const { t } = useTranslation()
-  return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-      gap: 14,
-      marginBottom: 24,
-    }}>
+    <KpiGrid columns={4} gap="md">
       <KpiCard
+        variant="hero"
         label={t('cockpit.kpi_payments')}
         value={chf(kpis.payments_chf)}
         sub={t('cockpit.kpi_payments_sub', { count: kpis.payments_count })}
-        accent="linear-gradient(135deg, #0A84FF, #30B0C7)"
       />
       <KpiCard
+        variant="stat"
         label={t('cockpit.kpi_courses')}
-        value={String(kpis.courses_in_period)}
+        value={kpis.courses_in_period}
         sub={t('cockpit.kpi_courses_sub')}
       />
       <KpiCard
+        variant="stat"
         label={t('cockpit.kpi_active_tls')}
-        value={`${kpis.active_instructors_in_period} / ${kpis.total_active_instructors}`}
+        value={
+          <>
+            {kpis.active_instructors_in_period}
+            <span className="atoll-kpi__total"> / {kpis.total_active_instructors}</span>
+          </>
+        }
         sub={t('cockpit.kpi_active_tls_sub')}
       />
       <KpiCard
+        variant="stat"
         label={t('cockpit.kpi_students')}
-        value={String(kpis.active_students)}
+        value={kpis.active_students}
         sub={t('cockpit.kpi_students_sub')}
       />
-    </div>
+    </KpiGrid>
   )
 }
 
-function KpiCard({ label, value, sub, accent }: {
-  label: string; value: string; sub: string; accent?: string
-}) {
-  const isHero = !!accent
-  return (
-    <div
-      className="glass card"
-      style={{
-        padding: 18,
-        background: accent,
-        color: isHero ? '#fff' : undefined,
-      }}
-    >
-      <div style={{
-        fontSize: 11, fontWeight: 700, letterSpacing: '.08em',
-        textTransform: 'uppercase',
-        opacity: isHero ? 0.85 : 0.55,
-      }}>{label}</div>
-      <div className="mono" style={{
-        fontSize: 28, fontWeight: 700, marginTop: 6, letterSpacing: '-.02em',
-      }}>
-        {value}
-      </div>
-      <div style={{ fontSize: 12, opacity: isHero ? 0.85 : 0.6, marginTop: 4 }}>{sub}</div>
-    </div>
-  )
-}
-
-// =================================================================
-// Monthly Chart (Bar) — letzte 12 Monate
-// =================================================================
+// ──────────────────────── Monthly chart ────────────────────────
 
 function MonthlyChart({ data }: { data: MonthlyPayment[] }) {
   const { t, i18n } = useTranslation()
   const dateLocale = i18n.resolvedLanguage?.startsWith('en') ? 'en-GB' : 'de-CH'
-  // Daten formatieren für recharts
   const chartData = data.map((d) => {
     const [y, m] = d.month.split('-').map(Number)
     const date = new Date(y, m - 1, 1)
@@ -234,204 +238,181 @@ function MonthlyChart({ data }: { data: MonthlyPayment[] }) {
       total: Number(d.total),
     }
   })
-
   const currentMonth = new Date().toLocaleDateString(dateLocale, { month: 'short', year: '2-digit' })
 
   return (
-    <div className="glass card" style={{ padding: 20, marginBottom: 24 }}>
-      <div className="title-3" style={{ marginBottom: 4 }}>{t('cockpit.monthly_title')}</div>
-      <div className="caption" style={{ marginBottom: 14 }}>{t('cockpit.monthly_subtitle')}</div>
+    <section className="atoll-cockpit__card">
+      <h2 className="atoll-cockpit__card-title">{t('cockpit.monthly_title')}</h2>
+      <p className="atoll-cockpit__card-sub">{t('cockpit.monthly_subtitle')}</p>
+
       {chartData.length === 0 ? (
-        <div className="caption" style={{ padding: 40, textAlign: 'center' }}>
-          {t('cockpit.monthly_empty')}
-        </div>
+        <EmptyState title={t('cockpit.monthly_empty')} />
       ) : (
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.08)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.05)" vertical={false} />
             <XAxis
               dataKey="month"
-              tick={{ fontSize: 11, fill: 'var(--ink-2)' }}
+              tick={{ fontSize: 11, fill: 'var(--text-tertiary)' }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: 'var(--ink-2)' }}
+              tick={{ fontSize: 11, fill: 'var(--text-tertiary)' }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
             />
             <Tooltip
-              cursor={{ fill: 'rgba(10,132,255,.06)' }}
+              cursor={{ fill: 'var(--brand-blue-50)' }}
               contentStyle={{
-                borderRadius: 8,
-                border: 'none',
-                background: 'rgba(255,255,255,.95)',
-                boxShadow: '0 4px 14px rgba(0,0,0,.1)',
+                borderRadius: 10,
+                border: '1px solid var(--border-tertiary)',
+                background: 'var(--bg-card)',
+                boxShadow: 'var(--shadow-popover)',
                 fontSize: 13,
               }}
+              labelStyle={{ color: 'var(--text-primary)', fontWeight: 500 }}
               formatter={(value: number) => [chf(value), t('cockpit.kpi_total')]}
             />
             <Bar dataKey="total" radius={[6, 6, 0, 0]}>
               {chartData.map((d, i) => (
-                <Cell key={i} fill={d.month === currentMonth ? '#0A84FF' : '#30B0C7'} />
+                <Cell
+                  key={i}
+                  fill={d.month === currentMonth ? 'var(--brand-blue)' : 'var(--brand-teal)'}
+                />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </section>
   )
 }
 
-// =================================================================
-// Top Instructors Card
-// =================================================================
+// ──────────────────────── Top Instructors ────────────────────────
 
 function TopInstructorsCard({ top }: { top: TopInstructor[] }) {
   const { t } = useTranslation()
   const max = Math.max(...top.map((row) => Number(row.total_chf)), 1)
+
   return (
-    <div className="glass card" style={{ padding: 20, marginBottom: 24 }}>
-      <div className="title-3" style={{ marginBottom: 4 }}>{t('cockpit.top_title')}</div>
-      <div className="caption" style={{ marginBottom: 14 }}>{t('cockpit.top_subtitle')}</div>
+    <section className="atoll-cockpit__card">
+      <h2 className="atoll-cockpit__card-title">{t('cockpit.top_title')}</h2>
+      <p className="atoll-cockpit__card-sub">{t('cockpit.top_subtitle')}</p>
+
       {top.length === 0 ? (
-        <div className="caption" style={{ padding: 30, textAlign: 'center' }}>
-          {t('cockpit.top_empty')}
-        </div>
+        <EmptyState title={t('cockpit.top_empty')} />
       ) : (
-        <div style={{ display: 'grid', gap: 10 }}>
+        <ol className="atoll-cockpit__top-list">
           {top.map((row, i) => (
-            <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div className="mono" style={{ fontSize: 12, color: 'var(--ink-2)', width: 18, textAlign: 'right' }}>
-                {i + 1}.
-              </div>
+            <li key={row.id} className="atoll-cockpit__top-row">
+              <span className="atoll-cockpit__top-rank tabular-nums">{i + 1}</span>
               <Avatar
-                initials={row.initials || row.name.slice(0, 2).toUpperCase()}
-                color={row.color || '#0A84FF'}
+                id={row.id}
+                name={row.name}
                 size="sm"
+                color={padiLevelColor(row.padi_level)}
               />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {row.name}
-                  </div>
-                  <div className="mono" style={{ fontSize: 13, fontWeight: 600 }}>
-                    {chf(row.total_chf)}
-                  </div>
+              <div className="atoll-cockpit__top-body">
+                <div className="atoll-cockpit__top-head">
+                  <span className="atoll-cockpit__top-name">{row.name}</span>
+                  <span className="atoll-cockpit__top-amount tabular-nums">{chf(row.total_chf)}</span>
                 </div>
-                {/* Bar */}
-                <div style={{
-                  height: 4, background: 'rgba(0,0,0,.06)', borderRadius: 999,
-                  marginTop: 4, overflow: 'hidden',
-                }}>
-                  <div style={{
-                    height: '100%',
-                    width: `${(Number(row.total_chf) / max) * 100}%`,
-                    background: 'linear-gradient(90deg, #0A84FF, #30B0C7)',
-                    borderRadius: 999,
-                  }} />
+                <div
+                  className="atoll-cockpit__top-bar"
+                  role="progressbar"
+                  aria-valuenow={Math.round((Number(row.total_chf) / max) * 100)}
+                >
+                  <div
+                    className="atoll-cockpit__top-bar-fill"
+                    style={{ width: `${(Number(row.total_chf) / max) * 100}%` }}
+                  />
                 </div>
-                <div className="caption-2" style={{ marginTop: 2 }}>
-                  {row.padi_level} · {t('cockpit.course_count', { count: row.course_count })}
+                <div className="atoll-cockpit__top-meta">
+                  <Pill tone="pro" size="sm">{row.padi_level}</Pill>
+                  <span>{t('cockpit.course_count', { count: row.course_count })}</span>
                 </div>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
       )}
-    </div>
+    </section>
   )
 }
 
-// =================================================================
-// Bottom — Pipeline + Attention nebeneinander
-// =================================================================
+// ──────────────────────── Pipeline + Attention ────────────────────────
 
 function BottomGrid({ pipeline, attention }: { pipeline: Pipeline; attention: Attention }) {
   const { t } = useTranslation()
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-      gap: 14,
-    }}>
-      <div className="glass card" style={{ padding: 18 }}>
-        <div className="title-3" style={{ marginBottom: 12 }}>{t('nav.pipeline')}</div>
-        <Row label={t('cockpit.pipeline_today')}     value={pipeline.today} />
-        <Row label={t('cockpit.pipeline_this_week')} value={pipeline.this_week} />
-        <Row label={t('cockpit.pipeline_next_30')}   value={pipeline.next_30_days} />
-      </div>
+    <div className="atoll-cockpit__bottom">
+      <section className="atoll-cockpit__card">
+        <h2 className="atoll-cockpit__card-title">{t('nav.pipeline')}</h2>
+        <PipelineRow label={t('cockpit.pipeline_today')} value={pipeline.today} />
+        <PipelineRow label={t('cockpit.pipeline_this_week')} value={pipeline.this_week} />
+        <PipelineRow label={t('cockpit.pipeline_next_30')} value={pipeline.next_30_days} />
+      </section>
 
-      <div className="glass card" style={{ padding: 18 }}>
-        <div className="title-3" style={{ marginBottom: 12 }}>{t('cockpit.attention')}</div>
+      <section className="atoll-cockpit__card">
+        <h2 className="atoll-cockpit__card-title">{t('cockpit.attention')}</h2>
         <AttentionRow
           label={t('cockpit.attention_no_haupt')}
           value={attention.courses_without_haupt}
-          severity={attention.courses_without_haupt > 0 ? 'red' : 'ok'}
+          tone={attention.courses_without_haupt > 0 ? 'danger' : 'ok'}
           hint={t('cockpit.attention_no_haupt_hint')}
         />
         <AttentionRow
           label={t('cockpit.attention_tentative')}
           value={attention.long_tentative}
-          severity={attention.long_tentative > 0 ? 'orange' : 'ok'}
+          tone={attention.long_tentative > 0 ? 'warning' : 'ok'}
           hint={t('cockpit.attention_tentative_hint')}
         />
         <AttentionRow
           label={t('cockpit.attention_idle')}
           value={attention.idle_instructors_6w}
-          severity={attention.idle_instructors_6w > 0 ? 'yellow' : 'ok'}
+          tone={attention.idle_instructors_6w > 0 ? 'info' : 'ok'}
           hint={t('cockpit.attention_idle_hint')}
         />
-      </div>
+      </section>
     </div>
   )
 }
 
-function Row({ label, value }: { label: string; value: number }) {
+function PipelineRow({ label, value }: { label: string; value: number }) {
   return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '8px 0', borderBottom: '0.5px solid var(--hairline)',
-    }}>
-      <div style={{ fontSize: 13 }}>{label}</div>
-      <div className="mono" style={{ fontSize: 18, fontWeight: 600 }}>{value}</div>
+    <div className="atoll-cockpit__row">
+      <span className="atoll-cockpit__row-label">{label}</span>
+      <span className="atoll-cockpit__row-value tabular-nums">{value}</span>
     </div>
   )
 }
 
-function AttentionRow({ label, value, severity, hint }: {
+function AttentionRow({
+  label,
+  value,
+  tone,
+  hint,
+}: {
   label: string
   value: number
-  severity: 'ok' | 'yellow' | 'orange' | 'red'
+  tone: 'ok' | 'info' | 'warning' | 'danger'
   hint?: string
 }) {
-  // Konsistent mit Calendar-Status-Farben:
-  // red = blockierend, orange = tentative, yellow = Hinweis, green = ok
-  const color =
-    severity === 'red'    ? '#FF3B30' :
-    severity === 'orange' ? '#FF9500' :
-    severity === 'yellow' ? '#FFCC00' :
-                            '#34C759'
+  const dotClass = `atoll-cockpit__dot atoll-cockpit__dot--${tone}`
   return (
-    <div
-      title={hint}
-      style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '8px 0', borderBottom: '0.5px solid var(--hairline)',
-      }}
-    >
-      <div style={{ fontSize: 13 }}>{label}</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div className="mono" style={{ fontSize: 18, fontWeight: 600, color: value > 0 ? color : 'var(--ink-2)' }}>
+    <div className="atoll-cockpit__row" title={hint}>
+      <span className="atoll-cockpit__row-label">{label}</span>
+      <span className="atoll-cockpit__row-attention">
+        <span
+          className={`atoll-cockpit__row-value tabular-nums${value > 0 && tone !== 'ok' ? ` atoll-cockpit__row-value--${tone}` : ''}`}
+        >
           {value}
-        </div>
-        <div style={{
-          width: 8, height: 8, borderRadius: 999, background: color,
-          // Bei gelb: Border damit's auf weissem Background sichtbar bleibt
-          boxShadow: severity === 'yellow' ? 'inset 0 0 0 0.5px rgba(0,0,0,.15)' : undefined,
-        }} />
-      </div>
+        </span>
+        <Icon.Info aria-hidden style={{ display: 'none' }} />
+        <span className={dotClass} aria-hidden />
+      </span>
     </div>
   )
 }

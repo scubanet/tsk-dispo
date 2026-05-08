@@ -274,3 +274,168 @@
 .atoll-courses__list > .atoll-courserow:last-child {
   border-bottom: none;
 }
+
+/* ──────────────────────── Cockpit ──────────────────────── */
+
+.atoll-cockpit__loading,
+.atoll-cockpit__error {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--text-meta);
+}
+.atoll-cockpit__error {
+  background: var(--brand-red-50);
+  color: var(--brand-red-800);
+  border: 1px solid var(--brand-red-100);
+  border-radius: var(--radius-md);
+}
+
+.atoll-cockpit__card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.atoll-cockpit__card-title {
+  margin: 0;
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+.atoll-cockpit__card-sub {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+/* Top instructors list */
+.atoll-cockpit__top-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.atoll-cockpit__top-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.atoll-cockpit__top-rank {
+  width: 18px;
+  text-align: right;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+  flex-shrink: 0;
+}
+
+.atoll-cockpit__top-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.atoll-cockpit__top-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.atoll-cockpit__top-name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-cockpit__top-amount {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  font-feature-settings: "tnum" 1;
+  flex-shrink: 0;
+}
+
+.atoll-cockpit__top-bar {
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.atoll-cockpit__top-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand-blue), var(--brand-teal));
+  border-radius: 999px;
+  transition: width 240ms ease-out;
+}
+
+.atoll-cockpit__top-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+/* Bottom grid */
+.atoll-cockpit__bottom {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.atoll-cockpit__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-tertiary);
+}
+.atoll-cockpit__row:last-child {
+  border-bottom: none;
+}
+
+.atoll-cockpit__row-label {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.atoll-cockpit__row-value {
+  font-size: 18px;
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  font-feature-settings: "tnum" 1;
+}
+.atoll-cockpit__row-value--info { color: var(--brand-blue); }
+.atoll-cockpit__row-value--warning { color: var(--brand-amber-800); }
+.atoll-cockpit__row-value--danger { color: var(--brand-red); }
+
+.atoll-cockpit__row-attention {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.atoll-cockpit__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.atoll-cockpit__dot--ok { background: var(--brand-teal); }
+.atoll-cockpit__dot--info { background: var(--brand-blue); }
+.atoll-cockpit__dot--warning { background: var(--brand-amber); }
+.atoll-cockpit__dot--danger { background: var(--brand-red); }
