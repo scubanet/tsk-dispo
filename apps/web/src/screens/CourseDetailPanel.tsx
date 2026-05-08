@@ -4,7 +4,7 @@ import { de, enGB } from 'date-fns/locale'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext } from 'react-router-dom'
-import { Avatar } from '@/components/Avatar'
+import { Avatar, Pill, Icon as FdIcon, dateLong, padiLevelColor } from '@/foundation'
 import { Chip } from '@/components/Chip'
 import { Icon } from '@/components/Icon'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
@@ -20,7 +20,6 @@ import {
   type CourseParticipant,
   type CourseDate,
 } from '@/lib/queries'
-import { initialsFromName } from '@/lib/format'
 import { CourseEditSheet } from './CourseEditSheet'
 import { AssignmentEditSheet } from './AssignmentEditSheet'
 import { EnrollStudentSheet } from './EnrollStudentSheet'
@@ -170,11 +169,6 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
     ? [...BASE_TABS, { value: 'prs', label: t('course_detail.tab_prs') }]
     : BASE_TABS
 
-  const tone =
-    course.status === 'cancelled' ? 'red' :
-    course.status === 'tentative' ? 'orange' :
-    course.status === 'completed' ? 'purple' : 'green'
-
   const haupt = assignments.find((a) => a.role === 'haupt')
   const announceUrl = waGroupShareUrl(
     tplNewCourse({
@@ -197,51 +191,67 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   // Build full date list for assignment editor
   const allDates = [course.start_date, ...(course.additional_dates ?? [])].filter(Boolean)
 
+  const statusTone =
+    course.status === 'cancelled' ? 'danger' :
+    course.status === 'tentative' ? 'warning' :
+    course.status === 'completed' ? 'pro' : 'success'
+
   return (
-    <div className="screen-fade" style={{ padding: '20px 24px 40px' }}>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 4 }}>
-        <div style={{ flex: 1 }}>
-          <div className="title-1">{course.title}</div>
-          <div className="caption" style={{ marginTop: 4 }}>
-            {course.course_type?.label ?? '—'} ·{' '}
-            {format(new Date(course.start_date), 'EEEE, d. MMMM yyyy', { locale: dfLocale })}
+    <div className="atoll-detail">
+      <header className="atoll-detail__head">
+        <div className="atoll-detail__head-main">
+          <div className="atoll-detail__name">{course.title}</div>
+          <div className="atoll-detail__head-meta">
+            <span>{course.course_type?.label ?? '—'}</span>
+            <span aria-hidden>·</span>
+            <span className="tabular-nums">{dateLong(course.start_date)}</span>
             {course.additional_dates.length > 0 && (
-              <> · +{t('course_detail.additional_days', { count: course.additional_dates.length })}</>
+              <span>· +{t('course_detail.additional_days', { count: course.additional_dates.length })}</span>
             )}
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
-          <Chip tone={tone}>{course.status}</Chip>
-          {isDispatcher && (
-            <button className="btn-secondary btn" onClick={() => setEditCourseOpen(true)}>
-              <Icon name="settings" size={14} /> {t('common.edit')}
-            </button>
-          )}
+          <Pill tone={statusTone} size="sm">{course.status}</Pill>
           <WhatsAppButton
             url={course.status === 'cancelled' ? cancelUrl : announceUrl}
             label={course.status === 'cancelled' ? t('course_detail.post_cancellation') : t('course_detail.announce_in_group')}
           />
         </div>
+        {isDispatcher && (
+          <button type="button" className="atoll-btn" onClick={() => setEditCourseOpen(true)}>
+            <FdIcon.Settings size={14} /> {t('common.edit')}
+          </button>
+        )}
+      </header>
+
+      <div className="atoll-tabs">
+        <div role="tablist" aria-label={course.title} className="atoll-tabs__strip">
+          {visibleTabs.map((tabDef) => {
+            const count =
+              tabDef.value === 'assignments' ? assignments.length :
+              tabDef.value === 'participants' ? participants.length :
+              undefined
+            const isActive = tab === tabDef.value
+            return (
+              <button
+                key={tabDef.value}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                tabIndex={isActive ? 0 : -1}
+                className={clsx('atoll-tabs__tab', isActive && 'atoll-tabs__tab--active')}
+                onClick={() => setTab(tabDef.value)}
+              >
+                <span>{tabDef.label}</span>
+                {count !== undefined && (
+                  <span className="atoll-tabs__count tabular-nums">{count}</span>
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
       <div style={{ height: 16 }} />
-
-      <div className="seg" style={{ marginBottom: 20 }}>
-        {visibleTabs.map((tabDef) => (
-          <button
-            key={tabDef.value}
-            className={clsx(tab === tabDef.value && 'active')}
-            onClick={() => setTab(tabDef.value)}
-          >
-            {tabDef.label}
-            {tabDef.value === 'assignments' && (
-              <span className="caption" style={{ marginLeft: 6 }}>· {assignments.length}</span>
-            )}
-            {tabDef.value === 'participants' && (
-              <span className="caption" style={{ marginLeft: 6 }}>· {participants.length}</span>
-            )}
-          </button>
-        ))}
-      </div>
 
       {tab === 'overview' && (
         <div style={{ display: 'grid', gap: 14 }}>
@@ -353,7 +363,12 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                   }}
                 >
                   {a.instructor && (
-                    <Avatar initials={a.instructor.initials} color={a.instructor.color} />
+                    <Avatar
+                      id={a.instructor.id}
+                      name={a.instructor.name}
+                      size="md"
+                      color={padiLevelColor(a.instructor.padi_level)}
+                    />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 500 }}>{a.instructor?.name ?? '—'}</div>
@@ -423,7 +438,12 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                 }}
               >
                 {p.student && (
-                  <Avatar initials={initialsFromName(p.student.name)} color="#34C759" size="sm" />
+                  <Avatar
+                    id={p.student.id}
+                    name={p.student.name}
+                    size="sm"
+                    color="var(--brand-blue)"
+                  />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
@@ -550,9 +570,9 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <div className="caption-2">{label.toUpperCase()}</div>
-      <div style={{ fontSize: 14 }}>{value}</div>
+    <div className="atoll-detail__field">
+      <div className="atoll-detail__field-label small-caps">{label}</div>
+      <div className="atoll-detail__field-value">{value}</div>
     </div>
   )
 }
