@@ -1060,3 +1060,84 @@
 .atoll-cal__legend-chip--today {
   background: var(--brand-blue-50);
 }
+
+/* ──────────────────────── Communication Hub ──────────────────────── */
+
+.atoll-comm__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.atoll-comm__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.atoll-comm__entry {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+.atoll-comm__entry:hover {
+  border-color: var(--border-secondary);
+}
+
+.atoll-comm__entry-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.atoll-comm__entry-name {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
+}
+
+.atoll-comm__entry-time {
+  margin-left: auto;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.atoll-comm__entry-subject {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
+}
+
+.atoll-comm__entry-body {
+  font-size: var(--text-meta);
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.atoll-comm__entry-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-comm__entry-outcome {
+  font-style: italic;
+}

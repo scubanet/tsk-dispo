@@ -1,12 +1,31 @@
+/**
+ * CommunicationHubScreen — Foundation-based rewrite.
+ *
+ * Layout:
+ *   PageHeader (search + new touchpoint)
+ *     toolbar: FilterTabBar (all / inbound / outbound) + SortDropdown (channels)
+ *   ┌─ list of touchpoint cards ─────────────────────────────┐
+ *   │  Pill (channel + direction) · contact name · stage     │
+ *   │  Subject (medium weight)                                │
+ *   │  Body (clamp 2 lines)                                   │
+ *   │  duration_minutes · outcome                             │
+ *   └─────────────────────────────────────────────────────────┘
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { format } from 'date-fns'
-import { de, enGB } from 'date-fns/locale'
-import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
+import {
+  PageHeader,
+  FilterTabBar,
+  SortDropdown,
+  SearchInput,
+  EmptyState,
+  Pill,
+  Icon,
+  dateTimeShort,
+} from '@/foundation'
 import { supabase } from '@/lib/supabase'
-import { Topbar } from '@/components/Topbar'
-import { Icon } from '@/components/Icon'
 import { CommunicationEditSheet, CHANNELS } from './CommunicationEditSheet'
 import type { OutletCtx } from '@/layout/AppShell'
 
@@ -20,25 +39,28 @@ interface Entry {
   body: string | null
   duration_minutes: number | null
   outcome: string | null
-  contact: { id: string; name: string; is_student: boolean; is_candidate: boolean } | null
+  contact: {
+    id: string
+    name: string
+    is_student: boolean
+    is_candidate: boolean
+  } | null
   created_by_instructor: { id: string; name: string } | null
 }
 
+type DirFilter = 'all' | 'inbound' | 'outbound'
+
 export function CommunicationHubScreen() {
-  const { t, i18n } = useTranslation()
-  const dfLocale = i18n.resolvedLanguage === 'en' ? enGB : de
-  const CHANNEL_FILTERS = [
-    { code: '',         label: t('comm_hub.all_channels') },
-    ...CHANNELS,
-  ]
+  const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
-  const canAccess = user.role === 'dispatcher' || user.role === 'cd' || user.role === 'owner'
+  const canAccess =
+    user.role === 'dispatcher' || user.role === 'cd' || user.role === 'owner'
 
   const [rows, setRows] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [channel, setChannel] = useState('')
-  const [direction, setDirection] = useState<'all' | 'inbound' | 'outbound'>('all')
+  const [direction, setDirection] = useState<DirFilter>('all')
   const [editOpen, setEditOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
@@ -50,7 +72,9 @@ export function CommunicationHubScreen() {
     setLoading(true)
     supabase
       .from('communication_entries')
-      .select('id, contact_id, channel, direction, occurred_on, subject, body, duration_minutes, outcome, contact:people!contact_id(id, name, is_student, is_candidate), created_by_instructor:instructors!created_by(id, name)')
+      .select(
+        'id, contact_id, channel, direction, occurred_on, subject, body, duration_minutes, outcome, contact:people!contact_id(id, name, is_student, is_candidate), created_by_instructor:instructors!created_by(id, name)',
+      )
       .order('occurred_on', { ascending: false })
       .limit(500)
       .then(({ data, error }) => {
@@ -59,7 +83,9 @@ export function CommunicationHubScreen() {
         setRows((data ?? []) as unknown as Entry[])
         setLoading(false)
       })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [canAccess, refreshTick])
 
   const filtered = useMemo(() => {
@@ -77,9 +103,18 @@ export function CommunicationHubScreen() {
 
   if (!canAccess) {
     return (
-      <div style={{ padding: 40 }}>
-        <div className="title-2">{t('cd_pipeline.no_access_title')}</div>
-        <div className="caption">{t('comm_hub.no_access_desc')}</div>
+      <div className="atoll-screen">
+        <PageHeader
+          title={t('nav.communication')}
+          subtitle={t('comm_hub.no_access_desc')}
+        />
+        <div className="atoll-screen__body">
+          <EmptyState
+            icon={<Icon.Info size={20} />}
+            title={t('cd_pipeline.no_access_title')}
+            body={t('comm_hub.no_access_desc')}
+          />
+        </div>
       </div>
     )
   }
@@ -90,126 +125,144 @@ export function CommunicationHubScreen() {
     outbound: rows.filter((r) => r.direction === 'outbound').length,
   }
 
+  const dirTabs = [
+    { id: 'all' as const, label: t('people.tab_all'), count: stats.total },
+    { id: 'inbound' as const, label: `↓ ${t('comm_hub.inbound')}`, count: stats.inbound },
+    { id: 'outbound' as const, label: `↑ ${t('comm_hub.outbound')}`, count: stats.outbound },
+  ]
+
+  const channelOptions = [
+    { id: '', label: t('comm_hub.all_channels') },
+    ...CHANNELS.map((c) => ({ id: c.code, label: c.label })),
+  ]
+
   return (
-    <>
-      <Topbar
+    <div className="atoll-screen">
+      <PageHeader
         title={t('nav.communication')}
-        subtitle={t('comm_hub.subtitle', { total: stats.total, inbound: stats.inbound, outbound: stats.outbound })}
-      >
-        <div className="search" style={{ width: 220 }}>
-          <Icon name="search" size={14} />
-          <input
-            placeholder={t('comm_hub.search_placeholder')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+        subtitle={t('comm_hub.subtitle', {
+          total: stats.total,
+          inbound: stats.inbound,
+          outbound: stats.outbound,
+        })}
+        actions={
+          <>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              ariaLabel={t('comm_hub.search_placeholder')}
+              placeholder={t('comm_hub.search_placeholder')}
+            />
+            <button
+              type="button"
+              className="atoll-btn atoll-btn--primary"
+              onClick={() => setCreateOpen(true)}
+            >
+              <Icon.Plus size={14} /> {t('courses.new')}
+            </button>
+          </>
+        }
+        belowTitle={
+          <div className="atoll-comm__toolbar">
+            <FilterTabBar<DirFilter>
+              tabs={dirTabs}
+              active={direction}
+              onChange={setDirection}
+              ariaLabel={t('comm_hub.inbound')}
+            />
+            <SortDropdown
+              options={channelOptions}
+              value={channel}
+              onChange={setChannel}
+              ariaLabel={t('comm_hub.all_channels')}
+            />
+          </div>
+        }
+      />
+
+      <div className="atoll-screen__body">
+        {loading ? (
+          <div className="atoll-cockpit__loading">{t('common.loading')}</div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={<Icon.Mail size={20} />}
+            title={
+              rows.length === 0
+                ? t('comm_hub.empty_first_time')
+                : t('comm_hub.no_filter_matches')
+            }
           />
-        </div>
-        <button className="btn" onClick={() => setCreateOpen(true)}>
-          <Icon name="plus" size={14} /> {t('courses.new')}
-        </button>
-      </Topbar>
-
-      <div style={{ padding: '0 24px 12px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <div className="seg">
-          <button className={clsx(direction === 'all' && 'active')} onClick={() => setDirection('all')}>{t('people.tab_all')}</button>
-          <button className={clsx(direction === 'inbound' && 'active')} onClick={() => setDirection('inbound')}>↓ {t('comm_hub.inbound')}</button>
-          <button className={clsx(direction === 'outbound' && 'active')} onClick={() => setDirection('outbound')}>↑ {t('comm_hub.outbound')}</button>
-        </div>
-        <select
-          value={channel}
-          onChange={(e) => setChannel(e.target.value)}
-          style={{
-            padding: '6px 10px',
-            borderRadius: 8,
-            border: '0.5px solid var(--hairline)',
-            background: 'var(--surface-strong)',
-            color: 'var(--ink)',
-            fontSize: 13,
-          }}
-        >
-          {CHANNEL_FILTERS.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
-        </select>
-      </div>
-
-      {loading ? (
-        <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
-      ) : filtered.length === 0 ? (
-        <div style={{ padding: 40 }} className="caption">
-          {rows.length === 0
-            ? t('comm_hub.empty_first_time')
-            : t('comm_hub.no_filter_matches')}
-        </div>
-      ) : (
-        <div style={{ padding: '0 24px 24px', display: 'grid', gap: 6 }}>
-          {filtered.map((c) => {
-            const ch = CHANNELS.find((x) => x.code === c.channel)
-            return (
-              <button
-                key={c.id}
-                className="glass-thin"
-                onClick={() => {
-                  setEditingId(c.id)
-                  setEditOpen(true)
-                }}
-                style={{
-                  padding: 12,
-                  borderRadius: 12,
-                  border: 'none',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  color: 'var(--ink)',
-                  font: 'inherit',
-                  width: '100%',
-                  display: 'grid',
-                  gap: 6,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span
-                    style={{
-                      padding: '2px 8px',
-                      borderRadius: 999,
-                      background: c.direction === 'inbound' ? 'rgba(0,122,255,.20)' : 'rgba(52,199,89,.20)',
-                      fontSize: 11,
-                      fontWeight: 600,
-                    }}
-                  >
-                    {ch?.label ?? c.channel}{c.direction === 'inbound' ? ' ↓' : ' ↑'}
-                  </span>
-                  <span style={{ fontWeight: 600 }}>{c.contact?.name ?? '—'}</span>
-                  {c.contact?.is_candidate && <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(255,69,58,.20)' }}>{t('student_edit.stage_candidate')}</span>}
-                  {c.contact?.is_student && !c.contact?.is_candidate && <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(0,122,255,.20)' }}>{t('comm_hub.student_badge')}</span>}
-                  {c.created_by_instructor && (
-                    <span className="caption-2" style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(88,86,214,.20)' }}>
-                      {c.created_by_instructor.name}
+        ) : (
+          <div className="atoll-comm__list">
+            {filtered.map((c) => {
+              const ch = CHANNELS.find((x) => x.code === c.channel)
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  className="atoll-comm__entry"
+                  onClick={() => {
+                    setEditingId(c.id)
+                    setEditOpen(true)
+                  }}
+                >
+                  <div className="atoll-comm__entry-head">
+                    <Pill
+                      tone={c.direction === 'inbound' ? 'brand' : 'success'}
+                      size="sm"
+                    >
+                      {ch?.label ?? c.channel}
+                      {c.direction === 'inbound' ? ' ↓' : ' ↑'}
+                    </Pill>
+                    <span className="atoll-comm__entry-name">
+                      {c.contact?.name ?? '—'}
                     </span>
+                    {c.contact?.is_candidate && (
+                      <Pill tone="danger" size="sm">
+                        {t('student_edit.stage_candidate')}
+                      </Pill>
+                    )}
+                    {c.contact?.is_student && !c.contact?.is_candidate && (
+                      <Pill tone="brand" size="sm">
+                        {t('comm_hub.student_badge')}
+                      </Pill>
+                    )}
+                    {c.created_by_instructor && (
+                      <Pill tone="pro" size="sm">
+                        {c.created_by_instructor.name}
+                      </Pill>
+                    )}
+                    <span className="atoll-comm__entry-time tabular-nums">
+                      {dateTimeShort(c.occurred_on)}
+                    </span>
+                  </div>
+                  {c.subject && (
+                    <div className="atoll-comm__entry-subject">{c.subject}</div>
                   )}
-                  <span className="caption-2" style={{ marginLeft: 'auto' }}>
-                    {format(new Date(c.occurred_on), 'd. MMM yyyy, HH:mm', { locale: dfLocale })}
-                  </span>
-                </div>
-                {c.subject && <div style={{ fontWeight: 500 }}>{c.subject}</div>}
-                {c.body && (
-                  <div className="caption" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                    {c.body}
-                  </div>
-                )}
-                {(c.duration_minutes != null || c.outcome) && (
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    {c.duration_minutes != null && <span className="caption-2">{t('student_detail.minutes', { count: c.duration_minutes })}</span>}
-                    {c.outcome && <span className="caption-2" style={{ fontStyle: 'italic' }}>→ {c.outcome}</span>}
-                  </div>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      )}
+                  {c.body && <div className="atoll-comm__entry-body">{c.body}</div>}
+                  {(c.duration_minutes != null || c.outcome) && (
+                    <div className="atoll-comm__entry-meta">
+                      {c.duration_minutes != null && (
+                        <span>
+                          {t('student_detail.minutes', { count: c.duration_minutes })}
+                        </span>
+                      )}
+                      {c.outcome && (
+                        <span className="atoll-comm__entry-outcome">→ {c.outcome}</span>
+                      )}
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
 
       <CommunicationEditSheet
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        onSaved={() => setRefreshTick((t) => t + 1)}
+        onSaved={() => setRefreshTick((tick) => tick + 1)}
         entryId={editingId}
         createdById={user.instructorId}
       />
@@ -217,9 +270,9 @@ export function CommunicationHubScreen() {
       <CommunicationEditSheet
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onSaved={() => setRefreshTick((t) => t + 1)}
+        onSaved={() => setRefreshTick((tick) => tick + 1)}
         createdById={user.instructorId}
       />
-    </>
+    </div>
   )
 }
