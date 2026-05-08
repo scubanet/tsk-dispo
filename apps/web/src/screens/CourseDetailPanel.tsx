@@ -5,8 +5,6 @@ import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { Avatar, Pill, Icon as FdIcon, dateLong, padiLevelColor } from '@/foundation'
-import { Chip } from '@/components/Chip'
-import { Icon } from '@/components/Icon'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { tplNewCourse, tplCancellation, waGroupShareUrl } from '@/lib/whatsapp'
 import {
@@ -266,55 +264,38 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
           />
 
           <div>
-            <div className="caption-2">{t('course_detail.section_course_dates', { count: courseDates.length || 1 })}</div>
+            <div className="atoll-detail__field-label small-caps">
+              {t('course_detail.section_course_dates', { count: courseDates.length || 1 })}
+            </div>
             <div style={{ display: 'grid', gap: 6, marginTop: 6 }}>
               {(courseDates.length > 0
                 ? courseDates
                 : [{ id: 'fallback', date: course.start_date, type: 'theorie' as const, pool_location: null }] as any
               ).map((cd: any) => {
                 const poolMeta = POOL_LOCATIONS.find((p) => p.value === cd.pool_location)
-                // Multi-Type-Logik: nimm Booleans wenn vorhanden, sonst aus type ableiten
                 const hasTheory = cd.has_theory != null ? !!cd.has_theory : cd.type === 'theorie'
                 const hasPool   = cd.has_pool   != null ? !!cd.has_pool   : cd.type === 'pool'
                 const hasLake   = cd.has_lake   != null ? !!cd.has_lake   : cd.type === 'see'
                 return (
-                  <div
-                    key={cd.id}
-                    style={{
-                      display: 'flex',
-                      gap: 8,
-                      padding: '8px 10px',
-                      background: 'rgba(120,120,128,.08)',
-                      borderRadius: 8,
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <span className="mono" style={{ fontSize: 13, fontWeight: 500, minWidth: 110 }}>
+                  <div key={cd.id} className="atoll-coursedetail__date-row">
+                    <span className="atoll-coursedetail__date tabular-nums">
                       {format(new Date(cd.date), 'EEE, d. MMM', { locale: dfLocale })}
                     </span>
-                    {hasTheory && <Chip tone="neutral">📚 {t('course_edit.type_theory')}</Chip>}
+                    {hasTheory && (
+                      <Pill tone="neutral" size="sm">📚 {t('course_edit.type_theory')}</Pill>
+                    )}
                     {hasPool && (
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          padding: '3px 10px',
-                          borderRadius: 999,
-                          fontSize: 12,
-                          fontWeight: 600,
-                          background: cd.pool_reserved ? 'rgba(52,199,89,.22)' : 'rgba(255,149,0,.22)',
-                          color: cd.pool_reserved ? '#1c8b3c' : '#a04e00',
-                          border: cd.pool_reserved ? '0.5px solid rgba(52,199,89,.45)' : '0.5px dashed rgba(255,149,0,.55)',
-                        }}
-                        title={cd.pool_reserved ? t('pool.legend_reserved') : t('pool.legend_open')}
+                      <Pill
+                        tone={cd.pool_reserved ? 'success' : 'warning'}
+                        size="sm"
                       >
                         🏊 {poolMeta?.label ?? cd.pool_location ?? t('course_edit.type_pool')}
                         {cd.pool_reserved ? ' ✓' : ' …'}
-                      </span>
+                      </Pill>
                     )}
-                    {hasLake && <Chip tone="green">🌊 {t('course_edit.type_lake')}</Chip>}
+                    {hasLake && (
+                      <Pill tone="success" size="sm">🌊 {t('course_edit.type_lake')}</Pill>
+                    )}
                   </div>
                 )
               })}
@@ -324,43 +305,38 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       )}
 
       {tab === 'assignments' && (
-        <div style={{ display: 'grid', gap: 10 }}>
+        <div className="atoll-detail__list" style={{ paddingTop: 0 }}>
           {isDispatcher && (
             <button
-              className="btn"
+              type="button"
+              className="atoll-btn atoll-btn--primary"
               onClick={() => {
                 setEditingAssignment(null)
                 setEditAssignmentOpen(true)
               }}
-              style={{ alignSelf: 'flex-start' }}
+              style={{ alignSelf: 'flex-start', marginBottom: 4 }}
             >
-              <Icon name="plus" size={14} /> {t('course_detail.assign_tldm')}
+              <FdIcon.Plus size={14} /> {t('course_detail.assign_tldm')}
             </button>
           )}
 
           {assignments.length === 0 ? (
-            <div className="caption">{t('course_detail.no_assignments')}</div>
+            <div className="atoll-cockpit__card-sub">{t('course_detail.no_assignments')}</div>
           ) : (
             assignments.map((a) => {
-              const dates = (a as any).assigned_for_dates as string[] | undefined
+              const dates = (a as { assigned_for_dates?: string[] }).assigned_for_dates
               const partial = dates && dates.length > 0
               return (
-                <div
+                <button
                   key={a.id}
-                  className="glass-thin"
-                  style={{
-                    padding: 12,
-                    borderRadius: 12,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    cursor: isDispatcher ? 'pointer' : 'default',
-                  }}
+                  type="button"
+                  className="atoll-detail__row"
                   onClick={() => {
                     if (!isDispatcher) return
                     setEditingAssignment(a)
                     setEditAssignmentOpen(true)
                   }}
+                  disabled={!isDispatcher}
                 >
                   {a.instructor && (
                     <Avatar
@@ -370,24 +346,24 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                       color={padiLevelColor(a.instructor.padi_level)}
                     />
                   )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 500 }}>{a.instructor?.name ?? '—'}</div>
-                    <div className="caption" style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div className="atoll-detail__row-main">
+                    <div className="atoll-detail__row-title">{a.instructor?.name ?? '—'}</div>
+                    <div className="atoll-detail__row-meta">
                       {a.instructor?.padi_level} · {a.role}
-                      {partial && (
-                        <Chip tone="purple">
-                          {t('course_detail.days_partial', { selected: dates!.length, total: allDates.length })}
-                        </Chip>
-                      )}
                     </div>
                   </div>
-                  {a.confirmed ? (
-                    <Chip tone="green">{t('my_assignments.confirmed')}</Chip>
-                  ) : (
-                    <Chip tone="orange">{t('my_assignments.open')}</Chip>
-                  )}
-                  {isDispatcher && <Icon name="chevron-right" size={14} />}
-                </div>
+                  <div className="atoll-detail__row-pills">
+                    {partial && (
+                      <Pill tone="pro" size="sm">
+                        {t('course_detail.days_partial', { selected: dates!.length, total: allDates.length })}
+                      </Pill>
+                    )}
+                    <Pill tone={a.confirmed ? 'success' : 'warning'} size="sm">
+                      {a.confirmed ? t('my_assignments.confirmed') : t('my_assignments.open')}
+                    </Pill>
+                  </div>
+                  {isDispatcher && <FdIcon.ChevronRight size={16} className="atoll-orgs__chevron" aria-hidden />}
+                </button>
               )
             })
           )}
@@ -395,19 +371,20 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       )}
 
       {tab === 'participants' && (
-        <div style={{ display: 'grid', gap: 10 }}>
+        <div className="atoll-detail__list" style={{ paddingTop: 0 }}>
           {isDispatcher && (
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
               <button
-                className="btn"
+                type="button"
+                className="atoll-btn atoll-btn--primary"
                 onClick={() => {
                   setEditingParticipation(null)
                   setEnrollOpen(true)
                 }}
               >
-                <Icon name="plus" size={14} /> {t('course_detail.enroll_student')}
+                <FdIcon.Plus size={14} /> {t('course_detail.enroll_student')}
               </button>
-              <div className="caption" style={{ alignSelf: 'center' }}>
+              <div className="atoll-cockpit__card-sub" style={{ margin: 0 }}>
                 {t('course_detail.enrolled_certified_summary', {
                   enrolled: participants.filter((p) => p.status === 'enrolled').length,
                   certified: participants.filter((p) => p.status === 'certified').length,
@@ -417,79 +394,92 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
           )}
 
           {participants.length === 0 ? (
-            <div className="caption">{t('course_detail.no_participants')}</div>
+            <div className="atoll-cockpit__card-sub">{t('course_detail.no_participants')}</div>
           ) : (
-            participants.map((p) => (
-              <div
-                key={p.id}
-                className="glass-thin"
-                style={{
-                  padding: 12,
-                  borderRadius: 12,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  cursor: isDispatcher ? 'pointer' : 'default',
-                }}
-                onClick={() => {
-                  if (!isDispatcher) return
-                  setEditingParticipation(p)
-                  setEnrollOpen(true)
-                }}
-              >
-                {p.student && (
-                  <Avatar
-                    id={p.student.id}
-                    name={p.student.name}
-                    size="sm"
-                    color="var(--brand-blue)"
-                  />
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{ fontWeight: 500, cursor: 'pointer' }}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      if (p.student) navigate(`/schueler/${p.student.id}`)
-                    }}
-                  >
-                    {p.student?.name ?? '—'}
+            participants.map((p) => {
+              const statusTone =
+                p.status === 'certified' ? 'success' :
+                p.status === 'dropped' ? 'danger' : 'warning'
+              return (
+                <div key={p.id} className="atoll-detail__row" style={{ cursor: 'default' }}>
+                  {p.student && (
+                    <Avatar
+                      id={p.student.id}
+                      name={p.student.name}
+                      size="sm"
+                      color="var(--brand-blue)"
+                    />
+                  )}
+                  <div className="atoll-detail__row-main">
+                    <button
+                      type="button"
+                      className="atoll-detail__row-title"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        padding: 0,
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        color: 'inherit',
+                        fontFamily: 'inherit',
+                        fontSize: 'inherit',
+                        fontWeight: 'inherit',
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (p.student) navigate(`/schueler/${p.student.id}`)
+                      }}
+                    >
+                      {p.student?.name ?? '—'}
+                    </button>
+                    <div className="atoll-detail__row-meta">
+                      {[p.student?.padi_nr ? `PADI ${p.student.padi_nr}` : null, p.student?.email]
+                        .filter(Boolean)
+                        .join(' · ') || '—'}
+                    </div>
                   </div>
-                  <div className="caption">
-                    {[p.student?.padi_nr ? `PADI ${p.student.padi_nr}` : null, p.student?.email]
-                      .filter(Boolean)
-                      .join(' · ') || '—'}
+                  <div className="atoll-detail__row-pills">
+                    {p.certificate_nr && (
+                      <Pill tone="success" size="sm">
+                        {t('course_detail.cert_short', { nr: p.certificate_nr })}
+                      </Pill>
+                    )}
+                    {isDispatcher && (
+                      <button
+                        type="button"
+                        className="atoll-btn"
+                        style={{ height: 26, padding: '0 10px', fontSize: 'var(--text-meta)' }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setIntakeForCpId(p.id)
+                        }}
+                        title={t('course_detail.intake_tooltip')}
+                      >
+                        {t('course_detail.intake')}
+                      </button>
+                    )}
+                    <Pill tone={statusTone} size="sm">
+                      {p.status === 'enrolled' ? t('course_detail.status_enrolled') :
+                       p.status === 'certified' ? t('course_detail.status_certified') :
+                       t('course_detail.status_dropped')}
+                    </Pill>
+                    {isDispatcher && (
+                      <button
+                        type="button"
+                        className="atoll-btn"
+                        style={{ height: 26, padding: '0 10px' }}
+                        onClick={() => {
+                          setEditingParticipation(p)
+                          setEnrollOpen(true)
+                        }}
+                      >
+                        <FdIcon.Settings size={12} />
+                      </button>
+                    )}
                   </div>
                 </div>
-                {p.certificate_nr && (
-                  <Chip tone="green">{t('course_detail.cert_short', { nr: p.certificate_nr })}</Chip>
-                )}
-                {isDispatcher && (
-                  <button
-                    type="button"
-                    className="btn-secondary btn"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setIntakeForCpId(p.id)
-                    }}
-                    style={{ height: 26, padding: '0 10px', fontSize: 11.5 }}
-                    title={t('course_detail.intake_tooltip')}
-                  >
-                    {t('course_detail.intake')}
-                  </button>
-                )}
-                <Chip
-                  tone={
-                    p.status === 'certified' ? 'green' :
-                    p.status === 'dropped'   ? 'red' : 'orange'
-                  }
-                >
-                  {p.status === 'enrolled' ? t('course_detail.status_enrolled') :
-                   p.status === 'certified' ? t('course_detail.status_certified') : t('course_detail.status_dropped')}
-                </Chip>
-                {isDispatcher && <Icon name="chevron-right" size={14} />}
-              </div>
-            ))
+              )
+            })
           )}
         </div>
       )}
@@ -517,14 +507,14 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       />
 
       {tab === 'notes' && (
-        <div>
-          <div className="title-3" style={{ marginBottom: 8 }}>{t('course_detail.section_info')}</div>
-          <div className="caption" style={{ marginBottom: 18, whiteSpace: 'pre-wrap' }}>
-            {course.info || '—'}
+        <div className="atoll-detail__overview">
+          <div>
+            <h2 className="atoll-cockpit__card-title">{t('course_detail.section_info')}</h2>
+            <div className="atoll-coursedetail__notes">{course.info || '—'}</div>
           </div>
-          <div className="title-3" style={{ marginBottom: 8 }}>{t('course_detail.section_notes')}</div>
-          <div className="caption" style={{ whiteSpace: 'pre-wrap' }}>
-            {course.notes || '—'}
+          <div>
+            <h2 className="atoll-cockpit__card-title">{t('course_detail.section_notes')}</h2>
+            <div className="atoll-coursedetail__notes">{course.notes || '—'}</div>
           </div>
         </div>
       )}
@@ -608,11 +598,7 @@ function PrTab({
   } | null>(null)
 
   if (!catalog) {
-    return (
-      <div className="caption" style={{ padding: 20 }}>
-        {t('pr_tab.loading_catalog')}
-      </div>
-    )
+    return <div className="atoll-cockpit__loading">{t('pr_tab.loading_catalog')}</div>
   }
 
   // Status-Lookup pro (student_id, pr_code)
@@ -643,27 +629,29 @@ function PrTab({
   }
 
   return (
-    <div style={{ display: 'grid', gap: 18 }}>
+    <div className="atoll-prtab">
       {/* Header mit Catalog-Info */}
-      <div className="glass-thin" style={{ padding: 14, borderRadius: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700 }}>{catalog.data.title}</div>
-          <div className="caption">
-            {catalog.course_type} · v{catalog.version} · {t('pr_tab.slots_skills', { slots: catalog.data.slots.length, skills: totalSkills })}
+      <section className="atoll-cockpit__card">
+        <div className="atoll-prtab__head">
+          <div>
+            <h2 className="atoll-cockpit__card-title">{catalog.data.title}</h2>
+            <p className="atoll-cockpit__card-sub" style={{ margin: 0 }}>
+              {catalog.course_type} · v{catalog.version} · {t('pr_tab.slots_skills', { slots: catalog.data.slots.length, skills: totalSkills })}
+            </p>
           </div>
-          {catalog.course_type === 'DM' && (
-            <div className="caption-2" style={{ marginTop: 6, opacity: 0.75 }}>
-              {t('pr_tab.dm_hint')}
-            </div>
-          )}
         </div>
-      </div>
+        {catalog.course_type === 'DM' && (
+          <div className="atoll-prtab__hint">{t('pr_tab.dm_hint')}</div>
+        )}
+      </section>
 
       {/* Pre-Reqs */}
       {(catalog.data.prerequisites?.requiredCerts?.length || catalog.data.prerequisites?.requiredELearning) && (
-        <div className="glass-thin" style={{ padding: 14, borderRadius: 12 }}>
-          <div className="caption-2" style={{ marginBottom: 6, opacity: 0.7 }}>{t('pr_tab.prerequisites')}</div>
-          <div style={{ display: 'grid', gap: 4, fontSize: 13 }}>
+        <section className="atoll-cockpit__card">
+          <div className="atoll-detail__field-label small-caps" style={{ marginBottom: 6 }}>
+            {t('pr_tab.prerequisites')}
+          </div>
+          <div className="atoll-prtab__prereqs">
             {catalog.data.prerequisites?.minAge && (
               <div>· {t('pr_tab.min_age', { age: catalog.data.prerequisites.minAge })}</div>
             )}
@@ -684,34 +672,39 @@ function PrTab({
               </div>
             )}
           </div>
-        </div>
+        </section>
       )}
 
       {/* Kandidaten-Coverage */}
       {cands.length > 0 && (
-        <div>
-          <div className="title-3" style={{ marginBottom: 8 }}>{t('pr_tab.candidates_count', { count: cands.length })}</div>
-          <div style={{ display: 'grid', gap: 6 }}>
+        <section>
+          <h2 className="atoll-cockpit__card-title" style={{ marginBottom: 8 }}>
+            {t('pr_tab.candidates_count', { count: cands.length })}
+          </h2>
+          <div className="atoll-detail__list" style={{ paddingTop: 0 }}>
             {cands.map((c) => {
               const cov = coverageByStudent.get(c.student!.id) ?? { done: 0, inProg: 0, rem: 0 }
               const pct = totalSkills > 0 ? Math.round((cov.done / totalSkills) * 100) : 0
+              const fillTone = pct >= 80 ? 'var(--brand-teal)' : pct >= 40 ? 'var(--brand-amber)' : 'var(--brand-red)'
               return (
-                <div key={c.id} className="glass-thin" style={{ padding: 12, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div className="avatar avatar-sm" style={{ background: 'linear-gradient(135deg,#34c759,#00c2a8)' }}>
-                    {c.student?.name.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase()}
+                <div key={c.id} className="atoll-detail__row" style={{ cursor: 'default' }}>
+                  {c.student && (
+                    <Avatar id={c.student.id} name={c.student.name} size="sm" color="var(--brand-blue)" />
+                  )}
+                  <div className="atoll-detail__row-main">
+                    <div className="atoll-detail__row-title">{c.student?.name}</div>
+                    <div className="atoll-detail__row-meta">
+                      {t('pr_tab.coverage_summary', { done: cov.done, total: totalSkills, pct, in_progress: cov.inProg, remediation: cov.rem })}
+                    </div>
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 500 }}>{c.student?.name}</div>
-                    <div className="caption-2">{t('pr_tab.coverage_summary', { done: cov.done, total: totalSkills, pct, in_progress: cov.inProg, remediation: cov.rem })}</div>
-                  </div>
-                  <div style={{ width: 100, height: 6, borderRadius: 3, background: 'rgba(255,255,255,.10)', overflow: 'hidden' }}>
-                    <div style={{ width: `${pct}%`, height: '100%', background: pct >= 80 ? '#34C759' : pct >= 40 ? '#FFCC00' : '#FF9500' }} />
+                  <div className="atoll-prtab__bar" aria-label={`${pct}%`}>
+                    <div className="atoll-prtab__bar-fill" style={{ width: `${pct}%`, background: fillTone }} />
                   </div>
                 </div>
               )
             })}
           </div>
-        </div>
+        </section>
       )}
 
       {/* Catalog: Slots + Skills mit Status-Pillen */}
@@ -771,26 +764,14 @@ function PrTab({
                 ? minOnePairAchieved
                 : (slotTotal > 0 && slotDone === slotTotal)
             const slotPartial = !isMinOnePassed && !isMinOnePairPassed && slotTotal > 0 && slotDone > 0 && slotDone < slotTotal
-            const slotBg =
-              slotPassed  ? 'linear-gradient(180deg, rgba(52,199,89,.18), rgba(52,199,89,.06))'
-              : slotPartial ? 'linear-gradient(180deg, rgba(255,204,0,.16), rgba(255,204,0,.04))'
-              :              undefined
-            const slotBorder =
-              slotPassed  ? '0.5px solid rgba(52,199,89,.45)'
-              : slotPartial ? '0.5px solid rgba(255,204,0,.40)'
-              :              undefined
+            const slotState = slotPassed ? 'passed' : slotPartial ? 'partial' : 'open'
             return (
             <div
               key={slot.code}
-              className="glass-thin"
-              style={{
-                padding: 14,
-                borderRadius: 12,
-                background: slotBg,
-                border: slotBorder,
-              }}
+              className={`atoll-prtab__slot atoll-prtab__slot--${slotState}`}
             >
               <button
+                type="button"
                 onClick={() => {
                   if (!slotClickable) return
                   setOpenSkill({
@@ -802,26 +783,13 @@ function PrTab({
                   })
                 }}
                 disabled={!slotClickable}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  width: '100%',
-                  padding: 0,
-                  marginBottom: 10,
-                  border: 'none',
-                  background: 'transparent',
-                  textAlign: 'left',
-                  cursor: slotClickable ? 'pointer' : 'default',
-                  color: 'var(--ink)',
-                  font: 'inherit',
-                }}
+                className="atoll-prtab__slot-head"
               >
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700 }}>
+                  <div className="atoll-prtab__slot-title">
                     {slot.order}. {slot.title}
                   </div>
-                  <div className="caption-2">
+                  <div className="atoll-prtab__slot-meta">
                     {slot.code} · {slot.kind}
                     {slot.scoreSchema === 'score1to5' && slot.passThreshold ? ` · ${t('pr_tab.pass_threshold_5', { value: slot.passThreshold })}` : ''}
                     {slot.scoreSchema === 'score1to5_decimal' && slot.passThreshold ? ` · ${t('pr_tab.pass_threshold_5', { value: slot.passThreshold.toFixed(2) })}` : ''}
@@ -831,26 +799,17 @@ function PrTab({
                   </div>
                 </div>
                 {slotTotal > 0 && (
-                  <div
-                    className="caption-2"
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: 999,
-                      background: slotPassed
-                        ? 'rgba(52,199,89,.25)'
-                        : slotPartial
-                          ? 'rgba(255,204,0,.18)'
-                          : 'rgba(255,255,255,.06)',
-                      fontWeight: 600,
-                    }}
+                  <Pill
+                    tone={slotPassed ? 'success' : slotPartial ? 'warning' : 'neutral'}
+                    size="sm"
                   >
                     {(isMinOnePassed || isMinOnePairPassed)
                       ? (slotPassed ? t('pr_tab.pass_check') : t('pr_tab.open'))
                       : `${slotDone}/${slotTotal}`}
-                  </div>
+                  </Pill>
                 )}
                 {slotClickable && (
-                  <span className="caption-2" style={{ opacity: 0.4 }}>›</span>
+                  <FdIcon.ChevronRight size={14} className="atoll-orgs__chevron" aria-hidden />
                 )}
               </button>
 
@@ -871,9 +830,16 @@ function PrTab({
                   const isScoreSchema = slot.scoreSchema === 'score1to5' || slot.scoreSchema === 'score1to5_decimal' || slot.scoreSchema === 'percent'
                   const isPassed = bestScore != null && bestScore >= threshold
                   const clickable = cands.length > 0
+                  // Score-Pill tone: passed=success, otherwise neutral for minOnePassed
+                  // (no yellow/orange on fail), warning for standard schemas
+                  const scoreTone = isPassed ? 'success' : isMinOnePassed ? 'neutral' : 'warning'
+                  const completeTone =
+                    completeCount === cands.length ? 'success' :
+                    completeCount > 0 ? 'warning' : 'neutral'
                   return (
                     <button
                       key={sk.code}
+                      type="button"
                       disabled={!clickable}
                       onClick={() =>
                         setOpenSkill({
@@ -884,73 +850,32 @@ function PrTab({
                           showAssistantToggle: sk.showAssistantToggle,
                         })
                       }
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '6px 10px',
-                        borderRadius: 8,
-                        fontSize: 13,
-                        background: 'rgba(255,255,255,.04)',
-                        border: 'none',
-                        textAlign: 'left',
-                        cursor: clickable ? 'pointer' : 'default',
-                        color: 'var(--ink)',
-                        font: 'inherit',
-                        width: '100%',
-                      }}
+                      className="atoll-prtab__skill"
                     >
-                      <div style={{ flex: 1 }}>
-                        <span className="mono" style={{ opacity: 0.5, marginRight: 8, fontSize: 11 }}>{sk.code}</span>
-                        {sk.title}
+                      <div className="atoll-prtab__skill-main">
+                        <span className="atoll-prtab__skill-code">{sk.code}</span>
+                        <span className="atoll-prtab__skill-title">{sk.title}</span>
                         {sk.repeatable && (
-                          <span className="caption-2" style={{ marginLeft: 8, opacity: 0.6 }}>{t('pr_tab.repeatable')}</span>
+                          <span className="atoll-prtab__skill-tag">{t('pr_tab.repeatable')}</span>
                         )}
                       </div>
                       {cands.length > 0 && (
                         isScoreSchema && bestScore != null ? (
-                          // Score-basierte Anzeige: zeige den höchsten Score
-                          // Bei minOnePassed: grün wenn ≥ Threshold, sonst neutral (KEIN gelb/orange/rot bei Fail)
-                          // Bei Standard-Schemas: grün wenn ≥ Threshold, gelb-orange wenn drunter
-                          <div
-                            className="caption-2"
-                            style={{
-                              padding: '2px 10px',
-                              borderRadius: 999,
-                              fontWeight: 700,
-                              background: isPassed
-                                ? 'rgba(52,199,89,.25)'
-                                : isMinOnePassed
-                                  ? 'rgba(255,255,255,.06)'
-                                  : 'rgba(255,149,0,.18)',
-                            }}
-                          >
+                          <Pill tone={scoreTone} size="sm">
                             {slot.scoreSchema === 'score1to5_decimal'
                               ? bestScore.toFixed(2)
                               : slot.scoreSchema === 'percent'
                                 ? `${bestScore}%`
                                 : bestScore.toString()}
-                          </div>
+                          </Pill>
                         ) : (
-                          // Pass/Fail oder Done-Schema: zeige Anzahl Kandidaten die abgenommen haben
-                          <div
-                            className="caption-2"
-                            style={{
-                              padding: '2px 8px',
-                              borderRadius: 999,
-                              background: completeCount === cands.length
-                                ? 'rgba(52,199,89,.20)'
-                                : completeCount > 0
-                                  ? 'rgba(255,204,0,.18)'
-                                  : 'rgba(255,255,255,.06)',
-                            }}
-                          >
+                          <Pill tone={completeTone} size="sm">
                             {completeCount}/{cands.length}
-                          </div>
+                          </Pill>
                         )
                       )}
                       {clickable && (
-                        <span className="caption-2" style={{ opacity: 0.4 }}>›</span>
+                        <FdIcon.ChevronRight size={12} className="atoll-orgs__chevron" aria-hidden />
                       )}
                     </button>
                   )
@@ -958,29 +883,18 @@ function PrTab({
 
                 {/* Pärchen-Schnitte (für minOnePairPassed-Slots) */}
                 {isMinOnePairPassed && pairAverages.length > 0 && (
-                  <div style={{ marginTop: 6, display: 'grid', gap: 4 }}>
+                  <div className="atoll-prtab__pairs">
                     {pairAverages.map((p) => (
                       <div
                         key={p.group}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          padding: '6px 10px',
-                          borderRadius: 8,
-                          fontSize: 12.5,
-                          background: p.passed
-                            ? 'rgba(52,199,89,.18)'
-                            : 'rgba(255,255,255,.04)',
-                          border: p.passed ? '0.5px solid rgba(52,199,89,.40)' : '0.5px dashed rgba(255,255,255,.20)',
-                        }}
+                        className={`atoll-prtab__pair${p.passed ? ' atoll-prtab__pair--passed' : ''}`}
                       >
-                        <span style={{ fontWeight: 600 }}>{t('pr_tab.pair_label', { group: p.group })}</span>
-                        <span className="caption-2">
+                        <span className="atoll-prtab__pair-label">{t('pr_tab.pair_label', { group: p.group })}</span>
+                        <span className="atoll-prtab__pair-avg tabular-nums">
                           {t('pr_tab.average')}: {p.avg != null ? p.avg.toFixed(2) : '—'}
                           {' / '}{(slot.pairAverageThreshold ?? 3.4).toFixed(2)}
                         </span>
-                        <span style={{ marginLeft: 'auto', fontWeight: 600 }}>
+                        <span className="atoll-prtab__pair-status">
                           {p.passed ? t('pr_tab.pass_check') : p.avg != null ? t('pr_tab.below_average') : t('pr_tab.open')}
                         </span>
                       </div>
@@ -992,9 +906,7 @@ function PrTab({
           )})}
       </div>
 
-      <div className="caption-2" style={{ opacity: 0.5, padding: '8px 0' }}>
-        {t('pr_tab.tip_click')}
-      </div>
+      <div className="atoll-prtab__tip">{t('pr_tab.tip_click')}</div>
 
       <PrCheckOffSheet
         open={!!openSkill}

@@ -1758,3 +1758,214 @@
 .atoll-detail__saldo-total--neg {
   color: var(--brand-red);
 }
+
+/* ──────────────────────── Course Detail specifics ──────────────────────── */
+
+.atoll-coursedetail__date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  background: var(--bg-sand);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.atoll-coursedetail__date {
+  min-width: 110px;
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-coursedetail__notes {
+  margin-top: 8px;
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+/* ──────────────────────── PR-Tab (CD performance records) ──────────────────────── */
+
+.atoll-prtab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.atoll-prtab__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.atoll-prtab__hint {
+  margin-top: 8px;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-prtab__prereqs {
+  display: grid;
+  gap: 4px;
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+
+.atoll-prtab__bar {
+  width: 100px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.atoll-prtab__bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 240ms ease-out;
+}
+
+/* Slot card with passed / partial / open background tint */
+.atoll-prtab__slot {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+}
+
+.atoll-prtab__slot--passed {
+  background: linear-gradient(180deg, var(--brand-teal-50), transparent 70%);
+  border-color: var(--brand-teal-100);
+}
+
+.atoll-prtab__slot--partial {
+  background: linear-gradient(180deg, var(--brand-amber-50), transparent 70%);
+  border-color: var(--brand-amber-100);
+}
+
+.atoll-prtab__slot-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 10px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.atoll-prtab__slot-head:disabled { cursor: default; }
+
+.atoll-prtab__slot-title {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.atoll-prtab__slot-meta {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+/* Skill row */
+.atoll-prtab__skill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-sand);
+  border: 1px solid var(--border-tertiary);
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.atoll-prtab__skill:hover:not(:disabled) {
+  background: var(--bg-card);
+}
+.atoll-prtab__skill:disabled { cursor: default; }
+
+.atoll-prtab__skill-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.atoll-prtab__skill-code {
+  font-family: var(--font-mono);
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-prtab__skill-title {
+  font-size: var(--text-meta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-prtab__skill-tag {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* Pair averages */
+.atoll-prtab__pairs {
+  margin-top: 6px;
+  display: grid;
+  gap: 4px;
+}
+
+.atoll-prtab__pair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-meta);
+  background: var(--bg-sand);
+  border: 1px dashed var(--border-secondary);
+}
+
+.atoll-prtab__pair--passed {
+  background: var(--brand-teal-50);
+  border-style: solid;
+  border-color: var(--brand-teal-100);
+}
+
+.atoll-prtab__pair-label {
+  font-weight: var(--weight-medium);
+}
+
+.atoll-prtab__pair-avg {
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-prtab__pair-status {
+  margin-left: auto;
+  font-weight: var(--weight-medium);
+}
+
+.atoll-prtab__tip {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  padding: 8px 0;
+}
