@@ -4,3 +4,6 @@
 @import './components.css';
 /* Foundation utilities — used by Tag-4 cutover screens. */
 @import '../foundation/screens.css';
+/* Legacy-class overrides (.btn, .chip, .seg, .glass-thin, …) — must come
+   AFTER components.css to win specificity, before any per-component CSS. */
+@import '../foundation/legacy-overrides.css';
