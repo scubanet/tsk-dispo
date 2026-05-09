@@ -21,6 +21,7 @@ import {
   Icon,
 } from '@/foundation'
 import { supabase } from '@/lib/supabase'
+import { ContactDetailPanel } from './contacts/ContactDetailPanel'
 
 interface Skill {
   id: string
@@ -42,6 +43,7 @@ export function SkillMatrixScreen() {
   const [matrix, setMatrix] = useState<Set<string>>(new Set())
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<string>('all')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -162,7 +164,13 @@ export function SkillMatrixScreen() {
                   {filteredInstructors.map((i) => (
                     <tr key={i.id}>
                       <td className="atoll-skillmatrix__name">
-                        <div className="atoll-skillmatrix__name-text">{i.name}</div>
+                        <button
+                          type="button"
+                          className="atoll-skillmatrix__name-text atoll-skillmatrix__name-text--link"
+                          onClick={() => setSelectedId(i.id)}
+                        >
+                          {i.name}
+                        </button>
                         <div className="atoll-skillmatrix__name-sub">{i.padi_level}</div>
                       </td>
                       {filteredSkills.map((s) => {
@@ -185,6 +193,12 @@ export function SkillMatrixScreen() {
           )}
         </section>
       </div>
+      <ContactDetailPanel
+        contactId={selectedId}
+        open={!!selectedId}
+        initialTab="skills"
+        onClose={() => setSelectedId(null)}
+      />
     </div>
   )
 }
