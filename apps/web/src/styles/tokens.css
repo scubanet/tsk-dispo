@@ -403,3 +403,309 @@
 .roles-badge--clickable:hover {
   opacity: 0.82;
 }
+
+/* ─────────────────── Contact Detail Panel ─────────────────────────────── */
+
+.contact-detail__body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.contact-detail__loading,
+.contact-detail__error {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--text-body);
+}
+
+.contact-detail__error {
+  color: var(--brand-red);
+}
+
+/* Tab body — shared wrapper for all tab content */
+.contact-tab-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-4);
+}
+
+.contact-tab-footer {
+  display: flex;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-tertiary);
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  flex-wrap: wrap;
+}
+
+/* Placeholder / stub tabs */
+.tab-stub {
+  padding: var(--space-6);
+  color: var(--text-tertiary);
+  font-size: var(--text-body);
+  text-align: center;
+}
+
+/* Section headings inside tabs */
+.contact-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.contact-section__title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.contact-section__field-label {
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+/* Relationships list */
+.relationship-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.relationship-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.relationship-list__info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.relationship-list__kind {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.relationship-list__dir {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.relationship-list__name {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.relationship-list__role {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.relationship-list__remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--brand-red);
+  font-size: var(--text-body);
+  padding: 0 var(--space-1);
+  flex-shrink: 0;
+}
+
+/* Activity list */
+.activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.activity-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-tertiary);
+  font-size: var(--text-meta);
+}
+
+.activity-list__time {
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+  flex-shrink: 0;
+  min-width: 130px;
+}
+
+.activity-list__op {
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  font-size: var(--text-badge);
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.activity-list__table {
+  color: var(--text-tertiary);
+  font-size: var(--text-meta);
+}
+
+/* Courses list */
+.courses-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.courses-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-tertiary);
+}
+
+.courses-list__title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--brand-blue);
+  text-decoration: none;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.courses-list__meta {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.courses-list__status {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+/* Skills list */
+.skills-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skills-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-tertiary);
+}
+
+.skills-list__cat {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.skills-list__label {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* Members list (OrgMembersTab) */
+.members-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.members-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-tertiary);
+  transition: background 120ms ease;
+}
+
+.members-list__item:hover {
+  background: var(--bg-sand);
+}
+
+.members-list__name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* Action buttons */
+.contact-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.contact-action-btn--primary {
+  background: var(--brand-blue);
+  color: #fff;
+  border-color: var(--brand-blue);
+}
+
+.contact-action-btn--primary:hover {
+  background: var(--brand-blue-800);
+  border-color: var(--brand-blue-800);
+}
