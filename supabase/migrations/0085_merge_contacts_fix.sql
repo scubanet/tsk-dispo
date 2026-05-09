@@ -39,7 +39,7 @@ BEGIN
   UPDATE account_movements          SET instructor_id  = p_winner WHERE instructor_id  = p_loser;
   UPDATE account_movements          SET created_by     = p_winner WHERE created_by     = p_loser;
   UPDATE instructor_skills          SET instructor_id  = p_winner WHERE instructor_id  = p_loser;
-  UPDATE availability_blocks        SET instructor_id  = p_winner WHERE instructor_id  = p_loser;
+  UPDATE availability               SET instructor_id  = p_winner WHERE instructor_id  = p_loser;
   UPDATE communication_entries      SET created_by     = p_winner WHERE created_by     = p_loser;
   UPDATE device_tokens              SET instructor_id  = p_winner WHERE instructor_id  = p_loser;
   UPDATE intake_checklists          SET checked_by_id  = p_winner WHERE checked_by_id  = p_loser;
