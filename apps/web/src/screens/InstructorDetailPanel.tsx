@@ -137,6 +137,13 @@ export function InstructorDetailPanel({ instructorId }: { instructorId: string }
       .order('date', { ascending: false })
       .then(({ data }) => {
         const visible = ((data ?? []) as unknown as Movement[]).filter((m) => {
+          // Vergütungen müssen IMMER eine ref_assignment_id haben — orphane
+          // (NULL) sind ein Datenkonsistenz-Bug und werden ausgeblendet.
+          if (m.kind === 'vergütung') {
+            return m.ref_assignment_id != null
+              && m.course_assignments?.courses?.status === 'completed'
+          }
+          // übertrag/korrektur sind immer manuell → immer anzeigen.
           if (!m.ref_assignment_id) return true
           return m.course_assignments?.courses?.status === 'completed'
         })
