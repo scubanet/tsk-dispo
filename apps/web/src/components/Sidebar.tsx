@@ -38,6 +38,20 @@ const ITEMS: NavItem[] = [
   { to: '/profil',            icon: 'tag',      i18nKey: 'my_profile',      roles: ['instructor'] },
 ]
 
+// ADRESSEN section: dispatcher / owner / cd
+const ADRESSEN_ITEMS: NavItem[] = [
+  { to: '/contacts',       icon: 'tag',   i18nKey: 'addressbook',       roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/cd/pipeline',    icon: 'chart', i18nKey: 'pipeline',          roles: ['cd', 'owner'] },
+  { to: '/communication',  icon: 'chart', i18nKey: 'communication_hub', roles: ['dispatcher', 'owner', 'cd'] },
+]
+
+// TEAM section: dispatcher / owner / cd
+const TEAM_ITEMS: NavItem[] = [
+  { to: '/contacts?view=team', icon: 'users', i18nKey: 'team_tldm',     roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/skills',             icon: 'grid',  i18nKey: 'skills_matrix',  roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/availability',       icon: 'calendar', i18nKey: 'availability', roles: ['dispatcher', 'owner', 'cd'] },
+]
+
 // CD module: CD role only.
 const CD_ITEMS: NavItem[] = [
   { to: '/cd/pipeline', icon: 'chart', i18nKey: 'pipeline', roles: ['cd'] },
@@ -50,27 +64,20 @@ const ADMIN: NavItem[] = [
 export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
   const { t } = useTranslation()
   const main = ITEMS.filter((i) => i.roles.includes(role))
+  const adressen = ADRESSEN_ITEMS.filter((i) => i.roles.includes(role))
+  const team = TEAM_ITEMS.filter((i) => i.roles.includes(role))
   const cd = CD_ITEMS.filter((i) => i.roles.includes(role))
   const admin = ADMIN.filter((i) => i.roles.includes(role))
 
   return (
     <aside className="sidebar glass-thin">
-      <div style={{ padding: '6px 12px 14px', display: 'flex', gap: 10, alignItems: 'center' }}>
-        <div
-          style={{
-            borderRadius: 8,
-            boxShadow: '0 1px 2px rgba(0,0,0,.15), inset 0 0 0 .5px rgba(255,255,255,.3)',
-            overflow: 'hidden',
-            flexShrink: 0,
-          }}
-        >
-          <Logo size={30} />
-        </div>
+      <div style={{ padding: '8px 12px 18px', display: 'flex', gap: 12, alignItems: 'center' }}>
+        <Logo size={48} />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.1, letterSpacing: '.06em' }}>
+          <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1, letterSpacing: '.06em' }}>
             ATOLL
           </div>
-          <div className="caption-2" style={{ marginTop: 2, fontSize: 10.5, opacity: 0.75 }}>
+          <div className="caption-2" style={{ marginTop: 3, fontSize: 11, opacity: 0.75 }}>
             The Scuba OS
           </div>
         </div>
@@ -88,6 +95,42 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
           <span>{t(`nav.${item.i18nKey}`)}</span>
         </NavLink>
       ))}
+
+      {adressen.length > 0 && (
+        <>
+          <div className="sb-section">{t('nav.section_adressen')}</div>
+          {adressen.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => clsx('sb-row', isActive && 'active')}
+            >
+              <span className="sb-icon">
+                <Icon name={item.icon} size={17} />
+              </span>
+              <span>{t(`nav.${item.i18nKey}`)}</span>
+            </NavLink>
+          ))}
+        </>
+      )}
+
+      {team.length > 0 && (
+        <>
+          <div className="sb-section">{t('nav.section_team')}</div>
+          {team.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => clsx('sb-row', isActive && 'active')}
+            >
+              <span className="sb-icon">
+                <Icon name={item.icon} size={17} />
+              </span>
+              <span>{t(`nav.${item.i18nKey}`)}</span>
+            </NavLink>
+          ))}
+        </>
+      )}
 
       {cd.length > 0 && (
         <>
