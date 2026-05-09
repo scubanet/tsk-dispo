@@ -101,6 +101,7 @@ struct JournalCard: View {
                     GeometryReader { geo in
                         DivePhotoThumbnail(
                             filename: cover,
+                            dive: dive,
                             width: geo.size.width,
                             height: 220,
                             cornerRadius: DSRadius.m

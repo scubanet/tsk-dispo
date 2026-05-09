@@ -45,6 +45,7 @@ struct DiveLogProApp: App {
     private static let (_container, _isCloudKitAvailable, _cloudKitError): (ModelContainer, Bool, String?) = {
         let schema = Schema([
             Dive.self,
+            DivePhoto.self,
             DiverProfile.self,
             DiveSite.self,
             Buddy.self,
@@ -133,6 +134,7 @@ struct DiveLogProApp: App {
                 DiveLogBridge.runRoundTripSelfCheck()
                 #endif
                 await appleSignIn.refreshCredentialState()
+                migratePhotosToCloudKit()
                 await DiveLogBridgePublisher(
                     container: sharedModelContainer,
                     bridge: atollBridge
@@ -168,6 +170,15 @@ struct DiveLogProApp: App {
             }
         }
         .modelContainer(sharedModelContainer)
+    }
+
+    private func migratePhotosToCloudKit() {
+        let ctx = sharedModelContainer.mainContext
+        let dives = (try? ctx.fetch(FetchDescriptor<Dive>())) ?? []
+        for dive in dives where !dive.photoFilenames.isEmpty {
+            PhotoStore.migrateLocalPhotosToCloudKit(dive: dive, context: ctx)
+        }
+        try? ctx.save()
     }
 
     private var cloudKitWarningBanner: some View {

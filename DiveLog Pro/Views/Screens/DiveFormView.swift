@@ -377,7 +377,7 @@ struct DiveFormView: View {
             }
             
             // Photos — PhotosPicker integration
-            PhotoPickerSection(filenames: $photoFilenames, maxPhotos: 20)
+            PhotoPickerSection(filenames: $photoFilenames, dive: { if case .edit(let d) = mode { return d }; return nil }(), maxPhotos: 20)
                 .onChange(of: photoFilenames) { oldValue, newValue in
                     // Track newly imported filenames so we can roll them back
                     // if the user cancels instead of saving.
@@ -603,11 +603,11 @@ struct DiveFormView: View {
     /// dive need to be cleaned up so they don't leak into the documents dir.
     private func discardUnsavedPhotos() {
         guard case .new = mode else {
-            // In edit mode: remove any newly imported files that the user
-            // didn't keep in the final list (they may have hit "x" on them).
-            let attachedSet = Set(photoFilenames)
-            let orphaned = importedPhotosOnThisSession.filter { !attachedSet.contains($0) }
-            orphaned.forEach { PhotoStore.delete(filename: $0) }
+            if case .edit(let d) = mode {
+                let attachedSet = Set(photoFilenames)
+                let orphaned = importedPhotosOnThisSession.filter { !attachedSet.contains($0) }
+                orphaned.forEach { PhotoStore.delete(filename: $0, from: d, context: ctx) }
+            }
             return
         }
         // New mode + dismissed without saving → delete everything imported.
@@ -638,7 +638,7 @@ struct DiveFormView: View {
             let before = Set(d.photoFilenames)
             let after = Set(photoFilenames)
             for removed in before.subtracting(after) {
-                PhotoStore.delete(filename: removed)
+                PhotoStore.delete(filename: removed, from: d, context: ctx)
             }
 
             // Detect whether depth or duration changed meaningfully — only
@@ -705,6 +705,7 @@ struct DiveFormView: View {
             }
             dive.photoFilenames = photoFilenames
             ctx.insert(dive)
+            PhotoStore.migrateLocalPhotosToCloudKit(dive: dive, context: ctx)
         }
         // Saving succeeded — any imported photos are now attached to a dive
         // and shouldn't be cleaned up on dismiss.

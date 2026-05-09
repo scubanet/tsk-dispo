@@ -106,7 +106,10 @@ struct DiveDetailView: View {
             get: { viewerStartIndex.map { ViewerPresentation(index: $0) } },
             set: { viewerStartIndex = $0?.index }
         )) { pres in
-            PhotoViewerView(filenames: dive.photoFilenames, startIndex: pres.index)
+            PhotoViewerView(filenames: dive.photoFilenames, dive: dive, startIndex: pres.index)
+        }
+        .task {
+            PhotoStore.migrateLocalPhotosToCloudKit(dive: dive, context: modelContext)
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -287,7 +290,7 @@ struct DiveDetailView: View {
                     HStack(spacing: 10) {
                         ForEach(Array(dive.photoFilenames.enumerated()), id: \.element) { idx, filename in
                             Button { viewerStartIndex = idx } label: {
-                                DivePhotoThumbnail(filename: filename, width: 220, height: 165)
+                                DivePhotoThumbnail(filename: filename, dive: dive, width: 220, height: 165)
                             }
                             .buttonStyle(.plain)
                         }

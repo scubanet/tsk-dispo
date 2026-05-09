@@ -68,7 +68,7 @@ final class Dive {
     var isHighlight: Bool = false
 
     // ─── Fotos ───────────────────────────
-    // Stored as filenames, actual files in app documents directory
+    // Filenames for local disk cache; actual bytes in DivePhoto for CloudKit sync.
     var photoFilenamesRaw: String = ""
 
     // CloudKit-mirrored binary copies (per filename) — used by PhotoStore
