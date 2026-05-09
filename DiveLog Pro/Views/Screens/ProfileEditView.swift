@@ -569,13 +569,14 @@ struct ProfileEditView: View {
 
     /// Apply the shift to every existing dive + update the profile offset,
     /// then dismiss. Called from the confirmation dialog.
+    ///
+    /// Implementation uses `ModelContext.renumberDives(from:)` rather than a
+    /// manual delta loop so all numbering paths in the app stay consistent
+    /// (see ModelContextExtensions). The function is idempotent and O(n).
     private func applyShift() {
-        let delta = pendingShiftDelta
-        guard delta != 0 else { dismiss(); return }
-        for dive in allDives {
-            dive.number += delta
-        }
-        profile.startingDiveNumber = (allDives.first?.number ?? profile.startingDiveNumber)
+        guard pendingShiftDelta != 0 else { dismiss(); return }
+        profile.startingDiveNumber = Int(firstDiveNumber) ?? profile.startingDiveNumber
+        ctx.renumberDives(from: profile)
         try? ctx.save()
         republishToAtollBridge()
         dismiss()
