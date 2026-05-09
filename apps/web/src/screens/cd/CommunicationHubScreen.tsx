@@ -27,6 +27,7 @@ import {
 } from '@/foundation'
 import { supabase } from '@/lib/supabase'
 import { CommunicationEditSheet, CHANNELS } from './CommunicationEditSheet'
+import { ContactDetailPanel } from '../contacts/ContactDetailPanel'
 import type { OutletCtx } from '@/layout/AppShell'
 
 interface Entry {
@@ -65,6 +66,7 @@ export function CommunicationHubScreen() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [refreshTick, setRefreshTick] = useState(0)
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!canAccess) return
@@ -214,9 +216,16 @@ export function CommunicationHubScreen() {
                       {ch?.label ?? c.channel}
                       {c.direction === 'inbound' ? ' ↓' : ' ↑'}
                     </Pill>
-                    <span className="atoll-comm__entry-name">
+                    <button
+                      type="button"
+                      className="atoll-comm__entry-name atoll-comm__entry-name--link"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (c.contact?.id) setSelectedContactId(c.contact.id)
+                      }}
+                    >
                       {c.contact?.name ?? '—'}
-                    </span>
+                    </button>
                     {c.contact?.is_candidate && (
                       <Pill tone="danger" size="sm">
                         {t('student_edit.stage_candidate')}
@@ -272,6 +281,13 @@ export function CommunicationHubScreen() {
         onClose={() => setCreateOpen(false)}
         onSaved={() => setRefreshTick((tick) => tick + 1)}
         createdById={user.instructorId}
+      />
+
+      <ContactDetailPanel
+        contactId={selectedContactId}
+        open={!!selectedContactId}
+        initialTab="activity"
+        onClose={() => setSelectedContactId(null)}
       />
     </div>
   )
