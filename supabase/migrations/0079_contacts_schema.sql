@@ -84,3 +84,75 @@ CREATE INDEX idx_contacts_search   ON public.contacts USING GIN(
 
 COMMENT ON TABLE public.contacts IS
   'Unified CRM contacts table. Replaces instructors, people, organizations.';
+
+-- padi_pro_level enum (new canonical name for contacts schema;
+-- legacy padi_level in 0001/0029/0033 stays for backward-compat with old tables)
+CREATE TYPE padi_pro_level AS ENUM (
+  'Instructor',
+  'AI',
+  'OWSI',
+  'MSDT',
+  'IDC Staff',
+  'MI',
+  'CD',
+  'Andere'
+);
+
+-- contact_instructor sidecar
+CREATE TABLE public.contact_instructor (
+  contact_id UUID PRIMARY KEY REFERENCES public.contacts(id) ON DELETE CASCADE,
+  auth_user_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
+  padi_pro_number TEXT,
+  padi_level padi_pro_level,
+  account_balance NUMERIC(10,2) NOT NULL DEFAULT 0,
+  hourly_rate_chf NUMERIC(8,2),
+  daily_rate_chf NUMERIC(8,2),
+  active BOOLEAN NOT NULL DEFAULT true,
+  hire_date DATE,
+  termination_date DATE,
+  emergency_contact_name TEXT,
+  emergency_contact_phone TEXT,
+  notes_internal TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_contact_instructor_active ON public.contact_instructor(active);
+CREATE INDEX idx_contact_instructor_auth   ON public.contact_instructor(auth_user_id);
+
+-- contact_student sidecar
+CREATE TABLE public.contact_student (
+  contact_id UUID PRIMARY KEY REFERENCES public.contacts(id) ON DELETE CASCADE,
+  pipeline_stage TEXT,
+  lead_source TEXT,
+  highest_brevet TEXT,
+  intake_status TEXT,
+  external_brevet_history JSONB NOT NULL DEFAULT '[]',
+  is_candidate BOOLEAN NOT NULL DEFAULT false,
+  candidate_target_level padi_pro_level,
+  medical_clearance_at DATE,
+  insurance_provider TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_contact_student_pipeline  ON public.contact_student(pipeline_stage);
+CREATE INDEX idx_contact_student_candidate ON public.contact_student(is_candidate)
+  WHERE is_candidate = true;
+
+-- contact_organization sidecar
+CREATE TABLE public.contact_organization (
+  contact_id UUID PRIMARY KEY REFERENCES public.contacts(id) ON DELETE CASCADE,
+  org_kind TEXT NOT NULL,
+  tax_id TEXT,
+  billing_email TEXT,
+  parent_org_id UUID REFERENCES public.contacts(id) ON DELETE SET NULL,
+  contract_type TEXT,
+  contract_until DATE,
+  payment_terms TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_contact_org_kind   ON public.contact_organization(org_kind);
+CREATE INDEX idx_contact_org_parent ON public.contact_organization(parent_org_id);

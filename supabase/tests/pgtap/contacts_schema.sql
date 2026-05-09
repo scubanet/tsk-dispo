@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(8);
+SELECT plan(20);
 
 SELECT has_table('contacts', 'contacts table exists');
 SELECT has_column('contacts', 'kind', 'contacts.kind exists');
@@ -17,6 +17,22 @@ PREPARE bad_org AS
   INSERT INTO contacts (kind) VALUES ('organization');
 SELECT throws_ok('bad_org', '23514',
   NULL, 'CHECK org needs legal_name');
+
+SELECT has_table('contact_instructor', 'sidecar exists');
+SELECT has_table('contact_student',    'sidecar exists');
+SELECT has_table('contact_organization', 'sidecar exists');
+
+SELECT col_is_pk('contact_instructor', 'contact_id');
+SELECT col_is_pk('contact_student',    'contact_id');
+SELECT col_is_pk('contact_organization', 'contact_id');
+
+SELECT col_is_fk('contact_instructor', 'contact_id');
+SELECT col_is_fk('contact_student',    'contact_id');
+SELECT col_is_fk('contact_organization', 'contact_id');
+
+SELECT has_column('contact_instructor', 'padi_pro_number');
+SELECT has_column('contact_instructor', 'account_balance');
+SELECT has_column('contact_student',    'pipeline_stage');
 
 SELECT * FROM finish();
 ROLLBACK;
