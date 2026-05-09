@@ -60,7 +60,9 @@ export function CoursesScreen() {
   const [courses, setCourses] = useState<CourseDetail[]>([])
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<Filter>('open')
-  const [cdOnly, setCdOnly] = useState(user.role === 'cd')
+  // Always default to "all courses". CD users can toggle the filter manually
+  // when they want to focus on Pro-Level courses only.
+  const [cdOnly, setCdOnly] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
 
   function refetch() {
