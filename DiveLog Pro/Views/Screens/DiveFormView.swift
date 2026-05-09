@@ -19,6 +19,7 @@ struct DiveFormView: View {
     @Environment(\.atollBridge) private var atollBridge
     @Query(sort: \Dive.number, order: .reverse) private var existingDives: [Dive]
     @Query private var profiles: [DiverProfile]
+    @State private var store = StoreManager.shared
     @State private var step = 0
     
     // ─── Form State ──────────────────────
@@ -211,8 +212,9 @@ struct DiveFormView: View {
                 }
             }
 
-            // Course & Students (Pro only)
-            if StoreManager.shared.isPro {
+            // Course & Students (Pro only) — reads `store.isPro` so the view
+            // updates reactively when the user purchases Pro mid-form.
+            if store.isPro {
             VStack(alignment: .leading, spacing: 8) {
                 Text((L10n.currentLanguage == "de" ? "Kurs & Schüler" : "Course & Students").uppercased())
                     .font(.system(size: 9, weight: .semibold))

@@ -21,11 +21,11 @@ struct ProfileTab: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("appLanguage") private var language = "en"
 
+    /// Picks the best profile to surface in the UI. Pure read — never mutates
+    /// state. Deduplication is hoisted to `.onChange(of: profiles.count)` on
+    /// the body so it doesn't fire on every view re-render.
     private var profile: DiverProfile? {
         guard !profiles.isEmpty else { return nil }
-        if profiles.count > 1 {
-            Task { @MainActor in deduplicateProfiles() }
-        }
         let uid = AppleSignInService.shared.currentUserID
         if let uid, let match = profiles.first(where: { $0.appleUserID == uid }) {
             return match
@@ -100,6 +100,14 @@ struct ProfileTab: View {
             }
             .navigationTitle(L10n.tabProfile)
             .navigationBarTitleDisplayMode(.large)
+            // Run profile-dedupe once when CloudKit syncs in extra DiverProfile
+            // rows from another device. Hoisted out of the `profile` computed
+            // property so it doesn't fire on every render.
+            .onChange(of: profiles.count, initial: true) { _, newCount in
+                if newCount > 1 {
+                    deduplicateProfiles()
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -409,6 +417,11 @@ struct ProfileTab: View {
                 ctx.delete(dive)
                 deletedCount += 1
             }
+        }
+
+        // Close gaps that the deletions left in the chronological numbering.
+        if deletedCount > 0, let profile = profiles.first {
+            ctx.renumberDives(from: profile)
         }
 
         do {

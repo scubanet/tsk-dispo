@@ -9,8 +9,8 @@ struct NumberingTests {
     @MainActor
     private func makeContext(startingNumber: Int = 1000) throws -> (ModelContext, DiverProfile) {
         let schema = Schema([
-            Dive.self, DiverProfile.self, DiveSite.self, Buddy.self, DiveSignature.self,
-            Student.self, PoolSession.self, SkillCompletion.self
+            Dive.self, DivePhoto.self, DiverProfile.self, DiveSite.self, Buddy.self,
+            DiveSignature.self, Student.self, PoolSession.self, SkillCompletion.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: schema, configurations: [config])
