@@ -161,3 +161,245 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Phase D — Contacts / Inline-Edit / Header classes
+   (appended by Phase D migration)
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────── Inline-edit field ─────────────────────────────── */
+
+.inline-field {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.inline-field__label {
+  font-size: var(--text-meta);    /* 11px — closest to spec's --text-xs */
+  color: var(--text-tertiary);
+  min-width: 7rem;
+  padding-top: 0.2em;
+  flex-shrink: 0;
+  font-weight: var(--weight-medium);
+}
+
+.inline-field__display {
+  flex: 1;
+  font-size: var(--text-body);    /* 13px — closest to spec's --text-sm */
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.inline-field__display:hover {
+  background: var(--bg-tertiary); /* closest to spec's --color-bg-hover */
+}
+
+.inline-field__edit {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.inline-field__edit input,
+.inline-field__edit textarea,
+.inline-field__edit select {
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border-primary); /* closest to spec's --color-border */
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+}
+
+.inline-field__edit input:focus,
+.inline-field__edit textarea:focus,
+.inline-field__edit select:focus {
+  border-color: var(--brand-blue); /* closest to spec's --color-brand-blue */
+  box-shadow: 0 0 0 2px var(--brand-blue-50);
+}
+
+.inline-field__error {
+  font-size: var(--text-meta);
+  color: var(--brand-red);        /* closest to spec's --color-brand-red */
+}
+
+.inline-field__empty {
+  font-size: var(--text-body);
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.inline-field[data-saving='true'] {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ─────────────── Phone / Email / Address lists ──────────────────────── */
+
+.phone-list,
+.email-list,
+.address-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.phone-list__row,
+.email-list__row,
+.address-list__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-tertiary);
+}
+
+.phone-list__row:last-child,
+.email-list__row:last-child,
+.address-list__row:last-child {
+  border-bottom: none;
+}
+
+.phone-list__add,
+.email-list__add,
+.address-list__add {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.contact-list-badge {
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 1px var(--space-2);
+}
+
+.contact-list-badge--primary {
+  background: var(--brand-blue-50);
+  color: var(--brand-blue-800);
+}
+
+/* ─────────────────── Contact header ────────────────────────────────── */
+
+.contact-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-tertiary);
+  padding: var(--space-4) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.contact-header__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.contact-header__name {
+  font-size: var(--text-h1);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.contact-header__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: var(--text-label);
+  color: var(--text-secondary);
+}
+
+.contact-header__owner {
+  font-size: var(--text-meta);
+  background: var(--bg-tertiary);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+.contact-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.contact-header__action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.1s;
+}
+
+.contact-header__action-btn:hover {
+  background: var(--brand-blue-50);
+  color: var(--brand-blue);
+}
+
+.contact-header__action-btn--primary {
+  background: var(--brand-blue);
+  color: #fff;
+}
+
+.contact-header__action-btn--primary:hover {
+  background: var(--brand-blue-800);
+  color: #fff;
+}
+
+/* ─────────────────── Roles badge list ─────────────────────────────── */
+
+.roles-badge-list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.roles-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-badge);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 2px var(--space-2);
+  border-radius: 999px;         /* pill shape */
+  color: #fff;
+  cursor: default;
+  line-height: 1.4;
+}
+
+.roles-badge--clickable {
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+
+.roles-badge--clickable:hover {
+  opacity: 0.82;
+}
