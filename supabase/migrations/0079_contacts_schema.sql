@@ -85,25 +85,15 @@ CREATE INDEX idx_contacts_search   ON public.contacts USING GIN(
 COMMENT ON TABLE public.contacts IS
   'Unified CRM contacts table. Replaces instructors, people, organizations.';
 
--- padi_pro_level enum (new canonical name for contacts schema;
--- legacy padi_level in 0001/0029/0033 stays for backward-compat with old tables)
-CREATE TYPE padi_pro_level AS ENUM (
-  'Instructor',
-  'AI',
-  'OWSI',
-  'MSDT',
-  'IDC Staff',
-  'MI',
-  'CD',
-  'Andere'
-);
-
 -- contact_instructor sidecar
+-- Uses existing padi_level enum (defined in 0001, extended in 0029/0033)
+-- with values: Instructor, Staff Instructor, DM, Shop Staff, Andere Funktion,
+-- AI, OWSI, MSDT, MI, CD, Andere, IDC Staff
 CREATE TABLE public.contact_instructor (
   contact_id UUID PRIMARY KEY REFERENCES public.contacts(id) ON DELETE CASCADE,
   auth_user_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
   padi_pro_number TEXT,
-  padi_level padi_pro_level,
+  padi_level padi_level,
   account_balance NUMERIC(10,2) NOT NULL DEFAULT 0,
   hourly_rate_chf NUMERIC(8,2),
   daily_rate_chf NUMERIC(8,2),
@@ -129,7 +119,7 @@ CREATE TABLE public.contact_student (
   intake_status TEXT,
   external_brevet_history JSONB NOT NULL DEFAULT '[]',
   is_candidate BOOLEAN NOT NULL DEFAULT false,
-  candidate_target_level padi_pro_level,
+  candidate_target_level padi_level,
   medical_clearance_at DATE,
   insurance_provider TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
