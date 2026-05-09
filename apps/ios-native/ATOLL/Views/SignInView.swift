@@ -16,9 +16,8 @@ struct SignInView: View {
       Spacer()
 
       // Logo + Branding Hero
-      VStack(spacing: 12) {
-        AtollLogo(size: 88)
-          .shadow(color: .accentColor.opacity(0.25), radius: 14, x: 0, y: 4)
+      VStack(spacing: 16) {
+        AtollLogo(size: 140)
         Text(Config.appName)
           .font(.system(size: 32, weight: .heavy))
           .tracking(6)
