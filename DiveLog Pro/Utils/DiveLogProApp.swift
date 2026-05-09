@@ -31,6 +31,11 @@ struct DiveLogProApp: App {
     // to the background so work-in-progress doesn't vanish silently.
     @Environment(\.scenePhase) private var scenePhase
 
+    // CloudKit convergence renumber — fires a debounced renumber after each
+    // successful CloudKit import so that dives inserted on another device
+    // converge to the same sequential numbering on this device.
+    @State private var renumberCoordinator: CloudKitRenumberCoordinator?
+
     // Atoll Hub bridge — writes our profile/activity snapshot into the
     // shared App Group container so Atoll Hub can read it offline.
     private let atollBridge = DiveLogBridge()
@@ -135,6 +140,9 @@ struct DiveLogProApp: App {
                 #endif
                 await appleSignIn.refreshCredentialState()
                 migratePhotosToCloudKit()
+                if renumberCoordinator == nil {
+                    renumberCoordinator = CloudKitRenumberCoordinator(container: sharedModelContainer)
+                }
                 await DiveLogBridgePublisher(
                     container: sharedModelContainer,
                     bridge: atollBridge
