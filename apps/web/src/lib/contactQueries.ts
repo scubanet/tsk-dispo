@@ -177,6 +177,18 @@ export async function updateStudentField<K extends keyof ContactStudent>(
   if (error) throw error
 }
 
+export async function updateOrganizationField<K extends keyof ContactOrganization>(
+  contactId: string,
+  field: K,
+  value: ContactOrganization[K],
+): Promise<void> {
+  const { error } = await supabase
+    .from('contact_organization')
+    .update({ [field]: value })
+    .eq('contact_id', contactId)
+  if (error) throw error
+}
+
 // ────────────────────────── Relationships ────────────────────────────
 
 export async function listRelationships(
