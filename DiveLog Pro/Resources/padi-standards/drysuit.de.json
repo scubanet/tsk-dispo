@@ -1,0 +1,192 @@
+{
+  "version": "2024.1",
+  "course": "DRYSUIT",
+  "language": "de",
+  "slots": [
+    {
+      "code": "DS-CW",
+      "title": "Begrenztes Freiwasser (Pool)",
+      "type": "pool",
+      "order": 1,
+      "skills": [
+        {
+          "code": "DS-CW.1",
+          "title": "Trockentauchanzug an- und ausziehen",
+          "description": "Ziehe einen Trockentauchanzug an und aus — falls für das betreffende Anzugmodell erforderlich, mit Hilfe eines anderen Tauchers.",
+          "category": "preparation",
+          "performanceStandard": "Korrektes An- und Ausziehen, ggf. mit Buddy-Hilfe."
+        },
+        {
+          "code": "DS-CW.2",
+          "title": "Tarierungskontrolle an der Oberfläche",
+          "description": "Zeige, wie man an der Oberfläche in einem Trockentauchanzug mit Unterzieher (falls benötigt) sowie kompletter Tauchausrüstung eine Tarierungskontrolle durchführt.",
+          "category": "buoyancy",
+          "performanceStandard": "Korrekte Tarierungskontrolle an der Oberfläche mit Trocki und voller Ausrüstung."
+        },
+        {
+          "code": "DS-CW.3",
+          "title": "Neutrale Tarierung — kontrolliertes Steigen/Sinken (1 min)",
+          "description": "Zeige neutrale Tarierung, indem du beim Ein- und Ausatmen für eine Minute auf kontrollierte Weise leicht steigst und sinkst.",
+          "category": "buoyancy",
+          "performanceStandard": "Kontrolliertes Steigen und Sinken nur durch Atmung für ≥ 1 Minute."
+        },
+        {
+          "code": "DS-CW.4",
+          "title": "Schweben in Grundnähe (1 min)",
+          "description": "Zeige neutrale Tarierung, indem du in Grundnähe (ohne dabei mit den Armen oder Flossen zu schlagen) für eine Minute schwebst.",
+          "category": "buoyancy",
+          "performanceStandard": "Stabiles Schweben ≥ 1 Minute ohne Arm-/Flossenbewegung."
+        },
+        {
+          "code": "DS-CW.5",
+          "title": "Inflatorschlauch ab- und ankoppeln unter Wasser",
+          "description": "Kopple unter Wasser den Inflatorschlauch vom Inflatoranschluss des Trockentauchanzugs ab und wieder an.",
+          "category": "skills",
+          "performanceStandard": "Kontrolliertes Ab- und Ankoppeln des Inflatorschlauchs unter Wasser."
+        },
+        {
+          "code": "DS-CW.6",
+          "title": "Neutral tarierter Aufstieg (max. 9 m/min)",
+          "description": "Führe neutral tariert einen Aufstieg vom Grund durch, mit einer maximalen Aufstiegsgeschwindigkeit von 9 Metern/30 Fuß pro Minute.",
+          "category": "ascent",
+          "performanceStandard": "Aufstieg ≤ 9 m/min, neutrale Tarierung aufrechterhalten."
+        },
+        {
+          "code": "DS-CW.7",
+          "title": "Korrektur bei Luft in den Füßen",
+          "description": "Zeige eine Technik, um bei zu viel Luft in den Füßen wieder in eine normale Position zu kommen.",
+          "category": "skills",
+          "performanceStandard": "Erfolgreiche Wiederherstellung der normalen Position bei Luft in den Füßen."
+        },
+        {
+          "code": "DS-CW.8",
+          "title": "Tauchgerät und Gewichtssystem an der Oberfläche ab-/anlegen",
+          "description": "Lege an der Oberfläche Tauchgerät und Gewichtssystem ab und wieder an.",
+          "category": "surface",
+          "performanceStandard": "Kontrolliertes Ab- und Anlegen von Tauchgerät und Gewichtssystem an der Oberfläche."
+        }
+      ]
+    },
+    {
+      "code": "DS-OW1",
+      "title": "Freiwasser-Tauchgang 1",
+      "type": "ocean",
+      "order": 2,
+      "skills": [
+        {
+          "code": "DS-OW1.1",
+          "title": "Trockentauchanzug an- und ausziehen",
+          "description": "An- und Ausziehen eines Trockentauchanzugs mit Hilfe eines anderen Tauchers.",
+          "category": "preparation",
+          "performanceStandard": "Korrektes An- und Ausziehen, ggf. mit Buddy-Hilfe."
+        },
+        {
+          "code": "DS-OW1.2",
+          "title": "Bleimenge anpassen (Tariercheck)",
+          "description": "Die Bleimenge anpassen, die du für eine neutrale Tarierung an der Oberfläche benötigst (Augen auf Höhe der Wasserlinie), indem du einen normalen Atemzug anhältst und sowohl der Trockentauchanzug und das Jacket komplett entlüftet sind.",
+          "category": "buoyancy",
+          "performanceStandard": "Korrekte Bleimenge: Augen auf Wasserlinie bei normalem Atemzug, Anzug und Jacket entlüftet."
+        },
+        {
+          "code": "DS-OW1.3",
+          "title": "Kontrollierter Abstieg ohne Anzugquetschung",
+          "description": "Einen kontrollierten Abstieg durchführen, ohne eine Quetschung des Anzugs.",
+          "category": "descent",
+          "performanceStandard": "Kontrollierter Abstieg; Anzug rechtzeitig belüftet, keine Quetschung."
+        },
+        {
+          "code": "DS-OW1.4",
+          "title": "Neutrale Tarierung — kontrolliertes Steigen/Sinken (1 min)",
+          "description": "Neutrale Tarierung zeigen, indem du beim Ein- und Ausatmen für eine Minute auf kontrollierte Weise leicht steigst und sinkst.",
+          "category": "buoyancy",
+          "performanceStandard": "Kontrolliertes Steigen und Sinken nur durch Atmung für ≥ 1 Minute."
+        },
+        {
+          "code": "DS-OW1.5",
+          "title": "Schweben in Bodennähe ohne Arm-/Beinbewegung (1 min)",
+          "description": "Neutrale Tarierung in Bodennähe aufrechterhalten, indem du eine Minute lang schwebst (ohne Bewegung von Armen und Beinen).",
+          "category": "buoyancy",
+          "performanceStandard": "Stabiles Schweben ≥ 1 Minute ohne Arm-/Beinbewegung."
+        },
+        {
+          "code": "DS-OW1.6",
+          "title": "Neutrale Tarierung ohne Sedimentaufwirbelung",
+          "description": "Während des Tauchgangs neutrale Tarierung aufrechterhalten und dabei ein versehentliches Aufwirbeln von Sedimenten oder Grundberührung vermeiden.",
+          "category": "buoyancy",
+          "performanceStandard": "Keine Grundberührung oder Sedimentaufwirbelung während des gesamten Tauchgangs."
+        },
+        {
+          "code": "DS-OW1.7",
+          "title": "Neutral tarierter Aufstieg (max. 9 m/min)",
+          "description": "Einen neutral tarierten Aufstieg vom Grund durchführen, mit einer maximalen Aufstiegsgeschwindigkeit von 9 Metern/30 Fuß pro Minute.",
+          "category": "ascent",
+          "performanceStandard": "Aufstieg ≤ 9 m/min, neutrale Tarierung aufrechterhalten."
+        },
+        {
+          "code": "DS-OW1.8",
+          "title": "Sicherheitsstopp auf 5 m (≥ 3 min)",
+          "description": "Einen Sicherheitsstopp auf 5 Meter/15 Fuß Tiefe für mindestens drei Minuten durchführen.",
+          "category": "ascent",
+          "performanceStandard": "Safety-Stop auf 5 m für ≥ 3 Minuten."
+        },
+        {
+          "code": "DS-OW1.9",
+          "title": "Tauchgerät und Gewichtssystem an der Oberfläche ab-/anlegen",
+          "description": "Sowohl das Tauchgerät als auch das Gewichtssystem an der Oberfläche ab- und wieder anlegen.",
+          "category": "surface",
+          "performanceStandard": "Kontrolliertes Ab- und Anlegen von Tauchgerät und Gewichtssystem an der Oberfläche."
+        }
+      ]
+    },
+    {
+      "code": "DS-OW2",
+      "title": "Freiwasser-Tauchgang 2",
+      "type": "ocean",
+      "order": 3,
+      "skills": [
+        {
+          "code": "DS-OW2.1",
+          "title": "Trockentauchanzug an- und ausziehen",
+          "description": "An- und Ausziehen eines Trockentauchanzugs, je nach Modell mit Unterstützung eines weiteren Tauchers.",
+          "category": "preparation",
+          "performanceStandard": "Korrektes An- und Ausziehen, ggf. mit Buddy-Hilfe."
+        },
+        {
+          "code": "DS-OW2.2",
+          "title": "Kontrollierter Abstieg ohne Anzugquetschung",
+          "description": "Einen kontrollierten Abstieg durchführen, ohne eine Quetschung des Anzugs.",
+          "category": "descent",
+          "performanceStandard": "Kontrollierter Abstieg; Anzug rechtzeitig belüftet, keine Quetschung."
+        },
+        {
+          "code": "DS-OW2.3",
+          "title": "Inflatorschlauch mit Handschuhen ab-/ankoppeln",
+          "description": "Unter Wasser mit Handschuhen den Inflatorschlauch vom Anzug abkoppeln und wieder anschließen.",
+          "category": "skills",
+          "performanceStandard": "Kontrolliertes Ab- und Ankoppeln des Inflatorschlauchs mit Handschuhen unter Wasser."
+        },
+        {
+          "code": "DS-OW2.4",
+          "title": "Neutrale Tarierung ohne Sedimentaufwirbelung/Riffkontakt",
+          "description": "Während des Tauchgangs neutral tariert bleiben, ohne dabei versehentlich Sedimente aufzuwirbeln und/oder das Riff zu berühren.",
+          "category": "buoyancy",
+          "performanceStandard": "Keine Sedimentaufwirbelung oder Riffkontakt während des gesamten Tauchgangs."
+        },
+        {
+          "code": "DS-OW2.5",
+          "title": "Neutral tarierter Aufstieg (max. 9 m/min)",
+          "description": "Einen neutral tarierten Aufstieg vom Grund durchführen, mit einer maximalen Aufstiegsgeschwindigkeit von 9 Metern/30 Fuß pro Minute.",
+          "category": "ascent",
+          "performanceStandard": "Aufstieg ≤ 9 m/min, neutrale Tarierung aufrechterhalten."
+        },
+        {
+          "code": "DS-OW2.6",
+          "title": "Sicherheitsstopp auf 5 m (≥ 3 min)",
+          "description": "Einen Sicherheitsstopp auf 5 Meter/15 Fuß Tiefe für mindestens drei Minuten durchführen.",
+          "category": "ascent",
+          "performanceStandard": "Safety-Stop auf 5 m für ≥ 3 Minuten."
+        }
+      ]
+    }
+  ]
+}

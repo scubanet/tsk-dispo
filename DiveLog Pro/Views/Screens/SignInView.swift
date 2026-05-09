@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import AuthenticationServices
+import os
 
 // ═══════════════════════════════════════
 // MARK: - Sign-In Gateway
@@ -23,6 +24,8 @@ struct SignInView: View {
     @AppStorage("appLanguage") private var appLanguage: String = "en"
 
     private var isDE: Bool { appLanguage == "de" }
+
+    private let log = Logger(subsystem: "com.weckherlin.DiveLogPro", category: "signin")
 
     var body: some View {
         ZStack {
@@ -108,6 +111,26 @@ struct SignInView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
                 .padding(.top, 4)
+
+            #if DEBUG
+            // Local-only bypass for development on simulators that aren't
+            // signed into iCloud, or when WeatherKit/SIWA capabilities are
+            // missing on the AppID. Stripped from Release builds.
+            Button {
+                bypassSignIn()
+            } label: {
+                Text(isDE ? "DEBUG: Ohne Anmeldung fortfahren" : "DEBUG: Continue without sign-in")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.tertiary)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.secondary.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                    )
+            }
+            .padding(.top, 8)
+            #endif
         }
     }
 
@@ -128,16 +151,37 @@ struct SignInView: View {
             }
         } catch {
             await MainActor.run {
+                let ns = error as NSError
+                // Always log the full error so we can diagnose simulator
+                // SIWA failures (typical: 1000 unknown / 1001 canceled).
+                log.error("SIWA failed: domain=\(ns.domain, privacy: .public) code=\(ns.code) desc=\(ns.localizedDescription, privacy: .public) userInfo=\(String(describing: ns.userInfo), privacy: .public)")
+
                 // .canceled → don't bother the user with an error label.
-                if (error as NSError).code == ASAuthorizationError.canceled.rawValue {
+                if ns.code == ASAuthorizationError.canceled.rawValue {
                     errorMessage = nil
                 } else {
-                    errorMessage = error.localizedDescription
+                    errorMessage = "\(ns.localizedDescription) (\(ns.domain) \(ns.code))"
                 }
                 isSigningIn = false
             }
         }
     }
+
+    #if DEBUG
+    /// Local-only bypass — creates or reuses a DiverProfile and marks it as
+    /// authenticated so the rest of the app boots normally. Released builds
+    /// don't include this code path.
+    private func bypassSignIn() {
+        let cred = AppleCredential(
+            userID: "DEBUG-LOCAL",
+            email: nil,
+            fullName: nil,
+            identityToken: nil
+        )
+        appleSignIn.currentUserID = cred.userID
+        seedProfile(from: cred)
+    }
+    #endif
 
     // ═══════════════════════════════════════
     // MARK: - Profile seed
@@ -149,7 +193,9 @@ struct SignInView: View {
     //
     private func seedProfile(from cred: AppleCredential) {
         let profile: DiverProfile
-        if let existing = profiles.first {
+        if let match = profiles.first(where: { $0.appleUserID == cred.userID }) {
+            profile = match
+        } else if let existing = profiles.first {
             profile = existing
         } else {
             let new = DiverProfile()

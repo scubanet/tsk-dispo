@@ -9,7 +9,7 @@
 
 ## 1. Context & Problem Statement
 
-As a PADI Course Director, I regularly run OW and AOW courses — sometimes with 1–2 students running in parallel, sometimes dropping into another instructor's existing course for just 1–2 dives. The current DiveLog Pro only tracks dives as atomic events. It lacks:
+As a PADI Course Director, I regularly run OWD and AOWD courses — sometimes with 1–2 students running in parallel, sometimes dropping into another instructor's existing course for just 1–2 dives. The current DiveLog Pro only tracks dives as atomic events. It lacks:
 
 1. **Student-awareness** — who was on this dive and what did they still need to learn?
 2. **PADI Performance Requirements tracking** — which skills are mastered, practiced, or outstanding?
@@ -24,7 +24,7 @@ The feature solves (1)–(5) with a **dive-centric** (not course-centric) archit
 **In-scope:**
 - `Student`, `PoolSession`, `SkillCompletion` SwiftData models
 - Additive changes to `Dive` (optional `courseType`, `courseSlot`, `students`)
-- Bundled static JSON catalog for PADI OW + AOW Performance Requirements
+- Bundled static JSON catalog for PADI OWD + AOWD Performance Requirements
 - Dive-Detail Schüler-Tab with per-student `SkillAssessmentGrid`
 - PoolSession Create/Detail flow
 - Quick-Log shortcut (FAB long-press) for drop-in use case
@@ -36,7 +36,7 @@ The feature solves (1)–(5) with a **dive-centric** (not course-centric) archit
 - Course-level entity (explicitly rejected — dive-centric by design)
 - Instructor-to-Instructor handoff / shared courses
 - E-Record submission to PADI
-- Rescue / Divemaster / Instructor-Development tracking (CW + OW only for now)
+- Rescue / Divemaster / Instructor-Development tracking (CW + OWD only for now)
 
 ## 3. Design Decisions (with rationale)
 
@@ -58,7 +58,7 @@ Every status change creates a new `SkillCompletion` record. Never mutated. This 
 Performance Requirements are immutable app-version-scoped content. Bundled JSON means:
 - No CloudKit migration on content update (ship via App Store update)
 - Works offline, no fetch cost
-- Trivially localisable via `ow.json` / `ow.de.json`
+- Trivially localisable via `owd.json` / `owd.de.json`
 
 ### 3.5 Prior-Mastery Seed for drop-in students
 When I join a course at OW3 with a student I've never seen, I can seed their prior slots as "mastered" via a quick-pick sheet. This seed creates `SkillCompletion` records with `dive == nil && poolSession == nil` and `reviewNotes = "Seeded at enrollment"` — making them visibly distinct from skills I personally assessed.
@@ -93,7 +93,7 @@ When I join a course at OW3 with a student I've never seen, I can seed their pri
 
 @Model final class PoolSession {
     var slotCode: String = "CW1"        // CW1-CW5
-    var courseType: String = "OW"
+    var courseType: String = "OWD"
     var date: Date = Date()
     var durationMinutes: Int = 45
     var location: String = ""
@@ -123,8 +123,8 @@ When I join a course at OW3 with a student I've never seen, I can seed their pri
 
 // Additions to existing Dive model (all optional / additive):
 extension Dive {
-    // var courseType: String?        // "OW", "AOW", nil = fun-dive
-    // var courseSlot: String?        // "OW1", "OW2", "AOW Deep"
+    // var courseType: String?        // "OWD", "AOWD", nil = fun-dive
+    // var courseSlot: String?        // "OW1", "OW2", "AOWD Deep"
     // @Relationship(...) var students: [Student]?
     // @Relationship(deleteRule: .cascade, inverse: \SkillCompletion.dive)
     //   var skillCompletions: [SkillCompletion]?
@@ -149,16 +149,16 @@ enum SkillStatus: String, CaseIterable {
 
 ```
 DiveLog Pro/Resources/padi-standards/
-  ├─ ow.json       (English default)
-  ├─ ow.de.json    (German)
-  ├─ aow.json
-  └─ aow.de.json
+  ├─ owd.json       (English default)
+  ├─ owd.de.json    (German)
+  ├─ aowd.json
+  └─ aowd.de.json
 ```
 
 ```json
 {
   "version": "2024.1",
-  "course": "OW",
+  "course": "OWD",
   "language": "en",
   "slots": [
     {
@@ -180,7 +180,7 @@ DiveLog Pro/Resources/padi-standards/
 }
 ```
 
-Loader: `PADIStandards.shared.skills(for: slotCode, courseType: "OW") -> [Skill]`.
+Loader: `PADIStandards.shared.skills(for: slotCode, courseType: "OWD") -> [Skill]`.
 
 ## 5. UX Flows
 
@@ -323,11 +323,11 @@ Manual QA checklist: see Section 3.6 of brainstorm notes.
 
 ## 8. Resolved Decisions
 
-1. **Localised catalogs** — ship **DE + EN from day 1**. Both `ow.json` + `ow.de.json` + `aow.json` + `aow.de.json` bundled at launch.
+1. **Localised catalogs** — ship **DE + EN from day 1**. Both `owd.json` + `owd.de.json` + `aowd.json` + `aowd.de.json` bundled at launch.
 2. **Student identity** — always **`firstName` + `lastName`** (two separate fields, both required). `fullName` is a computed display property. No primary-key ambiguity unless two students share both first + last name (rare; email/PADI-ID as tiebreaker in UI).
 3. **Batch-seed UI** — **skill-by-skill checklist** only. No slot-level quick-toggles (keeps it explicit and deliberate).
 4. **Dive-Delete cascade** — confirmation dialog before delete: *"3 skill assessments for 2 students will also be deleted."* Cascade behaviour stays as designed.
-5. **AOW scope** — **all AOW specialty dives**, not just top 5. Full catalog: Deep, Navigation (core) + all electives (Night, PPB, Underwater Navigator, Wreck, Drift, Boat, Search & Recovery, Fish ID, Digital Underwater Photographer, Enriched Air, Naturalist, Altitude, Dry Suit, etc.).
+5. **AOWD scope** — **all AOWD specialty dives**, not just top 5. Full catalog: Deep, Navigation (core) + all electives (Night, PPB, Underwater Navigator, Wreck, Drift, Boat, Search & Recovery, Fish ID, Digital Underwater Photographer, Enriched Air, Naturalist, Altitude, Dry Suit, etc.).
 
 ## 9. Still-Open (deferred to v2)
 
@@ -336,8 +336,8 @@ Manual QA checklist: see Section 3.6 of brainstorm notes.
 
 ## 9. References
 
-- PADI OW Course Standards (Instructor Manual, Section 3)
-- PADI AOW Course Standards (Instructor Manual, Section 4)
+- PADI OWD Course Standards (Instructor Manual, Section 3)
+- PADI AOWD Course Standards (Instructor Manual, Section 4)
 - SwiftData + CloudKit requirements: inline defaults, optional relations, parameterless init
 - Existing Dive model: `DiveLog Pro/Models/Dive.swift`
 - Sample data pattern: `DiveLog Pro/Models/SampleData.swift`
@@ -367,5 +367,5 @@ Manual QA checklist: see Section 3.6 of brainstorm notes.
 
 ### Decisions Deferred
 - Localised catalog at launch → DE only initially, EN fallback loader already handles missing file
-- AOW elective scope → start with Deep + Nav + Night + Peak Performance Buoyancy + Underwater Navigator (5 most common)
+- AOWD elective scope → start with Deep + Nav + Night + Peak Performance Buoyancy + Underwater Navigator (5 most common)
 - PDF export → post-v1

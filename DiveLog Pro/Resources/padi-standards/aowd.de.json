@@ -1,0 +1,277 @@
+{
+  "version": "2024.1",
+  "course": "AOWD",
+  "language": "de",
+  "slots": [
+    {
+      "code": "AOWD-Deep",
+      "title": "Tieftauchen Adventure Dive",
+      "type": "ocean",
+      "order": 1,
+      "skills": [
+        {
+          "code": "AOWD-Deep.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-Nav",
+      "title": "Navigation Adventure Dive",
+      "type": "ocean",
+      "order": 2,
+      "skills": [
+        {
+          "code": "AOWD-Nav.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-Night",
+      "title": "Nachttauchen Adventure Dive",
+      "type": "ocean",
+      "order": 3,
+      "skills": [
+        {
+          "code": "AOWD-Night.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-PPB",
+      "title": "Perfekte Tarierung Adventure Dive",
+      "type": "ocean",
+      "order": 4,
+      "skills": [
+        {
+          "code": "AOWD-PPB.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-UWNav",
+      "title": "Unterwasser-Navigator Adventure Dive",
+      "type": "ocean",
+      "order": 5,
+      "skills": [
+        {
+          "code": "AOWD-UWNav.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-Wreck",
+      "title": "Wracktauchen Adventure Dive",
+      "type": "ocean",
+      "order": 6,
+      "skills": [
+        {
+          "code": "AOWD-Wreck.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-Drift",
+      "title": "Strömungstauchen Adventure Dive",
+      "type": "ocean",
+      "order": 7,
+      "skills": [
+        {
+          "code": "AOWD-Drift.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-Boat",
+      "title": "Boots-Adventure Dive",
+      "type": "ocean",
+      "order": 8,
+      "skills": [
+        {
+          "code": "AOWD-Boat.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-SAR",
+      "title": "Such- und Bergetauchen Adventure Dive",
+      "type": "ocean",
+      "order": 9,
+      "skills": [
+        {
+          "code": "AOWD-SAR.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-FishID",
+      "title": "Fischbestimmung Adventure Dive",
+      "type": "ocean",
+      "order": 10,
+      "skills": [
+        {
+          "code": "AOWD-FishID.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-DUP",
+      "title": "Digitale Unterwasser-Fotografie Adventure Dive",
+      "type": "ocean",
+      "order": 11,
+      "skills": [
+        {
+          "code": "AOWD-DUP.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-EANx",
+      "title": "Nitrox Adventure Dive",
+      "type": "ocean",
+      "order": 12,
+      "skills": [
+        {
+          "code": "AOWD-EANx.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-Naturalist",
+      "title": "Naturalist Adventure Dive",
+      "type": "ocean",
+      "order": 13,
+      "skills": [
+        {
+          "code": "AOWD-Naturalist.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-Altitude",
+      "title": "Höhentauchen Adventure Dive",
+      "type": "ocean",
+      "order": 14,
+      "skills": [
+        {
+          "code": "AOWD-Altitude.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-DrySuit",
+      "title": "Trockentauchen Adventure Dive",
+      "type": "ocean",
+      "order": 15,
+      "skills": [
+        {
+          "code": "AOWD-DrySuit.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-DPV",
+      "title": "DPV Adventure Dive",
+      "type": "ocean",
+      "order": 16,
+      "skills": [
+        {
+          "code": "AOWD-DPV.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-Sidemount",
+      "title": "Sidemount Adventure Dive",
+      "type": "ocean",
+      "order": 17,
+      "skills": [
+        {
+          "code": "AOWD-Sidemount.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "AOWD-SelfReliant",
+      "title": "Solotauchen Adventure Dive",
+      "type": "ocean",
+      "order": 18,
+      "skills": [
+        {
+          "code": "AOWD-SelfReliant.1",
+          "title": "TBD",
+          "description": "TBD — aus PADI IM übernehmen",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    }
+  ]
+}

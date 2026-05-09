@@ -1,0 +1,577 @@
+{
+  "version": "2024.1",
+  "course": "OWD",
+  "language": "en",
+  "slots": [
+    {
+      "code": "CW1",
+      "title": "Confined Water Dive 1",
+      "type": "pool",
+      "order": 1,
+      "skills": [
+        {
+          "code": "CW1.1",
+          "title": "TBD",
+          "description": "TBD — populate from PADI IM",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "CW2",
+      "title": "Confined Water Dive 2",
+      "type": "pool",
+      "order": 2,
+      "skills": [
+        {
+          "code": "CW2.1",
+          "title": "TBD",
+          "description": "TBD — populate from PADI IM",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "CW3",
+      "title": "Confined Water Dive 3",
+      "type": "pool",
+      "order": 3,
+      "skills": [
+        {
+          "code": "CW3.1",
+          "title": "TBD",
+          "description": "TBD — populate from PADI IM",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "CW4",
+      "title": "Confined Water Dive 4",
+      "type": "pool",
+      "order": 4,
+      "skills": [
+        {
+          "code": "CW4.1",
+          "title": "TBD",
+          "description": "TBD — populate from PADI IM",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "CW5",
+      "title": "Confined Water Dive 5",
+      "type": "pool",
+      "order": 5,
+      "skills": [
+        {
+          "code": "CW5.1",
+          "title": "TBD",
+          "description": "TBD — populate from PADI IM",
+          "category": "preparation",
+          "performanceStandard": "TBD"
+        }
+      ]
+    },
+    {
+      "code": "OW1",
+      "title": "Open Water Dive 1",
+      "type": "ocean",
+      "order": 6,
+      "skills": [
+        {
+          "code": "OW1.1",
+          "title": "Recognise hand signals in briefing",
+          "description": "Recognises the hand signals for 'ok', 'problem', 'ear problem', 'low on air', 'surface/end the dive', 'stay with buddy' as well as the audible (or tactile) and visual 'look at me' signals during the briefing.",
+          "category": "communication",
+          "performanceStandard": "Correctly identifies all standard hand signals plus the 'look-at-me' signal."
+        },
+        {
+          "code": "OW1.2",
+          "title": "Don and adjust equipment",
+          "description": "Dons and adjusts equipment, using appropriate lifting techniques.",
+          "category": "preparation",
+          "performanceStandard": "Proper lifting technique, gear fully adjusted and secured."
+        },
+        {
+          "code": "OW1.3",
+          "title": "Pre-dive Safety Check (BWRAF)",
+          "description": "Performs a pre-dive safety check.",
+          "category": "preparation",
+          "performanceStandard": "Complete, independent BWRAF before entry."
+        },
+        {
+          "code": "OW1.4",
+          "title": "Entry with positive buoyancy",
+          "description": "Enters the water with the BCD inflated to have positive buoyancy.",
+          "category": "surface",
+          "performanceStandard": "BCD clearly inflated, safe entry without sinking."
+        },
+        {
+          "code": "OW1.5",
+          "title": "Check and adjust weighting",
+          "description": "Checks buoyancy and adjusts weighting.",
+          "category": "buoyancy",
+          "performanceStandard": "Properly weighted: neutral at eye level with empty BCD and half-full tank."
+        },
+        {
+          "code": "OW1.6",
+          "title": "Controlled descent with reference",
+          "description": "Makes a controlled descent to a maximum depth of 12 m / 40 ft, using a descent line or sloping bottom as reference.",
+          "category": "descent",
+          "performanceStandard": "Controlled descent with equalisation; depth ≤ 12 m."
+        },
+        {
+          "code": "OW1.7",
+          "title": "Trim check",
+          "description": "Participates in a trim check.",
+          "category": "buoyancy",
+          "performanceStandard": "Active participation; awareness of trim corrections."
+        },
+        {
+          "code": "OW1.8",
+          "title": "Clear a partially flooded mask",
+          "description": "Clears a partially flooded mask.",
+          "category": "skills",
+          "performanceStandard": "Clears without aborting, maintains breathing control."
+        },
+        {
+          "code": "OW1.9",
+          "title": "Recover and clear regulator",
+          "description": "Recovers and clears the regulator at depth.",
+          "category": "skills",
+          "performanceStandard": "Locates reg underwater, replaces and clears (exhale or purge)."
+        },
+        {
+          "code": "OW1.10",
+          "title": "Dive site tour",
+          "description": "Tours the dive site.",
+          "category": "navigation",
+          "performanceStandard": "Attentive scanning, maintains orientation."
+        },
+        {
+          "code": "OW1.11",
+          "title": "Signal air supply",
+          "description": "Signals when remaining air supply is near the agreed reserve, and/or displays remaining pressure in bar/psi.",
+          "category": "monitoring",
+          "performanceStandard": "Proactive signal on reaching the agreed reserve."
+        },
+        {
+          "code": "OW1.12",
+          "title": "Buddy contact within 2 seconds",
+          "description": "Stays close enough to the buddy to establish physical contact within two seconds.",
+          "category": "buddy",
+          "performanceStandard": "Consistent buddy proximity throughout the dive."
+        },
+        {
+          "code": "OW1.13",
+          "title": "Controlled ascent rate",
+          "description": "Ascends no faster than 18 m / 60 ft per minute, maintaining buddy contact. Uses the 5-point method (if Confined Water Dive 3 has been completed).",
+          "category": "ascent",
+          "performanceStandard": "Ascent rate ≤ 18 m/min, buddy contact, 5-point ascent."
+        }
+      ]
+    },
+    {
+      "code": "OW2",
+      "title": "Open Water Dive 2",
+      "type": "ocean",
+      "order": 7,
+      "skills": [
+        {
+          "code": "OW2.1",
+          "title": "Plan the dive",
+          "description": "Plans the dive including air supply management / turn pressure, time limits, entries and exits, buddy separation procedures, and basic emergency procedures.",
+          "category": "preparation",
+          "performanceStandard": "Complete buddy planning before entry."
+        },
+        {
+          "code": "OW2.2",
+          "title": "Don gear and streamline",
+          "description": "Dons and adjusts equipment and streamlines it. Uses appropriate lifting technique.",
+          "category": "preparation",
+          "performanceStandard": "Streamlined, secure gear configuration."
+        },
+        {
+          "code": "OW2.3",
+          "title": "Pre-dive Safety Check (BWRAF)",
+          "description": "Performs a pre-dive safety check.",
+          "category": "preparation",
+          "performanceStandard": "Complete, independent BWRAF."
+        },
+        {
+          "code": "OW2.4",
+          "title": "Adjust buoyancy and trim",
+          "description": "Adjusts buoyancy and trim as necessary.",
+          "category": "buoyancy",
+          "performanceStandard": "Properly weighted and trimmed."
+        },
+        {
+          "code": "OW2.5",
+          "title": "Positive buoyancy at surface",
+          "description": "Establishes positive buoyancy at the surface, keeps mask on, and breathes from snorkel or regulator.",
+          "category": "surface",
+          "performanceStandard": "Clear positive buoyancy, airway secured."
+        },
+        {
+          "code": "OW2.6",
+          "title": "Oral BCD inflation",
+          "description": "In water too deep to stand, deflates the BCD and then orally inflates it until positive buoyancy is achieved.",
+          "category": "surface",
+          "performanceStandard": "Oral inflation to positive buoyancy without panic."
+        },
+        {
+          "code": "OW2.7",
+          "title": "Controlled descent (5-point)",
+          "description": "Makes a controlled descent to a maximum depth of 12 m / 40 ft using a descent line or sloping bottom as reference. Uses the 5-point method.",
+          "category": "descent",
+          "performanceStandard": "Complete 5-point descent; depth ≤ 12 m."
+        },
+        {
+          "code": "OW2.8",
+          "title": "Neutral buoyancy via inflator",
+          "description": "Establishes neutral buoyancy by adjusting BCD (or drysuit) air using the inflator.",
+          "category": "buoyancy",
+          "performanceStandard": "Stable hover with sensitive inflator use."
+        },
+        {
+          "code": "OW2.9",
+          "title": "Clear a fully flooded mask",
+          "description": "Clears a fully flooded mask.",
+          "category": "skills",
+          "performanceStandard": "Fully flooded mask cleared in a controlled manner."
+        },
+        {
+          "code": "OW2.10",
+          "title": "Stationary air share (both roles)",
+          "description": "Plays both roles: in a stationary position, one diver signals out-of-air, secures the other diver's alternate air source, and breathes from it; the other diver provides the alternate air source.",
+          "category": "skills",
+          "performanceStandard": "Both roles (donor + receiver) performed stationary."
+        },
+        {
+          "code": "OW2.11",
+          "title": "Ascent using alternate air source",
+          "description": "Ascends correctly using an alternate air source and establishes positive buoyancy at the surface. Plays the donor or receiver role.",
+          "category": "skills",
+          "performanceStandard": "Correct air-share ascent; surface buoyancy established."
+        },
+        {
+          "code": "OW2.12",
+          "title": "Dive site tour",
+          "description": "Tours the dive site.",
+          "category": "navigation",
+          "performanceStandard": "Attentive environmental awareness."
+        },
+        {
+          "code": "OW2.13",
+          "title": "Avoid environmental contact",
+          "description": "Avoids contact with sensitive organisms and the bottom, and re-secures any equipment that may have come loose.",
+          "category": "environmental",
+          "performanceStandard": "No bottom contact, no contact with marine life."
+        },
+        {
+          "code": "OW2.14",
+          "title": "Buddy contact within 2 seconds",
+          "description": "Stays close enough to the buddy to establish physical contact within two seconds.",
+          "category": "buddy",
+          "performanceStandard": "Consistent buddy proximity."
+        },
+        {
+          "code": "OW2.15",
+          "title": "Estimate air supply (±20 bar)",
+          "description": "Shows remaining air supply with a maximum deviation of 20 bar / 300 psi without looking at the SPG to check.",
+          "category": "monitoring",
+          "performanceStandard": "Estimate within ±20 bar without SPG glance."
+        },
+        {
+          "code": "OW2.16",
+          "title": "Regular air display",
+          "description": "Shows remaining air supply at regular intervals agreed during dive planning.",
+          "category": "monitoring",
+          "performanceStandard": "Active, regular air-supply communication."
+        },
+        {
+          "code": "OW2.17",
+          "title": "Ascent with 5-point and safety stop",
+          "description": "Ascends no faster than 18 m / 60 ft per minute, maintaining buddy contact. Uses the 5-point method (unless it is an alternate-air-source ascent). Performs a safety stop if possible.",
+          "category": "ascent",
+          "performanceStandard": "≤ 18 m/min, 5-point, safety stop if possible."
+        }
+      ]
+    },
+    {
+      "code": "OW3",
+      "title": "Open Water Dive 3",
+      "type": "ocean",
+      "order": 8,
+      "skills": [
+        {
+          "code": "OW3.1",
+          "title": "Plan the dive",
+          "description": "Plans the dive.",
+          "category": "preparation",
+          "performanceStandard": "Complete buddy planning before entry."
+        },
+        {
+          "code": "OW3.2",
+          "title": "Don gear and streamline",
+          "description": "Dons and adjusts equipment and streamlines it. Uses appropriate lifting technique.",
+          "category": "preparation",
+          "performanceStandard": "Streamlined, secure gear configuration."
+        },
+        {
+          "code": "OW3.3",
+          "title": "Pre-dive Safety Check (BWRAF)",
+          "description": "Performs a pre-dive safety check.",
+          "category": "preparation",
+          "performanceStandard": "Complete, independent BWRAF."
+        },
+        {
+          "code": "OW3.4",
+          "title": "Adjust buoyancy and trim",
+          "description": "Adjusts buoyancy and trim as necessary.",
+          "category": "buoyancy",
+          "performanceStandard": "Properly weighted and trimmed."
+        },
+        {
+          "code": "OW3.5",
+          "title": "Positive buoyancy at surface",
+          "description": "Establishes positive buoyancy at the surface, keeps mask on, and breathes from snorkel or regulator.",
+          "category": "surface",
+          "performanceStandard": "Clear positive buoyancy, airway secured."
+        },
+        {
+          "code": "OW3.6",
+          "title": "Descent with visual reference (≤ 18 m)",
+          "description": "Makes a controlled descent using a visual reference to a maximum depth of 18 m / 60 ft. Uses the 5-point method.",
+          "category": "descent",
+          "performanceStandard": "5-point descent; depth ≤ 18 m."
+        },
+        {
+          "code": "OW3.7",
+          "title": "Hover via oral BCD inflation",
+          "description": "Establishes neutral buoyancy and hovers by orally inflating the BCD.",
+          "category": "buoyancy",
+          "performanceStandard": "Stable hover after oral inflation underwater."
+        },
+        {
+          "code": "OW3.8",
+          "title": "Mask remove, replace, and clear",
+          "description": "Removes the mask, replaces it, and clears it.",
+          "category": "skills",
+          "performanceStandard": "Complete mask remove-and-replace with clearing."
+        },
+        {
+          "code": "OW3.9",
+          "title": "Dive site tour",
+          "description": "Tours the dive site.",
+          "category": "navigation",
+          "performanceStandard": "Attentive environmental awareness."
+        },
+        {
+          "code": "OW3.10",
+          "title": "Avoid environmental contact",
+          "description": "Avoids contact with sensitive organisms and the bottom, and re-secures any equipment that may have come loose.",
+          "category": "environmental",
+          "performanceStandard": "No bottom contact, no contact with marine life."
+        },
+        {
+          "code": "OW3.11",
+          "title": "Buddy contact within 2 seconds",
+          "description": "Stays close enough to the buddy to establish physical contact within two seconds.",
+          "category": "buddy",
+          "performanceStandard": "Consistent buddy proximity."
+        },
+        {
+          "code": "OW3.12",
+          "title": "Estimate air supply (±20 bar)",
+          "description": "Shows remaining air supply with a maximum deviation of 20 bar / 300 psi without looking at the SPG to check.",
+          "category": "monitoring",
+          "performanceStandard": "Estimate within ±20 bar without SPG glance."
+        },
+        {
+          "code": "OW3.13",
+          "title": "Regular air display",
+          "description": "Shows remaining air supply at regular intervals agreed during dive planning.",
+          "category": "monitoring",
+          "performanceStandard": "Active, regular air-supply communication."
+        },
+        {
+          "code": "OW3.14",
+          "title": "Ascent with 5-point and safety stop",
+          "description": "Ascends no faster than 18 m / 60 ft per minute, maintaining buddy contact. Uses the 5-point method. Performs a safety stop if possible.",
+          "category": "ascent",
+          "performanceStandard": "≤ 18 m/min, 5-point, safety stop if possible."
+        }
+      ]
+    },
+    {
+      "code": "OW4",
+      "title": "Open Water Dive 4",
+      "type": "ocean",
+      "order": 9,
+      "skills": [
+        {
+          "code": "OW4.1",
+          "title": "Buddy-team planning with slate",
+          "description": "As a buddy team, plans the dive using the 'PADI Skill Practice and Dive Planning Slate'.",
+          "category": "preparation",
+          "performanceStandard": "Complete buddy-team planning using the slate, without instructor help."
+        },
+        {
+          "code": "OW4.2",
+          "title": "Don gear and streamline",
+          "description": "Dons and adjusts equipment and streamlines it. Uses appropriate lifting technique.",
+          "category": "preparation",
+          "performanceStandard": "Streamlined, secure gear configuration."
+        },
+        {
+          "code": "OW4.3",
+          "title": "Pre-dive Safety Check (BWRAF)",
+          "description": "Performs a pre-dive safety check.",
+          "category": "preparation",
+          "performanceStandard": "Complete, independent BWRAF."
+        },
+        {
+          "code": "OW4.4",
+          "title": "Adjust buoyancy and trim",
+          "description": "Adjusts buoyancy and trim as necessary.",
+          "category": "buoyancy",
+          "performanceStandard": "Properly weighted and trimmed."
+        },
+        {
+          "code": "OW4.5",
+          "title": "Positive buoyancy at surface",
+          "description": "Establishes positive buoyancy at the surface, keeps mask on, and breathes from snorkel or regulator.",
+          "category": "surface",
+          "performanceStandard": "Clear positive buoyancy, airway secured."
+        },
+        {
+          "code": "OW4.6",
+          "title": "Descent without visual reference",
+          "description": "Descends without a visual reference to a maximum depth of 18 m / 60 ft. Uses the 5-point method.",
+          "category": "descent",
+          "performanceStandard": "Free 5-point descent without line/bottom reference; depth ≤ 18 m."
+        },
+        {
+          "code": "OW4.7",
+          "title": "Dive site tour",
+          "description": "Tours the dive site.",
+          "category": "navigation",
+          "performanceStandard": "Attentive environmental awareness."
+        },
+        {
+          "code": "OW4.8",
+          "title": "Avoid environmental contact",
+          "description": "Avoids contact with sensitive organisms and the bottom, and re-secures any equipment that may have come loose.",
+          "category": "environmental",
+          "performanceStandard": "No bottom contact, no contact with marine life."
+        },
+        {
+          "code": "OW4.9",
+          "title": "Buddy contact within 2 seconds",
+          "description": "Stays close enough to the buddy to establish physical contact within two seconds.",
+          "category": "buddy",
+          "performanceStandard": "Consistent buddy proximity."
+        },
+        {
+          "code": "OW4.10",
+          "title": "Estimate air supply (±20 bar)",
+          "description": "Shows remaining air supply with a maximum deviation of 20 bar / 300 psi without looking at the SPG to check.",
+          "category": "monitoring",
+          "performanceStandard": "Estimate within ±20 bar without SPG glance."
+        },
+        {
+          "code": "OW4.11",
+          "title": "Plan-based turn and surface signals",
+          "description": "When diving with the buddy, signals when to turn and when to surface based on the air supply or time limit set during dive planning, and acts accordingly.",
+          "category": "communication",
+          "performanceStandard": "Plan-based turn/surface signals given independently."
+        },
+        {
+          "code": "OW4.12",
+          "title": "Ascent with 5-point and safety stop",
+          "description": "Ascends no faster than 18 m / 60 ft per minute, maintaining buddy contact. Uses the 5-point method. Performs a safety stop.",
+          "category": "ascent",
+          "performanceStandard": "≤ 18 m/min, 5-point, mandatory safety stop."
+        }
+      ]
+    },
+    {
+      "code": "FLEX",
+      "title": "Flexible Skills (any OW dive)",
+      "type": "ocean",
+      "order": 99,
+      "skills": [
+        {
+          "code": "FLEX.1",
+          "title": "Cramp release (self and buddy)",
+          "description": "Demonstrates releasing a simulated cramp on yourself and on your buddy.",
+          "category": "surface",
+          "performanceStandard": "Correct cramp release technique on self and buddy while maintaining positive buoyancy."
+        },
+        {
+          "code": "FLEX.2",
+          "title": "Tired diver tow or push (25 m)",
+          "description": "Tows or pushes a tired diver wearing full scuba equipment for 25 metres / yards at the surface.",
+          "category": "surface",
+          "performanceStandard": "Sustained tow/push ≥ 25 m, tired diver's airway managed."
+        },
+        {
+          "code": "FLEX.3",
+          "title": "Deploy inflatable signal device",
+          "description": "Inflates a signal tube at the surface, or deploys a delayed surface marker buoy (DSMB) from underwater.",
+          "category": "surface",
+          "performanceStandard": "Signal device clearly visible at the surface; controlled deployment if done underwater."
+        },
+        {
+          "code": "FLEX.4",
+          "title": "Straight-line compass swim (50 m)",
+          "description": "Snorkels face-down in a straight line for 50 metres / yards using only the compass as a directional reference.",
+          "category": "surface",
+          "performanceStandard": "Straight course maintained for ≥ 50 m using compass only."
+        },
+        {
+          "code": "FLEX.5",
+          "title": "Snorkel / regulator exchange",
+          "description": "Clears the snorkel and resumes breathing from it without removing it from the mouth. Alternatively, alternates breathing between snorkel and regulator without lifting the face from the water; at least two exchanges.",
+          "category": "surface",
+          "performanceStandard": "Smooth exchange without lifting face; at least two full exchanges."
+        },
+        {
+          "code": "FLEX.6",
+          "title": "Remove and replace weight system and scuba unit at surface",
+          "description": "In water too deep to stand, removes and replaces the weight system. In water too deep to stand, removes and replaces the scuba unit.",
+          "category": "surface",
+          "performanceStandard": "Controlled removal and replacement of both weight system and scuba unit with positive buoyancy."
+        },
+        {
+          "code": "FLEX.7",
+          "title": "Emergency weight drop (quick release)",
+          "description": "In confined or open water too deep to stand, with the BCD deflated, uses the quick-release mechanism to remove sufficient weight to achieve positive buoyancy. Pulls the weight clear of the body and drops it.",
+          "category": "surface",
+          "performanceStandard": "Quick release used correctly; weight pulled clear and dropped; positive buoyancy achieved."
+        },
+        {
+          "code": "FLEX.8",
+          "title": "Underwater compass navigation (reciprocal course)",
+          "description": "Swims a straight reciprocal course underwater using a compass. Each diver navigates out and back. Only in Dive 2, 3 or 4.",
+          "category": "underwater",
+          "performanceStandard": "Compass reciprocal course; each diver navigates independently."
+        },
+        {
+          "code": "FLEX.9",
+          "title": "Controlled Emergency Swimming Ascent (CESA)",
+          "description": "Performs a Controlled Emergency Swimming Ascent from a depth of 6–9 metres / 20–30 feet and establishes positive buoyancy at the surface. Only in Dive 2, 3 or 4.",
+          "category": "underwater",
+          "performanceStandard": "Continuous exhalation, controlled rate, positive buoyancy at surface. Depth 6–9 m."
+        }
+      ]
+    }
+  ]
+}

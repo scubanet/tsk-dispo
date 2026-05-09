@@ -1,0 +1,115 @@
+{
+  "version": "2024.1",
+  "course": "RESCUE",
+  "language": "en",
+  "slots": [
+    {
+      "code": "RD-EX",
+      "title": "Rescue Exercises",
+      "type": "ocean",
+      "order": 1,
+      "skills": [
+        {
+          "code": "RD-EX.1",
+          "title": "Tired diver",
+          "description": "Recognise signs of a tired diver at the surface, establish buoyancy and tow the diver to safety.",
+          "category": "rescue",
+          "performanceStandard": "Recognition of fatigue, positive buoyancy established, controlled tow to exit point."
+        },
+        {
+          "code": "RD-EX.2",
+          "title": "Panicked diver",
+          "description": "Respond to a panicking diver at the surface: approach defensively, establish contact, control and calm the diver, tow to safety.",
+          "category": "rescue",
+          "performanceStandard": "Defensive approach, effective control of panicking diver, tow to safety without endangering rescuer."
+        },
+        {
+          "code": "RD-EX.3",
+          "title": "Shore-based assistance",
+          "description": "Perform a rescue of a distressed diver from shore using reaching, throwing and wading assists.",
+          "category": "rescue",
+          "performanceStandard": "Correct use of reaching, throwing and wading techniques; diver assisted to safety."
+        },
+        {
+          "code": "RD-EX.4",
+          "title": "Underwater problems",
+          "description": "Identify and respond to a diver experiencing difficulties underwater: share air, perform a controlled ascent and assist the diver to the surface.",
+          "category": "rescue",
+          "performanceStandard": "Problem recognition, air sharing initiated, controlled ascent at ≤ 9 m/min, diver brought to surface."
+        },
+        {
+          "code": "RD-EX.5",
+          "title": "Missing diver",
+          "description": "Conduct an organised underwater search for a missing diver using an appropriate search pattern.",
+          "category": "rescue",
+          "performanceStandard": "Search initiated within 1 minute, systematic pattern executed, area effectively covered."
+        },
+        {
+          "code": "RD-EX.6",
+          "title": "Surfacing an unresponsive diver",
+          "description": "Bring an unresponsive diver to the surface from depth using a controlled buoyant lift.",
+          "category": "rescue",
+          "performanceStandard": "Controlled ascent at ≤ 9 m/min, airway management maintained throughout lift."
+        },
+        {
+          "code": "RD-EX.7",
+          "title": "Unresponsive diver at the surface",
+          "description": "Manage an unresponsive diver at the surface: establish buoyancy, open airway, check for breathing and provide rescue breaths.",
+          "category": "rescue",
+          "performanceStandard": "Positive buoyancy established, airway opened, breathing check within 10 seconds, rescue breaths delivered."
+        },
+        {
+          "code": "RD-EX.8",
+          "title": "Exits",
+          "description": "Remove an unresponsive diver from the water using appropriate exit techniques (shore, boat or platform).",
+          "category": "rescue",
+          "performanceStandard": "Diver removed from water safely without interrupting rescue breaths for more than briefly."
+        },
+        {
+          "code": "RD-EX.9",
+          "title": "First aid and emergency oxygen",
+          "description": "Provide first aid, CPR and emergency oxygen to a non-breathing diver, and activate the emergency medical services.",
+          "category": "rescue",
+          "performanceStandard": "CPR and O₂ delivery initiated promptly, EMS activated, care continued until handover."
+        },
+        {
+          "code": "RD-EX.10",
+          "title": "Rescue coordination",
+          "description": "Coordinate rescue team actions including equipment preparation, task assignments and emergency procedures.",
+          "category": "rescue",
+          "performanceStandard": "Tasks delegated clearly, equipment staged, emergency plan followed without confusion."
+        }
+      ]
+    },
+    {
+      "code": "RD-S1",
+      "title": "Scenario 1 — Unresponsive Diver Underwater",
+      "type": "ocean",
+      "order": 2,
+      "skills": [
+        {
+          "code": "RD-S1.1",
+          "title": "Scenario: Unresponsive diver underwater",
+          "description": "Complete rescue scenario: locate an unresponsive diver underwater, perform a controlled buoyant lift, surface management with rescue breaths, tow to exit, remove from water, provide first aid / CPR / emergency oxygen and activate EMS.",
+          "category": "scenario",
+          "performanceStandard": "Full scenario completed without prompting: lift, surface management, tow, exit, first aid — all within acceptable time and technique standards."
+        }
+      ]
+    },
+    {
+      "code": "RD-S2",
+      "title": "Scenario 2 — Unresponsive Diver at Surface",
+      "type": "ocean",
+      "order": 3,
+      "skills": [
+        {
+          "code": "RD-S2.1",
+          "title": "Scenario: Unresponsive diver at surface",
+          "description": "Complete rescue scenario: respond to an unresponsive diver at the surface, establish buoyancy, open airway, provide rescue breaths, tow to exit, remove from water, provide first aid / CPR / emergency oxygen and activate EMS.",
+          "category": "scenario",
+          "performanceStandard": "Full scenario completed without prompting: surface management, tow, exit, first aid — all within acceptable time and technique standards."
+        }
+      ]
+    }
+  ]
+}

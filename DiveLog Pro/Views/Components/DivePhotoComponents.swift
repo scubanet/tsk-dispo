@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import PhotosUI
 
 // ═══════════════════════════════════════
@@ -10,6 +11,7 @@ import PhotosUI
 /// the file is missing.
 struct DivePhotoThumbnail: View {
     let filename: String
+    var dive: Dive?
     var width: CGFloat = 80
     var height: CGFloat = 80
     var cornerRadius: CGFloat = 12
@@ -44,7 +46,11 @@ struct DivePhotoThumbnail: View {
     }
 
     private func loadImage() async {
-        self.image = PhotoStore.load(filename: filename)
+        if let dive {
+            self.image = PhotoStore.load(filename: filename, from: dive)
+        } else {
+            self.image = PhotoStore.load(filename: filename)
+        }
     }
 }
 
@@ -56,8 +62,10 @@ struct DivePhotoThumbnail: View {
 /// then thumbnails of currently attached photos with a delete control.
 struct PhotoPickerSection: View {
     @Binding var filenames: [String]
+    var dive: Dive?
     var maxPhotos: Int = 20
 
+    @Environment(\.modelContext) private var modelContext
     @State private var pickerItems: [PhotosPickerItem] = []
     @State private var isImporting = false
     @State private var showingPicker = false
@@ -96,7 +104,7 @@ struct PhotoPickerSection: View {
                     // Existing thumbnails with delete
                     ForEach(filenames, id: \.self) { name in
                         ZStack(alignment: .topTrailing) {
-                            DivePhotoThumbnail(filename: name, width: 96, height: 96, cornerRadius: 14)
+                            DivePhotoThumbnail(filename: name, dive: dive, width: 96, height: 96, cornerRadius: 14)
                             Button {
                                 remove(filename: name)
                             } label: {
@@ -165,9 +173,14 @@ struct PhotoPickerSection: View {
             var saved: [String] = []
             for item in items {
                 if let data = try? await item.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data),
-                   let filename = PhotoStore.save(image: image) {
-                    saved.append(filename)
+                   let image = UIImage(data: data) {
+                    let filename: String?
+                    if let dive {
+                        filename = PhotoStore.save(image: image, toDive: dive, context: modelContext)
+                    } else {
+                        filename = PhotoStore.save(image: image)
+                    }
+                    if let filename { saved.append(filename) }
                 }
             }
             await MainActor.run {
@@ -179,7 +192,11 @@ struct PhotoPickerSection: View {
     }
 
     private func remove(filename: String) {
-        PhotoStore.delete(filename: filename)
+        if let dive {
+            PhotoStore.delete(filename: filename, from: dive, context: modelContext)
+        } else {
+            PhotoStore.delete(filename: filename)
+        }
         filenames.removeAll { $0 == filename }
     }
 }
@@ -191,6 +208,7 @@ struct PhotoPickerSection: View {
 /// Full-screen, swipeable viewer with pinch-to-zoom and a close button.
 struct PhotoViewerView: View {
     let filenames: [String]
+    var dive: Dive?
     @State var startIndex: Int = 0
     @Environment(\.dismiss) private var dismiss
     @State private var currentIndex: Int = 0
@@ -201,7 +219,7 @@ struct PhotoViewerView: View {
 
             TabView(selection: $currentIndex) {
                 ForEach(filenames.indices, id: \.self) { i in
-                    ZoomablePhoto(filename: filenames[i])
+                    ZoomablePhoto(filename: filenames[i], dive: dive)
                         .tag(i)
                 }
             }
@@ -244,6 +262,7 @@ struct PhotoViewerView: View {
 /// One photo in the viewer with pinch-to-zoom and double-tap-to-reset.
 private struct ZoomablePhoto: View {
     let filename: String
+    var dive: Dive?
     @State private var image: UIImage?
     @State private var scale: CGFloat = 1
     @State private var lastScale: CGFloat = 1
@@ -301,7 +320,11 @@ private struct ZoomablePhoto: View {
             .frame(width: geo.size.width, height: geo.size.height)
         }
         .task(id: filename) {
-            self.image = PhotoStore.load(filename: filename)
+            if let dive {
+                self.image = PhotoStore.load(filename: filename, from: dive)
+            } else {
+                self.image = PhotoStore.load(filename: filename)
+            }
         }
     }
 }

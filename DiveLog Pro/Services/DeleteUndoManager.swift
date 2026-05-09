@@ -55,6 +55,9 @@ final class DeleteUndoManager {
         if let prior = pendingDive, prior.persistentModelID != dive.persistentModelID {
             commitTask?.cancel()
             context.delete(prior)
+            if let profile = (try? context.fetch(FetchDescriptor<DiverProfile>()))?.first {
+                context.renumberDives(from: profile)
+            }
             try? context.save()
         }
 
@@ -68,6 +71,9 @@ final class DeleteUndoManager {
             // Still pending the same dive? Commit it.
             if self.pendingDive?.persistentModelID == dive.persistentModelID {
                 context.delete(dive)
+                if let profile = (try? context.fetch(FetchDescriptor<DiverProfile>()))?.first {
+                    context.renumberDives(from: profile)
+                }
                 try? context.save()
                 self.pendingDive = nil
                 self.scheduledAt = nil
@@ -90,6 +96,9 @@ final class DeleteUndoManager {
         guard let dive = pendingDive else { return }
         commitTask?.cancel()
         context.delete(dive)
+        if let profile = (try? context.fetch(FetchDescriptor<DiverProfile>()))?.first {
+            context.renumberDives(from: profile)
+        }
         try? context.save()
         pendingDive = nil
         scheduledAt = nil

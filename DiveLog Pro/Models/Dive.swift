@@ -68,8 +68,13 @@ final class Dive {
     var isHighlight: Bool = false
 
     // ─── Fotos ───────────────────────────
-    // Stored as filenames, actual files in app documents directory
+    // Filenames for local disk cache; actual bytes in DivePhoto for CloudKit sync.
     var photoFilenamesRaw: String = ""
+
+    // CloudKit-mirrored binary copies (per filename) — used by PhotoStore
+    // to back up photos to iCloud without inflating the dive document.
+    @Relationship(deleteRule: .cascade, inverse: \DivePhoto.dive)
+    var photos: [DivePhoto]? = []
 
     // ─── Marine Life ─────────────────────
     var marineLifeRaw: String = ""
@@ -83,6 +88,18 @@ final class Dive {
     // ─── Buddy ───────────────────────────
     var buddyNames: String = ""        // comma-separated for quick display
     @Relationship var buddies: [Buddy]? = []
+
+    // ─── Instructor / Course ─────────────
+    // Optional — nil = recreational fun dive, not course-related.
+    var courseType: String?        // "OWD", "AOWD"
+    var courseSlot: String?        // "OW1", "OW2", "AOWD-Deep"
+    var extraSkillCodesRaw: String = ""  // pipe-separated extra skill codes from other slots/courses
+
+    @Relationship(deleteRule: .nullify, inverse: \Student.dives)
+    var students: [Student]? = []
+
+    @Relationship(deleteRule: .cascade, inverse: \SkillCompletion.dive)
+    var skillCompletions: [SkillCompletion]? = []
 
     // ─── Tauchplatz Referenz ─────────────
     @Relationship var diveSite: DiveSite?
@@ -102,6 +119,11 @@ final class Dive {
     var photoFilenames: [String] {
         get { photoFilenamesRaw.isEmpty ? [] : photoFilenamesRaw.components(separatedBy: "||") }
         set { photoFilenamesRaw = newValue.joined(separator: "||") }
+    }
+
+    var extraSkillCodes: [String] {
+        get { extraSkillCodesRaw.isEmpty ? [] : extraSkillCodesRaw.components(separatedBy: "||") }
+        set { extraSkillCodesRaw = newValue.joined(separator: "||") }
     }
     
     var depthProfile: [Double] {

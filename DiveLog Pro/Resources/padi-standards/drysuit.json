@@ -1,0 +1,192 @@
+{
+  "version": "2024.1",
+  "course": "DRYSUIT",
+  "language": "en",
+  "slots": [
+    {
+      "code": "DS-CW",
+      "title": "Confined Water Dive",
+      "type": "pool",
+      "order": 1,
+      "skills": [
+        {
+          "code": "DS-CW.1",
+          "title": "Don and doff a dry suit",
+          "description": "Don and doff a dry suit — with assistance from another diver if required by the suit model.",
+          "category": "preparation",
+          "performanceStandard": "Correct donning and doffing, with buddy assistance if needed."
+        },
+        {
+          "code": "DS-CW.2",
+          "title": "Surface buoyancy control",
+          "description": "Demonstrate how to perform a buoyancy check at the surface wearing a dry suit with undergarment (if needed) and full scuba equipment.",
+          "category": "buoyancy",
+          "performanceStandard": "Correct buoyancy check at surface with dry suit and full equipment."
+        },
+        {
+          "code": "DS-CW.3",
+          "title": "Neutral buoyancy — controlled rise and fall (1 min)",
+          "description": "Demonstrate neutral buoyancy by gently rising and falling in a controlled manner while inhaling and exhaling for one minute.",
+          "category": "buoyancy",
+          "performanceStandard": "Controlled rise and fall using breathing only for ≥ 1 minute."
+        },
+        {
+          "code": "DS-CW.4",
+          "title": "Hover near the bottom (1 min)",
+          "description": "Demonstrate neutral buoyancy by hovering near the bottom (without using arms or fins) for one minute.",
+          "category": "buoyancy",
+          "performanceStandard": "Stable hover ≥ 1 minute without arm or fin movement."
+        },
+        {
+          "code": "DS-CW.5",
+          "title": "Disconnect and reconnect inflator hose underwater",
+          "description": "Underwater, disconnect the inflator hose from the dry suit inflator valve and reconnect it.",
+          "category": "skills",
+          "performanceStandard": "Controlled disconnect and reconnect of inflator hose underwater."
+        },
+        {
+          "code": "DS-CW.6",
+          "title": "Neutrally buoyant ascent (max 9 m/min)",
+          "description": "Perform a neutrally buoyant ascent from the bottom at a maximum ascent rate of 9 metres / 30 feet per minute.",
+          "category": "ascent",
+          "performanceStandard": "Ascent ≤ 9 m/min, neutral buoyancy maintained."
+        },
+        {
+          "code": "DS-CW.7",
+          "title": "Recovery from air in the feet",
+          "description": "Demonstrate a technique to recover to a normal position when too much air migrates to the feet.",
+          "category": "skills",
+          "performanceStandard": "Successful recovery to normal position from feet-up inversion."
+        },
+        {
+          "code": "DS-CW.8",
+          "title": "Remove and replace scuba unit and weight system at surface",
+          "description": "Remove and replace the scuba unit and weight system at the surface.",
+          "category": "surface",
+          "performanceStandard": "Controlled removal and replacement of scuba unit and weight system at surface."
+        }
+      ]
+    },
+    {
+      "code": "DS-OW1",
+      "title": "Open Water Dive 1",
+      "type": "ocean",
+      "order": 2,
+      "skills": [
+        {
+          "code": "DS-OW1.1",
+          "title": "Don and doff a dry suit",
+          "description": "Don and doff a dry suit with assistance from another diver.",
+          "category": "preparation",
+          "performanceStandard": "Correct donning and doffing with buddy assistance."
+        },
+        {
+          "code": "DS-OW1.2",
+          "title": "Weight check for neutral buoyancy",
+          "description": "Adjust the amount of weight needed for neutral buoyancy at the surface (eyes at water line) while holding a normal breath with both dry suit and BCD fully deflated.",
+          "category": "buoyancy",
+          "performanceStandard": "Correct weighting: eyes at water line on normal breath, suit and BCD deflated."
+        },
+        {
+          "code": "DS-OW1.3",
+          "title": "Controlled descent without suit squeeze",
+          "description": "Perform a controlled descent without experiencing a suit squeeze.",
+          "category": "descent",
+          "performanceStandard": "Controlled descent; suit inflated in time, no squeeze."
+        },
+        {
+          "code": "DS-OW1.4",
+          "title": "Neutral buoyancy — controlled rise and fall (1 min)",
+          "description": "Demonstrate neutral buoyancy by gently rising and falling in a controlled manner while inhaling and exhaling for one minute.",
+          "category": "buoyancy",
+          "performanceStandard": "Controlled rise and fall using breathing only for ≥ 1 minute."
+        },
+        {
+          "code": "DS-OW1.5",
+          "title": "Hover near the bottom without arm/leg movement (1 min)",
+          "description": "Maintain neutral buoyancy near the bottom by hovering for one minute without arm or leg movement.",
+          "category": "buoyancy",
+          "performanceStandard": "Stable hover ≥ 1 minute without arm or leg movement."
+        },
+        {
+          "code": "DS-OW1.6",
+          "title": "Neutral buoyancy without sediment disturbance",
+          "description": "Maintain neutral buoyancy throughout the dive, avoiding accidental sediment disturbance or bottom contact.",
+          "category": "buoyancy",
+          "performanceStandard": "No bottom contact or sediment disturbance throughout the dive."
+        },
+        {
+          "code": "DS-OW1.7",
+          "title": "Neutrally buoyant ascent (max 9 m/min)",
+          "description": "Perform a neutrally buoyant ascent from the bottom at a maximum ascent rate of 9 metres / 30 feet per minute.",
+          "category": "ascent",
+          "performanceStandard": "Ascent ≤ 9 m/min, neutral buoyancy maintained."
+        },
+        {
+          "code": "DS-OW1.8",
+          "title": "Safety stop at 5 m (≥ 3 min)",
+          "description": "Perform a safety stop at 5 metres / 15 feet for at least three minutes.",
+          "category": "ascent",
+          "performanceStandard": "Safety stop at 5 m for ≥ 3 minutes."
+        },
+        {
+          "code": "DS-OW1.9",
+          "title": "Remove and replace scuba unit and weight system at surface",
+          "description": "Remove and replace both the scuba unit and the weight system at the surface.",
+          "category": "surface",
+          "performanceStandard": "Controlled removal and replacement of scuba unit and weight system at surface."
+        }
+      ]
+    },
+    {
+      "code": "DS-OW2",
+      "title": "Open Water Dive 2",
+      "type": "ocean",
+      "order": 3,
+      "skills": [
+        {
+          "code": "DS-OW2.1",
+          "title": "Don and doff a dry suit",
+          "description": "Don and doff a dry suit, with assistance from another diver if required by the suit model.",
+          "category": "preparation",
+          "performanceStandard": "Correct donning and doffing, with buddy assistance if needed."
+        },
+        {
+          "code": "DS-OW2.2",
+          "title": "Controlled descent without suit squeeze",
+          "description": "Perform a controlled descent without experiencing a suit squeeze.",
+          "category": "descent",
+          "performanceStandard": "Controlled descent; suit inflated in time, no squeeze."
+        },
+        {
+          "code": "DS-OW2.3",
+          "title": "Disconnect and reconnect inflator hose with gloves",
+          "description": "Underwater, wearing gloves, disconnect the inflator hose from the suit and reconnect it.",
+          "category": "skills",
+          "performanceStandard": "Controlled disconnect and reconnect of inflator hose while wearing gloves."
+        },
+        {
+          "code": "DS-OW2.4",
+          "title": "Neutral buoyancy without sediment disturbance / reef contact",
+          "description": "Maintain neutral buoyancy throughout the dive without accidentally disturbing sediment and/or touching the reef.",
+          "category": "buoyancy",
+          "performanceStandard": "No sediment disturbance or reef contact throughout the dive."
+        },
+        {
+          "code": "DS-OW2.5",
+          "title": "Neutrally buoyant ascent (max 9 m/min)",
+          "description": "Perform a neutrally buoyant ascent from the bottom at a maximum ascent rate of 9 metres / 30 feet per minute.",
+          "category": "ascent",
+          "performanceStandard": "Ascent ≤ 9 m/min, neutral buoyancy maintained."
+        },
+        {
+          "code": "DS-OW2.6",
+          "title": "Safety stop at 5 m (≥ 3 min)",
+          "description": "Perform a safety stop at 5 metres / 15 feet for at least three minutes.",
+          "category": "ascent",
+          "performanceStandard": "Safety stop at 5 m for ≥ 3 minutes."
+        }
+      ]
+    }
+  ]
+}

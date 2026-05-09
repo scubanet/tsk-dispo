@@ -6,20 +6,31 @@ enum DiveFormMode { case new; case edit(Dive) }
 
 struct DiveFormView: View {
     let mode: DiveFormMode
+
+    // Optional pre-fill from QuickLogView. When prefillStudents is non-empty
+    // the form opens in course-training mode, students are pre-selected, and
+    // courseSlot defaults to the most-conservative "next module" across them.
+    var prefillStudents: [Student] = []
+    var prefillCourseType: String? = nil
+    var prefillCourseSlot: String? = nil
+
     @Environment(\.modelContext) private var ctx
     @Environment(\.dismiss) private var dismiss
     @Environment(\.atollBridge) private var atollBridge
     @Query(sort: \Dive.number, order: .reverse) private var existingDives: [Dive]
+    @Query private var profiles: [DiverProfile]
+    @State private var store = StoreManager.shared
     @State private var step = 0
     
     // ─── Form State ──────────────────────
+    @State private var diveDate: Date = Date()
     @State private var siteName = ""
     @State private var siteLocation = ""
     @State private var diveType = "fun"
     @State private var maxDepth = ""
     @State private var bottomTime = ""
     @State private var totalTime = ""
-    @State private var entryType = "boat"
+    @State private var entryType = "shore"
     @State private var weather = "sunny"
     @State private var airTemp = ""
     @State private var waterTempSurface = ""
@@ -56,7 +67,13 @@ struct DiveFormView: View {
     @State private var marineInput = ""
     @State private var photoFilenames: [String] = []
     @State private var importedPhotosOnThisSession: [String] = []
-    
+
+    // Course training fields
+    @State private var isCourseTraining = false
+    @State private var courseType = "OWD"
+    @State private var courseSlot = "OW1"
+    @State private var students: [Student] = []
+
     private let suggestions = ["Sea Turtle", "Clownfish", "Manta Ray", "Whale Shark", "Nudibranch",
         "Moray Eel", "Barracuda", "Lionfish", "Octopus", "Seahorse", "Reef Shark",
         "Eagle Ray", "Frogfish", "Cuttlefish", "Giant Clam", "Dolphin"]
@@ -148,8 +165,28 @@ struct DiveFormView: View {
     
     private var stepBasics: some View {
         VStack(spacing: 14) {
-            FormField(label: L10n.diveSite, text: $siteName, placeholder: "e.g. Mamutic Island")
-            FormField(label: L10n.location, text: $siteLocation, placeholder: "e.g. Kota Kinabalu, Malaysia")
+            FormField(label: L10n.diveSite, text: $siteName, placeholder: "Horn")
+            FormField(label: L10n.location, text: $siteLocation, placeholder: "Richterswil")
+
+            // Date & Time
+            VStack(alignment: .leading, spacing: 8) {
+                Text((L10n.currentLanguage == "de" ? "Datum & Uhrzeit" : "Date & time").uppercased())
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .tracking(1.2)
+                DatePicker(
+                    "",
+                    selection: $diveDate,
+                    displayedComponents: [.date, .hourAndMinute]
+                )
+                .labelsHidden()
+                .datePickerStyle(.compact)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, DSSpacing.m)
+                .padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: DSRadius.m).fill(Color.surfaceCard))
+                .overlay(RoundedRectangle(cornerRadius: DSRadius.m).stroke(Color.hairline, lineWidth: 0.5))
+            }
 
             // GPS & Auto-Weather
             gpsWeatherBlock
@@ -174,7 +211,40 @@ struct DiveFormView: View {
                     }
                 }
             }
-            
+
+            // Course & Students (Pro only) — reads `store.isPro` so the view
+            // updates reactively when the user purchases Pro mid-form.
+            if store.isPro {
+            VStack(alignment: .leading, spacing: 8) {
+                Text((L10n.currentLanguage == "de" ? "Kurs & Schüler" : "Course & Students").uppercased())
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .tracking(1.2)
+                Toggle(L10n.currentLanguage == "de" ? "Kurs-Tauchgang" : "Course dive",
+                       isOn: $isCourseTraining)
+                if isCourseTraining {
+                    Picker(L10n.currentLanguage == "de" ? "Kurs" : "Course", selection: $courseType) {
+                        Text("OWD").tag("OWD")
+                        Text("AOWD").tag("AOWD")
+                        Text("Dry Suit").tag("DRYSUIT")
+                        Text("Rescue").tag("RESCUE")
+                    }
+                    Picker(L10n.currentLanguage == "de" ? "Modul" : "Module", selection: $courseSlot) {
+                        ForEach(PADIStandards.shared.slots(for: courseType)
+                                    .filter { $0.type == .ocean }, id: \.code) { slot in
+                            Text(slot.title).tag(slot.code)
+                        }
+                    }
+                    StudentPicker(selected: $students)
+                    if !students.isEmpty {
+                        ForEach(students) { student in
+                            PreDivePreviewCard(student: student, slotCode: courseSlot, courseType: courseType)
+                        }
+                    }
+                }
+            }
+            } // end if isPro
+
             HStack(spacing: 12) {
                 FormField(label: L10n.maxDepth + " (m)", text: $maxDepth, placeholder: "12", keyboard: .decimalPad)
                 FormField(label: L10n.bottomTime + " (min)", text: $bottomTime, placeholder: "45", keyboard: .numberPad)
@@ -187,11 +257,11 @@ struct DiveFormView: View {
             SegmentPicker(label: L10n.entry, options: [("boat", "🚤 Boat"), ("shore", "🏖 Shore")], selected: $entryType)
             
             HStack(spacing: 12) {
-                FormField(label: L10n.waterTempSurface + " (°C)", text: $waterTempSurface, placeholder: "28", keyboard: .decimalPad)
-                FormField(label: L10n.waterTempBottom + " (°C)", text: $waterTempBottom, placeholder: "26", keyboard: .decimalPad)
+                FormField(label: L10n.waterTempSurface + " (°C)", text: $waterTempSurface, placeholder: "18", keyboard: .decimalPad)
+                FormField(label: L10n.waterTempBottom + " (°C)", text: $waterTempBottom, placeholder: "12", keyboard: .decimalPad)
             }
             HStack(spacing: 12) {
-                FormField(label: L10n.airTempLabel + " (°C)", text: $airTemp, placeholder: "30", keyboard: .decimalPad)
+                FormField(label: L10n.airTempLabel + " (°C)", text: $airTemp, placeholder: "22", keyboard: .decimalPad)
                 FormField(label: L10n.visibilityLabel + " (m)", text: $visibility, placeholder: "15", keyboard: .numberPad)
             }
             
@@ -309,7 +379,7 @@ struct DiveFormView: View {
             }
             
             // Photos — PhotosPicker integration
-            PhotoPickerSection(filenames: $photoFilenames, maxPhotos: 20)
+            PhotoPickerSection(filenames: $photoFilenames, dive: { if case .edit(let d) = mode { return d }; return nil }(), maxPhotos: 20)
                 .onChange(of: photoFilenames) { oldValue, newValue in
                     // Track newly imported filenames so we can roll them back
                     // if the user cancels instead of saving.
@@ -468,6 +538,7 @@ struct DiveFormView: View {
     
     private func loadDefaults() {
         if case .edit(let d) = mode {
+            diveDate = d.date
             siteName = d.siteName; siteLocation = d.siteLocation; diveType = d.diveType
             if d.latitude != 0 || d.longitude != 0 {
                 latitude = d.latitude
@@ -483,12 +554,50 @@ struct DiveFormView: View {
             feeling = d.feeling; rating = d.rating; isHighlight = d.isHighlight
             buddyNames = d.buddyNames; notes = d.notes; marineLife = d.marineLife
             photoFilenames = d.photoFilenames
+            isCourseTraining = d.courseType != nil
+            courseType = d.courseType ?? "OWD"
+            courseSlot = d.courseSlot ?? "OW1"
+            students = d.students ?? []
         } else if let last = existingDives.first {
             // Smart Defaults from last dive
             suit = last.suit; weightKg = String(last.weightKg); weightFeel = last.weightFeel
             cylinderType = last.cylinderType; cylinderSize = String(last.cylinderSizeLiters); gas = last.gas
             tankStart = String(last.tankStartBar); diveCenterName = last.diveCenterName
         }
+
+        // Apply QuickLog pre-fill (only in .new mode — edit always wins).
+        if case .new = mode, !prefillStudents.isEmpty {
+            isCourseTraining = true
+            students = prefillStudents
+            if let t = prefillCourseType { courseType = t }
+            if let slot = prefillCourseSlot {
+                courseSlot = slot
+            } else {
+                courseSlot = suggestedNextSlot(forStudents: prefillStudents, courseType: courseType)
+            }
+        }
+    }
+
+    /// Most-conservative "next module" across a group of students for an
+    /// open-water course. For each student: find the highest ocean slot with
+    /// any mastered skill, the next slot is their candidate. Group pick = min.
+    private func suggestedNextSlot(forStudents students: [Student], courseType: String) -> String {
+        let slots = PADIStandards.shared.slots(for: courseType).filter { $0.type == .ocean }
+        guard !slots.isEmpty else { return "OW1" }
+
+        var minIndex = slots.count - 1
+        for student in students {
+            var lastMasteredIdx = -1
+            for (idx, slot) in slots.enumerated() {
+                let anyMastered = slot.skills.contains {
+                    student.currentStatus(for: $0.code) == .mastered
+                }
+                if anyMastered { lastMasteredIdx = idx }
+            }
+            let next = min(lastMasteredIdx + 1, slots.count - 1)
+            minIndex = min(minIndex, next)
+        }
+        return slots[max(0, minIndex)].code
     }
 
     /// Called when the user taps the close button without saving. Any photos
@@ -496,11 +605,11 @@ struct DiveFormView: View {
     /// dive need to be cleaned up so they don't leak into the documents dir.
     private func discardUnsavedPhotos() {
         guard case .new = mode else {
-            // In edit mode: remove any newly imported files that the user
-            // didn't keep in the final list (they may have hit "x" on them).
-            let attachedSet = Set(photoFilenames)
-            let orphaned = importedPhotosOnThisSession.filter { !attachedSet.contains($0) }
-            orphaned.forEach { PhotoStore.delete(filename: $0) }
+            if case .edit(let d) = mode {
+                let attachedSet = Set(photoFilenames)
+                let orphaned = importedPhotosOnThisSession.filter { !attachedSet.contains($0) }
+                orphaned.forEach { PhotoStore.delete(filename: $0, from: d, context: ctx) }
+            }
             return
         }
         // New mode + dismissed without saving → delete everything imported.
@@ -531,7 +640,7 @@ struct DiveFormView: View {
             let before = Set(d.photoFilenames)
             let after = Set(photoFilenames)
             for removed in before.subtracting(after) {
-                PhotoStore.delete(filename: removed)
+                PhotoStore.delete(filename: removed, from: d, context: ctx)
             }
 
             // Detect whether depth or duration changed meaningfully — only
@@ -541,7 +650,20 @@ struct DiveFormView: View {
             let timeChanged  = abs(d.totalTime - tt) > 1
             let profileMissing = d.depthProfile.isEmpty
 
+            d.date = diveDate
+            if let profile = profiles.first {
+                ctx.renumberDives(from: profile)
+            }
             d.siteName = siteName; d.siteLocation = siteLocation; d.diveType = diveType
+            if isCourseTraining {
+                d.courseType = courseType
+                d.courseSlot = courseSlot
+                d.students = students
+            } else {
+                d.courseType = nil
+                d.courseSlot = nil
+                d.students = []
+            }
             if let lat = latitude { d.latitude = lat }
             if let lon = longitude { d.longitude = lon }
             d.maxDepth = md; d.avgDepth = md * 0.7; d.bottomTime = bt; d.totalTime = tt
@@ -560,9 +682,14 @@ struct DiveFormView: View {
                 d.depthProfile = SampleData.generateProfile(maxDepth: md, duration: tt)
             }
         } else {
-            let num = (existingDives.first?.number ?? 8757) + 1
+            guard let profile = profiles.first else {
+                // Cannot insert without a profile — onboarding always creates one.
+                // If somehow missing, fail loudly in DEBUG and bail out.
+                assertionFailure("DiveFormView.save: no DiverProfile available")
+                return
+            }
             let dive = Dive(
-                number: num, diveType: diveType, siteName: siteName, siteLocation: siteLocation,
+                number: 0, date: diveDate, diveType: diveType, siteName: siteName, siteLocation: siteLocation,
                 latitude: latitude ?? 0, longitude: longitude ?? 0,
                 diveCenterName: diveCenterName,
                 maxDepth: md, avgDepth: md * 0.7, bottomTime: bt, totalTime: tt,
@@ -576,8 +703,15 @@ struct DiveFormView: View {
                 buddyNames: buddyNames, marineLife: marineLife,
                 depthProfile: SampleData.generateProfile(maxDepth: md, duration: tt)
             )
+            if isCourseTraining {
+                dive.courseType = courseType
+                dive.courseSlot = courseSlot
+                dive.students = students
+            }
             dive.photoFilenames = photoFilenames
             ctx.insert(dive)
+            ctx.renumberDives(from: profile)
+            PhotoStore.migrateLocalPhotosToCloudKit(dive: dive, context: ctx)
         }
         // Saving succeeded — any imported photos are now attached to a dive
         // and shouldn't be cleaned up on dismiss.

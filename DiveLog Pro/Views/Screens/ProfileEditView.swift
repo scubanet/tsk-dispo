@@ -15,6 +15,11 @@ struct ProfileEditView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.atollBridge) private var atollBridge
 
+    // Ascending-order query so `.first` is the oldest (lowest-numbered) dive.
+    // Used by the "first dive number" field to show the actual current start
+    // of the logbook, and to compute the shift delta if the user edits it.
+    @Query(sort: \Dive.number, order: .forward) private var allDives: [Dive]
+
     // Identity
     @State private var name: String = ""
     @State private var padiNumber: String = ""
@@ -22,6 +27,12 @@ struct ProfileEditView: View {
     @State private var email: String = ""
     @State private var phone: String = ""
     @State private var profileImageData: Data? = nil
+
+    // Logbook
+    @State private var firstDiveNumber: String = ""
+    @State private var originalFirstDiveNumber: Int = 0   // loaded value for delta detection
+    @State private var showingShiftConfirm = false
+    @State private var pendingShiftDelta: Int = 0
 
     // Stamp
     @State private var stampImageData: Data? = nil
@@ -71,6 +82,7 @@ struct ProfileEditView: View {
                         identitySection
                         stampSection
                         smartDefaultsSection
+                        logbookSection
                         preferencesSection
                     }
                     .padding(20)
@@ -128,8 +140,41 @@ struct ProfileEditView: View {
                     stampImageData = generatedData
                 }
             }
+            .confirmationDialog(
+                shiftConfirmTitle,
+                isPresented: $showingShiftConfirm,
+                titleVisibility: .visible
+            ) {
+                Button(L10n.currentLanguage == "de" ? "Alle verschieben" : "Shift all",
+                       role: .destructive) {
+                    applyShift()
+                }
+                Button(L10n.currentLanguage == "de" ? "Abbrechen" : "Cancel", role: .cancel) {
+                    // Restore the input so the user can reconsider.
+                    firstDiveNumber = String(originalFirstDiveNumber)
+                    pendingShiftDelta = 0
+                }
+            } message: {
+                Text(shiftConfirmMessage)
+            }
         }
         .preferredColorScheme(.dark)
+    }
+
+    private var shiftConfirmTitle: String {
+        let sign = pendingShiftDelta > 0 ? "+" : ""
+        return L10n.currentLanguage == "de"
+            ? "Alle \(allDives.count) TGs um \(sign)\(pendingShiftDelta) verschieben?"
+            : "Shift all \(allDives.count) dives by \(sign)\(pendingShiftDelta)?"
+    }
+
+    private var shiftConfirmMessage: String {
+        guard let oldest = allDives.first, let newest = allDives.last else { return "" }
+        let newOldest = oldest.number + pendingShiftDelta
+        let newNewest = newest.number + pendingShiftDelta
+        return L10n.currentLanguage == "de"
+            ? "#\(oldest.number)–#\(newest.number) → #\(newOldest)–#\(newNewest)"
+            : "#\(oldest.number)–#\(newest.number) → #\(newOldest)–#\(newNewest)"
     }
 
     // ═══════════════════════════════════════
@@ -341,6 +386,57 @@ struct ProfileEditView: View {
     }
 
     // ═══════════════════════════════════════
+    // MARK: - Logbook
+    // ═══════════════════════════════════════
+
+    private var logbookSection: some View {
+        VStack(spacing: 14) {
+            SectionTitle(title: L10n.currentLanguage == "de" ? "Logbuch" : "Logbook")
+
+            Text(hintText)
+                .font(.system(size: 11))
+                .foregroundColor(.textDim)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            FormField(
+                label: L10n.currentLanguage == "de" ? "Erste TG-Nummer" : "First dive number",
+                text: $firstDiveNumber,
+                placeholder: "8758",
+                keyboard: .numberPad
+            )
+
+            if !allDives.isEmpty {
+                HStack(spacing: 6) {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.45))
+                    Text(L10n.currentLanguage == "de"
+                         ? "Verschiebt alle \(allDives.count) bestehenden TGs."
+                         : "Shifts all \(allDives.count) existing dives.")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.45))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(18)
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color.cardBg))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.cardBorder, lineWidth: 1))
+    }
+
+    private var hintText: String {
+        if allDives.isEmpty {
+            return L10n.currentLanguage == "de"
+                ? "Nummer, die dein erster geloggter Tauchgang erhält."
+                : "Number your first logged dive will receive."
+        } else {
+            return L10n.currentLanguage == "de"
+                ? "Nummer deines ältesten geloggten Tauchgangs. Änderung verschiebt alle."
+                : "Number of your oldest logged dive. Editing shifts all."
+        }
+    }
+
+    // ═══════════════════════════════════════
     // MARK: - Preferences
     // ═══════════════════════════════════════
 
@@ -405,6 +501,12 @@ struct ProfileEditView: View {
         }
 
         useMetric = profile.useMetric
+
+        // Logbook — show oldest dive number when dives exist; otherwise the
+        // stored starting offset from the profile.
+        let startValue = allDives.first?.number ?? profile.startingDiveNumber
+        firstDiveNumber = String(startValue)
+        originalFirstDiveNumber = startValue
     }
 
     /// Refresh the App Group snapshot for Atoll Hub. Fires from
@@ -438,6 +540,44 @@ struct ProfileEditView: View {
         profile.useMetric = useMetric
         profile.language = language
 
+        // Logbook — detect if the user changed the first dive number.
+        // If dives exist, ask for confirmation before shifting all of them.
+        // If no dives, just persist the starting offset silently.
+        guard let newFirst = Int(firstDiveNumber), newFirst > 0 else {
+            // Invalid input — skip the logbook change but still save everything else.
+            republishToAtollBridge()
+            dismiss()
+            return
+        }
+        let delta = newFirst - originalFirstDiveNumber
+        if delta != 0 {
+            if allDives.isEmpty {
+                profile.startingDiveNumber = newFirst
+                republishToAtollBridge()
+                dismiss()
+            } else {
+                // Present confirmation — actual shift happens in applyShift().
+                pendingShiftDelta = delta
+                showingShiftConfirm = true
+                return
+            }
+        } else {
+            republishToAtollBridge()
+            dismiss()
+        }
+    }
+
+    /// Apply the shift to every existing dive + update the profile offset,
+    /// then dismiss. Called from the confirmation dialog.
+    ///
+    /// Implementation uses `ModelContext.renumberDives(from:)` rather than a
+    /// manual delta loop so all numbering paths in the app stay consistent
+    /// (see ModelContextExtensions). The function is idempotent and O(n).
+    private func applyShift() {
+        guard pendingShiftDelta != 0 else { dismiss(); return }
+        profile.startingDiveNumber = Int(firstDiveNumber) ?? profile.startingDiveNumber
+        ctx.renumberDives(from: profile)
+        try? ctx.save()
         republishToAtollBridge()
         dismiss()
     }

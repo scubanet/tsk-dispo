@@ -17,6 +17,8 @@ struct DiveDetailView: View {
     @State private var showingSignatureCapture = false
     @State private var showingExport = false
     @State private var showingDeleteConfirm = false
+    @State private var selectedStudentID: PersistentIdentifier? = nil
+    @State private var showingExtraSkillPicker = false
 
     private var tabs: [String] {
         [L10n.overview, L10n.journal, L10n.profile, L10n.stats, L10n.gear]
@@ -70,7 +72,17 @@ struct DiveDetailView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 20).padding(.top, 12)
-                    
+
+                    // Schüler section (if course + students exist)
+                    if dive.courseType != nil && (dive.students?.count ?? 0) > 0 {
+                        studentsSection
+                            .padding(16)
+                            .background(Color.surfaceCard)
+                            .cornerRadius(16)
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                    }
+
                     // Tabs
                     PillTabBar(selected: activeTabBinding, tabs: tabs)
                         .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 8)
@@ -94,7 +106,10 @@ struct DiveDetailView: View {
             get: { viewerStartIndex.map { ViewerPresentation(index: $0) } },
             set: { viewerStartIndex = $0?.index }
         )) { pres in
-            PhotoViewerView(filenames: dive.photoFilenames, startIndex: pres.index)
+            PhotoViewerView(filenames: dive.photoFilenames, dive: dive, startIndex: pres.index)
+        }
+        .task {
+            PhotoStore.migrateLocalPhotosToCloudKit(dive: dive, context: modelContext)
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -275,7 +290,7 @@ struct DiveDetailView: View {
                     HStack(spacing: 10) {
                         ForEach(Array(dive.photoFilenames.enumerated()), id: \.element) { idx, filename in
                             Button { viewerStartIndex = idx } label: {
-                                DivePhotoThumbnail(filename: filename, width: 220, height: 165)
+                                DivePhotoThumbnail(filename: filename, dive: dive, width: 220, height: 165)
                             }
                             .buttonStyle(.plain)
                         }
@@ -423,6 +438,82 @@ struct DiveDetailView: View {
                 .padding(16)
                 .background(RoundedRectangle(cornerRadius: 16).fill(Color.surfaceCard))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.hairline, lineWidth: 1))
+            }
+        }
+    }
+
+    // MARK: - Schüler Section
+    @ViewBuilder
+    private var studentsSection: some View {
+        let students = dive.students ?? []
+        let slot = dive.courseSlot ?? ""
+        let course = dive.courseType ?? "OWD"
+        let slotTitle = PADIStandards.shared.slot(code: slot, courseType: course)?.title ?? slot
+
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "graduationcap.fill").foregroundStyle(Color.appAccent)
+                Text(L10n.currentLanguage == "de"
+                     ? "\(course) · \(slotTitle) · \(students.count) Schüler"
+                     : "\(course) · \(slotTitle) · \(students.count) students")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            // "Profil öffnen"-Chip for the currently selected student — works
+            // for both the single- and multi-student cases (picker appears
+            // below when count > 1).
+            if let selected = students.first(where: { $0.id == selectedStudentID }) ?? students.first {
+                NavigationLink {
+                    StudentProfileView(student: selected)
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "person.crop.circle.badge.questionmark")
+                        Text(L10n.currentLanguage == "de"
+                             ? "Profil: \(selected.fullName)"
+                             : "Profile: \(selected.fullName)")
+                    }
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.appAccent)
+                }
+            }
+            if students.count > 1 {
+                Picker("", selection: $selectedStudentID) {
+                    ForEach(students) { s in
+                        Text(s.fullName).tag(Optional(s.id))
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+            if let selected = students.first(where: { $0.id == selectedStudentID }) ?? students.first {
+                SkillAssessmentGrid(
+                    student: selected,
+                    slotCode: slot,
+                    courseType: course,
+                    context: .dive(dive),
+                    extraSkillCodes: dive.extraSkillCodes,
+                    onAddExtra: { showingExtraSkillPicker = true },
+                    onRemoveExtra: { code in
+                        dive.extraSkillCodes.removeAll { $0 == code }
+                        try? modelContext.save()
+                    }
+                )
+            }
+        }
+        .onAppear {
+            if selectedStudentID == nil { selectedStudentID = students.first?.id }
+        }
+        .sheet(isPresented: $showingExtraSkillPicker) {
+            let slotSkillCodes = Set(PADIStandards.shared.skills(forSlot: slot, courseType: course).map(\.code))
+            let flexCodes = Set(PADIStandards.shared.flexibleSkills(for: course).map(\.code))
+            let alreadyAdded = slotSkillCodes.union(flexCodes).union(Set(dive.extraSkillCodes))
+            ExtraSkillPickerSheet(
+                courseType: course,
+                currentSlotCode: slot,
+                alreadyAdded: alreadyAdded
+            ) { codes in
+                for code in codes where !dive.extraSkillCodes.contains(code) {
+                    dive.extraSkillCodes.append(code)
+                }
+                try? modelContext.save()
             }
         }
     }

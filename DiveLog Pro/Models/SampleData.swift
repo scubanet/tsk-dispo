@@ -27,7 +27,7 @@ struct SampleData {
         df.dateFormat = "yyyy-MM-dd HH:mm"
         
         let d1 = Dive(
-            number: 8757, date: df.date(from: "2026-03-12 14:25") ?? .now,
+            number: 0, date: df.date(from: "2026-03-12 14:25") ?? .now,
             diveType: "training",
             siteName: "Mamutic Island", siteLocation: "Kota Kinabalu, Malaysia",
             latitude: 5.97, longitude: 116.01, diveCenterName: "CDTC",
@@ -47,7 +47,7 @@ struct SampleData {
         d1.notes = "OW Training dive with candidates. Rescue 7."
         
         let d2 = Dive(
-            number: 8756, date: df.date(from: "2026-03-12 10:15") ?? .now,
+            number: 0, date: df.date(from: "2026-03-12 10:15") ?? .now,
             diveType: "training",
             siteName: "Sapi Island Reef", siteLocation: "Kota Kinabalu, Malaysia",
             latitude: 6.00, longitude: 116.00, diveCenterName: "CDTC",
@@ -66,7 +66,7 @@ struct SampleData {
         d2.notes = "First OW training dive of the CDTC. Perfect conditions, crystal clear water."
         
         let d3 = Dive(
-            number: 8728, date: df.date(from: "2025-02-25 11:22") ?? .now,
+            number: 0, date: df.date(from: "2025-02-25 11:22") ?? .now,
             diveType: "fun",
             siteName: "Dapdap", siteLocation: "Anda, Bohol, Philippines",
             latitude: 9.75, longitude: 124.58, diveCenterName: "Amun Ini",
@@ -85,7 +85,7 @@ struct SampleData {
         d3.notes = "Wiederholungs-TG mit Lance und Jeryll. Fantastische Sicht, dann plötzlich: Walhai! Direkt an uns vorbei geschwommen, geschätzt 6 Meter lang. Unvergesslich."
         
         let d4 = Dive(
-            number: 8650, date: df.date(from: "2023-08-04 09:30") ?? .now,
+            number: 0, date: df.date(from: "2023-08-04 09:30") ?? .now,
             diveType: "fun",
             siteName: "PPB Alona Beach", siteLocation: "Panglao, Bohol, Philippines",
             latitude: 9.55, longitude: 123.77,
