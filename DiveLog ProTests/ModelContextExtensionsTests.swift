@@ -58,7 +58,7 @@ struct ModelContextExtensionsTests {
         let completions = try ctx.fetch(FetchDescriptor<SkillCompletion>())
         #expect(completions.count == 3)
         #expect(completions.allSatisfy { $0.status == "mastered" })
-        #expect(completions.allSatisfy(\.isSeedRecord))
+        #expect(completions.allSatisfy { $0.isSeedRecord })
         #expect(completions.allSatisfy { $0.reviewNotes == "Seeded at enrollment" })
     }
 }

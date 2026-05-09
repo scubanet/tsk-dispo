@@ -99,3 +99,36 @@ extension Student {
         return (mastered, allSkills.count)
     }
 }
+
+// MARK: - Numbering
+
+extension ModelContext {
+
+    /// Re-numbers every Dive in the store chronologically by `date`,
+    /// starting at `profile.startingDiveNumber`. Idempotent — calling
+    /// twice in a row leaves dives in the same state.
+    ///
+    /// PoolSessions have no `.number` property and are excluded.
+    ///
+    /// Performance: O(n) per call. Bulk imports should batch and call
+    /// once at the end, not per insert.
+    ///
+    /// CloudKit-safety: because the result is a deterministic function
+    /// of the dive set + starting number, two devices that both call
+    /// this after a sync converge on the same numbering without a
+    /// merge-conflict mechanism.
+    func renumberDives(from profile: DiverProfile) {
+        let descriptor = FetchDescriptor<Dive>(
+            sortBy: [SortDescriptor(\Dive.date, order: .forward)]
+        )
+        guard let dives = try? fetch(descriptor) else { return }
+
+        let start = profile.startingDiveNumber
+        for (index, dive) in dives.enumerated() {
+            let target = start + index
+            if dive.number != target {
+                dive.number = target
+            }
+        }
+    }
+}
