@@ -1,5 +1,5 @@
 /**
- * ContactDetailPanel — universal contact detail panel with 11 adaptive tabs.
+ * ContactDetailPanel — universal contact detail panel with 12 adaptive tabs.
  *
  * Tabs show/hide based on contact.roles and contact.kind.
  */
@@ -24,6 +24,8 @@ import {
   OrgMembersTab,
   ContractTab,
 } from './tabs'
+import { AuditHistoryTab } from './tabs/AuditHistoryTab'
+import { ContactMoreMenu } from './ContactMoreMenu'
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -39,6 +41,7 @@ export type TabKey =
   | 'availability'
   | 'org_members'
   | 'contract'
+  | 'audit'
 
 const TAB_LABELS: Record<TabKey, string> = {
   overview: 'Übersicht',
@@ -52,6 +55,7 @@ const TAB_LABELS: Record<TabKey, string> = {
   availability: 'Verfügbarkeit',
   org_members: 'Mitglieder',
   contract: 'Vertrag',
+  audit: 'Audit',
 }
 
 // ── Visibility logic ─────────────────────────────────────────────────────
@@ -75,6 +79,7 @@ function computeVisibleTabs(contact: ContactWithSidecars): TabKey[] {
     }
   }
 
+  tabs.push('audit')
   return tabs
 }
 
@@ -101,6 +106,7 @@ export function ContactDetailPanel({
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab ?? 'overview')
+  const [showMore, setShowMore] = useState(false)
 
   // Reset tab when contactId changes
   useEffect(() => {
@@ -140,6 +146,7 @@ export function ContactDetailPanel({
       availability: <AvailabilityTab contactId={c.id} />,
       org_members: <OrgMembersTab orgId={c.id} onSelectContact={onSelectContact} />,
       contract: <ContractTab contact={c} onUpdated={load} />,
+      audit: <AuditHistoryTab contactId={c.id} />,
     }
   }
 
@@ -164,12 +171,19 @@ export function ContactDetailPanel({
 
       {contact && !loading && (
         <div className="contact-detail__body">
-          <ContactHeader
-            contact={contact}
-            onMoreClick={() => {
-              // Phase I: hook up More-Menu
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            <ContactHeader
+              contact={contact}
+              onMoreClick={() => setShowMore(true)}
+            />
+            {showMore && (
+              <ContactMoreMenu
+                contact={contact}
+                onChanged={load}
+                onClosed={() => setShowMore(false)}
+              />
+            )}
+          </div>
           <Tabs<TabKey>
             tabs={tabDefs}
             active={safeTab}
