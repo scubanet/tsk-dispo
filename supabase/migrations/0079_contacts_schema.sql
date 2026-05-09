@@ -167,10 +167,14 @@ CREATE INDEX idx_contact_rel_from ON public.contact_relationships(from_contact_i
 CREATE INDEX idx_contact_rel_to   ON public.contact_relationships(to_contact_id);
 CREATE INDEX idx_contact_rel_kind ON public.contact_relationships(kind);
 
--- contact_audit_log: every change to contacts/sidecars is logged
+-- contact_audit_log: every change to contacts/sidecars is logged.
+-- NOTE: contact_id has NO FK to contacts(id) on purpose — audit entries
+-- must survive when their source contact is deleted. The DELETE-trigger
+-- writes its final audit entry AFTER the contact row is gone, so a CASCADE
+-- or strict FK would create a chicken-and-egg constraint violation.
 CREATE TABLE public.contact_audit_log (
   id BIGSERIAL PRIMARY KEY,
-  contact_id UUID NOT NULL REFERENCES public.contacts(id) ON DELETE CASCADE,
+  contact_id UUID NOT NULL,
   changed_by UUID,
   changed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   table_name TEXT NOT NULL,
