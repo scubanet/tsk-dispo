@@ -747,3 +747,163 @@
   background: var(--brand-blue-800);
   border-color: var(--brand-blue-800);
 }
+
+/* ── Phase I: More Menu, Merge Preview, Audit History ─────────────── */
+
+/* Floating more-menu panel — anchored top-right of the header container */
+.more-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: var(--z-dropdown, 200);
+  background: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: var(--space-2) 0;
+  min-width: 240px;
+}
+
+.more-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.more-menu li {
+  list-style: none;
+}
+
+.more-menu li button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  transition: background 100ms ease;
+}
+
+.more-menu li button:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+}
+
+.more-menu li button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.more-menu li button.danger {
+  color: var(--brand-red);
+}
+
+.more-menu li button.danger:hover:not(:disabled) {
+  background: var(--brand-red-50);
+}
+
+/* Merge preview — side-by-side layout */
+.merge-preview {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.merge-side {
+  flex: 1;
+  padding: var(--space-4);
+}
+
+.merge-side + .merge-side {
+  border-left: 1px solid var(--border-secondary);
+}
+
+/* Audit history list */
+.audit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.audit-entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-tertiary);
+}
+
+.audit-entry__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.audit-entry__time {
+  font-size: var(--text-label);
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.audit-entry__table {
+  font-size: var(--text-label);
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.audit-op {
+  display: inline-block;
+  font-size: var(--text-badge);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.audit-op--insert {
+  background: var(--brand-teal-50);
+  color: var(--brand-teal-800);
+}
+
+.audit-op--update {
+  background: var(--brand-blue-50);
+  color: var(--brand-blue-800);
+}
+
+.audit-op--delete {
+  background: var(--brand-red-50);
+  color: var(--brand-red-800);
+}
+
+.audit-entry__diff {
+  margin-top: var(--space-1);
+  font-size: var(--text-label);
+}
+
+.audit-entry__diff summary {
+  cursor: pointer;
+  color: var(--text-tertiary);
+  user-select: none;
+}
+
+.audit-entry__diff pre {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
