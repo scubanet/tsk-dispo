@@ -2,6 +2,7 @@
  * OverviewTab — Stammdaten, Kontakt, Sprachen & Tags, Notizen, Footer.
  */
 
+import { useState } from 'react'
 import type { ContactWithSidecars } from '@/types/contacts'
 import { InlineTextField } from '@/foundation/compounds/InlineTextField'
 import { EmailList } from '@/foundation/compounds/EmailList'
@@ -11,6 +12,15 @@ import {
   updateContactField,
 } from '@/lib/contactQueries'
 
+const LANGUAGES = [
+  { code: 'de',  label: 'De' },
+  { code: 'en',  label: 'En' },
+  { code: 'fr',  label: 'Fr' },
+  { code: 'it',  label: 'It' },
+  { code: 'sp',  label: 'Sp' },
+  { code: 'tag', label: 'Tag' },
+]
+
 interface Props {
   contact: ContactWithSidecars
   onUpdated: () => void
@@ -19,6 +29,7 @@ interface Props {
 export function OverviewTab({ contact, onUpdated }: Props) {
   const id = contact.id
   const isOrg = contact.kind === 'organization'
+  const [savingLang, setSavingLang] = useState(false)
 
   async function save<K extends Parameters<typeof updateContactField>[1]>(
     field: K,
@@ -26,6 +37,21 @@ export function OverviewTab({ contact, onUpdated }: Props) {
   ) {
     await updateContactField(id, field, value)
     onUpdated()
+  }
+
+  async function toggleLanguage(code: string) {
+    if (savingLang) return
+    const current = contact.languages ?? []
+    const next = current.includes(code)
+      ? current.filter((c) => c !== code)
+      : [...current, code]
+    setSavingLang(true)
+    try {
+      await updateContactField(id, 'languages', next)
+      onUpdated()
+    } finally {
+      setSavingLang(false)
+    }
   }
 
   return (
@@ -103,16 +129,27 @@ export function OverviewTab({ contact, onUpdated }: Props) {
       {/* ── Sprachen & Tags ─────────────────────────── */}
       <section className="contact-section">
         <h2 className="contact-section__title">Sprachen &amp; Tags</h2>
-        <InlineTextField
-          label="Sprachen"
-          value={(contact.languages ?? []).join(', ')}
-          onCommit={async (v) => {
-            const arr = v.split(',').map((s) => s.trim()).filter(Boolean)
-            await updateContactField(id, 'languages', arr)
-            onUpdated()
-          }}
-          placeholder="de, en, fr"
-        />
+        <div className="contact-section__field-label">Sprachen</div>
+        <div className="languages-checkbox-group" data-saving={savingLang}>
+          {LANGUAGES.map((l) => {
+            const checked = (contact.languages ?? []).includes(l.code)
+            return (
+              <label
+                key={l.code}
+                className="language-chip"
+                data-checked={checked}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  disabled={savingLang}
+                  onChange={() => toggleLanguage(l.code)}
+                />
+                <span>{l.label}</span>
+              </label>
+            )
+          })}
+        </div>
         <InlineTextField
           label="Tags"
           value={(contact.tags ?? []).join(', ')}
