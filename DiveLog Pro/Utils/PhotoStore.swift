@@ -49,17 +49,29 @@ enum PhotoStore {
 
     // MARK: - Save (local + CloudKit)
 
+    /// Single source of truth = the `DivePhoto` record (CloudKit syncs it).
+    /// Disk cache is best-effort: if `data.write(to:)` fails (storage full,
+    /// permissions, sandbox quirks), the record still carries the bytes and
+    /// `load(filename:from:)` falls back to it transparently.
     @discardableResult
     static func save(image: UIImage, toDive dive: Dive, context: ModelContext, quality: CGFloat = 0.82) -> String? {
         let resized = downsample(image: image, maxDimension: 2000)
         guard let data = resized.jpegData(compressionQuality: quality) else { return nil }
-        guard let filename = save(jpegData: data) else { return nil }
 
+        // 1. Record first — it is the source of truth.
+        let filename = UUID().uuidString + ".jpg"
         let photo = DivePhoto()
         photo.filename = filename
         photo.imageData = data
         photo.dive = dive
         context.insert(photo)
+
+        // 2. Best-effort disk cache. Failure is non-fatal.
+        do {
+            try data.write(to: url(for: filename), options: .atomic)
+        } catch {
+            print("PhotoStore: disk cache write failed for \(filename): \(error)")
+        }
 
         return filename
     }

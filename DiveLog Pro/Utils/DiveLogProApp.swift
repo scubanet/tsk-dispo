@@ -180,13 +180,28 @@ struct DiveLogProApp: App {
         .modelContainer(sharedModelContainer)
     }
 
+    /// Backfills `DivePhoto` records for any legacy dives that only carry
+    /// filenames in `photoFilenames`. Runs detached on a background priority
+    /// so a large logbook doesn't stall the launch screen. Hops to MainActor
+    /// for the actual SwiftData work because `ModelContext` is main-thread-bound.
+    /// Idempotent — `migrateLocalPhotosToCloudKit` skips files that already
+    /// have a record, so it's safe to invoke on every launch.
     private func migratePhotosToCloudKit() {
-        let ctx = sharedModelContainer.mainContext
-        let dives = (try? ctx.fetch(FetchDescriptor<Dive>())) ?? []
-        for dive in dives where !dive.photoFilenames.isEmpty {
-            PhotoStore.migrateLocalPhotosToCloudKit(dive: dive, context: ctx)
+        let container = sharedModelContainer
+        Task.detached(priority: .background) { @MainActor in
+            let ctx = container.mainContext
+            let dives = (try? ctx.fetch(FetchDescriptor<Dive>())) ?? []
+            var migrated = 0
+            for dive in dives where !dive.photoFilenames.isEmpty {
+                let before = dive.photos?.count ?? 0
+                PhotoStore.migrateLocalPhotosToCloudKit(dive: dive, context: ctx)
+                migrated += (dive.photos?.count ?? 0) - before
+            }
+            if migrated > 0 {
+                try? ctx.save()
+                print("PhotoStore: migrated \(migrated) legacy photo(s) to DivePhoto records")
+            }
         }
-        try? ctx.save()
     }
 
     private var cloudKitWarningBanner: some View {
