@@ -1,0 +1,125 @@
+/**
+ * ContactHeader — sticky header for a contact detail panel.
+ *
+ * Shows: Avatar (xl=64), display_name, RolesBadgeList, owner badge,
+ * quick-action buttons (email, WhatsApp, call, optional primary action, more menu).
+ *
+ * Requires at least primary_email or a phones entry for link buttons to render.
+ */
+
+import type { ContactWithSidecars, ContactRole } from '@/types/contacts'
+import { Avatar } from '../components/Avatar'
+import { RolesBadgeList } from './RolesBadgeList'
+
+export interface PrimaryAction {
+  label: string
+  onClick: () => void
+}
+
+export interface ContactHeaderProps {
+  contact: ContactWithSidecars
+  ownerName?: string
+  onRoleClick?: (role: ContactRole) => void
+  onMoreClick?: () => void
+  onPrimaryAction?: PrimaryAction
+}
+
+export function ContactHeader({
+  contact,
+  ownerName,
+  onRoleClick,
+  onMoreClick,
+  onPrimaryAction,
+}: ContactHeaderProps) {
+  // Derive primary email and phone for quick-action links
+  const primaryEmail =
+    contact.primary_email ??
+    contact.emails.find((e) => e.primary)?.email ??
+    contact.emails[0]?.email ??
+    null
+
+  const primaryPhone =
+    contact.phones.find((p) => p.primary)?.e164 ??
+    contact.phones[0]?.e164 ??
+    null
+
+  // WhatsApp: e164 minus the leading '+'
+  const whatsappNumber = primaryPhone ? primaryPhone.replace(/^\+/, '') : null
+
+  return (
+    <header className="contact-header">
+      <div className="contact-header__top">
+        <Avatar
+          id={contact.id}
+          name={contact.display_name}
+          size="xl"
+        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', flex: 1, minWidth: 0 }}>
+          <h1 className="contact-header__name">{contact.display_name}</h1>
+          <div className="contact-header__meta">
+            <RolesBadgeList roles={contact.roles} onClick={onRoleClick} />
+            {ownerName && (
+              <span className="contact-header__owner">
+                Betreut von {ownerName}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="contact-header__actions">
+        {primaryEmail && (
+          <a
+            href={`mailto:${primaryEmail}`}
+            className="contact-header__action-btn"
+            title={`E-Mail an ${primaryEmail}`}
+          >
+            ✉️ E-Mail
+          </a>
+        )}
+        {whatsappNumber && (
+          <a
+            href={`https://wa.me/${whatsappNumber}`}
+            target="_blank"
+            rel="noreferrer"
+            className="contact-header__action-btn"
+            title="WhatsApp öffnen"
+          >
+            💬 WhatsApp
+          </a>
+        )}
+        {primaryPhone && (
+          <a
+            href={`tel:${primaryPhone}`}
+            className="contact-header__action-btn"
+            title={`Anrufen: ${primaryPhone}`}
+          >
+            📞 Anrufen
+          </a>
+        )}
+
+        {onPrimaryAction && (
+          <button
+            type="button"
+            className="contact-header__action-btn contact-header__action-btn--primary"
+            onClick={onPrimaryAction.onClick}
+          >
+            {onPrimaryAction.label}
+          </button>
+        )}
+
+        {onMoreClick && (
+          <button
+            type="button"
+            className="contact-header__action-btn"
+            onClick={onMoreClick}
+            aria-label="Weitere Aktionen"
+            title="Weitere Aktionen"
+          >
+            ⋯
+          </button>
+        )}
+      </div>
+    </header>
+  )
+}
