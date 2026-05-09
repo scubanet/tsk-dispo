@@ -146,3 +146,38 @@ CREATE TABLE public.contact_organization (
 
 CREATE INDEX idx_contact_org_kind   ON public.contact_organization(org_kind);
 CREATE INDEX idx_contact_org_parent ON public.contact_organization(parent_org_id);
+
+-- contact_relationships: n:m relationships between contacts (Hybrid model)
+CREATE TABLE public.contact_relationships (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_contact_id UUID NOT NULL REFERENCES public.contacts(id) ON DELETE CASCADE,
+  to_contact_id   UUID NOT NULL REFERENCES public.contacts(id) ON DELETE CASCADE,
+  kind relationship_kind NOT NULL,
+  role_at_org TEXT,
+  started_at DATE,
+  ended_at DATE,
+  is_primary BOOLEAN NOT NULL DEFAULT false,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT no_self_relationship CHECK (from_contact_id <> to_contact_id),
+  CONSTRAINT valid_period CHECK (ended_at IS NULL OR started_at IS NULL OR ended_at >= started_at)
+);
+
+CREATE INDEX idx_contact_rel_from ON public.contact_relationships(from_contact_id);
+CREATE INDEX idx_contact_rel_to   ON public.contact_relationships(to_contact_id);
+CREATE INDEX idx_contact_rel_kind ON public.contact_relationships(kind);
+
+-- contact_audit_log: every change to contacts/sidecars is logged
+CREATE TABLE public.contact_audit_log (
+  id BIGSERIAL PRIMARY KEY,
+  contact_id UUID NOT NULL REFERENCES public.contacts(id) ON DELETE CASCADE,
+  changed_by UUID,
+  changed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  table_name TEXT NOT NULL,
+  operation TEXT NOT NULL CHECK (operation IN ('INSERT','UPDATE','DELETE')),
+  changed_fields JSONB,
+  old_row JSONB,
+  new_row JSONB
+);
+
+CREATE INDEX idx_audit_contact ON public.contact_audit_log(contact_id, changed_at DESC);

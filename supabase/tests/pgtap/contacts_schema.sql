@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(20);
+SELECT plan(25);
 
 SELECT has_table('contacts', 'contacts table exists');
 SELECT has_column('contacts', 'kind', 'contacts.kind exists');
@@ -33,6 +33,14 @@ SELECT col_is_fk('contact_organization', 'contact_id');
 SELECT has_column('contact_instructor', 'padi_pro_number');
 SELECT has_column('contact_instructor', 'account_balance');
 SELECT has_column('contact_student',    'pipeline_stage');
+
+SELECT has_table('contact_relationships', 'relationships table exists');
+SELECT has_table('contact_audit_log', 'audit log table exists');
+SELECT col_type_is('contact_relationships', 'kind', 'relationship_kind',
+                   'kind is relationship_kind enum');
+SELECT col_is_pk('contact_audit_log', 'id', 'audit_log has PK on id');
+SELECT col_type_is('contact_audit_log', 'changed_fields', 'jsonb',
+                   'changed_fields is jsonb');
 
 SELECT * FROM finish();
 ROLLBACK;
