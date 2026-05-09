@@ -5,6 +5,7 @@ struct LogbookTab: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(DeleteUndoManager.self) private var undoManager
     @Query(sort: \Dive.date, order: .reverse) private var dives: [Dive]
+    @Query private var profiles: [DiverProfile]
     @State private var showingDiveCreate = false
     @State private var showingPoolCreate = false
     @State private var showingQuickLog = false
@@ -156,6 +157,9 @@ struct LogbookTab: View {
                 Button(role: .destructive) {
                     withAnimation(.easeInOut(duration: 0.25)) {
                         undoManager.schedule(dive, in: modelContext)
+                    }
+                    if let profile = profiles.first {
+                        modelContext.renumberDives(from: profile)
                     }
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
