@@ -436,6 +436,12 @@ struct ProfileTab: View {
         for dive in samples {
             ctx.insert(dive)
         }
+        // Sample dives are constructed with `number: 0` placeholders;
+        // renumber assigns the real chronological values from
+        // profile.startingDiveNumber.
+        if let profile = profiles.first {
+            ctx.renumberDives(from: profile)
+        }
         do {
             try ctx.save()
             let generator = UINotificationFeedbackGenerator()
