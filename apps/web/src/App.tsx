@@ -22,6 +22,7 @@ import { CockpitScreen } from '@/screens/CockpitScreen'
 import { CDPipelineScreen } from '@/screens/cd/CDPipelineScreen'
 import { CDOrganizationsScreen } from '@/screens/cd/CDOrganizationsScreen'
 import { CommunicationHubScreen } from '@/screens/cd/CommunicationHubScreen'
+import { AddressbookScreen } from '@/screens/contacts/AddressbookScreen'
 
 function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -74,6 +75,7 @@ function App() {
           <Route path="/cd/pipeline"            element={<CDPipelineScreen />} />
           <Route path="/cd/organisationen"      element={<CDOrganizationsScreen />} />
           <Route path="/communication"          element={<CommunicationHubScreen />} />
+          <Route path="/contacts"               element={<AddressbookScreen />} />
           <Route path="*"                       element={<Navigate to="/heute" replace />} />
         </Route>
       </Routes>
