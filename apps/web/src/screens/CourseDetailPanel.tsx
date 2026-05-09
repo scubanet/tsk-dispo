@@ -3,8 +3,10 @@ import { format } from 'date-fns'
 import { de, enGB } from 'date-fns/locale'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useOutletContext } from 'react-router-dom'
 import { Avatar, Pill, Icon as FdIcon, dateLong, padiLevelColor } from '@/foundation'
+import { ContactDetailPanel } from './contacts/ContactDetailPanel'
+import type { TabKey } from './contacts/ContactDetailPanel'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { tplNewCourse, tplCancellation, waGroupShareUrl } from '@/lib/whatsapp'
 import {
@@ -108,7 +110,6 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
     { value: 'notes',        label: t('course_detail.tab_notes') },
   ]
   const { user } = useOutletContext<OutletCtx>()
-  const navigate = useNavigate()
   const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
   const [course, setCourse] = useState<CourseDetail | null>(null)
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
@@ -125,6 +126,17 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   const [catalog, setCatalog] = useState<PrCatalog | null>(null)
   const [prRecords, setPrRecords] = useState<PrRecord[]>([])
   const [intakeForCpId, setIntakeForCpId] = useState<string | null>(null)
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null)
+  const [contactInitialTab, setContactInitialTab] = useState<TabKey>('overview')
+
+  function openInstructorContact(id: string) {
+    setSelectedContactId(id)
+    setContactInitialTab('saldo')
+  }
+  function openParticipantContact(id: string) {
+    setSelectedContactId(id)
+    setContactInitialTab('overview')
+  }
 
   function refresh() {
     setRefreshTick((t) => t + 1)
@@ -339,15 +351,44 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                   disabled={!isDispatcher}
                 >
                   {a.instructor && (
-                    <Avatar
-                      id={a.instructor.id}
-                      name={a.instructor.name}
-                      size="md"
-                      color={padiLevelColor(a.instructor.padi_level)}
-                    />
+                    <button
+                      type="button"
+                      style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openInstructorContact(a.instructor!.id)
+                      }}
+                    >
+                      <Avatar
+                        id={a.instructor.id}
+                        name={a.instructor.name}
+                        size="md"
+                        color={padiLevelColor(a.instructor.padi_level)}
+                      />
+                    </button>
                   )}
                   <div className="atoll-detail__row-main">
-                    <div className="atoll-detail__row-title">{a.instructor?.name ?? '—'}</div>
+                    <button
+                      type="button"
+                      className="atoll-detail__row-title"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        padding: 0,
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        color: 'inherit',
+                        fontFamily: 'inherit',
+                        fontSize: 'inherit',
+                        fontWeight: 'inherit',
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (a.instructor) openInstructorContact(a.instructor.id)
+                      }}
+                    >
+                      {a.instructor?.name ?? '—'}
+                    </button>
                     <div className="atoll-detail__row-meta">
                       {a.instructor?.padi_level} · {a.role}
                     </div>
@@ -427,7 +468,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                       }}
                       onClick={(e) => {
                         e.stopPropagation()
-                        if (p.student) navigate(`/schueler/${p.student.id}`)
+                        if (p.student) openParticipantContact(p.student.id)
                       }}
                     >
                       {p.student?.name ?? '—'}
@@ -553,6 +594,13 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
         courseId={courseId}
         allDates={allDates}
         existingAssignment={editingAssignment as any}
+      />
+
+      <ContactDetailPanel
+        contactId={selectedContactId}
+        open={!!selectedContactId}
+        initialTab={contactInitialTab}
+        onClose={() => setSelectedContactId(null)}
       />
     </div>
   )
