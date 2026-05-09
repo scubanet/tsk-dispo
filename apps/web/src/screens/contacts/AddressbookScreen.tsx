@@ -106,7 +106,7 @@ export function AddressbookScreen() {
 
   const load = useCallback(() => {
     setLoading(true)
-    listContacts({ ...currentView.filter, searchText: search || undefined }, 0, 50)
+    listContacts({ ...currentView.filter, searchText: search || undefined }, 0, 500)
       .then(({ rows: r }) => setRows(r))
       .catch(console.error)
       .finally(() => setLoading(false))
