@@ -1,29 +1,52 @@
-import { useEffect, useState } from 'react'
+/**
+ * CDPipelineScreen — Foundation-based rewrite.
+ *
+ * Layout:
+ *   PageHeader
+ *   ┌─ 5-column kanban (lead / qualified / opportunity / customer / lost) ─┐
+ *   │  each col: Foundation card with header (label · count) + person cards │
+ *   └────────────────────────────────────────────────────────────────────────┘
+ */
+
+import { useEffect, useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import {
+  PageHeader,
+  EmptyState,
+  Avatar,
+  Pill,
+  Icon,
+} from '@/foundation'
 import { supabase } from '@/lib/supabase'
-import { Topbar } from '@/components/Topbar'
 import type { OutletCtx } from '@/layout/AppShell'
+import { ContactDetailPanel } from '../contacts/ContactDetailPanel'
 
 interface Row {
   id: string
-  first_name: string
-  last_name: string
+  first_name: string | null
+  last_name: string | null
   pipeline_stage: string
   stage_changed_on: string
 }
 
 const COL_CODES = ['lead', 'qualified', 'opportunity', 'customer', 'lost'] as const
+type ColCode = (typeof COL_CODES)[number]
+
+const COL_TONE: Record<ColCode, 'neutral' | 'info' | 'warning' | 'success' | 'danger'> = {
+  lead: 'neutral',
+  qualified: 'info',
+  opportunity: 'warning',
+  customer: 'success',
+  lost: 'danger',
+}
 
 export function CDPipelineScreen() {
   const { t } = useTranslation()
-  const COLS = COL_CODES.map((code) => ({
-    code,
-    label: code === 'customer' ? t('cd_pipeline.col_customer') : t(`student_edit.stage_${code}`),
-  }))
   const { user } = useOutletContext<OutletCtx>()
   const [rows, setRows] = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -41,44 +64,84 @@ export function CDPipelineScreen() {
     return () => { cancelled = true }
   }, [])
 
+  const cols = useMemo(
+    () =>
+      COL_CODES.map((code) => ({
+        code,
+        label:
+          code === 'customer'
+            ? t('cd_pipeline.col_customer')
+            : t(`student_edit.stage_${code}`),
+        items: rows.filter((r) => r.pipeline_stage === code),
+      })),
+    [rows, t],
+  )
+
   if (user.role !== 'cd') {
     return (
-      <div style={{ padding: 40 }}>
-        <div className="title-2">{t('cd_pipeline.no_access_title')}</div>
-        <div className="caption">{t('cd_pipeline.no_access_desc')}</div>
+      <div className="atoll-screen">
+        <PageHeader title={t('nav.pipeline')} />
+        <div className="atoll-screen__body">
+          <EmptyState
+            icon={<Icon.Info size={20} />}
+            title={t('cd_pipeline.no_access_title')}
+            body={t('cd_pipeline.no_access_desc')}
+          />
+        </div>
       </div>
     )
   }
 
   return (
-    <>
-      <Topbar title={t('nav.pipeline')} subtitle={t('cd_pipeline.subtitle')} />
-      {loading ? (
-        <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
-      ) : (
-        <div style={{ padding: '0 24px 24px', display: 'grid', gridTemplateColumns: `repeat(${COLS.length}, 1fr)`, gap: 12 }}>
-          {COLS.map((col) => {
-            const items = rows.filter((r) => r.pipeline_stage === col.code)
-            return (
-              <div key={col.code} className="glass-thin" style={{ padding: 12, borderRadius: 14, minHeight: 240 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.8, marginBottom: 8 }}>
-                  {col.label} · {items.length}
-                </div>
-                <div style={{ display: 'grid', gap: 6 }}>
-                  {items.map((it) => (
-                    <div key={it.id} className="glass-thin" style={{ padding: 8, borderRadius: 10, fontSize: 12.5 }}>
-                      {it.first_name} {it.last_name}
-                    </div>
-                  ))}
-                  {items.length === 0 && (
-                    <div className="caption" style={{ opacity: 0.5, fontSize: 11 }}>—</div>
+    <div className="atoll-screen">
+      <PageHeader title={t('nav.pipeline')} subtitle={t('cd_pipeline.subtitle')} />
+
+      <div className="atoll-screen__body">
+        {loading ? (
+          <div className="atoll-cockpit__loading">{t('common.loading')}</div>
+        ) : (
+          <div className="atoll-pipeline__cols">
+            {cols.map((col) => (
+              <section key={col.code} className="atoll-cockpit__card atoll-pipeline__col">
+                <header className="atoll-pipeline__col-head">
+                  <Pill tone={COL_TONE[col.code]} size="sm">
+                    {col.label}
+                  </Pill>
+                  <span className="atoll-pipeline__count tabular-nums">{col.items.length}</span>
+                </header>
+                <div className="atoll-pipeline__items">
+                  {col.items.length === 0 ? (
+                    <div className="atoll-pipeline__empty">—</div>
+                  ) : (
+                    col.items.map((it) => {
+                      const name =
+                        [it.first_name, it.last_name].filter(Boolean).join(' ') || '—'
+                      return (
+                        <button
+                          key={it.id}
+                          type="button"
+                          className="atoll-pipeline__person"
+                          onClick={() => setSelectedId(it.id)}
+                        >
+                          <Avatar id={it.id} name={name} size="sm" />
+                          <span className="atoll-pipeline__person-name">{name}</span>
+                        </button>
+                      )
+                    })
                   )}
                 </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </>
+              </section>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <ContactDetailPanel
+        contactId={selectedId}
+        open={!!selectedId}
+        initialTab="student"
+        onClose={() => setSelectedId(null)}
+      />
+    </div>
   )
 }
