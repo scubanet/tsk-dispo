@@ -649,6 +649,9 @@ struct DiveFormView: View {
             let profileMissing = d.depthProfile.isEmpty
 
             d.date = diveDate
+            if let profile = profiles.first {
+                ctx.renumberDives(from: profile)
+            }
             d.siteName = siteName; d.siteLocation = siteLocation; d.diveType = diveType
             if isCourseTraining {
                 d.courseType = courseType
@@ -677,14 +680,14 @@ struct DiveFormView: View {
                 d.depthProfile = SampleData.generateProfile(maxDepth: md, duration: tt)
             }
         } else {
-            // Fallback for the very first dive uses the user's chosen starting
-            // number (set in Profile → Logbook). After that, new dives always
-            // increment from the current maximum dive.number regardless of
-            // the profile setting, so "9001 → 9002 → 9003 …" works naturally.
-            let startingNumber = profiles.first?.startingDiveNumber ?? 8758
-            let num = (existingDives.first?.number ?? (startingNumber - 1)) + 1
+            guard let profile = profiles.first else {
+                // Cannot insert without a profile — onboarding always creates one.
+                // If somehow missing, fail loudly in DEBUG and bail out.
+                assertionFailure("DiveFormView.save: no DiverProfile available")
+                return
+            }
             let dive = Dive(
-                number: num, date: diveDate, diveType: diveType, siteName: siteName, siteLocation: siteLocation,
+                number: 0, date: diveDate, diveType: diveType, siteName: siteName, siteLocation: siteLocation,
                 latitude: latitude ?? 0, longitude: longitude ?? 0,
                 diveCenterName: diveCenterName,
                 maxDepth: md, avgDepth: md * 0.7, bottomTime: bt, totalTime: tt,
@@ -705,6 +708,7 @@ struct DiveFormView: View {
             }
             dive.photoFilenames = photoFilenames
             ctx.insert(dive)
+            ctx.renumberDives(from: profile)
             PhotoStore.migrateLocalPhotosToCloudKit(dive: dive, context: ctx)
         }
         // Saving succeeded — any imported photos are now attached to a dive
