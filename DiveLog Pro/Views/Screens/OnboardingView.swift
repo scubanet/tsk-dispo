@@ -104,7 +104,10 @@ struct OnboardingView: View {
                 }
             )
         }
-        .onAppear { loadFromExistingProfile() }
+        .onAppear {
+            loadFromExistingProfile()
+            autoSkipIfProfileSynced()
+        }
     }
 
     // ═══════════════════════════════════════
@@ -706,10 +709,22 @@ struct OnboardingView: View {
     }
 
     private func skipOnboarding() {
-        // Persist whatever has been entered so far, then exit
         persistAll()
         hasCompleted = true
         dismiss()
+    }
+
+    /// If CloudKit already synced a filled profile from another device,
+    /// skip onboarding entirely so we don't risk overwriting that data.
+    private func autoSkipIfProfileSynced() {
+        let uid = AppleSignInService.shared.currentUserID
+        let hasSyncedProfile = profiles.contains(where: {
+            $0.appleUserID == uid && !$0.name.trimmingCharacters(in: .whitespaces).isEmpty
+        })
+        if hasSyncedProfile {
+            hasCompleted = true
+            dismiss()
+        }
     }
 
     // ═══════════════════════════════════════
@@ -719,7 +734,17 @@ struct OnboardingView: View {
     /// profile so a user who partially completed onboarding, closed the app,
     /// and re-launched sees their work again.
     private func loadFromExistingProfile() {
-        guard let p = profiles.first else { return }
+        let uid = AppleSignInService.shared.currentUserID
+        let p: DiverProfile? = {
+            if let uid, let match = profiles.first(where: { $0.appleUserID == uid && !$0.name.trimmingCharacters(in: .whitespaces).isEmpty }) {
+                return match
+            }
+            if let filled = profiles.first(where: { !$0.name.trimmingCharacters(in: .whitespaces).isEmpty }) {
+                return filled
+            }
+            return profiles.first
+        }()
+        guard let p else { return }
         if !p.name.isEmpty { name = p.name }
         if !p.padiNumber.isEmpty { padiNumber = p.padiNumber }
         if !p.certLevel.isEmpty { certLevel = p.certLevel }
@@ -731,7 +756,6 @@ struct OnboardingView: View {
         defaultWeight = p.defaultWeight
         defaultGas = p.defaultGas
 
-        // defaultCylinder is stored as "aluminum_12" etc.
         let parts = p.defaultCylinder.split(separator: "_").map(String.init)
         if parts.count == 2, let s = Int(parts[1]) {
             cylinderType = parts[0]
@@ -754,14 +778,25 @@ struct OnboardingView: View {
             profile = p
         }
 
-        profile.name = name.trimmingCharacters(in: .whitespaces)
-        profile.padiNumber = padiNumber.trimmingCharacters(in: .whitespaces)
-        profile.certLevel = certLevel
-        profile.email = email.trimmingCharacters(in: .whitespaces)
-        profile.isInstructor = ["OWSI", "MSDT", "IDC Staff", "CD"].contains(certLevel)
+        // Only overwrite fields the user actually touched during onboarding.
+        // On a second device the profile may already have data from CloudKit;
+        // writing empty strings would erase it and sync the damage back.
+        let trimmedName = name.trimmingCharacters(in: .whitespaces)
+        if !trimmedName.isEmpty { profile.name = trimmedName }
 
-        profile.profileImageData = profileImageData
-        profile.stampImageData = stampData
+        let trimmedPadi = padiNumber.trimmingCharacters(in: .whitespaces)
+        if !trimmedPadi.isEmpty { profile.padiNumber = trimmedPadi }
+
+        let trimmedEmail = email.trimmingCharacters(in: .whitespaces)
+        if !trimmedEmail.isEmpty { profile.email = trimmedEmail }
+
+        if !certLevel.isEmpty { profile.certLevel = certLevel }
+        profile.isInstructor = ["OWSI", "MSDT", "IDC Staff", "CD"].contains(
+            !certLevel.isEmpty ? certLevel : profile.certLevel
+        )
+
+        if let img = profileImageData { profile.profileImageData = img }
+        if let stamp = stampData { profile.stampImageData = stamp }
 
         profile.useMetric = useMetric
         profile.language = appLanguage
