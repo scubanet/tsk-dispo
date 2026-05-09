@@ -211,7 +211,8 @@ struct DiveFormView: View {
                 }
             }
 
-            // Course & Students
+            // Course & Students (Pro only)
+            if StoreManager.shared.isPro {
             VStack(alignment: .leading, spacing: 8) {
                 Text((L10n.currentLanguage == "de" ? "Kurs & Schüler" : "Course & Students").uppercased())
                     .font(.system(size: 9, weight: .semibold))
@@ -240,6 +241,7 @@ struct DiveFormView: View {
                     }
                 }
             }
+            } // end if isPro
 
             HStack(spacing: 12) {
                 FormField(label: L10n.maxDepth + " (m)", text: $maxDepth, placeholder: "12", keyboard: .decimalPad)
