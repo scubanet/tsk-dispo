@@ -23,12 +23,14 @@ struct ProfileTab: View {
 
     private var profile: DiverProfile? {
         guard !profiles.isEmpty else { return nil }
-        if profiles.count > 1 { deduplicateProfiles() }
+        if profiles.count > 1 {
+            Task { @MainActor in deduplicateProfiles() }
+        }
         let uid = AppleSignInService.shared.currentUserID
         if let uid, let match = profiles.first(where: { $0.appleUserID == uid }) {
             return match
         }
-        return profiles.first
+        return profiles.first(where: { !$0.name.trimmingCharacters(in: .whitespaces).isEmpty }) ?? profiles.first
     }
 
     var body: some View {
@@ -619,13 +621,23 @@ struct ProfileTab: View {
     private func deduplicateProfiles() {
         guard profiles.count > 1 else { return }
         let uid = AppleSignInService.shared.currentUserID
-        let primary = profiles.first(where: {
-            $0.appleUserID == uid && !$0.name.trimmingCharacters(in: .whitespaces).isEmpty
-        }) ?? profiles.first(where: {
-            !$0.name.trimmingCharacters(in: .whitespaces).isEmpty
-        }) ?? profiles.first!
 
-        for p in profiles where p.persistentModelID != primary.persistentModelID {
+        // Score profiles by how much data they carry — always keep the richest one.
+        func richness(_ p: DiverProfile) -> Int {
+            var s = 0
+            if !p.name.trimmingCharacters(in: .whitespaces).isEmpty { s += 10 }
+            if !p.padiNumber.isEmpty { s += 5 }
+            if !p.email.isEmpty { s += 3 }
+            if p.profileImageData != nil { s += 5 }
+            if p.stampImageData != nil { s += 5 }
+            if p.appleUserID == uid { s += 20 }
+            return s
+        }
+
+        let sorted = profiles.sorted { richness($0) > richness($1) }
+        let primary = sorted[0]
+
+        for p in sorted.dropFirst() {
             if primary.name.trimmingCharacters(in: .whitespaces).isEmpty,
                !p.name.trimmingCharacters(in: .whitespaces).isEmpty {
                 primary.name = p.name
@@ -633,9 +645,15 @@ struct ProfileTab: View {
             if primary.padiNumber.isEmpty, !p.padiNumber.isEmpty { primary.padiNumber = p.padiNumber }
             if primary.email.isEmpty, !p.email.isEmpty { primary.email = p.email }
             if primary.phone.isEmpty, !p.phone.isEmpty { primary.phone = p.phone }
+            if primary.certLevel == "OWD", !p.certLevel.isEmpty, p.certLevel != "OWD" {
+                primary.certLevel = p.certLevel
+            }
             if primary.profileImageData == nil { primary.profileImageData = p.profileImageData }
             if primary.stampImageData == nil { primary.stampImageData = p.stampImageData }
             if primary.appleUserID == nil { primary.appleUserID = p.appleUserID }
+            if primary.defaultDiveCenter.isEmpty, !p.defaultDiveCenter.isEmpty {
+                primary.defaultDiveCenter = p.defaultDiveCenter
+            }
             ctx.delete(p)
         }
         try? ctx.save()
