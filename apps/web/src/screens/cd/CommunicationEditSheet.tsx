@@ -101,6 +101,9 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Effect 1 — runs only when the sheet opens or the entry/contact identity changes.
+  // Loads people-list, instructors-list, and the entry data. Importantly: NOT
+  // re-run when pickedContactId changes (otherwise clicking a row would reset the form).
   useEffect(() => {
     if (!open) return
     setError(null)
@@ -124,27 +127,6 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
           }))
           setPeople(mapped)
         })
-    }
-    // Kontaktdaten der gewählten Person laden für Send-Buttons
-    const cid = contactId ?? pickedContactId
-    if (cid) {
-      supabase
-        .from('contacts')
-        .select('id, display_name, primary_email, phones')
-        .eq('id', cid)
-        .maybeSingle()
-        .then(({ data }) => {
-          if (!data) { setContactInfo(null); return }
-          const c: any = data
-          setContactInfo({
-            id: c.id,
-            name: c.display_name ?? '',
-            email: c.primary_email ?? null,
-            phone: (Array.isArray(c.phones) && c.phones[0]?.e164) || null,
-          })
-        })
-    } else {
-      setContactInfo(null)
     }
     supabase
       .from('instructors')
@@ -177,7 +159,30 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
       setForm({ ...EMPTY, occurred_on: nowLocal(), created_by: createdById ?? '' })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, entryId, contactId, pickedContactId])
+  }, [open, entryId, contactId])
+
+  // Effect 2 — fetch contactInfo for send-buttons whenever the chosen contact changes.
+  // Separated from Effect 1 so that selecting a person doesn't trigger a form reset.
+  useEffect(() => {
+    if (!open) return
+    const cid = contactId ?? pickedContactId
+    if (!cid) { setContactInfo(null); return }
+    supabase
+      .from('contacts')
+      .select('id, display_name, primary_email, phones')
+      .eq('id', cid)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) { setContactInfo(null); return }
+        const c: any = data
+        setContactInfo({
+          id: c.id,
+          name: c.display_name ?? '',
+          email: c.primary_email ?? null,
+          phone: (Array.isArray(c.phones) && c.phones[0]?.e164) || null,
+        })
+      })
+  }, [open, contactId, pickedContactId])
 
   function set<K extends keyof Form>(k: K, v: Form[K]) {
     setForm((prev) => ({ ...prev, [k]: v }))
