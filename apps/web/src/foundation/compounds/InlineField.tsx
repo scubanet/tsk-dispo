@@ -22,6 +22,7 @@
  */
 
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import '@/styles/tokens.css'
 
 export interface InlineFieldProps {
@@ -51,6 +52,7 @@ export function InlineField({
   onEnter,
   children,
 }: InlineFieldProps) {
+  const { t } = useTranslation()
   const editRef = useRef<HTMLDivElement>(null)
 
   // Focus first focusable child when edit mode opens
@@ -104,7 +106,7 @@ export function InlineField({
           tabIndex={disabled ? undefined : 0}
           onClick={disabled ? undefined : onStartEdit}
           onKeyDown={handleDisplayKeyDown}
-          aria-label={`${label} bearbeiten`}
+          aria-label={`${label} ${t('contacts.edit_aria_suffix')}`}
         >
           {displayValue ? (
             displayValue

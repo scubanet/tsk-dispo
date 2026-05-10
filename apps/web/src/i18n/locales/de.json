@@ -945,6 +945,16 @@
     "add_item": "Hinzufügen",
     "invalid_phone": "Ungültige Telefonnummer (CH-Format erwartet, z. B. 079 123 45 67)",
     "invalid_email": "Ungültige E-Mail-Adresse",
-    "add_address": "+ Adresse hinzufügen"
+    "add_address": "+ Adresse hinzufügen",
+    "merge_note_label": "Hinweis:",
+    "edit_aria_suffix": "bearbeiten",
+    "addr_street_placeholder": "Strasse, Nr.",
+    "addr_postal_placeholder": "PLZ",
+    "addr_city_placeholder": "Ort",
+    "addr_country_placeholder": "Land",
+    "lead_source_placeholder": "z. B. Empfehlung, Website",
+    "highest_brevet_placeholder": "z. B. OWD, AOWD, Rescue",
+    "insurance_placeholder": "z. B. DAN",
+    "payment_terms_placeholder": "z. B. 30 Tage netto"
   }
 }

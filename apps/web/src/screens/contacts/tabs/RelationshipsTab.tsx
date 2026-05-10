@@ -82,7 +82,7 @@ export function RelationshipsTab({ contactId }: Props) {
                     <span className="relationship-list__role">{rel.role_at_org}</span>
                   )}
                   {rel.is_primary && (
-                    <span className="contact-list-badge contact-list-badge--primary">Primär</span>
+                    <span className="contact-list-badge contact-list-badge--primary">{t('contacts.primary_badge')}</span>
                   )}
                 </div>
                 <button

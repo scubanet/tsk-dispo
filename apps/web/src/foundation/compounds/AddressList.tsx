@@ -210,12 +210,12 @@ function AddressForm({ draft, onChange, onSubmit, onCancel, submitLabel }: Addre
           <option key={l} value={l}>{l}</option>
         ))}
       </select>
-      <input type="text" placeholder="Strasse, Nr." value={draft.street} onChange={(e) => onChange({ ...draft, street: e.target.value })} style={fieldStyle} />
+      <input type="text" placeholder={t('contacts.addr_street_placeholder')} value={draft.street} onChange={(e) => onChange({ ...draft, street: e.target.value })} style={fieldStyle} />
       <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-        <input type="text" placeholder="PLZ" value={draft.postal} onChange={(e) => onChange({ ...draft, postal: e.target.value })} style={{ ...fieldStyle, width: '5rem' }} />
-        <input type="text" placeholder="Ort" value={draft.city} onChange={(e) => onChange({ ...draft, city: e.target.value })} style={{ ...fieldStyle, flex: 1 }} />
+        <input type="text" placeholder={t('contacts.addr_postal_placeholder')} value={draft.postal} onChange={(e) => onChange({ ...draft, postal: e.target.value })} style={{ ...fieldStyle, width: '5rem' }} />
+        <input type="text" placeholder={t('contacts.addr_city_placeholder')} value={draft.city} onChange={(e) => onChange({ ...draft, city: e.target.value })} style={{ ...fieldStyle, flex: 1 }} />
       </div>
-      <input type="text" placeholder="Land" value={draft.country} onChange={(e) => onChange({ ...draft, country: e.target.value })} style={fieldStyle} />
+      <input type="text" placeholder={t('contacts.addr_country_placeholder')} value={draft.country} onChange={(e) => onChange({ ...draft, country: e.target.value })} style={fieldStyle} />
       <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
         <button
           type="button"

@@ -51,7 +51,7 @@ export function StudentTab({ contact, onUpdated }: Props) {
           label={t('contacts.field_lead_source')}
           value={student?.lead_source}
           onCommit={async (v) => saveStudent('lead_source', v || null)}
-          placeholder="z. B. Empfehlung, Website"
+          placeholder={t('contacts.lead_source_placeholder')}
         />
       </section>
 
@@ -62,7 +62,7 @@ export function StudentTab({ contact, onUpdated }: Props) {
           label={t('contacts.field_highest_brevet')}
           value={student?.highest_brevet}
           onCommit={async (v) => saveStudent('highest_brevet', v || null)}
-          placeholder="z. B. OWD, AOWD, Rescue"
+          placeholder={t('contacts.highest_brevet_placeholder')}
         />
         <InlineTextField
           label={t('contacts.field_intake_status')}
@@ -73,7 +73,7 @@ export function StudentTab({ contact, onUpdated }: Props) {
           label={t('contacts.field_insurance')}
           value={student?.insurance_provider}
           onCommit={async (v) => saveStudent('insurance_provider', v || null)}
-          placeholder="z. B. DAN"
+          placeholder={t('contacts.insurance_placeholder')}
         />
         <InlineTextField
           label={t('contacts.field_medical_clearance')}

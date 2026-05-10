@@ -938,6 +938,16 @@
     "add_item": "Add",
     "invalid_phone": "Invalid phone number (CH format expected, e.g. 079 123 45 67)",
     "invalid_email": "Invalid email address",
-    "add_address": "+ Add address"
+    "add_address": "+ Add address",
+    "merge_note_label": "Note:",
+    "edit_aria_suffix": "edit",
+    "addr_street_placeholder": "Street, no.",
+    "addr_postal_placeholder": "Postal code",
+    "addr_city_placeholder": "City",
+    "addr_country_placeholder": "Country",
+    "lead_source_placeholder": "e.g. Referral, Website",
+    "highest_brevet_placeholder": "e.g. OWD, AOWD, Rescue",
+    "insurance_placeholder": "e.g. DAN",
+    "payment_terms_placeholder": "e.g. 30 days net"
   }
 }

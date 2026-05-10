@@ -56,7 +56,7 @@ export function ContractTab({ contact, onUpdated }: Props) {
           label={t('contacts.field_payment_terms')}
           value={org?.payment_terms}
           onCommit={async (v) => saveOrg('payment_terms', v || null)}
-          placeholder="z. B. 30 Tage netto"
+          placeholder={t('contacts.payment_terms_placeholder')}
         />
       </section>
     </div>

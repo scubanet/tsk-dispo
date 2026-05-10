@@ -222,7 +222,7 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
                 </div>
 
                 <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)', background: 'var(--brand-amber-50)', border: '1px solid var(--brand-amber-100)', borderRadius: 'var(--radius-sm)', padding: 'var(--space-3)', margin: 0 }}>
-                  <strong>Hinweis:</strong> {t('contacts.merge_warning')}
+                  <strong>{t('contacts.merge_note_label')}</strong> {t('contacts.merge_warning')}
                 </p>
 
                 <div style={{ display: 'flex', gap: 'var(--space-3)' }}>

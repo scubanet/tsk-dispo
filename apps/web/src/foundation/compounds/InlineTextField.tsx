@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { InlineField } from './InlineField'
 
 export interface InlineTextFieldProps {
@@ -25,6 +26,7 @@ export function InlineTextField({
   multiline = false,
   disabled = false,
 }: InlineTextFieldProps) {
+  const { t } = useTranslation()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
@@ -53,7 +55,7 @@ export function InlineTextField({
       await onCommit(draft)
       setEditing(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Fehler beim Speichern')
+      setError(err instanceof Error ? err.message : t('contacts.rel_error_save'))
     } finally {
       setSaving(false)
     }
