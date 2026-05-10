@@ -18,7 +18,7 @@ import {
   Pill,
   Icon,
 } from '@/foundation'
-import { supabase } from '@/lib/supabase'
+import { listPipelineContacts } from '@/lib/contactQueries'
 import type { OutletCtx } from '@/layout/AppShell'
 import { ContactDetailPanel } from '../contacts/ContactDetailPanel'
 
@@ -50,15 +50,26 @@ export function CDPipelineScreen() {
 
   useEffect(() => {
     let cancelled = false
-    supabase
-      .from('people')
-      .select('id, first_name, last_name, pipeline_stage, stage_changed_on')
-      .neq('pipeline_stage', 'none')
-      .order('stage_changed_on', { ascending: false })
-      .then(({ data, error }) => {
+    listPipelineContacts()
+      .then((data) => {
         if (cancelled) return
-        if (error) console.error('[cd] pipeline load failed', error)
-        setRows((data ?? []) as Row[])
+        // Filter out null pipeline_stage rows from the type-safe Row shape
+        setRows(
+          data
+            .filter((r): r is Row => r.pipeline_stage !== null && r.stage_changed_on !== null)
+            .map((r) => ({
+              id: r.id,
+              first_name: r.first_name,
+              last_name: r.last_name,
+              pipeline_stage: r.pipeline_stage as string,
+              stage_changed_on: r.stage_changed_on as string,
+            })),
+        )
+        setLoading(false)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        console.error('[cd] pipeline load failed', err)
         setLoading(false)
       })
     return () => { cancelled = true }

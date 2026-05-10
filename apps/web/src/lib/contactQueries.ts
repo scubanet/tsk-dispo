@@ -180,6 +180,52 @@ export async function listActiveInstructors(): Promise<
   })
 }
 
+/**
+ * Pipeline-Liste für CDPipelineScreen — contacts mit contact_student.pipeline_stage gesetzt.
+ *
+ * Sortierung: nach `contact_student.updated_at DESC` als Proxy für
+ * `stage_changed_on` (existiert nur in der Legacy-`people`-Tabelle, wandert
+ * in Etappe 3 in den Sidecar). Funktional sehr ähnlich, da der updated_at-
+ * Trigger bei jeder Sidecar-Änderung feuert.
+ */
+export async function listPipelineContacts(): Promise<
+  {
+    id: string
+    first_name: string | null
+    last_name: string | null
+    pipeline_stage: string | null
+    stage_changed_on: string | null
+  }[]
+> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select(
+      'id, first_name, last_name, ' +
+        'student:contact_student!inner(pipeline_stage, updated_at)',
+    )
+    .is('archived_at', null)
+    .neq('contact_student.pipeline_stage', 'none')
+  if (error) throw error
+  const mapped = (data ?? []).map((c: unknown) => {
+    const row = c as {
+      id: string
+      first_name: string | null
+      last_name: string | null
+      student: { pipeline_stage: string | null; updated_at: string | null } | null
+    }
+    return {
+      id: row.id,
+      first_name: row.first_name,
+      last_name: row.last_name,
+      pipeline_stage: row.student?.pipeline_stage ?? null,
+      stage_changed_on: row.student?.updated_at ?? null,
+    }
+  })
+  // Sort client-side by stage_changed_on (descending)
+  mapped.sort((a, b) => (b.stage_changed_on ?? '').localeCompare(a.stage_changed_on ?? ''))
+  return mapped
+}
+
 // ────────────────────── Inline-edit helpers ───────────────────────────
 
 export async function updateContactField<K extends keyof Contact>(

@@ -21,6 +21,7 @@ import {
   Icon,
 } from '@/foundation'
 import { supabase } from '@/lib/supabase'
+import { listActiveInstructors } from '@/lib/contactQueries'
 import { ContactDetailPanel } from './contacts/ContactDetailPanel'
 
 interface Skill {
@@ -48,16 +49,13 @@ export function SkillMatrixScreen() {
   useEffect(() => {
     Promise.all([
       supabase.from('skills').select('id, code, label, category').order('label'),
-      supabase
-        .from('instructors')
-        .select('id, name, padi_level')
-        .eq('active', true)
-        .order('last_name')
-        .order('first_name'),
+      listActiveInstructors(),
       supabase.from('instructor_skills').select('instructor_id, skill_id'),
-    ]).then(([s, i, m]) => {
+    ]).then(([s, instRows, m]) => {
       setSkills((s.data ?? []) as Skill[])
-      setInstructors((i.data ?? []) as Inst[])
+      setInstructors(
+        instRows.map(({ id, name, padi_level }) => ({ id, name, padi_level })),
+      )
       setMatrix(
         new Set(
           ((m.data ?? []) as { instructor_id: string; skill_id: string }[]).map(

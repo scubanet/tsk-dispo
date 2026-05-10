@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
+import { listActiveInstructors } from '@/lib/contactQueries'
 import { waDirectUrl } from '@/lib/whatsapp'
 import i18n from '@/i18n'
 
@@ -128,12 +129,9 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
           setPeople(mapped)
         })
     }
-    supabase
-      .from('instructors')
-      .select('id, name, active')
-      .eq('active', true)
-      .order('name')
-      .then(({ data }) => setInstructors((data ?? []) as InstructorOption[]))
+    listActiveInstructors()
+      .then((rows) => setInstructors(rows.map(({ id, name, active }) => ({ id, name, active }))))
+      .catch((err) => console.error('[comm-edit] load instructors failed', err))
     if (entryId) {
       supabase
         .from('communication_entries')
