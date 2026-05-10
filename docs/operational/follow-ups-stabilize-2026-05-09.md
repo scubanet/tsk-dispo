@@ -167,4 +167,4 @@ brauchen App-Restart — User-Hinweis-Dialog beim Sprachwechsel.
 | M5 | „1 students"-Plural-Bug | stringsdict / String-Catalog mit Plural-Variants. |
 | M6 | StudentEdit nur via ProfileView | Long-Press oder Swipe-Edit im StudentPicker als ergonomische Verbesserung. |
 | M7 | Schüler-Duplikate beim konkurrenten Anlegen | Dedupe-Logik analog DiverProfile (richness-scored). Niedrige Priorität. |
-| M8 | ExportSheet nutzt ein abweichendes Theme | `Color.deepOcean` / `.coral` / `.seafoam` / `.cardBg` + erzwungenes `.preferredColorScheme(.dark)` statt `appAccent` / `glassCard` / `DSSpacing`. Konsequenz: Export-Modal sticht visuell stark vom Rest der App ab. Migration auf das aktuelle Design-System: ~30-60 Min. Phase-4-Polish. |
+| ~~M8~~ | ~~ExportSheet nutzt ein abweichendes Theme~~ | **Done** in commit `7c228ba` (2026-05-10): migriert auf `HeroBackground` + `appAccent` + `glassCard` + `DSSpacing` / `DSRadius`. `.preferredColorScheme(.dark)` entfernt. |
