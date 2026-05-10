@@ -51,8 +51,8 @@
 
 | # | Schritt | Status | Notiz |
 |---|---------|--------|-------|
-| 4.1 | Konkurrente Skill-Cycles auf iPhone + iPad (Flugzeugmodus → Online) | | |
-| 4.2 | Konkurrentes Schüler-Anlegen mit gleichem Namen auf beiden Geräten | | |
+| 4.1 | Konkurrente Skill-Cycles auf iPhone + iPad | 🐛 Critical | Geräte zeigen unterschiedlichen Skill-Status nach Sync — siehe Bug #10 |
+| 4.2 | Konkurrentes Schüler-Anlegen mit gleichem Namen | 🐛 Minor | Zwei Duplikate auf beiden Geräten — siehe Bug #11 |
 
 ---
 
@@ -69,6 +69,8 @@
 | 7 | Important | **Sprachwechsel mid-flow ist inkonsistent.** L10n-Strings wechseln sofort (Profile, Progress, Not started, etc.), aber Tab-Bar und PADI-Catalog-Strings (Slot-Namen, Skill-Namen) bleiben in alter Sprache stehen. Nach App-Restart ist alles konsistent. Fix: PADI-Catalog-Reload bei Language-Change-Notification + Restart-Hinweis für iOS-native Strings. | App in DE → iOS-Settings → Language EN → zurück zur App → halb-EN halb-DE | offen |
 | 8 | Minor | **Plural-Handling fehlt** — „1 students" statt „1 student". Mehrere Stellen vermutlich betroffen. Fix: stringsdict-Templates oder String-Catalog mit Plural-Variants. | DiveDetail mit 1 Schüler → "1 students" sichtbar | offen |
 | 9 | Minor | **StudentEditSheet-Trigger nur via Edit-Button in StudentProfileView.** Im StudentPicker direkt fehlt Long-Press oder Swipe-Edit. User muss erst zur ProfileView navigieren um zu editieren/löschen. UX-Friction. | StudentPicker → Long-Press auf Schüler-Bubble → kein Trigger | offen |
+| 10 | **Critical** | **SkillCompletion-Sync konvergiert nicht.** Zwei Geräte mit konkurrenten Skill-Cycles auf demselben Schüler+Skill zeigen unterschiedlichen Status nach CloudKit-Sync. iPhone zeigte OW1.1=Mastered, iPad zeigte OW1.1=Eingeführt für identischen Dive. Vermutlich Same-Second-`assessedOn`-Tie macht `currentStatus = max(by: assessedOn)` unstable. Selbe Bug-Klasse wie der Date-Tie-Tie-Breaker für Dive-Numbering aus Phase-2-Follow-ups, im Skill-Domain. | Beide Geräte ins Flugzeug, je einen Cycle auf OW1.1, online → unterschiedliche Status-Anzeige | offen — **muss vor TestFlight gefixt** |
+| 11 | Minor | **Schüler-Duplikate beim konkurrenten Anlegen.** Wenn iPhone und iPad gleichzeitig denselben Schüler-Namen anlegen, gibt's zwei Datensätze mit identischem Namen. Keine Dedupe-Logik (anders als für DiverProfile, wo's eine Logik gibt). Workflow-Disziplin-Frage. | iPhone + iPad ins Flugzeug, beide Schüler „Konflikt Test" anlegen, online → 2 Duplikate | offen, eventuell als Feature deferred |
 
 **Severity-Definition:**
 - **Critical** — App-Crash, Datenverlust, falsche Skill-Status-Anzeige, CloudKit-Duplikate/Verlust, PDF-Export schlägt fehl. Muss vor Phase 4 gefixt sein.
