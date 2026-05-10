@@ -15,6 +15,7 @@ import type { ContactWithSidecars } from '@/types/contacts'
 import {
   OverviewTab,
   RelationshipsTab,
+  CommunicationsTab,
   ActivityTab,
   NotesAndDocsTab,
   StudentTab,
@@ -33,6 +34,7 @@ import { ContactMoreMenu } from './ContactMoreMenu'
 export type TabKey =
   | 'overview'
   | 'relationships'
+  | 'communications'
   | 'activity'
   | 'notes'
   | 'student'
@@ -47,6 +49,7 @@ export type TabKey =
 const TAB_LABEL_KEYS: Record<TabKey, string> = {
   overview: 'contacts.tab_overview',
   relationships: 'contacts.tab_relationships',
+  communications: 'contacts.tab_communications',
   activity: 'contacts.tab_activity',
   notes: 'contacts.tab_notes',
   student: 'contacts.tab_student',
@@ -62,7 +65,7 @@ const TAB_LABEL_KEYS: Record<TabKey, string> = {
 // ── Visibility logic ─────────────────────────────────────────────────────
 
 function computeVisibleTabs(contact: ContactWithSidecars): TabKey[] {
-  const tabs: TabKey[] = ['overview', 'relationships', 'activity', 'notes']
+  const tabs: TabKey[] = ['overview', 'relationships', 'communications', 'activity', 'notes']
   const roles = contact.roles
 
   if (roles.includes('student') || roles.includes('candidate')) tabs.push('student')
@@ -139,6 +142,7 @@ export function ContactDetailPanel({
     return {
       overview: <OverviewTab contact={c} onUpdated={load} />,
       relationships: <RelationshipsTab contactId={c.id} />,
+      communications: <CommunicationsTab contactId={c.id} />,
       activity: <ActivityTab contactId={c.id} />,
       notes: <NotesAndDocsTab />,
       student: <StudentTab contact={c} onUpdated={load} />,

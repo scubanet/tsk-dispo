@@ -1,5 +1,6 @@
 export { OverviewTab } from './OverviewTab'
 export { RelationshipsTab } from './RelationshipsTab'
+export { CommunicationsTab } from './CommunicationsTab'
 export { ActivityTab } from './ActivityTab'
 export { NotesAndDocsTab } from './NotesAndDocsTab'
 export { StudentTab } from './StudentTab'
