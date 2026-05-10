@@ -168,3 +168,17 @@ brauchen App-Restart — User-Hinweis-Dialog beim Sprachwechsel.
 | M6 | StudentEdit nur via ProfileView | Long-Press oder Swipe-Edit im StudentPicker als ergonomische Verbesserung. |
 | M7 | Schüler-Duplikate beim konkurrenten Anlegen | Dedupe-Logik analog DiverProfile (richness-scored). Niedrige Priorität. |
 | ~~M8~~ | ~~ExportSheet nutzt ein abweichendes Theme~~ | **Done** in commit `7c228ba` (2026-05-10): migriert auf `HeroBackground` + `appAccent` + `glassCard` + `DSSpacing` / `DSRadius`. `.preferredColorScheme(.dark)` entfernt. |
+
+---
+
+# UDDF Import (Plan A) — Manual Smoke-Test (2026-05-10)
+
+**Setup:** Test-Fixture `DiveLog ProTests/Fixtures/uddf/test.uddf` (1.1 MB, 7 dives from Subsurface 3, UDDF 3.2.0).
+
+**Pfad A (In-App File-Picker via Profile → Datenverwaltung → „Tauchgänge importieren"):** Pass. ImportSheet zeigt 7 Tauchgänge, Source „Subsurface", korrekte Datums/Tiefen/Dauer-Werte pro Row. Importieren-Button landet die Tauchgänge im Logbuch mit korrekter Renumbering.
+
+**Pfad B (Share-Sheet via Files-App):** Pass. UDDFImportSheet öffnet sich über dem aktuellen Tab.
+
+**Conflict-Test:** Pass. Zweiter Import-Lauf erkennt alle 7 als Duplikate (datetime ±5min AND maxDepth ±0.5m), Checkboxen default off, „Beide behalten"-Strategie produziert sauber renumberte zusätzliche Dives.
+
+Phase A funktional komplett. Phase B (FIT-direct) Folge-Spec/Plan.

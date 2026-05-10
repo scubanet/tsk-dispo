@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UniformTypeIdentifiers
 
 struct ProfileTab: View {
     @Environment(\.modelContext) private var ctx
@@ -10,6 +11,8 @@ struct ProfileTab: View {
 
     @State private var showingEdit = false
     @State private var showingExport = false
+    @State private var showingUDDFPicker = false
+    @State private var pendingImportURL: URL?
     @State private var showingMyQR = false
     @State private var showingSignOutConfirm = false
     @State private var showingDeleteConfirm = false
@@ -20,6 +23,18 @@ struct ProfileTab: View {
     @State private var appleSignIn = AppleSignInService.shared
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("appLanguage") private var language = "en"
+
+    /// File types accepted by the dive-import file picker. Pre-computed at
+    /// static-let evaluation time so the SwiftUI .fileImporter call site
+    /// stays single-expression-simple (else the SwiftUI ViewBuilder type-
+    /// checker times out — happened during Phase B Task 12).
+    private static let importAllowedTypes: [UTType] = {
+        var types: [UTType] = [.xml]   // UDDF inherits from XML
+        if let uddf = UTType(filenameExtension: "uddf") { types.append(uddf) }
+        if let fit  = UTType(filenameExtension: "fit")  { types.append(fit) }
+        if let garminFIT = UTType("com.garmin.fit")     { types.append(garminFIT) }
+        return types
+    }()
 
     /// Picks the best profile to surface in the UI. Pure read — never mutates
     /// state. Deduplication is hoisted to `.onChange(of: profiles.count)` on
@@ -37,86 +52,7 @@ struct ProfileTab: View {
         NavigationStack {
             ZStack {
                 HeroBackground()
-
-                ScrollView {
-                    VStack(spacing: DSSpacing.l) {
-                        ProfileCard(profile: profile, onEdit: { showingEdit = true })
-                        ProfileStampCard(profile: profile, onEdit: { showingEdit = true })
-
-                        QuickStatsCard(dives: dives)
-                            .padding(.top, DSSpacing.xs)
-
-                        // ─── Settings ─────────────────────
-                        HStack {
-                            Text((L10n.currentLanguage == "de" ? "Einstellungen" : "Settings").uppercased())
-                                .font(.caption2.weight(.semibold))
-                                .tracking(0.8)
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                        }
-
-                        SettingsSection(
-                            profile: profile,
-                            language: $language,
-                            onShowQR: { showingMyQR = true },
-                            onShowExport: { showingExport = true }
-                        )
-
-                        // ─── Datenverwaltung ──────────────
-                        HStack {
-                            Text((L10n.currentLanguage == "de" ? "Datenverwaltung" : "Data Management").uppercased())
-                                .font(.caption2.weight(.semibold))
-                                .tracking(0.8)
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                        }
-                        .padding(.top, DSSpacing.m)
-
-                        DataManagementCard(
-                            dives: dives,
-                            isLogbookEmpty: dives.isEmpty,
-                            duplicateCount: duplicateCount,
-                            dedupeResultMessage: dedupeResultMessage,
-                            sampleLoadedMessage: sampleLoadedMessage,
-                            onExport: { showingExport = true },
-                            onLoadSampleData: { showingLoadSampleConfirm = true },
-                            onDedupe: { showingDedupeConfirm = true },
-                            onDeleteAll: { showingDeleteConfirm = true }
-                        )
-
-                        // ─── Account ──────────────────────
-                        HStack {
-                            Text((L10n.currentLanguage == "de" ? "Account" : "Account").uppercased())
-                                .font(.caption2.weight(.semibold))
-                                .tracking(0.8)
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                        }
-                        .padding(.top, DSSpacing.m)
-
-                        AccountCard(
-                            profile: profile,
-                            appleSignIn: appleSignIn,
-                            onSignOutTap: { showingSignOutConfirm = true },
-                            onDeleteAccountTap: { showingDeleteConfirm = true }
-                        )
-
-                        // App info
-                        VStack(spacing: 4) {
-                            Text("AtollLog")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(.tertiary)
-                            Text("Version 1.0")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.quaternary)
-                        }
-                        .padding(.top, DSSpacing.l)
-                    }
-                    .padding(.horizontal, DSSpacing.xl)
-                    .padding(.top, DSSpacing.s)
-                    .padding(.bottom, DSSpacing.xxxl)
-                }
-                .scrollContentBackground(.hidden)
+                scrollContent
             }
             .navigationTitle(L10n.tabProfile)
             .navigationBarTitleDisplayMode(.large)
@@ -150,6 +86,34 @@ struct ProfileTab: View {
             }
             .sheet(isPresented: $showingMyQR) {
                 MyQRCodeView()
+            }
+            .fileImporter(isPresented: $showingUDDFPicker,
+                          allowedContentTypes: Self.importAllowedTypes,
+                          allowsMultipleSelection: false) { result in
+                switch result {
+                case .success(let urls):
+                    if let url = urls.first {
+                        // Security-scoped resource access for files outside the
+                        // app sandbox (Files app, iCloud Drive).
+                        _ = url.startAccessingSecurityScopedResource()
+                        pendingImportURL = url
+                    }
+                case .failure:
+                    break
+                }
+            }
+            .sheet(item: Binding(
+                get: { pendingImportURL.map { IdentifiableImportURL(url: $0) } },
+                set: { newValue in
+                    if newValue == nil, let url = pendingImportURL {
+                        url.stopAccessingSecurityScopedResource()
+                    }
+                    pendingImportURL = newValue?.url
+                }
+            )) { wrapper in
+                DiveComputerImportSheet(fileURL: wrapper.url) { _, _ in
+                    pendingImportURL = nil
+                }
             }
             .confirmationDialog(
                 L10n.currentLanguage == "de" ? "Wirklich abmelden?" : "Sign out?",
@@ -262,6 +226,88 @@ struct ProfileTab: View {
             }
             .onAppear(perform: ensureProfileExists)
         }
+    }
+
+    // ═══════════════════════════════════════
+    // MARK: - Body sub-views
+    // (extracted so the Swift type-checker doesn't choke on the full body)
+
+    @ViewBuilder
+    private var scrollContent: some View {
+        ScrollView {
+            VStack(spacing: DSSpacing.l) {
+                ProfileCard(profile: profile, onEdit: { showingEdit = true })
+                ProfileStampCard(profile: profile, onEdit: { showingEdit = true })
+
+                QuickStatsCard(dives: dives)
+                    .padding(.top, DSSpacing.xs)
+
+                sectionHeader(L10n.currentLanguage == "de" ? "Einstellungen" : "Settings",
+                              topPadding: 0)
+
+                SettingsSection(
+                    profile: profile,
+                    language: $language,
+                    onShowQR: { showingMyQR = true },
+                    onShowExport: { showingExport = true }
+                )
+
+                sectionHeader(L10n.currentLanguage == "de" ? "Datenverwaltung" : "Data Management",
+                              topPadding: DSSpacing.m)
+
+                DataManagementCard(
+                    dives: dives,
+                    isLogbookEmpty: dives.isEmpty,
+                    duplicateCount: duplicateCount,
+                    dedupeResultMessage: dedupeResultMessage,
+                    sampleLoadedMessage: sampleLoadedMessage,
+                    onExport: { showingExport = true },
+                    onLoadSampleData: { showingLoadSampleConfirm = true },
+                    onDedupe: { showingDedupeConfirm = true },
+                    onImport: { showingUDDFPicker = true },
+                    onDeleteAll: { showingDeleteConfirm = true }
+                )
+
+                sectionHeader(L10n.currentLanguage == "de" ? "Account" : "Account",
+                              topPadding: DSSpacing.m)
+
+                AccountCard(
+                    profile: profile,
+                    appleSignIn: appleSignIn,
+                    onSignOutTap: { showingSignOutConfirm = true },
+                    onDeleteAccountTap: { showingDeleteConfirm = true }
+                )
+
+                appInfoFooter
+            }
+            .padding(.horizontal, DSSpacing.xl)
+            .padding(.top, DSSpacing.s)
+            .padding(.bottom, DSSpacing.xxxl)
+        }
+        .scrollContentBackground(.hidden)
+    }
+
+    private func sectionHeader(_ label: String, topPadding: CGFloat) -> some View {
+        HStack {
+            Text(label.uppercased())
+                .font(.caption2.weight(.semibold))
+                .tracking(0.8)
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(.top, topPadding)
+    }
+
+    private var appInfoFooter: some View {
+        VStack(spacing: 4) {
+            Text("AtollLog")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(.tertiary)
+            Text("Version 1.0")
+                .font(.system(size: 11))
+                .foregroundStyle(.quaternary)
+        }
+        .padding(.top, DSSpacing.l)
     }
 
     // ═══════════════════════════════════════
@@ -448,4 +494,12 @@ struct ProfileTab: View {
         try? ctx.save()
     }
 
+}
+
+/// Identifiable wrapper so `.sheet(item:)` can present a URL.
+/// Named to avoid collision with the same-named private struct in
+/// DiveLogProApp.swift.
+private struct IdentifiableImportURL: Identifiable {
+    let url: URL
+    var id: URL { url }
 }

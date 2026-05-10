@@ -21,6 +21,9 @@ struct DiveLogProApp: App {
     // Deep-link state for `divelogpro://remote-sign?token=…`
     @State private var remoteSignToken: String?
 
+    // Deep-link state for dive-computer file opens (.uddf/.fit)
+    @State private var pendingImportURL: URL?
+
     // Shared soft-delete store — holds a dive in "pending delete" state for
     // a few seconds so the user can tap Undo. LogbookTab renders the
     // snackbar; DiveDetailView schedules via the same instance so a
@@ -150,8 +153,16 @@ struct DiveLogProApp: App {
             }
             // Handle `divelogpro://remote-sign?token=…` links (Feature 3).
             .onOpenURL { url in
+                // Branch on URL type:
+                //  - divelogpro://remote-sign?token=… → remote signature flow
+                //  - file with .uddf or .fit extension → dive-computer import flow
                 if let token = RemoteSignatureService.token(fromURL: url) {
                     remoteSignToken = token
+                } else if url.isFileURL {
+                    let ext = url.pathExtension.lowercased()
+                    if ext == "uddf" || ext == "fit" {
+                        pendingImportURL = url
+                    }
                 }
             }
             .sheet(item: Binding(
@@ -159,6 +170,14 @@ struct DiveLogProApp: App {
                 set: { remoteSignToken = $0?.id }
             )) { wrapper in
                 RemoteSignatureLandingView(token: wrapper.id)
+            }
+            .sheet(item: Binding(
+                get: { pendingImportURL.map { IdentifiableURL(url: $0) } },
+                set: { pendingImportURL = $0?.url }
+            )) { wrapper in
+                DiveComputerImportSheet(fileURL: wrapper.url) { _, _ in
+                    pendingImportURL = nil
+                }
             }
             .animation(.easeInOut(duration: 0.25), value: appleSignIn.isSignedIn)
             .overlay(alignment: .top) {
@@ -234,6 +253,12 @@ struct DiveLogProApp: App {
 // optional token without writing the same boilerplate inline.
 private struct RemoteSignToken: Identifiable, Hashable {
     let id: String
+}
+
+/// Identifiable wrapper so `.sheet(item:)` can present a URL.
+private struct IdentifiableURL: Identifiable {
+    let url: URL
+    var id: URL { url }
 }
 
 private struct DiveLogBridgeKey: EnvironmentKey {

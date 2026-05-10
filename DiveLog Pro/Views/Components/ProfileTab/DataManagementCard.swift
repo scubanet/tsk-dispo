@@ -16,6 +16,7 @@ struct DataManagementCard: View {
     let onExport: () -> Void
     let onLoadSampleData: () -> Void
     let onDedupe: () -> Void
+    let onImport: () -> Void
     let onDeleteAll: () -> Void
 
     var body: some View {
@@ -70,6 +71,21 @@ struct DataManagementCard: View {
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(.tertiary)
                     }
+                }
+            }
+            .buttonStyle(.plain)
+
+            // Always visible — entry-point for UDDF/dive-computer file import.
+            Button {
+                onImport()
+            } label: {
+                settingsRow(
+                    icon: "square.and.arrow.down",
+                    label: L10n.currentLanguage == "de" ? "Tauchgänge importieren" : "Import dives"
+                ) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.tertiary)
                 }
             }
             .buttonStyle(.plain)
