@@ -72,7 +72,17 @@ struct ProfileTab: View {
                         }
                         .padding(.top, DSSpacing.m)
 
-                        dataManagementCard
+                        DataManagementCard(
+                            dives: dives,
+                            isLogbookEmpty: dives.isEmpty,
+                            duplicateCount: duplicateCount,
+                            dedupeResultMessage: dedupeResultMessage,
+                            sampleLoadedMessage: sampleLoadedMessage,
+                            onExport: { showingExport = true },
+                            onLoadSampleData: { showingLoadSampleConfirm = true },
+                            onDedupe: { showingDedupeConfirm = true },
+                            onDeleteAll: { showingDeleteConfirm = true }
+                        )
 
                         // ─── Account ──────────────────────
                         HStack {
@@ -255,7 +265,7 @@ struct ProfileTab: View {
     }
 
     // ═══════════════════════════════════════
-    // MARK: - Data Management Card
+    // MARK: - Data Management Card helpers
 
     /// A "duplicate" here means: same dive number AND same day AND same site.
     /// That three-way key is tight enough that legit dives (you can log two
@@ -275,64 +285,6 @@ struct ProfileTab: View {
     /// the oldest entry in each group, so it's "group size minus one" summed.
     private var duplicateCount: Int {
         duplicateGroups.reduce(0) { $0 + ($1.count - 1) }
-    }
-
-    private var dataManagementCard: some View {
-        VStack(spacing: 1) {
-            // Sample-Data loader — only visible when the logbook is empty.
-            // Opt-in by design: auto-seeding in a CloudKit env would create
-            // duplicates as soon as sync catches up on secondary devices.
-            if dives.isEmpty {
-                Button {
-                    showingLoadSampleConfirm = true
-                } label: {
-                    settingsRow(
-                        icon: "sparkles",
-                        label: L10n.currentLanguage == "de" ? "Beispieldaten laden" : "Load Sample Data"
-                    ) {
-                        HStack(spacing: 6) {
-                            Text(L10n.currentLanguage == "de" ? "4 TGs" : "4 dives")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(Color.appAccent)
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.tertiary)
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
-            }
-
-            // Always visible so users know the feature exists; shows badge if
-            // duplicates present.
-            Button {
-                showingDedupeConfirm = true
-            } label: {
-                settingsRow(
-                    icon: "rectangle.on.rectangle.slash",
-                    label: L10n.currentLanguage == "de" ? "Duplikate bereinigen" : "Clean up duplicates"
-                ) {
-                    HStack(spacing: 6) {
-                        if duplicateCount > 0 {
-                            Text("\(duplicateCount)")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(Capsule().fill(Color.appEmphasis))
-                        } else {
-                            Text(L10n.currentLanguage == "de" ? "Keine" : "None")
-                                .font(.system(size: 12))
-                                .foregroundStyle(.tertiary)
-                        }
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-        }
     }
 
     /// Delete all but the oldest dive in each duplicate group. "Oldest" means
