@@ -1,17 +1,13 @@
 /**
  * useLanguage — pick / read the user's UI language.
  *
- * Source of truth: `people.preferred_language` in Supabase.
+ * Phase J — Etappe 2c.1:
+ *   • Read   from `contact_instructor.preferred_language` (Login = Instructor)
+ *   • Write  defensiv: Sidecar + Legacy `instructors`-Tabelle
+ *            (Edge-Functions für E-Mail/Push lesen noch instructors.preferred_language —
+ *             Single-Write auf den Sidecar kommt mit Etappe 3 wenn Sync-Triggers droppen).
+ *
  * Cache: localStorage (instant boot, no flicker).
- *
- * On change:
- *   1. localStorage write (instant)
- *   2. i18next changeLanguage  (re-renders everything)
- *   3. supabase update         (background, fire-and-forget; failure is logged but doesn't break UI)
- *
- * On boot (`useSyncRemoteLanguage`):
- *   After auth, read `people.preferred_language` and reconcile with localStorage.
- *   If they differ, the DB wins.
  */
 import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -32,24 +28,23 @@ export function useLanguage() {
       }
       await i18n.changeLanguage(newLang)
 
-      // Background-persist to DB (don't await — UI must not wait on the network).
-      // Mirror the choice into BOTH tables that store preferred_language:
-      //   - people.preferred_language       (used by app UI)
-      //   - instructors.preferred_language  (used by edge functions for emails + APNs push)
-      // The two tables are linked via auth_user_id.
       const { data: auth } = await supabase.auth.getUser()
       const userId = auth?.user?.id
       if (!userId) return
+
+      // 1) New source of truth: contact_instructor sidecar
       void supabase
-        .from('people')
+        .from('contact_instructor')
         .update({ preferred_language: newLang })
         .eq('auth_user_id', userId)
         .then(({ error }) => {
           if (error) {
             // eslint-disable-next-line no-console
-            console.warn('[i18n] could not persist language to people:', error.message)
+            console.warn('[i18n] could not persist to contact_instructor:', error.message)
           }
         })
+
+      // 2) Legacy instructors-Tabelle — bis Edge-Functions migriert sind
       void supabase
         .from('instructors')
         .update({ preferred_language: newLang })
@@ -57,7 +52,7 @@ export function useLanguage() {
         .then(({ error }) => {
           if (error) {
             // eslint-disable-next-line no-console
-            console.warn('[i18n] could not persist language to instructors:', error.message)
+            console.warn('[i18n] could not persist to instructors (legacy):', error.message)
           }
         })
     },
@@ -78,7 +73,7 @@ export function useSyncRemoteLanguage(authUserId: string | null) {
     if (!authUserId) return
     let cancelled = false
     void supabase
-      .from('people')
+      .from('contact_instructor')
       .select('preferred_language')
       .eq('auth_user_id', authUserId)
       .maybeSingle()

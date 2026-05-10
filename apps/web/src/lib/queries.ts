@@ -415,7 +415,7 @@ export async function fetchKpis(): Promise<Kpis> {
   const [totalRes, confirmedRes, instructorRes] = await Promise.all([
     supabase.from('courses').select('*', { count: 'exact', head: true }),
     supabase.from('courses').select('*', { count: 'exact', head: true }).eq('status', 'confirmed'),
-    supabase.from('instructors').select('*', { count: 'exact', head: true }).eq('active', true),
+    supabase.from('contact_instructor').select('contact_id', { count: 'exact', head: true }).eq('active', true),
   ])
   const { data: futureCourses } = await supabase
     .from('courses')

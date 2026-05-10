@@ -20,9 +20,15 @@ export async function fetchCurrentUser(): Promise<CurrentUser | null> {
   const { data: sess } = await supabase.auth.getUser()
   if (!sess.user) return null
 
+  // Phase J — Etappe 2c.1: Login-Read kommt aus contact_instructor.
+  // Sync-Triggers in 0083+0088 garantieren dass Legacy `instructors`-Schreiber
+  // weiterhin app_role/name/email in den Sidecar spiegeln.
   const { data, error } = await supabase
-    .from('instructors')
-    .select('id, name, role, email')
+    .from('contact_instructor')
+    .select(
+      'contact_id, app_role, ' +
+        'contact:contacts!inner(display_name, primary_email)',
+    )
     .eq('auth_user_id', sess.user.id)
     .maybeSingle()
 
@@ -38,11 +44,10 @@ export async function fetchCurrentUser(): Promise<CurrentUser | null> {
   }
 
   if (!data) {
-    // Auth user exists but no instructor row is linked.
-    // This means an admin needs to map the email to an instructor record
-    // (Einstellungen → User). Log loudly so dispatcher mis-config is debuggable.
+    // Auth user exists but no contact_instructor row is linked.
+    // Admin must map the auth user to a contact via Settings.
     console.warn(
-      '[auth] No instructor row linked to auth user',
+      '[auth] No contact_instructor row linked to auth user',
       sess.user.id,
       'email:',
       sess.user.email,
@@ -57,11 +62,19 @@ export async function fetchCurrentUser(): Promise<CurrentUser | null> {
     }
   }
 
+  // Supabase typings für Embed-Joins variieren — bewusst breit cast und
+  // lokal mappen, weil die Shape generic ist.
+  const row = data as unknown as {
+    contact_id: string
+    app_role: Role
+    contact: { display_name: string | null; primary_email: string | null } | null
+  }
+
   return {
     authUserId: sess.user.id,
-    instructorId: data.id,
-    name: data.name,
-    role: data.role as Role,
-    email: data.email ?? sess.user.email ?? '',
+    instructorId: row.contact_id,
+    name: row.contact?.display_name ?? sess.user.email ?? 'Unbekannt',
+    role: row.app_role,
+    email: row.contact?.primary_email ?? sess.user.email ?? '',
   }
 }
