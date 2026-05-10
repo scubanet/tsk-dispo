@@ -73,11 +73,12 @@ export async function listContacts(
   }
 
   if (filter.searchText && filter.searchText.trim() !== '') {
-    // Use PostgREST full-text search on the search index
-    query = query.textSearch(
-      'display_name',
-      filter.searchText.trim(),
-      { type: 'websearch', config: 'simple' },
+    // ilike-based substring search — matches single chars + partial words.
+    // PostgREST websearch tokenizes and skips stopwords/single-letters, so we
+    // use a multi-column ilike instead. % wildcards on both sides.
+    const term = `%${filter.searchText.trim()}%`
+    query = query.or(
+      `display_name.ilike.${term},first_name.ilike.${term},last_name.ilike.${term},legal_name.ilike.${term},trading_name.ilike.${term},primary_email.ilike.${term}`,
     )
   }
 
