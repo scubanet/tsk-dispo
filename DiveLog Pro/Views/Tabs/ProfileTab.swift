@@ -746,6 +746,9 @@ struct ProfileTab: View {
             }
         }
         .frame(maxWidth: .infinity)
+        // profileCard intentionally uses xxl padding (32 pt) — it is the
+        // hero identity card and needs extra breathing room. Sub-cards use
+        // .profileCardStyle() which encodes DSSpacing.l (16 pt).
         .padding(DSSpacing.xxl)
         .glassCard(cornerRadius: DSRadius.xl)
     }
@@ -816,8 +819,7 @@ struct ProfileTab: View {
             .buttonStyle(.plain)
             .disabled(profile == nil)
         }
-        .padding(DSSpacing.l)
-        .glassCard(cornerRadius: DSRadius.xl)
+        .profileCardStyle()
     }
 
     // ═══════════════════════════════════════
