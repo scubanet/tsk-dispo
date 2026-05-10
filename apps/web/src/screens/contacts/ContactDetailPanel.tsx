@@ -19,6 +19,7 @@ import {
   ActivityTab,
   NotesAndDocsTab,
   StudentTab,
+  InstructorTab,
   CoursesTab,
   SaldoTab,
   SkillsTab,
@@ -38,6 +39,7 @@ export type TabKey =
   | 'activity'
   | 'notes'
   | 'student'
+  | 'instructor'
   | 'courses'
   | 'saldo'
   | 'skills'
@@ -53,6 +55,7 @@ const TAB_LABEL_KEYS: Record<TabKey, string> = {
   activity: 'contacts.tab_activity',
   notes: 'contacts.tab_notes',
   student: 'contacts.tab_student',
+  instructor: 'contacts.tab_instructor',
   courses: 'contacts.tab_courses',
   saldo: 'contacts.tab_saldo',
   skills: 'contacts.tab_skills',
@@ -69,6 +72,7 @@ function computeVisibleTabs(contact: ContactWithSidecars): TabKey[] {
   const roles = contact.roles
 
   if (roles.includes('student') || roles.includes('candidate')) tabs.push('student')
+  if (roles.includes('instructor')) tabs.push('instructor')
   if (roles.includes('instructor') || roles.includes('student') || roles.includes('candidate')) tabs.push('courses')
   if (roles.includes('instructor')) {
     tabs.push('saldo')
@@ -146,6 +150,7 @@ export function ContactDetailPanel({
       activity: <ActivityTab contactId={c.id} />,
       notes: <NotesAndDocsTab />,
       student: <StudentTab contact={c} onUpdated={load} />,
+      instructor: <InstructorTab contact={c} onUpdated={load} />,
       courses: <CoursesTab contactId={c.id} roles={c.roles} />,
       saldo: <SaldoTab contactId={c.id} onUpdated={load} />,
       skills: <SkillsTab contactId={c.id} />,
