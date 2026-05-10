@@ -37,13 +37,13 @@
 
 | # | Schritt | Status | Notiz |
 |---|---------|--------|-------|
-| 3.1 | DiveFormView mit leerer Schüler-Liste | | |
-| 3.2 | Schüler ohne Pool-Session direkt im OWD-Dive | | |
-| 3.3 | notStarted-Badge-Rendering klar erkennbar | | |
-| 3.4 | Multi-Sprache-Wechsel (DE↔EN) mid-flow | | |
-| 3.5 | 10 Schüler in einer Pool-Session — Performance + UX | | |
-| 3.6 | Dive löschen mit angehängten SkillCompletion-Records | | |
-| 3.7 | Schüler löschen via StudentEditSheet destructive delete | | |
+| 3.1 | DiveFormView mit leerer Schüler-Liste | 🐛 | Speichern geht ohne Schüler durch — siehe Bug #6 |
+| 3.2 | Schüler ohne Pool-Session direkt im OWD-Dive | ✅ | implizit getestet via Spur A — funktioniert |
+| 3.3 | notStarted-Badge-Rendering klar erkennbar | ✅ | implizit getestet via Skill-Cycle — Badge ist klar |
+| 3.4 | Multi-Sprache-Wechsel (DE↔EN) mid-flow | 🐛 | mid-flow inkonsistent, App-Restart liefert sauberen Stand — siehe Bug #7 |
+| 3.5 | 10 Schüler in einer Pool-Session — Performance + UX | ⏭️ skipped | Setup-Aufwand vs. Risiko zu hoch; nachholbar bei späterem Stress-Test |
+| 3.6 | Dive löschen mit angehängten SkillCompletion-Records | ✅ | Cascade-Verhalten akzeptabel |
+| 3.7 | Schüler löschen via StudentEditSheet destructive delete | ✅ | funktioniert über StudentProfileView → Edit. UX-Friction siehe Bug #8 |
 
 ---
 
@@ -65,6 +65,10 @@
 | 3 | Minor | **Tauchgangstyp + Kurs-Tauchgang nicht exklusiv.** „Fun Dive" + „Kurs-Tauchgang"-Toggle gleichzeitig möglich. Semantisch evtl. OK (Spass-Tauchgang ist gleichzeitig Trainings-Tauchgang), UI klärt das nicht. | QuickLogView → Tauchgangstyp Fun Dive → Kurs-Tauchgang Toggle ON → beides ist gleichzeitig aktiv | offen |
 | 4 | Minor | **Per-Dive-PDF-Export aus DiveDetail fehlt.** „..."-Menu im DiveDetail hat nur „TG löschen". Bulk-Export aus Profile-Tab → Datenverwaltung deckt den Use-Case ab (Multi-Select 1/mehrere/alle), aber direkter Export aus dem Tauchgang wäre ergonomisch. | DiveDetail öffnen → ... Menu → nur „TG löschen" | offen, polish |
 | 5 | Minor | **Prior-Mastery-Trigger ist nicht offensichtlich.** PriorMasterySeedSheet existiert im Code, aber im UI-Walkthrough nicht über StudentPicker oder StudentProfileView direkt erkennbar. | Schüler anlegen → kein Button „Prior Mastery seeden" auffindbar | offen, UX-Polish oder Doku |
+| 6 | Important | **Course-Training=ON + leere Schüler-Liste speichert ohne Validation.** Tauchgang wird mit Course-Training-Markierung gespeichert auch ohne Schüler — sinnlos für den IDC-Use-Case, kein Crash aber Datenmüll. Fix: Validation oder automatischer Toggle-Reset wenn keine Schüler. | DiveFormView → Course-Training ON → Slot wählen → keine Schüler → Speichern geht durch | offen |
+| 7 | Important | **Sprachwechsel mid-flow ist inkonsistent.** L10n-Strings wechseln sofort (Profile, Progress, Not started, etc.), aber Tab-Bar und PADI-Catalog-Strings (Slot-Namen, Skill-Namen) bleiben in alter Sprache stehen. Nach App-Restart ist alles konsistent. Fix: PADI-Catalog-Reload bei Language-Change-Notification + Restart-Hinweis für iOS-native Strings. | App in DE → iOS-Settings → Language EN → zurück zur App → halb-EN halb-DE | offen |
+| 8 | Minor | **Plural-Handling fehlt** — „1 students" statt „1 student". Mehrere Stellen vermutlich betroffen. Fix: stringsdict-Templates oder String-Catalog mit Plural-Variants. | DiveDetail mit 1 Schüler → "1 students" sichtbar | offen |
+| 9 | Minor | **StudentEditSheet-Trigger nur via Edit-Button in StudentProfileView.** Im StudentPicker direkt fehlt Long-Press oder Swipe-Edit. User muss erst zur ProfileView navigieren um zu editieren/löschen. UX-Friction. | StudentPicker → Long-Press auf Schüler-Bubble → kein Trigger | offen |
 
 **Severity-Definition:**
 - **Critical** — App-Crash, Datenverlust, falsche Skill-Status-Anzeige, CloudKit-Duplikate/Verlust, PDF-Export schlägt fehl. Muss vor Phase 4 gefixt sein.
