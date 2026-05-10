@@ -70,8 +70,6 @@ function App() {
           <Route path="/saldo"                  element={<MySaldoScreen />} />
           <Route path="/profil"                 element={<MyProfileScreen />} />
           {/* CD-Modul */}
-          <Route path="/cd/kontakte"            element={<Navigate to="/schueler" replace />} />
-          <Route path="/cd/kandidaten"          element={<Navigate to="/schueler" replace />} />
           <Route path="/cd/pipeline"            element={<CDPipelineScreen />} />
           <Route path="/cd/organisationen"      element={<CDOrganizationsScreen />} />
           <Route path="/communication"          element={<CommunicationHubScreen />} />
