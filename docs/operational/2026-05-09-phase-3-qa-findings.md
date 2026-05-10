@@ -12,18 +12,24 @@
 
 | # | Schritt | Status | Notiz |
 |---|---------|--------|-------|
-| 2.1 | Sign-In + leeres Logbuch | | |
-| 2.2 | Schüler anlegen via StudentPicker → NewStudentSheet | | |
-| 2.3 | Prior Mastery seeden via PriorMasterySeedSheet | | |
-| 2.4 | Pool-Session anlegen (Slot CW1, OWD) | | |
-| 2.5 | Skills im Pool cyclen (notStarted → introduced → practiced → mastered) | | |
-| 2.6 | OWD-Dive anlegen mit Course-Training=ON, Schüler wählen | | |
-| 2.7 | DiveDetail Schüler-Section sichtbar mit Skill-Grid | | |
-| 2.8 | Im DiveDetail Skills cyclen (append-only Records) | | |
-| 2.9 | StudentProfileView Per-Slot-Fortschritt korrekt | | |
-| 2.10 | Sync auf iPad (~30-60s warten) | | |
-| 2.11 | Buddy-Signature für den Dive | | |
-| 2.12 | PDF-Export mit Schüler+Skill-Daten | | |
+| 2.1 | Setup leeres/echtes Logbuch | ✅ | 9 echte Dives, Test-Entitäten on-top |
+| 2.2 | Schüler anlegen via StudentPicker → NewStudentSheet | ✅ | Max Mustermann via QuickLog → Course-Training-Block |
+| 2.3 | Prior Mastery seeden via PriorMasterySeedSheet | ⏭️ skipped | Trigger nicht offensichtlich auffindbar; nicht-blocking für die übrigen Schritte |
+| 2.4 | Pool-Session anlegen (Slot CW1, OWD) | ✅ | Pool angelegt, im Logbuch sichtbar |
+| 2.5 | Skills im Pool cyclen | 🐛 blocked | siehe Bug #1 — CW-Catalog leer |
+| 2.6 | OWD-Dive anlegen mit Course-Training=ON, Schüler wählen | ✅ | Test-Dive #8'767 |
+| 2.7 | DiveDetail Schüler-Section sichtbar mit Skill-Grid | ✅ | 13 OW1-Skills + 9 Flexible Skills |
+| 2.8 | Im DiveDetail Skills cyclen (append-only Records) | ✅ | Tap-Cycle, Long-Press, Swipe-Reset funktionieren |
+| 2.9 | StudentProfileView Per-Slot-Fortschritt korrekt | ✅ | Per-Slot-Counter aktualisiert sich |
+| 2.10 | Sync auf iPad (~30-60s warten) | ✅ | Schüler + Dive + Skills syncen, Latenz <60s |
+| 2.11 | Buddy-Signature für den Dive | ✅ | Sign-Tab → Buddy-Signatur funktioniert (Architektur: kein separates Schüler-Signoff, Audit-Trail über SkillCompletion-Records reicht) |
+| 2.12 | PDF-Export mit Schüler+Skill-Daten | ✅ | Profile-Tab → Export, Multi-Select-fähig (1, mehrere, alle TGs), PDF + CSV |
+
+**Bonus-Findings (positiv):**
+- Tauchgangs-Renumbering läuft live (#8'767 nach #8'766) — Phase 2b ist in Production aktiv.
+- Foto-Sync funktioniert (Phase 2c-Vorarbeit + record-first-save).
+- Bulk-Actions „Alle auf mastered" / „Offene auf introduced" im Skill-Grid sind ergonomisch.
+- CloudKit-Sync ist zuverlässig im Sub-Minuten-Bereich.
 
 ---
 
@@ -54,7 +60,11 @@
 
 | # | Severity | Beschreibung | Repro | Fix-Status |
 |---|----------|--------------|-------|------------|
-| | | | | |
+| 1 | Important | **CW-Catalog ist leer.** Pool-Skills (CW1-CW5) sind nicht im PADI-Catalog gepflegt — Pool-Detail zeigt nur „CW1.1 — TBD" als Platzhalter. Zusätzlich fällt der Flexible-Skills-Bereich auf Open-Water-Flex-Skills zurück, weil keine CW-spezifischen Flex-Skills definiert sind. Der gesamte IDC/Pool-Workflow ist damit unbrauchbar. | Logbook → FAB → Pool-Session anlegen → CW1, OWD, Schüler → speichern → Pool öffnen → nur ein TBD-Skill sichtbar | offen |
+| 2 | Minor | **Sign-Tab nicht hinter Pro-Gate.** ProTeaser sollte erscheinen für nicht-Pro-User; stattdessen wird der Sign-Tab-Inhalt direkt gerendert. Phase-4-Coverage-Audit greift das auf. | Sandbox-Build mit isPro=false → Sign-Tab → Tauchgangsliste statt ProTeaser sichtbar | offen / verschoben in Phase 4 |
+| 3 | Minor | **Tauchgangstyp + Kurs-Tauchgang nicht exklusiv.** „Fun Dive" + „Kurs-Tauchgang"-Toggle gleichzeitig möglich. Semantisch evtl. OK (Spass-Tauchgang ist gleichzeitig Trainings-Tauchgang), UI klärt das nicht. | QuickLogView → Tauchgangstyp Fun Dive → Kurs-Tauchgang Toggle ON → beides ist gleichzeitig aktiv | offen |
+| 4 | Minor | **Per-Dive-PDF-Export aus DiveDetail fehlt.** „..."-Menu im DiveDetail hat nur „TG löschen". Bulk-Export aus Profile-Tab → Datenverwaltung deckt den Use-Case ab (Multi-Select 1/mehrere/alle), aber direkter Export aus dem Tauchgang wäre ergonomisch. | DiveDetail öffnen → ... Menu → nur „TG löschen" | offen, polish |
+| 5 | Minor | **Prior-Mastery-Trigger ist nicht offensichtlich.** PriorMasterySeedSheet existiert im Code, aber im UI-Walkthrough nicht über StudentPicker oder StudentProfileView direkt erkennbar. | Schüler anlegen → kein Button „Prior Mastery seeden" auffindbar | offen, UX-Polish oder Doku |
 
 **Severity-Definition:**
 - **Critical** — App-Crash, Datenverlust, falsche Skill-Status-Anzeige, CloudKit-Duplikate/Verlust, PDF-Export schlägt fehl. Muss vor Phase 4 gefixt sein.
