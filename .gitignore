@@ -18,4 +18,14 @@ supabase/.temp/
 apps/Apple/
 *.p8
 
+# Vite dev-server build artefacts (transient)
+**/vite.config.ts.timestamp-*
+
+# Snapshot-Tarballs im Repo-Root (atoll-*, cd-*) — Tag-Archive, gehören nicht ins Repo
+/atoll-*.tar.gz
+/cd-*.tar.gz
+
+# Lokale DB-Backups
+/backup-*.sql
+
 ~$*
