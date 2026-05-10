@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Drawer } from '@/foundation/layouts/Drawer'
 import { listContacts, getContactWithSidecars, mergeContacts } from '@/lib/contactQueries'
 import type { Contact, ContactWithSidecars } from '@/types/contacts'
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props) {
+  const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const [results, setResults] = useState<Contact[]>([])
   const [searching, setSearching] = useState(false)
@@ -77,7 +79,7 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
         setWinner(w)
         setLoser(l)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Fehler beim Laden'))
+      .catch((err) => setError(err instanceof Error ? err.message : t('contacts.merge_error_loading')))
       .finally(() => setLoadingPreview(false))
   }, [winnerId, loserId])
 
@@ -87,9 +89,7 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
 
   async function handleMerge() {
     if (!loserId) return
-    if (!window.confirm(
-      'Sicher? Die Verschmelzung migriert alle FK-Referenzen (Kurse, Saldo, Kommunikation, Beziehungen) auf den Gewinner-Kontakt und archiviert den Verlierer. Dieser Vorgang kann nicht rückgängig gemacht werden.'
-    )) return
+    if (!window.confirm(t('contacts.merge_confirm'))) return
 
     setMerging(true)
     setError(null)
@@ -98,7 +98,7 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
       onMerged()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Fehler beim Verschmelzen')
+      setError(err instanceof Error ? err.message : t('contacts.merge_error_merge'))
     } finally {
       setMerging(false)
     }
@@ -110,9 +110,9 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
     <Drawer
       open={open}
       onClose={onClose}
-      title="Mit anderem Kontakt verschmelzen"
+      title={t('contacts.merge_title')}
       width={drawerWidth}
-      ariaLabel="Kontakte verschmelzen"
+      ariaLabel={t('contacts.merge_title')}
     >
       <div style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
         {error && (
@@ -123,11 +123,11 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
         {!loserId && (
           <section>
             <h2 style={{ fontSize: 'var(--text-h3)', color: 'var(--text-secondary)', marginBottom: 'var(--space-3)', fontWeight: 'var(--weight-medium)' }}>
-              Zu verschmelzenden Kontakt suchen
+              {t('contacts.merge_search_hint')}
             </h2>
             <input
               type="search"
-              placeholder="Name oder E-Mail eingeben…"
+              placeholder={t('contacts.merge_search_placeholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{
@@ -143,7 +143,7 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
             />
             {searching && (
               <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-label)', marginTop: 'var(--space-2)' }}>
-                Suche…
+                {t('contacts.merge_searching')}
               </div>
             )}
             {results.length > 0 && (
@@ -174,7 +174,7 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
                         </span>
                       )}
                       <span style={{ color: 'var(--text-tertiary)', marginLeft: 'var(--space-2)', fontSize: 'var(--text-label)' }}>
-                        {c.kind === 'organization' ? 'Organisation' : 'Person'}
+                        {c.kind === 'organization' ? t('contacts.kind_organisation') : t('contacts.kind_person')}
                       </span>
                     </button>
                   </li>
@@ -183,7 +183,7 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
             )}
             {search.length >= 2 && !searching && results.length === 0 && (
               <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-label)', marginTop: 'var(--space-2)' }}>
-                Keine Ergebnisse.
+                {t('contacts.merge_no_results')}
               </div>
             )}
           </section>
@@ -197,11 +197,11 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
               onClick={() => { setLoserId(null); setWinner(null); setLoser(null) }}
               style={{ alignSelf: 'flex-start', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--brand-blue)', fontSize: 'var(--text-label)', padding: 0 }}
             >
-              ← Andere Auswahl
+              {t('contacts.merge_back')}
             </button>
 
             {loadingPreview && (
-              <div style={{ color: 'var(--text-tertiary)' }}>Lade Vorschau…</div>
+              <div style={{ color: 'var(--text-tertiary)' }}>{t('contacts.merge_loading_preview')}</div>
             )}
 
             {winner && loser && !loadingPreview && (
@@ -209,24 +209,24 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
                 <div className="merge-preview">
                   <div className="merge-side">
                     <div style={{ fontSize: 'var(--text-meta)', color: 'var(--brand-teal)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--space-2)', fontWeight: 'var(--weight-medium)' }}>
-                      Gewinner (bleibt erhalten)
+                      {t('contacts.merge_winner')}
                     </div>
                     <ContactPreview contact={winner} />
                   </div>
                   <div className="merge-side">
                     <div style={{ fontSize: 'var(--text-meta)', color: 'var(--brand-red)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--space-2)', fontWeight: 'var(--weight-medium)' }}>
-                      Verlierer (wird archiviert)
+                      {t('contacts.merge_loser')}
                     </div>
                     <ContactPreview contact={loser} />
                   </div>
                 </div>
 
                 <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)', background: 'var(--brand-amber-50)', border: '1px solid var(--brand-amber-100)', borderRadius: 'var(--radius-sm)', padding: 'var(--space-3)', margin: 0 }}>
-                  <strong>Hinweis:</strong> Die Verschmelzung migriert alle FK-Referenzen (Kurse, Saldo, Kommunikation, Beziehungen) auf den Gewinner-Kontakt und archiviert den Verlierer. Dieser Vorgang kann nicht rückgängig gemacht werden.
+                  <strong>Hinweis:</strong> {t('contacts.merge_warning')}
                 </p>
 
                 <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-                  <button type="button" className="contact-action-btn" onClick={onClose}>Abbrechen</button>
+                  <button type="button" className="contact-action-btn" onClick={onClose}>{t('common.cancel')}</button>
                   <button
                     type="button"
                     className="contact-action-btn contact-action-btn--primary"
@@ -234,7 +234,7 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
                     disabled={merging}
                     style={{ background: 'var(--brand-red)', borderColor: 'var(--brand-red)' }}
                   >
-                    {merging ? 'Verschmelzen…' : 'Verschmelzen'}
+                    {merging ? t('contacts.merge_executing') : t('contacts.merge_execute')}
                   </button>
                 </div>
               </>
@@ -247,6 +247,7 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
 }
 
 function ContactPreview({ contact }: { contact: ContactWithSidecars }) {
+  const { t } = useTranslation()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
       <div style={{ fontSize: 'var(--text-h3)', fontWeight: 'var(--weight-medium)', color: 'var(--text-primary)' }}>
@@ -258,11 +259,11 @@ function ContactPreview({ contact }: { contact: ContactWithSidecars }) {
         </div>
       )}
       <div style={{ fontSize: 'var(--text-label)', color: 'var(--text-tertiary)' }}>
-        {contact.kind === 'organization' ? 'Organisation' : 'Person'}
+        {contact.kind === 'organization' ? t('contacts.kind_organisation') : t('contacts.kind_person')}
       </div>
       {contact.roles.length > 0 && (
         <div style={{ fontSize: 'var(--text-label)', color: 'var(--text-tertiary)' }}>
-          Rollen: {contact.roles.join(', ')}
+          {t('contacts.preview_roles_label', { roles: contact.roles.join(', ') })}
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { archiveContact, gdprAnonymize } from '@/lib/contactQueries'
 import type { ContactWithSidecars } from '@/types/contacts'
 import { RoleManagerSheet } from './RoleManagerSheet'
@@ -68,12 +69,13 @@ function downloadVCard(contact: ContactWithSidecars) {
 type Sheet = 'roles' | 'merge' | null
 
 export function ContactMoreMenu({ contact, onChanged, onClosed }: Props) {
+  const { t } = useTranslation()
   const [activeSheet, setActiveSheet] = useState<Sheet>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleArchive() {
-    if (!window.confirm(`Kontakt "${contact.display_name}" wirklich archivieren?`)) return
+    if (!window.confirm(t('contacts.confirm_archive', { name: contact.display_name }))) return
     setBusy(true)
     setError(null)
     try {
@@ -81,15 +83,13 @@ export function ContactMoreMenu({ contact, onChanged, onClosed }: Props) {
       onChanged()
       onClosed()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Fehler beim Archivieren')
+      setError(err instanceof Error ? err.message : t('contacts.error_archive'))
       setBusy(false)
     }
   }
 
   async function handleGdpr() {
-    if (!window.confirm(
-      `GDPR-Löschung für "${contact.display_name}" durchführen? Alle personenbezogenen Daten werden unwiderruflich anonymisiert.`
-    )) return
+    if (!window.confirm(t('contacts.confirm_gdpr', { name: contact.display_name }))) return
     setBusy(true)
     setError(null)
     try {
@@ -97,14 +97,14 @@ export function ContactMoreMenu({ contact, onChanged, onClosed }: Props) {
       onChanged()
       onClosed()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Fehler bei der GDPR-Löschung')
+      setError(err instanceof Error ? err.message : t('contacts.error_gdpr'))
       setBusy(false)
     }
   }
 
   return (
     <>
-      <div className="more-menu" role="menu" aria-label="Weitere Aktionen">
+      <div className="more-menu" role="menu" aria-label={t('contacts.menu_aria')}>
         {error && (
           <div style={{ padding: 'var(--space-2) var(--space-4)', color: 'var(--brand-red)', fontSize: 'var(--text-label)' }}>
             {error}
@@ -118,7 +118,7 @@ export function ContactMoreMenu({ contact, onChanged, onClosed }: Props) {
               onClick={() => setActiveSheet('roles')}
               disabled={busy}
             >
-              Rollen verwalten
+              {t('contacts.action_manage_roles')}
             </button>
           </li>
           <li>
@@ -128,7 +128,7 @@ export function ContactMoreMenu({ contact, onChanged, onClosed }: Props) {
               onClick={() => setActiveSheet('merge')}
               disabled={busy}
             >
-              Mit anderem Kontakt verschmelzen
+              {t('contacts.action_merge')}
             </button>
           </li>
           <li>
@@ -138,7 +138,7 @@ export function ContactMoreMenu({ contact, onChanged, onClosed }: Props) {
               onClick={() => { downloadVCard(contact); onClosed() }}
               disabled={busy}
             >
-              Als vCard exportieren
+              {t('contacts.action_export_vcard')}
             </button>
           </li>
           <li>
@@ -148,7 +148,7 @@ export function ContactMoreMenu({ contact, onChanged, onClosed }: Props) {
               onClick={handleArchive}
               disabled={busy}
             >
-              Archivieren
+              {t('contacts.action_archive')}
             </button>
           </li>
           <li>
@@ -159,7 +159,7 @@ export function ContactMoreMenu({ contact, onChanged, onClosed }: Props) {
               onClick={handleGdpr}
               disabled={busy}
             >
-              GDPR-Löschung (PII entfernen)
+              {t('contacts.action_gdpr')}
             </button>
           </li>
           <li style={{ borderTop: '1px solid var(--border-secondary)', marginTop: 'var(--space-1)' }}>
@@ -169,7 +169,7 @@ export function ContactMoreMenu({ contact, onChanged, onClosed }: Props) {
               onClick={onClosed}
               style={{ color: 'var(--text-tertiary)' }}
             >
-              Schliessen
+              {t('contacts.action_close')}
             </button>
           </li>
         </ul>

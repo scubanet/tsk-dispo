@@ -3,22 +3,23 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Drawer } from '@/foundation/layouts/Drawer'
 import { listContacts, addRelationship } from '@/lib/contactQueries'
 import type { RelationshipKind, Contact } from '@/types/contacts'
 
-const KIND_OPTIONS: { value: RelationshipKind; label: string }[] = [
-  { value: 'works_at', label: 'arbeitet bei' },
-  { value: 'owns', label: 'besitzt' },
-  { value: 'spouse_of', label: 'verheiratet mit' },
-  { value: 'child_of', label: 'Kind von' },
-  { value: 'parent_of', label: 'Elternteil von' },
-  { value: 'referred_by', label: 'geworben durch' },
-  { value: 'subsidiary_of', label: 'Tochter von' },
-  { value: 'partner_of', label: 'Partner von' },
-  { value: 'supplier_of', label: 'Lieferant von' },
-  { value: 'student_of', label: 'Schüler von' },
-  { value: 'mentor_of', label: 'Mentor von' },
+const KIND_OPTIONS: { value: RelationshipKind; labelKey: string }[] = [
+  { value: 'works_at',      labelKey: 'contacts.rel_kind_works_at' },
+  { value: 'owns',          labelKey: 'contacts.rel_kind_owns' },
+  { value: 'spouse_of',     labelKey: 'contacts.rel_kind_spouse_of' },
+  { value: 'child_of',      labelKey: 'contacts.rel_kind_child_of' },
+  { value: 'parent_of',     labelKey: 'contacts.rel_kind_parent_of' },
+  { value: 'referred_by',   labelKey: 'contacts.rel_kind_referred_by' },
+  { value: 'subsidiary_of', labelKey: 'contacts.rel_kind_subsidiary_of' },
+  { value: 'partner_of',    labelKey: 'contacts.rel_kind_partner_of' },
+  { value: 'supplier_of',   labelKey: 'contacts.rel_kind_supplier_of' },
+  { value: 'student_of',    labelKey: 'contacts.rel_kind_student_of' },
+  { value: 'mentor_of',     labelKey: 'contacts.rel_kind_mentor_of' },
 ]
 
 interface Props {
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: Props) {
+  const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const [results, setResults] = useState<Contact[]>([])
   const [selected, setSelected] = useState<Contact | null>(null)
@@ -64,7 +66,7 @@ export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: 
       resetState()
       onSaved()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Fehler beim Speichern')
+      setError(err instanceof Error ? err.message : t('contacts.rel_error_save'))
     } finally {
       setSaving(false)
     }
@@ -89,7 +91,7 @@ export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: 
     <Drawer
       open={open}
       onClose={handleClose}
-      title="Beziehung hinzufügen"
+      title={t('contacts.add_rel_title')}
       width={480}
       footer={
         selected ? (
@@ -99,7 +101,7 @@ export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: 
               onClick={handleClose}
               style={{ padding: 'var(--space-2) var(--space-4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-secondary)', background: 'var(--bg-secondary)', cursor: 'pointer' }}
             >
-              Abbrechen
+              {t('common.cancel')}
             </button>
             <button
               type="button"
@@ -107,7 +109,7 @@ export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: 
               disabled={saving}
               style={{ padding: 'var(--space-2) var(--space-4)', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--brand-blue)', color: '#fff', cursor: 'pointer', fontWeight: 'var(--weight-medium)' }}
             >
-              {saving ? 'Speichern…' : 'Speichern'}
+              {saving ? t('common.saving') : t('common.save')}
             </button>
           </div>
         ) : undefined
@@ -119,13 +121,13 @@ export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: 
           <>
             <div>
               <label style={{ display: 'block', fontSize: 'var(--text-label)', fontWeight: 'var(--weight-medium)', marginBottom: 'var(--space-2)' }}>
-                Kontakt suchen
+                {t('contacts.rel_search_label')}
               </label>
               <input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Name oder E-Mail…"
+                placeholder={t('contacts.rel_search_placeholder')}
                 style={{ width: '100%', padding: 'var(--space-2) var(--space-3)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-secondary)', fontSize: 'var(--text-body)' }}
               />
             </div>
@@ -153,7 +155,7 @@ export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: 
         {selected && (
           <>
             <div style={{ padding: 'var(--space-3)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }}>
-              <div style={{ fontSize: 'var(--text-meta)', color: 'var(--text-tertiary)' }}>Ausgewählt:</div>
+              <div style={{ fontSize: 'var(--text-meta)', color: 'var(--text-tertiary)' }}>{t('contacts.rel_selected_label')}</div>
               <div style={{ fontWeight: 'var(--weight-medium)' }}>{selected.display_name}</div>
               {selected.primary_email && (
                 <div style={{ fontSize: 'var(--text-meta)', color: 'var(--text-tertiary)' }}>{selected.primary_email}</div>
@@ -163,13 +165,13 @@ export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: 
                 onClick={() => { setSelected(null); setSearch('') }}
                 style={{ marginTop: 'var(--space-2)', fontSize: 'var(--text-meta)', color: 'var(--brand-blue)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               >
-                Anderen Kontakt wählen
+                {t('contacts.rel_change')}
               </button>
             </div>
 
             <div>
               <label style={{ display: 'block', fontSize: 'var(--text-label)', fontWeight: 'var(--weight-medium)', marginBottom: 'var(--space-2)' }}>
-                Art der Beziehung
+                {t('contacts.rel_kind_label')}
               </label>
               <select
                 value={kind}
@@ -177,7 +179,7 @@ export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: 
                 style={{ width: '100%', padding: 'var(--space-2) var(--space-3)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-secondary)', fontSize: 'var(--text-body)' }}
               >
                 {KIND_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                  <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
                 ))}
               </select>
             </div>
@@ -185,13 +187,13 @@ export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: 
             {kind === 'works_at' && (
               <div>
                 <label style={{ display: 'block', fontSize: 'var(--text-label)', fontWeight: 'var(--weight-medium)', marginBottom: 'var(--space-2)' }}>
-                  Rolle / Funktion (optional)
+                  {t('contacts.rel_role_label')}
                 </label>
                 <input
                   type="text"
                   value={roleAtOrg}
                   onChange={(e) => setRoleAtOrg(e.target.value)}
-                  placeholder="z. B. Geschäftsführer, Buchhalter"
+                  placeholder={t('contacts.rel_role_placeholder')}
                   style={{ width: '100%', padding: 'var(--space-2) var(--space-3)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-secondary)', fontSize: 'var(--text-body)' }}
                 />
               </div>
@@ -203,7 +205,7 @@ export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: 
                 checked={isPrimary}
                 onChange={(e) => setIsPrimary(e.target.checked)}
               />
-              Primäre Beziehung
+              {t('contacts.rel_primary_label')}
             </label>
 
             {error && (

@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Drawer } from '@/foundation/layouts/Drawer'
 import { createContact, findPotentialDuplicates } from '@/lib/contactQueries'
 import type { ContactKind, ContactRole } from '@/types/contacts'
@@ -20,16 +21,16 @@ interface Props {
 
 interface RoleOption {
   role: ContactRole
-  label: string
+  labelKey: string
 }
 
 const ROLE_OPTIONS: RoleOption[] = [
-  { role: 'instructor', label: 'TL/DM' },
-  { role: 'student',    label: 'Schüler' },
-  { role: 'candidate',  label: 'Kandidat' },
-  { role: 'newsletter', label: 'Newsletter' },
-  { role: 'supplier',   label: 'Lieferant' },
-  { role: 'partner_rep', label: 'Partner-Rep' },
+  { role: 'instructor', labelKey: 'contacts.role_instructor' },
+  { role: 'student',    labelKey: 'contacts.role_student' },
+  { role: 'candidate',  labelKey: 'contacts.role_candidate' },
+  { role: 'newsletter', labelKey: 'contacts.role_newsletter' },
+  { role: 'supplier',   labelKey: 'contacts.role_supplier' },
+  { role: 'partner_rep', labelKey: 'contacts.role_partner_rep' },
 ]
 
 function resetState() {
@@ -45,6 +46,7 @@ function resetState() {
 }
 
 export function CreateContactSheet({ open, onClose, onCreated }: Props) {
+  const { t } = useTranslation()
   const [form, setForm] = useState(resetState())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -74,11 +76,11 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
 
     // Validation
     if (form.kind === 'person' && (!form.firstName.trim() || !form.lastName.trim())) {
-      setError('Vorname und Nachname sind erforderlich.')
+      setError(t('contacts.validation_person_name'))
       return
     }
     if (form.kind === 'organization' && !form.legalName.trim()) {
-      setError('Firmenname ist erforderlich.')
+      setError(t('contacts.validation_company_name'))
       return
     }
 
@@ -102,7 +104,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
         if (dups.length > 0) {
           const first = dups[0]
           setDupWarning(
-            `Möglicher Treffer: ${first.display_name} (${first.primary_email ?? first.kind})`
+            t('contacts.dup_warning', { name: first.display_name, info: first.primary_email ?? first.kind })
           )
           // Still proceed — warning is informational
         }
@@ -113,7 +115,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
       onCreated(newId)
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Speichern fehlgeschlagen.')
+      setError(err instanceof Error ? err.message : t('contacts.save_error'))
     } finally {
       setSaving(false)
     }
@@ -143,7 +145,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
     <Drawer
       open={open}
       onClose={onClose}
-      title="Neuer Kontakt"
+      title={t('contacts.create_title')}
       width={Math.round(window.innerWidth * 0.4)}
       footer={
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
@@ -153,7 +155,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
             onClick={onClose}
             disabled={saving}
           >
-            Abbrechen
+            {t('common.cancel')}
           </button>
           <button
             type="button"
@@ -161,7 +163,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
             onClick={handleSave}
             disabled={saving}
           >
-            {saving ? 'Speichern…' : 'Erstellen'}
+            {saving ? t('contacts.saving_progress') : t('common.create')}
           </button>
         </div>
       }
@@ -181,7 +183,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
                 checked={form.kind === k}
                 onChange={() => setForm((prev) => ({ ...prev, kind: k }))}
               />
-              {k === 'person' ? 'Person' : 'Organisation'}
+              {k === 'person' ? t('contacts.kind_person') : t('contacts.kind_organisation')}
             </label>
           ))}
         </div>
@@ -190,7 +192,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
         {form.kind === 'person' && (
           <>
             <label style={labelStyle}>
-              Vorname *
+              {t('contacts.field_first_name_req')}
               <input
                 type="text"
                 value={form.firstName}
@@ -201,7 +203,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
               />
             </label>
             <label style={labelStyle}>
-              Nachname *
+              {t('contacts.field_last_name_req')}
               <input
                 type="text"
                 value={form.lastName}
@@ -217,7 +219,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
         {/* Organisation field */}
         {form.kind === 'organization' && (
           <label style={labelStyle}>
-            Firmenname *
+            {t('contacts.field_company_req')}
             <input
               type="text"
               value={form.legalName}
@@ -231,7 +233,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
 
         {/* Email */}
         <label style={labelStyle}>
-          E-Mail
+          {t('contacts.field_email')}
           <input
             type="email"
             value={form.email}
@@ -244,7 +246,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
 
         {/* Phone */}
         <label style={labelStyle}>
-          Telefon
+          {t('contacts.field_phone')}
           <input
             type="tel"
             value={form.phone}
@@ -258,10 +260,10 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
         {/* Roles */}
         <div>
           <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-body)', marginBottom: 8 }}>
-            Rollen
+            {t('contacts.field_roles')}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-            {ROLE_OPTIONS.map(({ role, label }) => (
+            {ROLE_OPTIONS.map(({ role, labelKey }) => (
               <label
                 key={role}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}
@@ -271,7 +273,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
                   checked={form.roles.includes(role)}
                   onChange={() => toggleRole(role)}
                 />
-                {label}
+                {t(labelKey)}
               </label>
             ))}
           </div>

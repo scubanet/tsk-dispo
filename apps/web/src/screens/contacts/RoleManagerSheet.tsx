@@ -4,22 +4,23 @@
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Drawer } from '@/foundation/layouts/Drawer'
 import { supabase } from '@/lib/supabase'
 import type { ContactRole } from '@/types/contacts'
 
-// All available roles with display labels
-const ALL_ROLES: { value: ContactRole; label: string; hasSidecar?: boolean }[] = [
-  { value: 'instructor', label: 'TL/DM', hasSidecar: true },
-  { value: 'cd', label: 'CD' },
-  { value: 'owner', label: 'Owner' },
-  { value: 'dispatcher', label: 'Dispatcher' },
-  { value: 'student', label: 'Schüler', hasSidecar: true },
-  { value: 'candidate', label: 'Kandidat' },
-  { value: 'newsletter', label: 'Newsletter' },
-  { value: 'supplier', label: 'Lieferant' },
-  { value: 'partner_rep', label: 'Partner-Rep' },
-  { value: 'authority', label: 'Behörde' },
+// Role value → i18n key map
+const ROLE_LABEL_KEYS: { value: ContactRole; labelKey: string; hasSidecar?: boolean }[] = [
+  { value: 'instructor', labelKey: 'contacts.role_instructor', hasSidecar: true },
+  { value: 'cd', labelKey: 'contacts.role_cd' },
+  { value: 'owner', labelKey: 'contacts.role_owner' },
+  { value: 'dispatcher', labelKey: 'contacts.role_dispatcher' },
+  { value: 'student', labelKey: 'contacts.role_student', hasSidecar: true },
+  { value: 'candidate', labelKey: 'contacts.role_candidate' },
+  { value: 'newsletter', labelKey: 'contacts.role_newsletter' },
+  { value: 'supplier', labelKey: 'contacts.role_supplier' },
+  { value: 'partner_rep', labelKey: 'contacts.role_partner_rep' },
+  { value: 'authority', labelKey: 'contacts.role_authority' },
 ]
 
 interface Props {
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export function RoleManagerSheet({ contactId, currentRoles, open, onClose, onSaved }: Props) {
+  const { t } = useTranslation()
   const [draft, setDraft] = useState<ContactRole[]>(currentRoles)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -87,7 +89,7 @@ export function RoleManagerSheet({ contactId, currentRoles, open, onClose, onSav
       onSaved()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Fehler beim Speichern')
+      setError(err instanceof Error ? err.message : t('common.error'))
     } finally {
       setSaving(false)
     }
@@ -97,16 +99,16 @@ export function RoleManagerSheet({ contactId, currentRoles, open, onClose, onSav
     <Drawer
       open={open}
       onClose={onClose}
-      title="Rollen verwalten"
+      title={t('contacts.manage_roles_title')}
       width={Math.round(window.innerWidth * 0.3)}
-      ariaLabel="Rollen verwalten"
+      ariaLabel={t('contacts.manage_roles_title')}
       footer={
         <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end', padding: 'var(--space-4)' }}>
           <button type="button" className="contact-action-btn" onClick={onClose} disabled={saving}>
-            Abbrechen
+            {t('common.cancel')}
           </button>
           <button type="button" className="contact-action-btn contact-action-btn--primary" onClick={handleSave} disabled={saving}>
-            {saving ? 'Speichern…' : 'Speichern'}
+            {saving ? t('common.saving') : t('common.save')}
           </button>
         </div>
       }
@@ -118,7 +120,7 @@ export function RoleManagerSheet({ contactId, currentRoles, open, onClose, onSav
           </div>
         )}
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-          {ALL_ROLES.map(({ value, label }) => (
+          {ROLE_LABEL_KEYS.map(({ value, labelKey }) => (
             <li key={value} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-2) 0', borderBottom: '1px solid var(--border-tertiary)' }}>
               <input
                 type="checkbox"
@@ -131,7 +133,7 @@ export function RoleManagerSheet({ contactId, currentRoles, open, onClose, onSav
                 htmlFor={`role-${value}`}
                 style={{ fontSize: 'var(--text-body)', color: 'var(--text-primary)', cursor: 'pointer', flex: 1 }}
               >
-                {label}
+                {t(labelKey)}
               </label>
             </li>
           ))}
