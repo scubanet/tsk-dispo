@@ -42,7 +42,7 @@ const ITEMS: NavItem[] = [
   { to: '/heute',             icon: 'house',    i18nKey: 'today',           roles: ['dispatcher', 'instructor', 'owner', 'cd'] },
   { to: '/kalender',          icon: 'calendar', i18nKey: 'calendar',        roles: ['dispatcher', 'instructor', 'owner', 'cd'] },
   { to: '/kurse',             icon: 'book',     i18nKey: 'courses',         roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/schueler',          icon: 'tag',      i18nKey: 'students',        roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/contacts?view=students', icon: 'tag', i18nKey: 'students',       roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/pool',              icon: 'water',    i18nKey: 'pool',            roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/saldi',             icon: 'wallet',   i18nKey: 'balances',        roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/einsaetze',         icon: 'book',     i18nKey: 'my_assignments',  roles: ['instructor'] },
