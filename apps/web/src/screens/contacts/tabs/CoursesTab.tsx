@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import type { ContactRole } from '@/types/contacts'
 
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export function CoursesTab({ contactId, roles }: Props) {
+  const { t } = useTranslation()
   const isInstructor = roles.includes('instructor')
   const isStudent = roles.includes('student') || roles.includes('candidate')
 
@@ -64,9 +66,9 @@ export function CoursesTab({ contactId, roles }: Props) {
     <div className="contact-tab-body">
       {isInstructor && (
         <section className="contact-section">
-          <h2 className="contact-section__title">Als TL / DM</h2>
+          <h2 className="contact-section__title">{t('contacts.section_as_instructor')}</h2>
           {assignments.length === 0 ? (
-            <p className="tab-stub">Keine Einsätze erfasst.</p>
+            <p className="tab-stub">{t('contacts.no_assignments')}</p>
           ) : (
             <ul className="courses-list">
               {assignments.map((a) => (
@@ -90,9 +92,9 @@ export function CoursesTab({ contactId, roles }: Props) {
 
       {isStudent && (
         <section className="contact-section">
-          <h2 className="contact-section__title">Als Teilnehmer</h2>
+          <h2 className="contact-section__title">{t('contacts.section_as_participant')}</h2>
           {participations.length === 0 ? (
-            <p className="tab-stub">Keine Teilnahmen erfasst.</p>
+            <p className="tab-stub">{t('contacts.no_participations')}</p>
           ) : (
             <ul className="courses-list">
               {participations.map((p) => (

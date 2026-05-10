@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 
 interface AuditRow {
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export function AuditHistoryTab({ contactId }: Props) {
+  const { t } = useTranslation()
   const [rows, setRows] = useState<AuditRow[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -42,10 +44,10 @@ export function AuditHistoryTab({ contactId }: Props) {
     return () => { cancelled = true }
   }, [contactId])
 
-  if (loading) return <div className="contact-tab-body tab-stub">Lade Audit-Verlauf…</div>
+  if (loading) return <div className="contact-tab-body tab-stub">{t('contacts.loading_audit')}</div>
 
   if (rows.length === 0) {
-    return <div className="contact-tab-body tab-stub">Kein Audit-Verlauf vorhanden.</div>
+    return <div className="contact-tab-body tab-stub">{t('contacts.no_audit')}</div>
   }
 
   return (
@@ -64,7 +66,7 @@ export function AuditHistoryTab({ contactId }: Props) {
             </div>
             {row.operation === 'UPDATE' && row.changed_fields && (
               <details className="audit-entry__diff">
-                <summary>Geänderte Felder</summary>
+                <summary>{t('contacts.changed_fields')}</summary>
                 <pre>{JSON.stringify(row.changed_fields, null, 2)}</pre>
               </details>
             )}

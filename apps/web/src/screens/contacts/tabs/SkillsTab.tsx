@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 
 interface SkillRow {
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function SkillsTab({ contactId }: Props) {
+  const { t } = useTranslation()
   const [skills, setSkills] = useState<SkillRow[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -38,10 +40,10 @@ export function SkillsTab({ contactId }: Props) {
     return () => { cancelled = true }
   }, [contactId])
 
-  if (loading) return <div className="contact-tab-body tab-stub">Lade Skills…</div>
+  if (loading) return <div className="contact-tab-body tab-stub">{t('contacts.loading_skills')}</div>
 
   if (skills.length === 0) {
-    return <div className="contact-tab-body tab-stub">Keine Skills erfasst.</div>
+    return <div className="contact-tab-body tab-stub">{t('contacts.no_skills')}</div>
   }
 
   return (

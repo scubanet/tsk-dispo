@@ -3,19 +3,11 @@
  * Visible for contacts with student or candidate roles.
  */
 
+import { useTranslation } from 'react-i18next'
 import type { ContactWithSidecars } from '@/types/contacts'
 import { InlineTextField } from '@/foundation/compounds/InlineTextField'
 import { InlineSelectField } from '@/foundation/compounds/InlineSelectField'
 import { updateStudentField } from '@/lib/contactQueries'
-
-const PIPELINE_STAGES = [
-  { value: 'lead', label: 'Lead' },
-  { value: 'qualified', label: 'Qualifiziert' },
-  { value: 'opportunity', label: 'Opportunity' },
-  { value: 'customer', label: 'Kunde' },
-  { value: 'candidate', label: 'Kandidat' },
-  { value: 'lost', label: 'Verloren' },
-]
 
 interface Props {
   contact: ContactWithSidecars
@@ -23,7 +15,17 @@ interface Props {
 }
 
 export function StudentTab({ contact, onUpdated }: Props) {
+  const { t } = useTranslation()
   const student = contact.student
+
+  const PIPELINE_STAGES = [
+    { value: 'lead', label: 'Lead' },
+    { value: 'qualified', label: t('contacts.pipeline_qualified') },
+    { value: 'opportunity', label: 'Opportunity' },
+    { value: 'customer', label: t('contacts.pipeline_customer') },
+    { value: 'candidate', label: t('contacts.role_candidate') },
+    { value: 'lost', label: t('contacts.pipeline_lost') },
+  ]
 
   async function saveStudent<K extends Parameters<typeof updateStudentField>[1]>(
     field: K,
@@ -37,16 +39,16 @@ export function StudentTab({ contact, onUpdated }: Props) {
     <div className="contact-tab-body">
       {/* ── Pipeline ─────────────────────────────── */}
       <section className="contact-section">
-        <h2 className="contact-section__title">Pipeline</h2>
+        <h2 className="contact-section__title">{t('contacts.section_pipeline')}</h2>
         <InlineSelectField
-          label="Pipeline-Phase"
+          label={t('contacts.field_pipeline_stage')}
           value={student?.pipeline_stage}
           options={PIPELINE_STAGES}
           allowEmpty
           onCommit={async (v) => saveStudent('pipeline_stage', v || null)}
         />
         <InlineTextField
-          label="Lead-Quelle"
+          label={t('contacts.field_lead_source')}
           value={student?.lead_source}
           onCommit={async (v) => saveStudent('lead_source', v || null)}
           placeholder="z. B. Empfehlung, Website"
@@ -55,29 +57,29 @@ export function StudentTab({ contact, onUpdated }: Props) {
 
       {/* ── Tauchen ──────────────────────────────── */}
       <section className="contact-section">
-        <h2 className="contact-section__title">Tauchen</h2>
+        <h2 className="contact-section__title">{t('contacts.section_diving')}</h2>
         <InlineTextField
-          label="Höchstes Brevet"
+          label={t('contacts.field_highest_brevet')}
           value={student?.highest_brevet}
           onCommit={async (v) => saveStudent('highest_brevet', v || null)}
           placeholder="z. B. OWD, AOWD, Rescue"
         />
         <InlineTextField
-          label="Intake-Status"
+          label={t('contacts.field_intake_status')}
           value={student?.intake_status}
           onCommit={async (v) => saveStudent('intake_status', v || null)}
         />
         <InlineTextField
-          label="Versicherung"
+          label={t('contacts.field_insurance')}
           value={student?.insurance_provider}
           onCommit={async (v) => saveStudent('insurance_provider', v || null)}
           placeholder="z. B. DAN"
         />
         <InlineTextField
-          label="Ärztliches Attest"
+          label={t('contacts.field_medical_clearance')}
           value={student?.medical_clearance_at}
           onCommit={async (v) => saveStudent('medical_clearance_at', v || null)}
-          placeholder="JJJJ-MM-TT"
+          placeholder={t('contacts.birth_date_placeholder')}
         />
       </section>
     </div>

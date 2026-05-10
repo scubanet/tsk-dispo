@@ -3,6 +3,7 @@
  * Visible only for organizations with specific org_kinds.
  */
 
+import { useTranslation } from 'react-i18next'
 import type { ContactWithSidecars } from '@/types/contacts'
 import { InlineTextField } from '@/foundation/compounds/InlineTextField'
 import { updateOrganizationField } from '@/lib/contactQueries'
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function ContractTab({ contact, onUpdated }: Props) {
+  const { t } = useTranslation()
   const org = contact.organization
 
   async function saveOrg<K extends Parameters<typeof updateOrganizationField>[1]>(
@@ -26,32 +28,32 @@ export function ContractTab({ contact, onUpdated }: Props) {
   return (
     <div className="contact-tab-body">
       <section className="contact-section">
-        <h2 className="contact-section__title">Vertrag &amp; Abrechnung</h2>
+        <h2 className="contact-section__title">{t('contacts.section_contract')}</h2>
         <InlineTextField
-          label="Steuer-ID / UID"
+          label={t('contacts.field_tax_id')}
           value={org?.tax_id}
           onCommit={async (v) => saveOrg('tax_id', v || null)}
           placeholder="CHE-123.456.789"
         />
         <InlineTextField
-          label="Rechnungs-E-Mail"
+          label={t('contacts.field_billing_email')}
           value={org?.billing_email}
           onCommit={async (v) => saveOrg('billing_email', v || null)}
           placeholder="billing@firma.ch"
         />
         <InlineTextField
-          label="Vertragsart"
+          label={t('contacts.field_contract_type')}
           value={org?.contract_type}
           onCommit={async (v) => saveOrg('contract_type', v || null)}
         />
         <InlineTextField
-          label="Vertrag bis"
+          label={t('contacts.field_contract_until')}
           value={org?.contract_until}
           onCommit={async (v) => saveOrg('contract_until', v || null)}
-          placeholder="JJJJ-MM-TT"
+          placeholder={t('contacts.birth_date_placeholder')}
         />
         <InlineTextField
-          label="Zahlungsbedingungen"
+          label={t('contacts.field_payment_terms')}
           value={org?.payment_terms}
           onCommit={async (v) => saveOrg('payment_terms', v || null)}
           placeholder="z. B. 30 Tage netto"

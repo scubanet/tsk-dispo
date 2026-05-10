@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function SaldoTab({ contactId }: Props) {
+  const { t } = useTranslation()
   const [count, setCount] = useState<number | null>(null)
 
   useEffect(() => {
@@ -24,10 +26,10 @@ export function SaldoTab({ contactId }: Props) {
 
   return (
     <div className="contact-tab-body tab-stub">
-      <p>Saldo-Tab — wird in Phase E.5 aus InstructorDetailPanel extrahiert.</p>
+      <p>{t('contacts.saldo_stub')}</p>
       {count !== null && (
         <p style={{ marginTop: 'var(--space-2)', color: 'var(--text-tertiary)', fontSize: 'var(--text-meta)' }}>
-          Buchungen für diesen Kontakt: {count}
+          {t('contacts.bookings_count', { count })}
         </p>
       )}
     </div>

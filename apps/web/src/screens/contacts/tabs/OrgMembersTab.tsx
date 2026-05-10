@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 
 interface MemberRow {
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function OrgMembersTab({ orgId, onSelectContact }: Props) {
+  const { t } = useTranslation()
   const [members, setMembers] = useState<MemberRow[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -47,10 +49,10 @@ export function OrgMembersTab({ orgId, onSelectContact }: Props) {
     return () => { cancelled = true }
   }, [orgId])
 
-  if (loading) return <div className="contact-tab-body tab-stub">Lade Mitglieder…</div>
+  if (loading) return <div className="contact-tab-body tab-stub">{t('contacts.loading_members')}</div>
 
   if (members.length === 0) {
-    return <div className="contact-tab-body tab-stub">Keine Mitglieder erfasst.</div>
+    return <div className="contact-tab-body tab-stub">{t('contacts.no_members')}</div>
   }
 
   return (

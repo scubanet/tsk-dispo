@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { ContactWithSidecars } from '@/types/contacts'
 import { InlineTextField } from '@/foundation/compounds/InlineTextField'
 import { EmailList } from '@/foundation/compounds/EmailList'
@@ -27,6 +28,7 @@ interface Props {
 }
 
 export function OverviewTab({ contact, onUpdated }: Props) {
+  const { t } = useTranslation()
   const id = contact.id
   const isOrg = contact.kind === 'organization'
   const [savingLang, setSavingLang] = useState(false)
@@ -58,16 +60,16 @@ export function OverviewTab({ contact, onUpdated }: Props) {
     <div className="contact-tab-body">
       {/* ── Stammdaten ──────────────────────────────── */}
       <section className="contact-section">
-        <h2 className="contact-section__title">Stammdaten</h2>
+        <h2 className="contact-section__title">{t('contacts.section_master')}</h2>
         {isOrg ? (
           <>
             <InlineTextField
-              label="Firmenname"
+              label={t('contacts.field_company_name')}
               value={contact.legal_name}
               onCommit={async (v) => save('legal_name', v)}
             />
             <InlineTextField
-              label="Handelsname"
+              label={t('contacts.field_trading_name')}
               value={contact.trading_name}
               onCommit={async (v) => save('trading_name', v)}
             />
@@ -75,20 +77,20 @@ export function OverviewTab({ contact, onUpdated }: Props) {
         ) : (
           <>
             <InlineTextField
-              label="Vorname"
+              label={t('contacts.field_first_name')}
               value={contact.first_name}
               onCommit={async (v) => save('first_name', v)}
             />
             <InlineTextField
-              label="Nachname"
+              label={t('contacts.field_last_name')}
               value={contact.last_name}
               onCommit={async (v) => save('last_name', v)}
             />
             <InlineTextField
-              label="Geburtsdatum"
+              label={t('contacts.field_birth_date')}
               value={contact.birth_date}
               onCommit={async (v) => save('birth_date', v || null)}
-              placeholder="JJJJ-MM-TT"
+              placeholder={t('contacts.birth_date_placeholder')}
             />
           </>
         )}
@@ -96,8 +98,8 @@ export function OverviewTab({ contact, onUpdated }: Props) {
 
       {/* ── Kontakt ─────────────────────────────────── */}
       <section className="contact-section">
-        <h2 className="contact-section__title">Kontakt</h2>
-        <div className="contact-section__field-label">E-Mail</div>
+        <h2 className="contact-section__title">{t('contacts.section_contact_info')}</h2>
+        <div className="contact-section__field-label">{t('contacts.field_email_label')}</div>
         <EmailList
           emails={contact.emails}
           onChange={async (next) => {
@@ -108,7 +110,7 @@ export function OverviewTab({ contact, onUpdated }: Props) {
             onUpdated()
           }}
         />
-        <div className="contact-section__field-label" style={{ marginTop: 'var(--space-4)' }}>Telefon</div>
+        <div className="contact-section__field-label" style={{ marginTop: 'var(--space-4)' }}>{t('contacts.field_phone_label')}</div>
         <PhoneList
           phones={contact.phones}
           onChange={async (next) => {
@@ -116,7 +118,7 @@ export function OverviewTab({ contact, onUpdated }: Props) {
             onUpdated()
           }}
         />
-        <div className="contact-section__field-label" style={{ marginTop: 'var(--space-4)' }}>Adresse</div>
+        <div className="contact-section__field-label" style={{ marginTop: 'var(--space-4)' }}>{t('contacts.field_address_label')}</div>
         <AddressList
           addresses={contact.addresses}
           onChange={async (next) => {
@@ -128,8 +130,8 @@ export function OverviewTab({ contact, onUpdated }: Props) {
 
       {/* ── Sprachen & Tags ─────────────────────────── */}
       <section className="contact-section">
-        <h2 className="contact-section__title">Sprachen &amp; Tags</h2>
-        <div className="contact-section__field-label">Sprachen</div>
+        <h2 className="contact-section__title">{t('contacts.section_languages_tags')}</h2>
+        <div className="contact-section__field-label">{t('contacts.field_languages')}</div>
         <div className="languages-checkbox-group" data-saving={savingLang}>
           {LANGUAGES.map((l) => {
             const checked = (contact.languages ?? []).includes(l.code)
@@ -151,34 +153,34 @@ export function OverviewTab({ contact, onUpdated }: Props) {
           })}
         </div>
         <InlineTextField
-          label="Tags"
+          label={t('contacts.field_tags')}
           value={(contact.tags ?? []).join(', ')}
           onCommit={async (v) => {
             const arr = v.split(',').map((s) => s.trim()).filter(Boolean)
             await updateContactField(id, 'tags', arr)
             onUpdated()
           }}
-          placeholder="vip, newsletter, …"
+          placeholder={t('contacts.tags_placeholder')}
         />
       </section>
 
       {/* ── Notizen ─────────────────────────────────── */}
       <section className="contact-section">
-        <h2 className="contact-section__title">Notizen</h2>
+        <h2 className="contact-section__title">{t('contacts.section_notes')}</h2>
         <InlineTextField
-          label="Notizen"
+          label={t('contacts.section_notes')}
           value={contact.notes}
           onCommit={async (v) => save('notes', v || null)}
           multiline
-          placeholder="Interne Notizen …"
+          placeholder={t('contacts.notes_placeholder')}
         />
       </section>
 
       {/* ── Footer ──────────────────────────────────── */}
       <footer className="contact-tab-footer">
-        <span>Erstellt: {new Date(contact.created_at).toLocaleDateString('de-CH')}</span>
-        <span>Geändert: {new Date(contact.updated_at).toLocaleDateString('de-CH')}</span>
-        {contact.source && <span>Quelle: {contact.source}</span>}
+        <span>{t('contacts.footer_created', { date: new Date(contact.created_at).toLocaleDateString('de-CH') })}</span>
+        <span>{t('contacts.footer_updated', { date: new Date(contact.updated_at).toLocaleDateString('de-CH') })}</span>
+        {contact.source && <span>{t('contacts.footer_source', { source: contact.source })}</span>}
       </footer>
     </div>
   )

@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 
 interface AuditRow {
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function ActivityTab({ contactId }: Props) {
+  const { t } = useTranslation()
   const [rows, setRows] = useState<AuditRow[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -38,10 +40,10 @@ export function ActivityTab({ contactId }: Props) {
     return () => { cancelled = true }
   }, [contactId])
 
-  if (loading) return <div className="contact-tab-body tab-stub">Lade Aktivitäten…</div>
+  if (loading) return <div className="contact-tab-body tab-stub">{t('contacts.loading_activity')}</div>
 
   if (rows.length === 0) {
-    return <div className="contact-tab-body tab-stub">Keine Aktivitäten erfasst.</div>
+    return <div className="contact-tab-body tab-stub">{t('contacts.no_activity')}</div>
   }
 
   return (
