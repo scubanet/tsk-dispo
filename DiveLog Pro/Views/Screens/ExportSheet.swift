@@ -54,10 +54,10 @@ struct ExportSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.deepOcean.ignoresSafeArea()
+                HeroBackground()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: DSSpacing.xl) {
                         intro
 
                         formatSection
@@ -71,15 +71,15 @@ struct ExportSheet: View {
                         if let msg = errorMessage {
                             Text(msg)
                                 .font(.system(size: 12))
-                                .foregroundColor(.coral)
+                                .foregroundStyle(Color.appEmphasis)
                                 .padding(10)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(RoundedRectangle(cornerRadius: 8).fill(Color.coral.opacity(0.1)))
+                                .background(RoundedRectangle(cornerRadius: DSRadius.s).fill(Color.appEmphasis.opacity(0.1)))
                         }
 
                         exportButton
                     }
-                    .padding(20)
+                    .padding(DSSpacing.xl)
                 }
             }
             .navigationTitle(isDE ? "Export" : "Export")
@@ -87,16 +87,13 @@ struct ExportSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(isDE ? "Schließen" : "Close") { dismiss() }
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundStyle(.secondary)
                 }
             }
-            .toolbarBackground(Color.deepOcean, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
             .sheet(item: $shareItem) { item in
                 ActivityView(items: [item.url])
             }
         }
-        .preferredColorScheme(.dark)
     }
 
     // ═══════════════════════════════════════
@@ -106,13 +103,13 @@ struct ExportSheet: View {
         VStack(alignment: .leading, spacing: 6) {
             Text((isDE ? "Logbuch exportieren" : "Export Logbook").uppercased())
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.seafoam)
+                .foregroundStyle(Color.appAccent)
                 .tracking(1.5)
             Text(isDE
                  ? "Wähle ein Format und teile per AirDrop, E-Mail oder speichere in Dateien."
                  : "Pick a format and share via AirDrop, email, or save to Files.")
                 .font(.system(size: 13))
-                .foregroundColor(.textDim)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -120,7 +117,7 @@ struct ExportSheet: View {
         VStack(alignment: .leading, spacing: 10) {
             sectionTitle(isDE ? "Format" : "Format")
 
-            VStack(spacing: 8) {
+            VStack(spacing: DSSpacing.s) {
                 if singleDive != nil {
                     formatRow(
                         format: .singleDivePDF,
@@ -152,34 +149,33 @@ struct ExportSheet: View {
         } label: {
             HStack(spacing: 14) {
                 ZStack {
-                    Circle().fill((selected ? Color.seafoam : Color.white.opacity(0.08))).frame(width: 42, height: 42)
+                    Circle()
+                        .fill(selected ? Color.appAccent : Color.surfaceCard)
+                        .frame(width: 42, height: 42)
                     Image(systemName: icon)
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(selected ? .deepOcean : .seafoam)
+                        .foregroundStyle(selected ? Color.white : Color.appAccent)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundStyle(.primary)
                     Text(subtitle)
                         .font(.system(size: 11))
-                        .foregroundColor(.textDim)
+                        .foregroundStyle(.secondary)
                 }
                 Spacer()
 
                 Image(systemName: selected ? "largecircle.fill.circle" : "circle")
                     .font(.system(size: 20))
-                    .foregroundColor(selected ? .seafoam : .white.opacity(0.25))
+                    .foregroundStyle(selected ? Color.appAccent : Color.secondary)
             }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(selected ? Color.seafoam.opacity(0.08) : Color.cardBg)
-            )
+            .padding(DSSpacing.l)
+            .glassCard(cornerRadius: DSRadius.l)
             .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(selected ? Color.seafoam.opacity(0.5) : Color.cardBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: DSRadius.l, style: .continuous)
+                    .stroke(selected ? Color.appAccent.opacity(0.5) : Color.clear, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
@@ -190,57 +186,53 @@ struct ExportSheet: View {
             Toggle(isOn: $useDateRange) {
                 Text(isDE ? "Zeitraum einschränken" : "Limit date range")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundStyle(.primary)
             }
-            .tint(.seafoam)
-            .padding(14)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Color.cardBg))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.cardBorder, lineWidth: 1))
+            .tint(.appAccent)
+            .padding(DSSpacing.l)
+            .glassCard(cornerRadius: DSRadius.l)
 
             if useDateRange {
                 HStack(spacing: 10) {
                     DatePicker(isDE ? "Von" : "From", selection: $fromDate, displayedComponents: .date)
                         .datePickerStyle(.compact)
-                        .foregroundColor(.white)
-                        .padding(12)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.cardBg))
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.cardBorder, lineWidth: 1))
+                        .foregroundStyle(.primary)
+                        .padding(DSSpacing.m)
+                        .glassCard(cornerRadius: DSRadius.m)
 
                     DatePicker(isDE ? "Bis" : "To", selection: $toDate, displayedComponents: .date)
                         .datePickerStyle(.compact)
-                        .foregroundColor(.white)
-                        .padding(12)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.cardBg))
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.cardBorder, lineWidth: 1))
+                        .foregroundStyle(.primary)
+                        .padding(DSSpacing.m)
+                        .glassCard(cornerRadius: DSRadius.m)
                 }
             }
         }
     }
 
     private var previewSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DSSpacing.s) {
             sectionTitle(isDE ? "Vorschau" : "Preview")
 
             HStack(spacing: 14) {
                 Image(systemName: previewIcon)
                     .font(.system(size: 26))
-                    .foregroundColor(.seafoam)
+                    .foregroundStyle(Color.appAccent)
                     .frame(width: 44)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(previewFilename)
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                        .foregroundColor(.white)
+                        .foregroundStyle(.primary)
                     Text(previewSubtitle)
                         .font(.system(size: 11))
-                        .foregroundColor(.textDim)
+                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()
             }
-            .padding(14)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Color.cardBg))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.cardBorder, lineWidth: 1))
+            .padding(DSSpacing.l)
+            .glassCard(cornerRadius: DSRadius.l)
         }
     }
 
@@ -248,9 +240,9 @@ struct ExportSheet: View {
         Button {
             Task { await performExport() }
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: DSSpacing.s) {
                 if isExporting {
-                    ProgressView().tint(.deepOcean)
+                    ProgressView().tint(.white)
                 } else {
                     Image(systemName: "square.and.arrow.up.fill")
                 }
@@ -259,17 +251,17 @@ struct ExportSheet: View {
                      : (isDE ? "Exportieren & Teilen" : "Export & Share"))
                     .font(.system(size: 15, weight: .bold))
             }
-            .foregroundColor(.deepOcean)
+            .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(canExport ? Color.seafoam : Color.seafoam.opacity(0.3))
+                RoundedRectangle(cornerRadius: DSRadius.l, style: .continuous)
+                    .fill(canExport ? Color.appAccent : Color.appAccent.opacity(0.3))
             )
         }
         .buttonStyle(.plain)
         .disabled(!canExport || isExporting)
-        .padding(.top, 8)
+        .padding(.top, DSSpacing.s)
     }
 
     // ═══════════════════════════════════════
@@ -398,7 +390,7 @@ struct ExportSheet: View {
     private func sectionTitle(_ text: String) -> some View {
         Text(text.uppercased())
             .font(.system(size: 10, weight: .semibold))
-            .foregroundColor(.labelDim)
+            .foregroundStyle(.secondary)
             .tracking(1.5)
     }
 }
