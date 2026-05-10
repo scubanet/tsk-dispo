@@ -73,6 +73,7 @@ struct DiveFormView: View {
     @State private var courseType = "OWD"
     @State private var courseSlot = "OW1"
     @State private var students: [Student] = []
+    @State private var showingNoStudentsAlert = false
 
     private let suggestions = ["Sea Turtle", "Clownfish", "Manta Ray", "Whale Shark", "Nudibranch",
         "Moray Eel", "Barracuda", "Lionfish", "Octopus", "Seahorse", "Reef Shark",
@@ -140,6 +141,16 @@ struct DiveFormView: View {
             }
             .navigationTitle(isEditing ? L10n.editDive : L10n.quickLog)
             .navigationBarTitleDisplayMode(.inline)
+            .alert(
+                L10n.currentLanguage == "de" ? "Schüler erforderlich" : "Students required",
+                isPresented: $showingNoStudentsAlert
+            ) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(L10n.currentLanguage == "de"
+                     ? "Ein Kurs-Tauchgang braucht mindestens einen Schüler. Füge Schüler hinzu oder schalte „Kurs-Tauchgang\" aus."
+                     : "A course-training dive needs at least one student. Add a student or turn off Course-Training.")
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -630,11 +641,18 @@ struct DiveFormView: View {
     }
 
     private func save() {
+        // Validation: a course-training dive without students is data noise.
+        // Force the user to either add a student or turn off the toggle.
+        if isCourseTraining && students.isEmpty {
+            showingNoStudentsAlert = true
+            return
+        }
+
         let md = Double(maxDepth) ?? 15
         let bt = Int(bottomTime) ?? 40
         let tt = Int(totalTime) ?? bt + 3
         let ts = Int(tankStart) ?? 200; let te = Int(tankEnd) ?? 50
-        
+
         if case .edit(let d) = mode {
             // Clean up photos the user removed during editing
             let before = Set(d.photoFilenames)
