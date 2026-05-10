@@ -45,17 +45,11 @@ export function LoginScreen() {
         }}
       >
         <div className="glass card" style={{ width: 380, padding: 28 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-            <div style={{
-              borderRadius: 14,
-              boxShadow: '0 4px 14px rgba(10,132,255,.25), inset 0 0 0 .5px rgba(255,255,255,.4)',
-              overflow: 'hidden',
-            }}>
-              <Logo size={56} />
-            </div>
-            <div>
-              <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '.08em', lineHeight: 1 }}>ATOLL</div>
-              <div className="caption-2" style={{ marginTop: 4, opacity: 0.75 }}>{t('auth.tagline')}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+            <Logo size={120} />
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '.08em', lineHeight: 1 }}>ATOLL</div>
+              <div className="caption-2" style={{ marginTop: 6, opacity: 0.75 }}>{t('auth.tagline')}</div>
             </div>
           </div>
           <div className="caption" style={{ marginBottom: 18 }}>{t('auth.magic_link_prompt')}</div>
