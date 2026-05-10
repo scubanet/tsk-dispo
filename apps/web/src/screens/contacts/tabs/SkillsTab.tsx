@@ -1,5 +1,8 @@
 /**
  * SkillsTab — read-only list of instructor skills.
+ *
+ * `instructor_skills` is a pure M:N junction (instructor_id, skill_id).
+ * We embed-join `skills` to get code/label/category in one query.
  */
 
 import { useState, useEffect } from 'react'
@@ -11,6 +14,10 @@ interface SkillRow {
   code: string
   label: string
   category: string | null
+}
+
+interface JoinedRow {
+  skill: SkillRow | null
 }
 
 interface Props {
@@ -26,16 +33,23 @@ export function SkillsTab({ contactId }: Props) {
     let cancelled = false
     setLoading(true)
     void (async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('instructor_skills')
-        .select('id, code, label, category')
+        .select('skill:skills(id, code, label, category)')
         .eq('instructor_id', contactId)
-        .order('category')
-        .order('label')
-      if (!cancelled) {
-        setSkills((data ?? []) as SkillRow[])
-        setLoading(false)
-      }
+      if (cancelled) return
+      if (error) console.error('[skills-tab] load failed', error)
+      const rows = ((data ?? []) as unknown as JoinedRow[])
+        .map((r) => r.skill)
+        .filter((s): s is SkillRow => s !== null)
+        .sort((a, b) => {
+          const ca = a.category ?? ''
+          const cb = b.category ?? ''
+          if (ca !== cb) return ca.localeCompare(cb)
+          return a.label.localeCompare(b.label)
+        })
+      setSkills(rows)
+      setLoading(false)
     })()
     return () => { cancelled = true }
   }, [contactId])
@@ -46,21 +60,34 @@ export function SkillsTab({ contactId }: Props) {
     return <div className="contact-tab-body tab-stub">{t('contacts.no_skills')}</div>
   }
 
+  // Group by category for nicer presentation
+  const byCategory = skills.reduce<Record<string, SkillRow[]>>((acc, s) => {
+    const key = s.category ?? '—'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(s)
+    return acc
+  }, {})
+
   return (
     <div className="contact-tab-body">
-      <ul className="skills-list">
-        {skills.map((s) => (
-          <li key={s.id} className="skills-list__item">
-            {s.category && (
-              <span className="skills-list__cat">{s.category}</span>
-            )}
-            <span className="skills-list__label">{s.label}</span>
-            <span className="skills-list__code" style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-meta)' }}>
-              {s.code}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {Object.entries(byCategory).map(([cat, list]) => (
+        <section key={cat} className="contact-section">
+          <h2 className="contact-section__title">{cat}</h2>
+          <ul className="skills-list">
+            {list.map((s) => (
+              <li key={s.id} className="skills-list__item">
+                <span className="skills-list__label">{s.label}</span>
+                <span
+                  className="skills-list__code"
+                  style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-meta)' }}
+                >
+                  {s.code}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   )
 }
