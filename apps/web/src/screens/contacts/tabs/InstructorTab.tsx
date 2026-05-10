@@ -18,14 +18,19 @@ interface Props {
 }
 
 /**
- * padi_level enum values (from migration 0001).
- * Display labels keep the canonical PADI nomenclature.
+ * padi_level enum values — kanonische PADI-Hierarchie (vom Divemaster bis Course Director),
+ * plus Nicht-Pro-Slots. Enum hat zusätzlich Legacy-Werte aus Migration 0001 ('Instructor',
+ * 'Staff Instructor', 'Andere Funktion'), die wir in 0087 auf die neuen Pendants mappen.
  */
 const PADI_LEVELS = [
-  { value: 'Instructor', label: 'Instructor' },
-  { value: 'Staff Instructor', label: 'Staff Instructor' },
-  { value: 'DM', label: 'Divemaster' },
-  { value: 'Shop Staff', label: 'Shop Staff' },
+  { value: 'DM',              label: 'DM (Divemaster)' },
+  { value: 'AI',              label: 'AI (Assistant Instructor)' },
+  { value: 'OWSI',            label: 'OWSI (Open Water Scuba Instructor)' },
+  { value: 'MSDT',            label: 'MSDT (Master Scuba Diver Trainer)' },
+  { value: 'IDC Staff',       label: 'IDC Staff Instructor' },
+  { value: 'MI',              label: 'MI (Master Instructor)' },
+  { value: 'CD',              label: 'CD (Course Director)' },
+  { value: 'Shop Staff',      label: 'Shop Staff' },
   { value: 'Andere Funktion', label: 'Andere Funktion' },
 ]
 
