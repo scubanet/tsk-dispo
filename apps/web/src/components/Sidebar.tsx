@@ -1,10 +1,26 @@
 import clsx from 'clsx'
-import { NavLink } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon, type IconName } from './Icon'
 import { Logo } from './Logo'
 import { CopyrightFooter } from './CopyrightFooter'
 import type { Role } from '@/lib/auth'
+
+/**
+ * Active-Matcher der zusätzlich zum Pfad den `view`-Query-Parameter prüft.
+ * Notwendig damit Adressbuch (`/contacts`) und TL/DM (`/contacts?view=team`)
+ * nicht gleichzeitig active sind — beide haben denselben Pfad.
+ */
+function useIsItemActive() {
+  const location = useLocation()
+  return (to: string): boolean => {
+    const [toPath, toQuery = ''] = to.split('?')
+    if (location.pathname !== toPath) return false
+    const itemView = new URLSearchParams(toQuery).get('view')
+    const locView = new URLSearchParams(location.search).get('view')
+    return itemView === locView
+  }
+}
 
 interface SidebarProps {
   role: Role
@@ -56,8 +72,32 @@ const ADMIN: NavItem[] = [
   { to: '/einstellungen', icon: 'settings', i18nKey: 'settings', roles: ['dispatcher', 'owner', 'cd'] },
 ]
 
+function SidebarLink({
+  item,
+  active,
+  label,
+}: {
+  item: NavItem
+  active: boolean
+  label: string
+}) {
+  return (
+    <Link
+      to={item.to}
+      className={clsx('sb-row', active && 'active')}
+      aria-current={active ? 'page' : undefined}
+    >
+      <span className="sb-icon">
+        <Icon name={item.icon} size={17} />
+      </span>
+      <span>{label}</span>
+    </Link>
+  )
+}
+
 export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
   const { t } = useTranslation()
+  const isActive = useIsItemActive()
   const main = ITEMS.filter((i) => i.roles.includes(role))
   const adressen = ADRESSEN_ITEMS.filter((i) => i.roles.includes(role))
   const team = TEAM_ITEMS.filter((i) => i.roles.includes(role))
@@ -79,32 +119,24 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
       </div>
 
       {main.map((item) => (
-        <NavLink
+        <SidebarLink
           key={item.to}
-          to={item.to}
-          className={({ isActive }) => clsx('sb-row', isActive && 'active')}
-        >
-          <span className="sb-icon">
-            <Icon name={item.icon} size={17} />
-          </span>
-          <span>{t(`nav.${item.i18nKey}`)}</span>
-        </NavLink>
+          item={item}
+          active={isActive(item.to)}
+          label={t(`nav.${item.i18nKey}`)}
+        />
       ))}
 
       {adressen.length > 0 && (
         <>
           <div className="sb-section">{t('nav.section_adressen')}</div>
           {adressen.map((item) => (
-            <NavLink
+            <SidebarLink
               key={item.to}
-              to={item.to}
-              className={({ isActive }) => clsx('sb-row', isActive && 'active')}
-            >
-              <span className="sb-icon">
-                <Icon name={item.icon} size={17} />
-              </span>
-              <span>{t(`nav.${item.i18nKey}`)}</span>
-            </NavLink>
+              item={item}
+              active={isActive(item.to)}
+              label={t(`nav.${item.i18nKey}`)}
+            />
           ))}
         </>
       )}
@@ -113,16 +145,12 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
         <>
           <div className="sb-section">{t('nav.section_team')}</div>
           {team.map((item) => (
-            <NavLink
+            <SidebarLink
               key={item.to}
-              to={item.to}
-              className={({ isActive }) => clsx('sb-row', isActive && 'active')}
-            >
-              <span className="sb-icon">
-                <Icon name={item.icon} size={17} />
-              </span>
-              <span>{t(`nav.${item.i18nKey}`)}</span>
-            </NavLink>
+              item={item}
+              active={isActive(item.to)}
+              label={t(`nav.${item.i18nKey}`)}
+            />
           ))}
         </>
       )}
@@ -131,16 +159,12 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
         <>
           <div className="sb-section">{t('nav.section_cd')}</div>
           {cd.map((item) => (
-            <NavLink
+            <SidebarLink
               key={item.to}
-              to={item.to}
-              className={({ isActive }) => clsx('sb-row', isActive && 'active')}
-            >
-              <span className="sb-icon">
-                <Icon name={item.icon} size={17} />
-              </span>
-              <span>{t(`nav.${item.i18nKey}`)}</span>
-            </NavLink>
+              item={item}
+              active={isActive(item.to)}
+              label={t(`nav.${item.i18nKey}`)}
+            />
           ))}
         </>
       )}
@@ -149,16 +173,12 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
         <>
           <div className="sb-section">{t('nav.section_admin')}</div>
           {admin.map((item) => (
-            <NavLink
+            <SidebarLink
               key={item.to}
-              to={item.to}
-              className={({ isActive }) => clsx('sb-row', isActive && 'active')}
-            >
-              <span className="sb-icon">
-                <Icon name={item.icon} size={17} />
-              </span>
-              <span>{t(`nav.${item.i18nKey}`)}</span>
-            </NavLink>
+              item={item}
+              active={isActive(item.to)}
+              label={t(`nav.${item.i18nKey}`)}
+            />
           ))}
           <button
             type="button"
