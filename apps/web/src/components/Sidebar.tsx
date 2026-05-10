@@ -26,9 +26,7 @@ const ITEMS: NavItem[] = [
   { to: '/heute',             icon: 'house',    i18nKey: 'today',           roles: ['dispatcher', 'instructor', 'owner', 'cd'] },
   { to: '/kalender',          icon: 'calendar', i18nKey: 'calendar',        roles: ['dispatcher', 'instructor', 'owner', 'cd'] },
   { to: '/kurse',             icon: 'book',     i18nKey: 'courses',         roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/tldm',              icon: 'users',    i18nKey: 'tldm',            roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/schueler',          icon: 'tag',      i18nKey: 'students',        roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/skills',            icon: 'grid',     i18nKey: 'skills',          roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/pool',              icon: 'water',    i18nKey: 'pool',            roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/saldi',             icon: 'wallet',   i18nKey: 'balances',        roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/einsaetze',         icon: 'book',     i18nKey: 'my_assignments',  roles: ['instructor'] },
@@ -39,7 +37,6 @@ const ITEMS: NavItem[] = [
 // ADRESSEN section: dispatcher / owner / cd
 const ADRESSEN_ITEMS: NavItem[] = [
   { to: '/contacts',       icon: 'tag',   i18nKey: 'addressbook',       roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/cd/pipeline',    icon: 'chart', i18nKey: 'pipeline',          roles: ['cd', 'owner'] },
   { to: '/communication',  icon: 'chart', i18nKey: 'communication_hub', roles: ['dispatcher', 'owner', 'cd'] },
 ]
 
@@ -50,9 +47,9 @@ const TEAM_ITEMS: NavItem[] = [
   { to: '/availability',       icon: 'calendar', i18nKey: 'availability', roles: ['dispatcher', 'owner', 'cd'] },
 ]
 
-// CD module: CD role only.
+// CD module: CD + owner only — Pipeline lebt nur hier.
 const CD_ITEMS: NavItem[] = [
-  { to: '/cd/pipeline', icon: 'chart', i18nKey: 'pipeline', roles: ['cd'] },
+  { to: '/cd/pipeline', icon: 'chart', i18nKey: 'pipeline', roles: ['cd', 'owner'] },
 ]
 
 const ADMIN: NavItem[] = [
