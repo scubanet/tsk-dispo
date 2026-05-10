@@ -10,6 +10,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   MasterDetail,
   ListPane,
@@ -29,19 +30,19 @@ import { CreateContactSheet } from './CreateContactSheet'
 
 interface SavedView {
   id: string
-  label: string
+  labelKey: string
   filter: ContactListFilter
 }
 
 const SAVED_VIEWS: SavedView[] = [
-  { id: 'all',         label: 'Alle',               filter: {} },
-  { id: 'persons',     label: 'Personen',            filter: { kind: 'person' } },
-  { id: 'orgs',        label: 'Organisationen',      filter: { kind: 'organization' } },
-  { id: 'students',    label: 'Aktive Schüler',      filter: { roles: ['student'] } },
-  { id: 'candidates',  label: 'Kandidaten',          filter: { roles: ['candidate'] } },
-  { id: 'team',        label: 'Team',                filter: { roles: ['instructor'] } },
-  { id: 'suppliers',   label: 'Lieferanten',         filter: { roles: ['supplier'] } },
-  { id: 'newsletter',  label: 'Newsletter',          filter: { roles: ['newsletter'] } },
+  { id: 'all',         labelKey: 'contacts.view_all',         filter: {} },
+  { id: 'persons',     labelKey: 'contacts.view_persons',     filter: { kind: 'person' } },
+  { id: 'orgs',        labelKey: 'contacts.view_orgs',        filter: { kind: 'organization' } },
+  { id: 'students',    labelKey: 'contacts.view_students',    filter: { roles: ['student'] } },
+  { id: 'candidates',  labelKey: 'contacts.view_candidates',  filter: { roles: ['candidate'] } },
+  { id: 'team',        labelKey: 'contacts.view_team',        filter: { roles: ['instructor'] } },
+  { id: 'suppliers',   labelKey: 'contacts.view_suppliers',   filter: { roles: ['supplier'] } },
+  { id: 'newsletter',  labelKey: 'contacts.view_newsletter',  filter: { roles: ['newsletter'] } },
 ]
 
 // ── Role color dots (mirrors RolesBadgeList color mapping) ────────────────
@@ -91,6 +92,7 @@ function RoleDots({ roles }: { roles: ContactRole[] }) {
 // ── Main component ────────────────────────────────────────────────────────
 
 export function AddressbookScreen() {
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const viewId = searchParams.get('view') ?? 'all'
@@ -162,13 +164,13 @@ export function AddressbookScreen() {
         className="atoll-page-header"
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px 0', flexShrink: 0 }}
       >
-        <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Adressbuch</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>{t('contacts.addressbook_title')}</h1>
         <button
           type="button"
           className="atoll-btn atoll-btn--primary"
           onClick={() => setCreateOpen(true)}
         >
-          <Icon.Plus size={14} /> Neu
+          <Icon.Plus size={14} /> {t('contacts.new_contact')}
         </button>
       </div>
 
@@ -181,8 +183,8 @@ export function AddressbookScreen() {
                 <SearchInput
                   value={search}
                   onChange={setSearch}
-                  ariaLabel="Kontakte suchen"
-                  placeholder="Suchen…"
+                  ariaLabel={t('contacts.search_aria')}
+                  placeholder={t('contacts.search_placeholder')}
                 />
                 {/* Saved-view chips */}
                 <div
@@ -213,7 +215,7 @@ export function AddressbookScreen() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {v.label}
+                      {t(v.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -221,11 +223,11 @@ export function AddressbookScreen() {
             }
           >
             {loading ? (
-              <div style={{ padding: 24, color: 'var(--text-tertiary)', fontSize: 13 }}>Lade…</div>
+              <div style={{ padding: 24, color: 'var(--text-tertiary)', fontSize: 13 }}>{t('contacts.loading')}</div>
             ) : rows.length === 0 ? (
               <EmptyState
                 icon={<Icon.Users size={20} />}
-                title="Keine Kontakte gefunden"
+                title={t('contacts.no_contacts')}
               />
             ) : (
               <ul className="atoll-people-list">
@@ -245,7 +247,7 @@ export function AddressbookScreen() {
                       <div className="atoll-people-row__main">
                         <div className="atoll-people-row__name">{r.display_name}</div>
                         <div className="atoll-people-row__sub">
-                          {r.primary_email ?? (r.kind === 'organization' ? 'Organisation' : '')}
+                          {r.primary_email ?? (r.kind === 'organization' ? t('contacts.kind_organisation') : '')}
                         </div>
                       </div>
                       <RoleDots roles={r.roles} />
@@ -268,8 +270,8 @@ export function AddressbookScreen() {
             ) : (
               <EmptyState
                 icon={<Icon.Users size={24} />}
-                title="Suche oder erstelle einen Kontakt"
-                body="Wähle einen Kontakt aus der Liste oder erstelle einen neuen."
+                title={t('contacts.empty_select_title')}
+                body={t('contacts.empty_select_body')}
               />
             )}
           </DetailPane>

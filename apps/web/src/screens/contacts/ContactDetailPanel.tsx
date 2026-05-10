@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Drawer } from '@/foundation/layouts/Drawer'
 import { Tabs } from '@/foundation/layouts/Tabs'
 import type { TabDefinition } from '@/foundation/layouts/Tabs'
@@ -43,19 +44,19 @@ export type TabKey =
   | 'contract'
   | 'audit'
 
-const TAB_LABELS: Record<TabKey, string> = {
-  overview: 'Übersicht',
-  relationships: 'Beziehungen',
-  activity: 'Aktivität',
-  notes: 'Notizen',
-  student: 'Schüler',
-  courses: 'Kurse',
-  saldo: 'Saldo',
-  skills: 'Skills',
-  availability: 'Verfügbarkeit',
-  org_members: 'Mitglieder',
-  contract: 'Vertrag',
-  audit: 'Audit',
+const TAB_LABEL_KEYS: Record<TabKey, string> = {
+  overview: 'contacts.tab_overview',
+  relationships: 'contacts.tab_relationships',
+  activity: 'contacts.tab_activity',
+  notes: 'contacts.tab_notes',
+  student: 'contacts.tab_student',
+  courses: 'contacts.tab_courses',
+  saldo: 'contacts.tab_saldo',
+  skills: 'contacts.tab_skills',
+  availability: 'contacts.tab_availability',
+  org_members: 'contacts.tab_org_members',
+  contract: 'contacts.tab_contract',
+  audit: 'contacts.tab_audit',
 }
 
 // ── Visibility logic ─────────────────────────────────────────────────────
@@ -102,6 +103,7 @@ export function ContactDetailPanel({
   onClose,
   onSelectContact,
 }: Props) {
+  const { t } = useTranslation()
   const [contact, setContact] = useState<ContactWithSidecars | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -119,7 +121,7 @@ export function ContactDetailPanel({
     setLoadError(null)
     getContactWithSidecars(contactId)
       .then(setContact)
-      .catch((err) => setLoadError(err instanceof Error ? err.message : 'Fehler'))
+      .catch((err) => setLoadError(err instanceof Error ? err.message : t('common.error')))
       .finally(() => setLoading(false))
   }, [contactId, open])
 
@@ -130,7 +132,7 @@ export function ContactDetailPanel({
 
   const tabDefs: TabDefinition<TabKey>[] = visibleTabs.map((key) => ({
     id: key,
-    label: TAB_LABELS[key],
+    label: t(TAB_LABEL_KEYS[key]),
   }))
 
   function renderPanels(c: ContactWithSidecars): Record<TabKey, React.ReactNode> {
@@ -157,15 +159,15 @@ export function ContactDetailPanel({
       open={open}
       onClose={onClose}
       width={drawerWidth}
-      ariaLabel="Kontakt Details"
+      ariaLabel={t('contacts.detail_aria')}
     >
       {loading && (
-        <div className="contact-detail__loading">Lade Kontakt…</div>
+        <div className="contact-detail__loading">{t('contacts.loading_contact')}</div>
       )}
 
       {loadError && (
         <div className="contact-detail__error">
-          Fehler beim Laden: {loadError}
+          {t('contacts.error_loading', { msg: loadError })}
         </div>
       )}
 
@@ -188,7 +190,7 @@ export function ContactDetailPanel({
             tabs={tabDefs}
             active={safeTab}
             onChange={setActiveTab}
-            ariaLabel="Kontakt-Tabs"
+            ariaLabel={t('contacts.tabs_aria')}
             panels={renderPanels(contact)}
           />
         </div>
