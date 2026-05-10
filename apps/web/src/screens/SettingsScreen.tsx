@@ -77,24 +77,43 @@ export function SettingsScreen() {
       .order('code')
       .then(({ data }) => setCourseTypes((data as CourseType[] | null) ?? []))
 
+    // Phase J — Etappe 2d: User-Liste aus contact_instructor JOIN contacts
+    // (app_role + auth_user_id im Sidecar seit Migration 0088).
     supabase
-      .from('instructors')
-      .select('id, name, email, role, auth_user_id')
-      .order('last_name')
-      .order('first_name')
+      .from('contact_instructor')
+      .select(
+        'contact_id, app_role, auth_user_id, ' +
+          'contact:contacts!inner(display_name, primary_email, last_name, first_name, archived_at)',
+      )
       .then(({ data }) => {
-        setUsers(
-          ((data ?? []) as Array<{
-            id: string
-            name: string
-            email: string | null
-            role: string
+        const rows =
+          ((data ?? []) as unknown as Array<{
+            contact_id: string
+            app_role: string
             auth_user_id: string | null
-          }>).map((d) => ({
-            id: d.id,
-            name: d.name,
-            email: d.email,
-            role: d.role,
+            contact: {
+              display_name: string | null
+              primary_email: string | null
+              last_name: string | null
+              first_name: string | null
+              archived_at: string | null
+            } | null
+          }>)
+            .filter((d) => d.contact?.archived_at == null)
+            .sort((a, b) => {
+              const al = (a.contact?.last_name ?? '').toLowerCase()
+              const bl = (b.contact?.last_name ?? '').toLowerCase()
+              if (al !== bl) return al.localeCompare(bl)
+              const af = (a.contact?.first_name ?? '').toLowerCase()
+              const bf = (b.contact?.first_name ?? '').toLowerCase()
+              return af.localeCompare(bf)
+            })
+        setUsers(
+          rows.map((d) => ({
+            id: d.contact_id,
+            name: d.contact?.display_name ?? '—',
+            email: d.contact?.primary_email ?? null,
+            role: d.app_role,
             auth_linked: !!d.auth_user_id,
           })),
         )

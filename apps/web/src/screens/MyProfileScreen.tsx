@@ -40,8 +40,6 @@ import type { OutletCtx } from '@/layout/AppShell'
 
 interface Profile {
   name: string
-  initials: string
-  color: string
   padi_level: string
   padi_nr: string | null
   email: string | null
@@ -75,12 +73,38 @@ export function MyProfileScreen() {
   }
   function refetchProfile() {
     if (!user.instructorId) return
+    // Phase J — Etappe 2d: Profil aus contacts JOIN contact_instructor.
+    // phones ist JSONB-Array, primary-Eintrag oder erster wird verwendet.
     supabase
-      .from('instructors')
-      .select('name, initials, color, padi_level, padi_nr, email, phone')
+      .from('contacts')
+      .select(
+        'display_name, primary_email, phones, ' +
+          'instructor:contact_instructor!inner(padi_level, padi_pro_number)',
+      )
       .eq('id', user.instructorId)
       .single()
-      .then(({ data }) => setProfile(data as Profile | null))
+      .then(({ data }) => {
+        if (!data) {
+          setProfile(null)
+          return
+        }
+        const row = data as unknown as {
+          display_name: string | null
+          primary_email: string | null
+          phones: Array<{ label?: string; e164?: string; primary?: boolean }> | null
+          instructor: { padi_level: string | null; padi_pro_number: string | null } | null
+        }
+        const phonesArr = Array.isArray(row.phones) ? row.phones : []
+        const primaryPhone =
+          phonesArr.find((p) => p?.primary)?.e164 ?? phonesArr[0]?.e164 ?? null
+        setProfile({
+          name: row.display_name ?? '—',
+          padi_level: row.instructor?.padi_level ?? '',
+          padi_nr: row.instructor?.padi_pro_number ?? null,
+          email: row.primary_email,
+          phone: primaryPhone,
+        })
+      })
   }
 
   useEffect(() => {
@@ -281,20 +305,32 @@ function ProfileEditSheet({
   useEffect(() => {
     if (!open) return
     setError(null)
+    // Phase J — Etappe 2d: Phone aus contacts.phones[] (JSONB Array).
     supabase
-      .from('instructors')
-      .select('phone')
+      .from('contacts')
+      .select('phones')
       .eq('id', instructorId)
       .single()
-      .then(({ data }) => setPhone(data?.phone ?? ''))
+      .then(({ data }) => {
+        const phonesArr = (data as { phones?: Array<{ e164?: string; primary?: boolean }> } | null)?.phones ?? []
+        const primary = Array.isArray(phonesArr)
+          ? phonesArr.find((p) => p?.primary)?.e164 ?? phonesArr[0]?.e164 ?? ''
+          : ''
+        setPhone(primary)
+      })
   }, [open, instructorId])
 
   async function save() {
     setSaving(true)
     setError(null)
+    const trimmed = phone.trim()
+    // Build phones[] array: leerer Phone → leeres Array, sonst single mobile primary.
+    const phonesArr = trimmed
+      ? [{ label: 'mobile', e164: trimmed, primary: true }]
+      : []
     const { error: updErr } = await supabase
-      .from('instructors')
-      .update({ phone: phone.trim() || null })
+      .from('contacts')
+      .update({ phones: phonesArr })
       .eq('id', instructorId)
     setSaving(false)
     if (updErr) { setError(updErr.message); return }
