@@ -55,7 +55,12 @@ struct ProfileTab: View {
                             Spacer()
                         }
 
-                        settingsSection
+                        SettingsSection(
+                            profile: profile,
+                            language: $language,
+                            onShowQR: { showingMyQR = true },
+                            onShowExport: { showingExport = true }
+                        )
 
                         // ─── Datenverwaltung ──────────────
                         HStack {
@@ -265,79 +270,6 @@ struct ProfileTab: View {
     /// the oldest entry in each group, so it's "group size minus one" summed.
     private var duplicateCount: Int {
         duplicateGroups.reduce(0) { $0 + ($1.count - 1) }
-    }
-
-    private var settingsSection: some View {
-        VStack(spacing: 1) {
-            settingsRow(icon: "globe", label: L10n.currentLanguage == "de" ? "Sprache" : "Language") {
-                Picker("", selection: $language) {
-                    Text("English").tag("en")
-                    Text("Deutsch").tag("de")
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 160)
-            }
-
-            settingsRow(icon: "ruler", label: L10n.currentLanguage == "de" ? "Einheiten" : "Units") {
-                let unitText: String = (profile?.useMetric ?? true)
-                    ? (L10n.currentLanguage == "de" ? "Metrisch" : "Metric")
-                    : "Imperial"
-                Text(unitText)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color.appAccent)
-            }
-
-            if let p = profile {
-                settingsRow(icon: "gauge.with.dots.needle.bottom.50percent",
-                            label: L10n.currentLanguage == "de" ? "Standard-Flasche" : "Default Cylinder") {
-                    Text(cylinderLabel(p.defaultCylinder))
-                        .font(.system(size: 13)).foregroundStyle(.secondary)
-                }
-                settingsRow(icon: "figure.pool.swim",
-                            label: L10n.currentLanguage == "de" ? "Standard-Anzug" : "Default Suit") {
-                    Text(suitLabel(p.defaultSuit))
-                        .font(.system(size: 13)).foregroundStyle(.secondary)
-                }
-
-                Button {
-                    showingMyQR = true
-                } label: {
-                    settingsRow(icon: "qrcode", label: L10n.myQRTitle) {
-                        HStack(spacing: 6) {
-                            Text(L10n.currentLanguage == "de" ? "Anzeigen" : "Show")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color.appAccent)
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.tertiary)
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
-                .disabled(p.name.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
-
-            Button {
-                showingExport = true
-            } label: {
-                settingsRow(icon: "square.and.arrow.up", label: "Export") {
-                    HStack(spacing: 6) {
-                        Text("PDF / CSV")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(Color.appAccent)
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-
-            settingsRow(icon: "antenna.radiowaves.left.and.right", label: "Dive Computer") {
-                Text(L10n.currentLanguage == "de" ? "Bald verfügbar" : "Coming soon")
-                    .font(.system(size: 12)).foregroundStyle(.tertiary)
-            }
-        }
     }
 
     private var dataManagementCard: some View {
@@ -678,52 +610,4 @@ struct ProfileTab: View {
         try? ctx.save()
     }
 
-    // ═══════════════════════════════════════
-    // MARK: - Helpers
-
-    private func cylinderLabel(_ raw: String) -> String {
-        let parts = raw.split(separator: "_").map(String.init)
-        let type = parts.first ?? raw
-        let size = parts.count > 1 ? parts[1] : ""
-        let typeLabel: String
-        switch type {
-        case "aluminum": typeLabel = L10n.currentLanguage == "de" ? "Alu" : "Aluminum"
-        case "steel":    typeLabel = L10n.currentLanguage == "de" ? "Stahl" : "Steel"
-        default:         typeLabel = type.capitalized
-        }
-        return size.isEmpty ? typeLabel : "\(typeLabel) \(size)L"
-    }
-
-    private func suitLabel(_ raw: String) -> String {
-        switch raw {
-        case "shorty":   return "Shorty"
-        case "3mm":      return "3 mm"
-        case "5mm":      return "5 mm"
-        case "7mm":      return "7 mm"
-        case "drysuit":  return L10n.currentLanguage == "de" ? "Trockenanzug" : "Drysuit"
-        case "none":     return L10n.currentLanguage == "de" ? "Keiner" : "None"
-        default:         return raw.capitalized
-        }
-    }
-
-    // ═══════════════════════════════════════
-
-    private func settingsRow<Content: View>(icon: String, label: String, @ViewBuilder trailing: () -> Content) -> some View {
-        HStack(spacing: DSSpacing.m + 2) {
-            Image(systemName: icon)
-                .font(.system(size: 16))
-                .foregroundStyle(Color.appAccent)
-                .frame(width: 32)
-
-            Text(label)
-                .font(.system(size: 15))
-                .foregroundStyle(.primary)
-
-            Spacer()
-
-            trailing()
-        }
-        .padding(DSSpacing.m + 2)
-        .solidCard(cornerRadius: DSRadius.m)
-    }
 }
