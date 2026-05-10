@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
+import { listActiveInstructors } from '@/lib/contactQueries'
 import {
   POOL_LOCATIONS,
   type CourseDateType,
@@ -93,8 +94,9 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
     supabase.from('course_types').select('id, code, label').eq('active', true).order('code')
       .then(({ data }) => setTypes((data ?? []) as CourseType[]))
 
-    supabase.from('instructors').select('id, name, padi_level').eq('active', true).order('last_name').order('first_name')
-      .then(({ data }) => setInstructors((data ?? []) as Instructor[]))
+    listActiveInstructors()
+      .then((rows) => setInstructors(rows.map(({ id, name, padi_level }) => ({ id, name, padi_level }))))
+      .catch((err) => console.error('[course-edit] load instructors failed', err))
 
     if (courseId) {
       Promise.all([

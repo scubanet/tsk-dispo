@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
+import { listActiveInstructors } from '@/lib/contactQueries'
 
 interface Instructor { id: string; name: string; padi_level: string }
 interface Conflict {
@@ -70,13 +71,9 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
     if (!open) return
     setError(null)
 
-    supabase
-      .from('instructors')
-      .select('id, name, padi_level')
-      .eq('active', true)
-      .order('last_name')
-      .order('first_name')
-      .then(({ data }) => setInstructors((data ?? []) as Instructor[]))
+    listActiveInstructors()
+      .then((rows) => setInstructors(rows.map(({ id, name, padi_level }) => ({ id, name, padi_level }))))
+      .catch((err) => console.error('[assignment-edit] load instructors failed', err))
 
     // Course-Type-Code laden — bestimmt ob Opfer-Rolle verfügbar ist
     supabase

@@ -140,6 +140,46 @@ export async function getContactWithSidecars(
   }
 }
 
+// ────────────────────── Instructor lookup helpers ─────────────────────
+
+/**
+ * Light-weight Instructor-Liste für Dropdowns (AssignmentEditSheet,
+ * CourseEditSheet, CorrectionSheet, EnrollStudentSheet, etc.).
+ *
+ * Query: contacts JOIN contact_instructor (INNER), filtered auf active=true.
+ * Display-Name kommt aus contacts.display_name (kanonisch "Last, First").
+ */
+export async function listActiveInstructors(): Promise<
+  { id: string; name: string; padi_level: string; active: boolean }[]
+> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select(
+      'id, display_name, last_name, first_name, ' +
+        'instructor:contact_instructor!inner(padi_level, active)',
+    )
+    .eq('contact_instructor.active', true)
+    .is('archived_at', null)
+    .order('last_name', { nullsFirst: false })
+    .order('first_name', { nullsFirst: false })
+  if (error) throw error
+  return (data ?? []).map((c: unknown) => {
+    const row = c as {
+      id: string
+      display_name: string | null
+      last_name: string | null
+      first_name: string | null
+      instructor: { padi_level: string | null; active: boolean } | null
+    }
+    return {
+      id: row.id,
+      name: row.display_name ?? [row.last_name, row.first_name].filter(Boolean).join(', '),
+      padi_level: row.instructor?.padi_level ?? '',
+      active: row.instructor?.active ?? false,
+    }
+  })
+}
+
 // ────────────────────── Inline-edit helpers ───────────────────────────
 
 export async function updateContactField<K extends keyof Contact>(

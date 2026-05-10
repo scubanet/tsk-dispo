@@ -4,6 +4,7 @@ import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
 import { fetchStudents, type Student } from '@/lib/queries'
+import { listActiveInstructors } from '@/lib/contactQueries'
 
 type Status = 'enrolled' | 'certified' | 'dropped'
 
@@ -75,12 +76,9 @@ export function EnrollStudentSheet({
     if (!open) return
     setError(null)
     fetchStudents().then(setStudents)
-    supabase
-      .from('instructors')
-      .select('id, name, active')
-      .eq('active', true)
-      .order('name')
-      .then(({ data }) => setInstructors((data ?? []) as InstructorOption[]))
+    listActiveInstructors()
+      .then((rows) => setInstructors(rows.map(({ id, name, active }) => ({ id, name, active }))))
+      .catch((err) => console.error('[enroll-student] load instructors failed', err))
     if (existingParticipation) {
       setStudentId(existingParticipation.student_id)
       setStatus(existingParticipation.status)

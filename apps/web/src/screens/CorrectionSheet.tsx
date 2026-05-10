@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
+import { listActiveInstructors } from '@/lib/contactQueries'
 import { chf } from '@/lib/format'
 
 interface Instructor { id: string; name: string; padi_level: string }
@@ -48,13 +49,9 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
     setError(null)
 
     // Load instructors list (always)
-    supabase
-      .from('instructors')
-      .select('id, name, padi_level')
-      .eq('active', true)
-      .order('last_name')
-      .order('first_name')
-      .then(({ data }) => setInstructors((data ?? []) as Instructor[]))
+    listActiveInstructors()
+      .then((rows) => setInstructors(rows.map(({ id, name, padi_level }) => ({ id, name, padi_level }))))
+      .catch((err) => console.error('[correction] load instructors failed', err))
 
     if (!movementId) {
       // CREATE mode: reset to defaults
