@@ -9,6 +9,7 @@
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { EmailEntry } from '@/types/contacts'
 
 const LABEL_OPTIONS = ['work', 'personal', 'other']
@@ -21,6 +22,7 @@ export interface EmailListProps {
 }
 
 export function EmailList({ emails, onChange, disabled = false }: EmailListProps) {
+  const { t } = useTranslation()
   const [addLabel, setAddLabel] = useState('work')
   const [addEmail, setAddEmail] = useState('')
   const [addError, setAddError] = useState<string | null>(null)
@@ -51,7 +53,7 @@ export function EmailList({ emails, onChange, disabled = false }: EmailListProps
   async function add() {
     setAddError(null)
     if (!EMAIL_RE.test(addEmail.trim())) {
-      setAddError('Ungültige E-Mail-Adresse')
+      setAddError(t('contacts.invalid_email'))
       return
     }
     const isPrimary = emails.length === 0
@@ -77,7 +79,7 @@ export function EmailList({ emails, onChange, disabled = false }: EmailListProps
             {e.email}
           </a>
           {e.primary && (
-            <span className="contact-list-badge contact-list-badge--primary">Primär</span>
+            <span className="contact-list-badge contact-list-badge--primary">{t('contacts.primary_badge')}</span>
           )}
           {!e.primary && !isDisabled && (
             <button
@@ -85,13 +87,13 @@ export function EmailList({ emails, onChange, disabled = false }: EmailListProps
               style={{ fontSize: 'var(--text-meta)', color: 'var(--brand-blue)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 var(--space-1)' }}
               onClick={() => makePrimary(i)}
             >
-              Primär setzen
+              {t('contacts.set_primary')}
             </button>
           )}
           {!isDisabled && (
             <button
               type="button"
-              aria-label="Entfernen"
+              aria-label={t('contacts.remove_aria')}
               style={{ fontSize: 'var(--text-body)', color: 'var(--brand-red)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 var(--space-1)' }}
               onClick={() => remove(i)}
             >
@@ -125,7 +127,7 @@ export function EmailList({ emails, onChange, disabled = false }: EmailListProps
             onClick={add}
             style={{ fontSize: 'var(--text-label)', fontWeight: 'var(--weight-medium)', padding: 'var(--space-1) var(--space-3)', borderRadius: 'var(--radius-sm)', background: 'var(--brand-blue)', color: '#fff', border: 'none', cursor: 'pointer' }}
           >
-            Hinzufügen
+            {t('contacts.add_item')}
           </button>
           {addError && (
             <span style={{ fontSize: 'var(--text-meta)', color: 'var(--brand-red)', width: '100%' }}>

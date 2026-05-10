@@ -9,6 +9,7 @@
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import type { PhoneEntry } from '@/types/contacts'
 
@@ -21,6 +22,7 @@ export interface PhoneListProps {
 }
 
 export function PhoneList({ phones, onChange, disabled = false }: PhoneListProps) {
+  const { t } = useTranslation()
   const [addLabel, setAddLabel] = useState('mobile')
   const [addRaw, setAddRaw] = useState('')
   const [addError, setAddError] = useState<string | null>(null)
@@ -53,7 +55,7 @@ export function PhoneList({ phones, onChange, disabled = false }: PhoneListProps
     setAddError(null)
     const parsed = parsePhoneNumberFromString(addRaw.trim(), 'CH')
     if (!parsed || !parsed.isValid()) {
-      setAddError('Ungültige Telefonnummer (CH-Format erwartet, z. B. 079 123 45 67)')
+      setAddError(t('contacts.invalid_phone'))
       return
     }
     const e164 = parsed.format('E.164')
@@ -80,7 +82,7 @@ export function PhoneList({ phones, onChange, disabled = false }: PhoneListProps
             {p.e164}
           </a>
           {p.primary && (
-            <span className="contact-list-badge contact-list-badge--primary">Primär</span>
+            <span className="contact-list-badge contact-list-badge--primary">{t('contacts.primary_badge')}</span>
           )}
           {!p.primary && !isDisabled && (
             <button
@@ -88,13 +90,13 @@ export function PhoneList({ phones, onChange, disabled = false }: PhoneListProps
               style={{ fontSize: 'var(--text-meta)', color: 'var(--brand-blue)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 var(--space-1)' }}
               onClick={() => makePrimary(i)}
             >
-              Primär setzen
+              {t('contacts.set_primary')}
             </button>
           )}
           {!isDisabled && (
             <button
               type="button"
-              aria-label="Entfernen"
+              aria-label={t('contacts.remove_aria')}
               style={{ fontSize: 'var(--text-body)', color: 'var(--brand-red)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 var(--space-1)' }}
               onClick={() => remove(i)}
             >
@@ -128,7 +130,7 @@ export function PhoneList({ phones, onChange, disabled = false }: PhoneListProps
             onClick={add}
             style={{ fontSize: 'var(--text-label)', fontWeight: 'var(--weight-medium)', padding: 'var(--space-1) var(--space-3)', borderRadius: 'var(--radius-sm)', background: 'var(--brand-blue)', color: '#fff', border: 'none', cursor: 'pointer' }}
           >
-            Hinzufügen
+            {t('contacts.add_item')}
           </button>
           {addError && (
             <span style={{ fontSize: 'var(--text-meta)', color: 'var(--brand-red)', width: '100%' }}>

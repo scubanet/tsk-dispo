@@ -7,6 +7,7 @@
  * Requires at least primary_email or a phones entry for link buttons to render.
  */
 
+import { useTranslation } from 'react-i18next'
 import type { ContactWithSidecars, ContactRole } from '@/types/contacts'
 import { Avatar } from '../components/Avatar'
 import { RolesBadgeList } from './RolesBadgeList'
@@ -31,6 +32,7 @@ export function ContactHeader({
   onMoreClick,
   onPrimaryAction,
 }: ContactHeaderProps) {
+  const { t } = useTranslation()
   // Derive primary email and phone for quick-action links
   const primaryEmail =
     contact.primary_email ??
@@ -60,7 +62,7 @@ export function ContactHeader({
             <RolesBadgeList roles={contact.roles} onClick={onRoleClick} />
             {ownerName && (
               <span className="contact-header__owner">
-                Betreut von {ownerName}
+                {t('contacts.supervised_by', { name: ownerName })}
               </span>
             )}
           </div>
@@ -72,9 +74,9 @@ export function ContactHeader({
           <a
             href={`mailto:${primaryEmail}`}
             className="contact-header__action-btn"
-            title={`E-Mail an ${primaryEmail}`}
+            title={`${t('contacts.action_email')}: ${primaryEmail}`}
           >
-            ✉️ E-Mail
+            ✉️ {t('contacts.action_email')}
           </a>
         )}
         {whatsappNumber && (
@@ -83,18 +85,18 @@ export function ContactHeader({
             target="_blank"
             rel="noreferrer"
             className="contact-header__action-btn"
-            title="WhatsApp öffnen"
+            title={t('contacts.action_whatsapp')}
           >
-            💬 WhatsApp
+            💬 {t('contacts.action_whatsapp')}
           </a>
         )}
         {primaryPhone && (
           <a
             href={`tel:${primaryPhone}`}
             className="contact-header__action-btn"
-            title={`Anrufen: ${primaryPhone}`}
+            title={`${t('contacts.action_call')}: ${primaryPhone}`}
           >
-            📞 Anrufen
+            📞 {t('contacts.action_call')}
           </a>
         )}
 
@@ -113,8 +115,8 @@ export function ContactHeader({
             type="button"
             className="contact-header__action-btn"
             onClick={onMoreClick}
-            aria-label="Weitere Aktionen"
-            title="Weitere Aktionen"
+            aria-label={t('contacts.action_more')}
+            title={t('contacts.action_more')}
           >
             ⋯
           </button>

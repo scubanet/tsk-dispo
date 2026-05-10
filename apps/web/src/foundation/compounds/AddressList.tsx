@@ -10,6 +10,7 @@
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { AddressEntry } from '@/types/contacts'
 
 const LABEL_OPTIONS = ['home', 'work', 'billing', 'other']
@@ -37,6 +38,7 @@ interface DraftAddress {
 const EMPTY_DRAFT: DraftAddress = { label: 'home', street: '', postal: '', city: '', country: 'CH' }
 
 export function AddressList({ addresses, onChange, disabled = false }: AddressListProps) {
+  const { t } = useTranslation()
   const [editIdx, setEditIdx] = useState<number | null>(null)
   const [editDraft, setEditDraft] = useState<DraftAddress>(EMPTY_DRAFT)
   const [addOpen, setAddOpen] = useState(false)
@@ -112,7 +114,7 @@ export function AddressList({ addresses, onChange, disabled = false }: AddressLi
               onChange={setEditDraft}
               onSubmit={commitEdit}
               onCancel={() => setEditIdx(null)}
-              submitLabel="Speichern"
+              submitLabel={t('common.save')}
             />
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', width: '100%' }}>
@@ -124,7 +126,7 @@ export function AddressList({ addresses, onChange, disabled = false }: AddressLi
                 {formatAddress(a) || <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>—</span>}
               </span>
               {a.primary && (
-                <span className="contact-list-badge contact-list-badge--primary">Primär</span>
+                <span className="contact-list-badge contact-list-badge--primary">{t('contacts.primary_badge')}</span>
               )}
               {!a.primary && !isDisabled && (
                 <button
@@ -132,13 +134,13 @@ export function AddressList({ addresses, onChange, disabled = false }: AddressLi
                   style={{ fontSize: 'var(--text-meta)', color: 'var(--brand-blue)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 var(--space-1)' }}
                   onClick={() => makePrimary(i)}
                 >
-                  Primär setzen
+                  {t('contacts.set_primary')}
                 </button>
               )}
               {!isDisabled && (
                 <button
                   type="button"
-                  aria-label="Entfernen"
+                  aria-label={t('contacts.remove_aria')}
                   style={{ fontSize: 'var(--text-body)', color: 'var(--brand-red)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 var(--space-1)' }}
                   onClick={() => remove(i)}
                 >
@@ -157,7 +159,7 @@ export function AddressList({ addresses, onChange, disabled = false }: AddressLi
             style={{ fontSize: 'var(--text-label)', color: 'var(--brand-blue)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             onClick={() => setAddOpen(true)}
           >
-            + Adresse hinzufügen
+            {t('contacts.add_address')}
           </button>
         </div>
       )}
@@ -169,7 +171,7 @@ export function AddressList({ addresses, onChange, disabled = false }: AddressLi
             onChange={setAddDraft}
             onSubmit={addAddress}
             onCancel={() => { setAddOpen(false); setAddDraft(EMPTY_DRAFT) }}
-            submitLabel="Hinzufügen"
+            submitLabel={t('contacts.add_item')}
           />
         </div>
       )}
@@ -188,6 +190,7 @@ interface AddressFormProps {
 }
 
 function AddressForm({ draft, onChange, onSubmit, onCancel, submitLabel }: AddressFormProps) {
+  const { t } = useTranslation()
   const fieldStyle: React.CSSProperties = {
     fontSize: 'var(--text-body)',
     padding: 'var(--space-1) var(--space-2)',
@@ -226,7 +229,7 @@ function AddressForm({ draft, onChange, onSubmit, onCancel, submitLabel }: Addre
           onClick={onCancel}
           style={{ fontSize: 'var(--text-label)', padding: 'var(--space-1) var(--space-3)', borderRadius: 'var(--radius-sm)', background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', border: 'none', cursor: 'pointer' }}
         >
-          Abbrechen
+          {t('common.cancel')}
         </button>
       </div>
     </div>

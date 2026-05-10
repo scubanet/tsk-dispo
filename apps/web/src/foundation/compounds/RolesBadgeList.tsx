@@ -7,6 +7,7 @@
  * --brand-purple, --brand-deep, --brand-pink respectively.
  */
 
+import { useTranslation } from 'react-i18next'
 import type { ContactRole } from '@/types/contacts'
 
 const ROLE_COLORS: Record<ContactRole, string> = {
@@ -23,18 +24,18 @@ const ROLE_COLORS: Record<ContactRole, string> = {
   authority:            'var(--text-tertiary)',
 }
 
-const ROLE_LABELS: Record<ContactRole, string> = {
-  instructor:           'TL/DM',
-  student:              'Schüler',
-  candidate:            'Kandidat',
-  organization_profile: 'Org',
-  cd:                   'CD',
-  owner:                'Owner',
-  dispatcher:           'Dispatcher',
-  newsletter:           'Newsletter',
-  supplier:             'Lieferant',
-  partner_rep:          'Partner',
-  authority:            'Behörde',
+const ROLE_LABEL_KEYS: Record<ContactRole, string> = {
+  instructor:           'contacts.role_instructor',
+  student:              'contacts.role_student',
+  candidate:            'contacts.role_candidate',
+  organization_profile: 'contacts.role_org',
+  cd:                   'contacts.role_cd',
+  owner:                'contacts.role_owner',
+  dispatcher:           'contacts.role_dispatcher',
+  newsletter:           'contacts.role_newsletter',
+  supplier:             'contacts.role_supplier',
+  partner_rep:          'contacts.role_partner',
+  authority:            'contacts.role_authority',
 }
 
 export interface RolesBadgeListProps {
@@ -43,6 +44,7 @@ export interface RolesBadgeListProps {
 }
 
 export function RolesBadgeList({ roles, onClick }: RolesBadgeListProps) {
+  const { t } = useTranslation()
   if (roles.length === 0) return null
 
   return (
@@ -61,7 +63,7 @@ export function RolesBadgeList({ roles, onClick }: RolesBadgeListProps) {
               : undefined
           }
         >
-          {ROLE_LABELS[role] ?? role}
+          {ROLE_LABEL_KEYS[role] ? t(ROLE_LABEL_KEYS[role]) : role}
         </span>
       ))}
     </div>
