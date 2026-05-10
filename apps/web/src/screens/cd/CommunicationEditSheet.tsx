@@ -106,22 +106,43 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
     setError(null)
     setPickedContactId('')
     if (showPicker) {
+      // Pick from unified contacts table (instructors + students + orgs).
+      // Map to legacy PersonOption shape so existing render code works.
       supabase
-        .from('people')
-        .select('id, name, email, phone, is_student, is_candidate')
-        .order('last_name')
-        .order('first_name')
-        .then(({ data }) => setPeople((data ?? []) as PersonOption[]))
+        .from('contacts')
+        .select('id, display_name, primary_email, phones, roles')
+        .is('archived_at', null)
+        .order('display_name')
+        .then(({ data }) => {
+          const mapped: PersonOption[] = (data ?? []).map((c: any) => ({
+            id: c.id,
+            name: c.display_name ?? '',
+            email: c.primary_email ?? null,
+            phone: (Array.isArray(c.phones) && c.phones[0]?.e164) || null,
+            is_student: Array.isArray(c.roles) && c.roles.includes('student'),
+            is_candidate: Array.isArray(c.roles) && c.roles.includes('candidate'),
+          }))
+          setPeople(mapped)
+        })
     }
     // Kontaktdaten der gewählten Person laden für Send-Buttons
     const cid = contactId ?? pickedContactId
     if (cid) {
       supabase
-        .from('people')
-        .select('id, name, email, phone')
+        .from('contacts')
+        .select('id, display_name, primary_email, phones')
         .eq('id', cid)
         .maybeSingle()
-        .then(({ data }) => setContactInfo((data as PersonOption | null) ?? null))
+        .then(({ data }) => {
+          if (!data) { setContactInfo(null); return }
+          const c: any = data
+          setContactInfo({
+            id: c.id,
+            name: c.display_name ?? '',
+            email: c.primary_email ?? null,
+            phone: (Array.isArray(c.phones) && c.phones[0]?.e164) || null,
+          })
+        })
     } else {
       setContactInfo(null)
     }
