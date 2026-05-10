@@ -88,3 +88,82 @@ Echte Werte vor App-Store-Connect-Submission setzen. Phase-4-Aufgabe.
 **Fix:** zusätzlich `event.succeeded` prüfen (oder `event.error == nil`).
 
 **Priorität:** kosmetisch.
+
+---
+
+# Phase-3 QA Findings (deferred)
+
+Aus dem Phase-3-QA-Pass am 2026-05-09. Eine Critical-Konvergenz-Bug, zwei
+Important und sieben Minor — bewusst nicht in dieser Session gefixt, weil
+real-life-Workflow-Wahrscheinlichkeit niedrig oder Aufwand hoch.
+
+Vollständiger Test-Walkthrough + Repro-Steps siehe
+`2026-05-09-phase-3-qa-findings.md`.
+
+## #5 SkillCompletion-Sync konvergiert nicht (Critical)
+
+**Problem.** Zwei Geräte mit konkurrenten Skill-Cycles auf demselben
+Schüler+Skill zeigen unterschiedlichen Status nach CloudKit-Sync. Verifiziert
+mit iPhone+iPad: iPhone zeigte OW1.1=Mastered, iPad OW1.1=Eingeführt für
+identischen Dive.
+
+**Vermutete Ursache.** `currentStatus` greift auf
+`max(by: assessedOn)` zu. Bei Same-Second-`assessedOn`-Ties (z.B.
+zeitgleicher Cycle in Flugzeugmodus auf zwei Geräten) ist die Sortierung
+unstable, und beide Geräte können unterschiedliche Records als „neuesten"
+interpretieren.
+
+**Selbe Bug-Klasse wie #1** (Date-Tie-Tie-Breaker für Dive-Numbering),
+nur im Skill-Domain.
+
+**Lösung (Skizze).** Stabile Sekundär-Sortierung in `currentStatus`:
+
+```swift
+// In Student.currentStatus(for:)
+let latest = (skillCompletions ?? [])
+    .filter { $0.skillCode == skillCode }
+    .sorted { lhs, rhs in
+        if lhs.assessedOn != rhs.assessedOn { return lhs.assessedOn > rhs.assessedOn }
+        // tie-breaker: persistentModelID-string for deterministic ordering across devices
+        return String(describing: lhs.persistentModelID) > String(describing: rhs.persistentModelID)
+    }
+    .first
+```
+
+**Real-life-Wahrscheinlichkeit.** Niedrig — Solo-Course-Director nutzt
+typischerweise nur ein Device gleichzeitig. Akzeptabel für Phase 4
+TestFlight, sollte aber vor breiterem Release angepackt werden.
+
+## #6 CW-Catalog (Pool-Skills) ist leer (Important)
+
+**Problem.** PADI-Standards-JSON für Confined Water Sessions (CW1-CW5) ist
+nur mit „CW1.1 — TBD"-Platzhalter gefüllt. Pool-zentrische Workflows sind
+unbrauchbar. Flexible-Skills im Pool fallen auf OW-Flex-Skills zurück.
+
+**Lösung.** Echte PADI-CW-Skills recherchieren und in `owd.json` /
+`owd.de.json` einpflegen (oder eigene Sub-Catalogs für `cwskills.json`).
+Pro CW-Slot ~12-15 Skills + Flex-Skills. Aufwand: 30-60 Min Recherche +
+Eintragung. Schema-konform mit existing PADIStandards-Loader.
+
+## #7 Sprache mid-flow inkonsistent (Important)
+
+**Problem.** Sprachwechsel in iOS-Settings wird teils von der App
+übernommen (L10n-Strings), teils nicht (PADI-Catalog-Strings, iOS-native
+Tab-Bar). Nach App-Restart ist alles konsistent.
+
+**Lösung.** PADIStandards.shared muss bei Sprachwechsel den Catalog
+neu laden. Listener auf `NSLocale.currentLocaleDidChangeNotification`
+oder eigene App-internal Notification. iOS-native Strings (Tab-Bar)
+brauchen App-Restart — User-Hinweis-Dialog beim Sprachwechsel.
+
+## Minor — Phase-3-Sammlung
+
+| # | Beschreibung | Notes |
+|---|--------------|-------|
+| M1 | Sign-Tab nicht hinter Pro-Gate | Phase-4-Coverage-Audit greift das auf. |
+| M2 | Tauchgangstyp + Kurs-Tauchgang nicht exklusiv | UX-Frage. Doku-Klärung statt Code-Fix möglich. |
+| M3 | Per-Dive-PDF-Export aus DiveDetail fehlt | Bulk-Export aus Profile-Tab deckt Use-Case ab. |
+| M4 | Prior-Mastery-Trigger nicht offensichtlich | UX-Polish, evtl. Button in StudentProfileView prominenter. |
+| M5 | „1 students"-Plural-Bug | stringsdict / String-Catalog mit Plural-Variants. |
+| M6 | StudentEdit nur via ProfileView | Long-Press oder Swipe-Edit im StudentPicker als ergonomische Verbesserung. |
+| M7 | Schüler-Duplikate beim konkurrenten Anlegen | Dedupe-Logik analog DiverProfile (richness-scored). Niedrige Priorität. |
