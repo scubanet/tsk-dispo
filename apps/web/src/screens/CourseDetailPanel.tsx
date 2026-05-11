@@ -152,11 +152,19 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
     try {
       const diveCenterNr = localStorage.getItem('atoll.padi_dive_center_nr') ?? ''
 
-      // Parse birth date from student.birthday
+      // Load full contact (addresses, phones, gender, birth_date) — student-row only has basics
+      const { data: fullContact } = await supabase
+        .from('contacts')
+        .select('id, first_name, last_name, birth_date, gender, primary_email, phones, addresses')
+        .eq('id', p.student.id)
+        .maybeSingle()
+
+      // Parse birth date from contacts.birth_date (fallback to student.birthday)
       let studentBirthTag: string | undefined
       let studentBirthMonat: string | undefined
       let studentBirthJahr: string | undefined
-      const bd = (p.student as { birthday?: string | null }).birthday
+      const bd = (fullContact?.birth_date as string | null | undefined)
+        ?? (p.student as { birthday?: string | null }).birthday
       if (bd) {
         const parts = bd.split('-')
         if (parts.length === 3) {
@@ -166,8 +174,34 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
         }
       }
 
-      // Split student phone (single phone field in Student type)
-      const phoneSplit = splitE164Phone(p.student.phone)
+      // Gender: contacts.gender → 'M' / 'W' for PADI form
+      let studentGender: 'M' | 'W' | undefined
+      const g = (fullContact?.gender ?? '').toString().toLowerCase()
+      if (g === 'm' || g === 'male' || g === 'männlich') studentGender = 'M'
+      else if (g === 'f' || g === 'w' || g === 'weiblich' || g === 'female') studentGender = 'W'
+
+      // Address: prefer contacts.addresses (primary first), else nothing
+      const primaryAddr = Array.isArray(fullContact?.addresses)
+        ? (fullContact!.addresses as any[]).find((a) => a?.primary) ?? (fullContact!.addresses as any[])[0]
+        : null
+      const studentStreet = primaryAddr?.street ?? undefined
+      const studentCityPostal =
+        primaryAddr
+          ? [primaryAddr.postal, primaryAddr.city].filter(Boolean).join(' ')
+          : undefined
+      const studentCountry = primaryAddr?.country ?? undefined
+
+      // Phones: contacts.phones[] is an array of typed entries.
+      //   privat = label 'home' OR 'mobile' OR primary
+      //   beruflich = label 'work'
+      const phones = Array.isArray(fullContact?.phones) ? (fullContact!.phones as any[]) : []
+      const privatPhone = phones.find((p) => p?.label === 'home')
+        ?? phones.find((p) => p?.label === 'mobile')
+        ?? phones.find((p) => p?.primary)
+        ?? phones[0]
+      const beruflichPhone = phones.find((p) => p?.label === 'work')
+      const privatSplit = splitE164Phone(privatPhone?.e164 ?? p.student.phone)
+      const beruflichSplit = beruflichPhone ? splitE164Phone(beruflichPhone.e164) : { prefix: '', number: '' }
 
       // Look up instructor block from course
       const instBlock = await fetchInstructorBlockForCourse(courseId)
@@ -176,14 +210,24 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       const today = new Date().toISOString().slice(0, 10)
       const [yyyy, mm, dd] = today.split('-')
 
+      const studentName = fullContact
+        ? [fullContact.first_name, fullContact.last_name].filter(Boolean).join(' ') || p.student.name
+        : p.student.name
+
       const data: PadiReferralData = {
-        studentName: p.student.name,
+        studentName,
         studentBirthTag,
         studentBirthMonat,
         studentBirthJahr,
-        studentEmail: p.student.email ?? undefined,
-        studentPhonePrivatPrefix: phoneSplit.prefix || undefined,
-        studentPhonePrivatNumber: phoneSplit.number || undefined,
+        studentGender,
+        studentStreet,
+        studentCityPostal,
+        studentCountry,
+        studentEmail: fullContact?.primary_email ?? p.student.email ?? undefined,
+        studentPhonePrivatPrefix: privatSplit.prefix || undefined,
+        studentPhonePrivatNumber: privatSplit.number || undefined,
+        studentPhoneBeruflichPrefix: beruflichSplit.prefix || undefined,
+        studentPhoneBeruflichNumber: beruflichSplit.number || undefined,
         inst1DiveCenterNr: diveCenterNr || undefined,
         inst1DatumTag: dd,
         inst1DatumMonat: mm,
