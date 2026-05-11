@@ -29,6 +29,8 @@ export interface InlineFieldProps {
   label: string
   /** Rendered when not in edit mode. Undefined → shows the empty dash. */
   displayValue?: string
+  /** Optional muted suffix next to displayValue (e.g. "(42 Jahre)"). Hidden in edit mode. */
+  displayExtra?: React.ReactNode
   editing: boolean
   saving?: boolean
   error?: string | null
@@ -43,6 +45,7 @@ export interface InlineFieldProps {
 export function InlineField({
   label,
   displayValue,
+  displayExtra,
   editing,
   saving = false,
   error,
@@ -112,6 +115,14 @@ export function InlineField({
             displayValue
           ) : (
             <span className="inline-field__empty">—</span>
+          )}
+          {displayExtra && (
+            <span
+              className="inline-field__extra"
+              style={{ marginLeft: 8, color: 'var(--text-tertiary)', fontSize: 'var(--text-meta)' }}
+            >
+              {displayExtra}
+            </span>
           )}
         </div>
       )}

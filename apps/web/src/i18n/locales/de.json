@@ -787,6 +787,8 @@
     "kind_organisation": "Organisation",
     "loading_contact": "Lade Kontakt…",
     "error_loading": "Fehler beim Laden: {{msg}}",
+    "age_years_one": "({{count}} Jahr)",
+    "age_years_other": "({{count}} Jahre)",
     "tab_overview": "Übersicht",
     "tab_relationships": "Beziehungen",
     "tab_communications": "Communications",

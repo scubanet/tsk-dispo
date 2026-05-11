@@ -22,6 +22,20 @@ const LANGUAGES = [
   { code: 'tag', label: 'Tag' },
 ]
 
+/** Aktuelles Alter in Jahren aus einem ISO-Datum (YYYY-MM-DD). Null bei ungültigem Input. */
+function calcAgeYears(isoDate: string | null | undefined): number | null {
+  if (!isoDate) return null
+  const birth = new Date(isoDate)
+  if (Number.isNaN(birth.getTime())) return null
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const monthDiff = today.getMonth() - birth.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--
+  }
+  return age >= 0 && age < 150 ? age : null
+}
+
 interface Props {
   contact: ContactWithSidecars
   onUpdated: () => void
@@ -91,6 +105,12 @@ export function OverviewTab({ contact, onUpdated }: Props) {
               value={contact.birth_date}
               onCommit={async (v) => save('birth_date', v || null)}
               placeholder={t('contacts.birth_date_placeholder')}
+              displayExtra={
+                (() => {
+                  const age = calcAgeYears(contact.birth_date)
+                  return age != null ? t('contacts.age_years', { count: age }) : undefined
+                })()
+              }
             />
           </>
         )}

@@ -16,6 +16,8 @@ export interface InlineTextFieldProps {
   placeholder?: string
   multiline?: boolean
   disabled?: boolean
+  /** Optional muted suffix shown next to the value in display mode (e.g. age). */
+  displayExtra?: React.ReactNode
 }
 
 export function InlineTextField({
@@ -25,6 +27,7 @@ export function InlineTextField({
   placeholder,
   multiline = false,
   disabled = false,
+  displayExtra,
 }: InlineTextFieldProps) {
   const { t } = useTranslation()
   const [editing, setEditing] = useState(false)
@@ -65,6 +68,7 @@ export function InlineTextField({
     <InlineField
       label={label}
       displayValue={value ?? undefined}
+      displayExtra={displayExtra}
       editing={editing}
       saving={saving}
       error={error}
