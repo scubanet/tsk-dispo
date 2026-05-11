@@ -69,8 +69,11 @@ export interface PadiReferralData {
   studentCityPostal?: string
   studentCountry?: string
   studentEmail?: string
-  studentPhonePrivat?: string   // phone label home/mobile → privat row
-  studentPhoneBeruflich?: string // phone label work → beruflich row
+  // Split phone fields (prefix = country code without +, number = rest)
+  studentPhonePrivatPrefix?: string   // e.g. "41"
+  studentPhonePrivatNumber?: string   // e.g. "79 877 80 80"
+  studentPhoneBeruflichPrefix?: string
+  studentPhoneBeruflichNumber?: string
 
   // 1st Instructor block (referring instructor)
   inst1Name?: string
@@ -79,12 +82,17 @@ export interface PadiReferralData {
   inst1DatumTag?: string    // DD
   inst1DatumMonat?: string  // MM
   inst1DatumJahr?: string   // YYYY
+  inst1Email?: string
+  inst1PhonePrefix?: string
+  inst1PhoneNumber?: string
 
   // 2nd Instructor block (second referring instructor, rarely used)
   inst2Name?: string
   inst2PadiNr?: string
   inst2DiveCenterNr?: string
   inst2Email?: string
+  inst2PhonePrefix?: string
+  inst2PhoneNumber?: string
 }
 
 /** Map data field → AcroForm field name. Text fields only (checkboxes handled separately). */
@@ -101,11 +109,13 @@ export const FIELD_MAP: Record<
   studentCityPostal:   'Postanschrift 2',
   studentCountry:      'Postanschrift 3',
   studentEmail:        'EMail',
-  // Phones: undefined / undefined_2 are the first two phone rows (privat / beruflich)
-  // Confirmed by y-coordinates: undefined at y=470 (first row), undefined_2 at y=470 (number part)
-  // We fill only the number part (the wide field), not the narrow prefix field.
-  studentPhonePrivat:    'undefined_2',
-  studentPhoneBeruflich: 'undefined_4',
+  // Split phone fields — narrow column (prefix) + wide column (number)
+  // y=470: 'undefined' (x≈102, w≈22, prefix) + 'undefined_2' (x≈128, w≈101, number) → privat
+  // y=456: 'undefined_3' (x≈102, w≈22, prefix) + 'undefined_4' (x≈128, w≈101, number) → beruflich
+  studentPhonePrivatPrefix:    'undefined',
+  studentPhonePrivatNumber:    'undefined_2',
+  studentPhoneBeruflichPrefix: 'undefined_3',
+  studentPhoneBeruflichNumber: 'undefined_4',
 
   // Instructor block 1
   inst1Name:        'PADI lnstructor',   // note: typo in PDF — 'ln' not 'In'
@@ -114,10 +124,17 @@ export const FIELD_MAP: Record<
   inst1DatumTag:    'Datum',
   inst1DatumMonat:  'undefined_7',
   inst1DatumJahr:   'undefined_8',
+  // Inst1 phone: y≈283 'undefined_9' (prefix, narrow) + 'undefined_10' (number, wide)
+  inst1Email:       'EMail_2',
+  inst1PhonePrefix: 'undefined_9',
+  inst1PhoneNumber: 'undefined_10',
 
   // Instructor block 2
   inst2Name:        'PADI lnstructor_2',
   inst2PadiNr:      'PADI Nr_2',
   inst2DiveCenterNr: 'Dive CenterResort Nr_2',
-  inst2Email:       'EMail_2',
+  inst2Email:       'EMail_3',
+  // Inst2 phone: y≈163 'undefined_15' (prefix, narrow) + 'undefined_16' (number, wide)
+  inst2PhonePrefix: 'undefined_15',
+  inst2PhoneNumber: 'undefined_16',
 }
