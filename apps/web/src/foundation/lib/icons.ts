@@ -149,6 +149,14 @@ const Building = svg([
   line(4, 12, 20, 12, 'l3'),
 ])
 
+const Document = svg([
+  path('M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'),
+  polyline('14 2 14 8 20 8', 'p'),
+  line(16, 13, 8, 13, 'l1'),
+  line(16, 17, 8, 17, 'l2'),
+  line(10, 9, 8, 9, 'l3'),
+])
+
 // ─────────── Registry ───────────
 
 export const Icon = {
@@ -176,6 +184,7 @@ export const Icon = {
   Sort,
   Home,
   Building,
+  Document,
 } as const
 
 export type IconName = keyof typeof Icon
