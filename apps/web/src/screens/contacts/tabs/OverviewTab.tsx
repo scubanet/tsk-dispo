@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ContactWithSidecars } from '@/types/contacts'
 import { InlineTextField } from '@/foundation/compounds/InlineTextField'
+import { InlineDateField } from '@/foundation/compounds/InlineDateField'
 import { EmailList } from '@/foundation/compounds/EmailList'
 import { PhoneList } from '@/foundation/compounds/PhoneList'
 import { AddressList } from '@/foundation/compounds/AddressList'
@@ -100,10 +101,10 @@ export function OverviewTab({ contact, onUpdated }: Props) {
               value={contact.last_name}
               onCommit={async (v) => save('last_name', v)}
             />
-            <InlineTextField
+            <InlineDateField
               label={t('contacts.field_birth_date')}
               value={contact.birth_date}
-              onCommit={async (v) => save('birth_date', v || null)}
+              onCommit={async (v) => save('birth_date', v)}
               placeholder={t('contacts.birth_date_placeholder')}
               displayExtra={
                 (() => {
