@@ -13,6 +13,8 @@ import { AddressList } from '@/foundation/compounds/AddressList'
 import {
   updateContactField,
 } from '@/lib/contactQueries'
+import { generatePadiReferralPdf, downloadPdf } from '@/lib/padiReferralFill'
+import type { PadiReferralData } from '@/lib/padiReferralFieldMap'
 
 const LANGUAGES = [
   { code: 'de',  label: 'De' },
@@ -47,6 +49,10 @@ export function OverviewTab({ contact, onUpdated }: Props) {
   const id = contact.id
   const isOrg = contact.kind === 'organization'
   const [savingLang, setSavingLang] = useState(false)
+  const [padiGenerating, setPadiGenerating] = useState(false)
+  const [padiError, setPadiError] = useState<string | null>(null)
+
+  const isStudent = contact.roles.includes('student')
 
   async function save<K extends Parameters<typeof updateContactField>[1]>(
     field: K,
@@ -54,6 +60,75 @@ export function OverviewTab({ contact, onUpdated }: Props) {
   ) {
     await updateContactField(id, field, value)
     onUpdated()
+  }
+
+  async function handlePadiReferral() {
+    setPadiGenerating(true)
+    setPadiError(null)
+    try {
+      const diveCenterNr = localStorage.getItem('atoll.padi_dive_center_nr') ?? ''
+
+      // Parse birth date
+      let studentBirthTag: string | undefined
+      let studentBirthMonat: string | undefined
+      let studentBirthJahr: string | undefined
+      if (contact.birth_date) {
+        const parts = contact.birth_date.split('-')
+        if (parts.length === 3) {
+          studentBirthJahr  = parts[0]
+          studentBirthMonat = parts[1]
+          studentBirthTag   = parts[2]
+        }
+      }
+
+      // Map gender
+      let studentGender: 'M' | 'W' | undefined
+      const g = (contact.gender ?? '').toLowerCase()
+      if (g === 'm' || g === 'male' || g === 'männlich') studentGender = 'M'
+      else if (g === 'f' || g === 'w' || g === 'female' || g === 'weiblich') studentGender = 'W'
+
+      // Address (prefer primary, else first)
+      const addr =
+        contact.addresses.find((a) => a.primary) ?? contact.addresses[0]
+      const studentStreet     = addr?.street
+      const studentCityPostal = addr ? [addr.postal, addr.city].filter(Boolean).join(' ') || undefined : undefined
+      const studentCountry    = addr?.country
+
+      // Phones
+      const privatePhone = contact.phones.find(
+        (p) => p.label === 'home' || p.label === 'mobile' || p.label === 'privat',
+      )
+      const workPhone = contact.phones.find(
+        (p) => p.label === 'work' || p.label === 'beruflich',
+      )
+
+      // Today for the filename
+      const today = new Date().toISOString().slice(0, 10)
+
+      const data: PadiReferralData = {
+        studentName: [contact.first_name, contact.last_name].filter(Boolean).join(' '),
+        studentBirthTag,
+        studentBirthMonat,
+        studentBirthJahr,
+        studentGender,
+        studentStreet,
+        studentCityPostal,
+        studentCountry,
+        studentEmail: contact.primary_email ?? undefined,
+        studentPhonePrivat:    privatePhone?.e164,
+        studentPhoneBeruflich: workPhone?.e164,
+        inst1DiveCenterNr: diveCenterNr || undefined,
+      }
+
+      const bytes = await generatePadiReferralPdf(data)
+      const lastName = (contact.last_name ?? 'Referral').replace(/\s+/g, '-')
+      downloadPdf(bytes, `PADI-Referral-${lastName}-${today}.pdf`)
+    } catch (err) {
+      console.error('PADI referral generation failed', err)
+      setPadiError(t('contacts.padi_referral_error'))
+    } finally {
+      setPadiGenerating(false)
+    }
   }
 
   async function toggleLanguage(code: string) {
@@ -196,6 +271,30 @@ export function OverviewTab({ contact, onUpdated }: Props) {
           placeholder={t('contacts.notes_placeholder')}
         />
       </section>
+
+      {/* ── PADI Referral PDF ────────────────────────── */}
+      {isStudent && (
+        <section className="contact-section">
+          <h2 className="contact-section__title">{t('contacts.section_padi_forms')}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            <button
+              type="button"
+              className="atoll-btn atoll-btn--secondary"
+              onClick={handlePadiReferral}
+              disabled={padiGenerating}
+            >
+              {padiGenerating
+                ? t('contacts.padi_referral_generating')
+                : t('contacts.padi_referral_button')}
+            </button>
+            {padiError && (
+              <span style={{ color: 'var(--danger)', fontSize: 'var(--text-sm)' }}>
+                {padiError}
+              </span>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ── Footer ──────────────────────────────────── */}
       <footer className="contact-tab-footer">
