@@ -756,6 +756,13 @@
       "col_instructor_pay": "Instructor pay",
       "footnote": "Instructor pay shown as example with the current instructor rate · DM/AI/Shop Staff use their lower rate accordingly."
     },
+    "padi": {
+      "title": "PADI settings",
+      "subtitle": "Dive Center Nr. is pre-filled into PADI forms.",
+      "dive_center_nr_label": "PADI Dive Center Nr.",
+      "dive_center_nr_placeholder": "e.g. S-12345",
+      "saved": "Saved"
+    },
     "users": {
       "title": "Users & login links",
       "summary": "{{linked}} of {{total}} person has a login.",
@@ -923,6 +930,10 @@
     "tags_placeholder": "vip, newsletter, …",
     "section_notes": "Notes",
     "notes_placeholder": "Internal notes …",
+    "section_padi_forms": "PADI Forms",
+    "padi_referral_button": "PADI Referral PDF",
+    "padi_referral_generating": "Generating…",
+    "padi_referral_error": "Error generating",
     "footer_created": "Created: {{date}}",
     "footer_updated": "Updated: {{date}}",
     "footer_source": "Source: {{source}}",

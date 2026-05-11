@@ -756,6 +756,13 @@
       "col_instructor_pay": "Instruktor-Vergütung",
       "footnote": "Instruktor-Vergütung als Beispiel-Rechnung mit aktuellem Instruktor-Satz · DM/AI/Shop Staff analog mit ihrem niedrigeren Satz."
     },
+    "padi": {
+      "title": "PADI-Einstellungen",
+      "subtitle": "Dive Center Nr. wird in PADI-Formulare vorausgefüllt.",
+      "dive_center_nr_label": "PADI Dive Center Nr.",
+      "dive_center_nr_placeholder": "z.B. S-12345",
+      "saved": "Gespeichert"
+    },
     "users": {
       "title": "User & Login-Verknüpfungen",
       "summary": "{{linked}} von {{total}} Person hat einen Login.",
@@ -923,6 +930,10 @@
     "tags_placeholder": "vip, newsletter, …",
     "section_notes": "Notizen",
     "notes_placeholder": "Interne Notizen …",
+    "section_padi_forms": "PADI Formulare",
+    "padi_referral_button": "PADI Referral PDF",
+    "padi_referral_generating": "Wird erstellt…",
+    "padi_referral_error": "Fehler beim Erstellen",
     "footer_created": "Erstellt: {{date}}",
     "footer_updated": "Geändert: {{date}}",
     "footer_source": "Quelle: {{source}}",

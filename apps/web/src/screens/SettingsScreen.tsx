@@ -61,6 +61,12 @@ export function SettingsScreen() {
   const [dirty, setDirty] = useState(false)
   const [recalcing, setRecalcing] = useState(false)
   const [recalcMsg, setRecalcMsg] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
+  const [diveCenterNr, setDiveCenterNr] = useState<string>(
+    () => localStorage.getItem('atoll.padi_dive_center_nr') ?? '',
+  )
+  const [diveCenterNrDraft, setDiveCenterNrDraft] = useState<string>(
+    () => localStorage.getItem('atoll.padi_dive_center_nr') ?? '',
+  )
 
   function refetch() {
     supabase
@@ -334,6 +340,44 @@ export function SettingsScreen() {
           </div>
           <div className="atoll-cockpit__card-sub" style={{ marginTop: 12, marginBottom: 0 }}>
             {t('settings.course_pay.footnote')}
+          </div>
+        </section>
+
+        {/* PADI settings */}
+        <section className="atoll-cockpit__card">
+          <h2 className="atoll-cockpit__card-title">{t('settings.padi.title')}</h2>
+          <p className="atoll-cockpit__card-sub">{t('settings.padi.subtitle')}</p>
+          <div className="atoll-settings__padi-row">
+            <label className="atoll-settings__padi-label" htmlFor="padi-dive-center-nr">
+              {t('settings.padi.dive_center_nr_label')}
+            </label>
+            <input
+              id="padi-dive-center-nr"
+              type="text"
+              className="atoll-settings__padi-input"
+              value={diveCenterNrDraft}
+              onChange={(e) => setDiveCenterNrDraft(e.target.value)}
+              onBlur={() => {
+                const v = diveCenterNrDraft.trim()
+                localStorage.setItem('atoll.padi_dive_center_nr', v)
+                setDiveCenterNr(v)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const v = diveCenterNrDraft.trim()
+                  localStorage.setItem('atoll.padi_dive_center_nr', v)
+                  setDiveCenterNr(v)
+                  ;(e.target as HTMLInputElement).blur()
+                }
+              }}
+              placeholder={t('settings.padi.dive_center_nr_placeholder')}
+            />
+            {diveCenterNr && (
+              <span className="atoll-settings__padi-saved">
+                <Icon.Check size={12} aria-hidden style={{ color: 'var(--brand-teal)' }} />
+                {t('settings.padi.saved')}
+              </span>
+            )}
           </div>
         </section>
 
