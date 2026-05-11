@@ -454,22 +454,13 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                   <div className="atoll-detail__row-main">
                     <button
                       type="button"
-                      className="atoll-detail__row-title"
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        padding: 0,
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        color: 'inherit',
-                        fontFamily: 'inherit',
-                        fontSize: 'inherit',
-                        fontWeight: 'inherit',
-                      }}
+                      className="atoll-detail__row-title atoll-detail__row-title--link"
+                      disabled={!p.student}
                       onClick={(e) => {
                         e.stopPropagation()
                         if (p.student) openParticipantContact(p.student.id)
                       }}
+                      title={p.student ? p.student.name : undefined}
                     >
                       {p.student?.name ?? '—'}
                     </button>

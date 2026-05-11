@@ -124,6 +124,27 @@
   background: var(--brand-blue-50);
 }
 
+/* Klickbarer Titel im Detail-Row (Schülername in Kursdetail, Person in Communication Hub, etc.) */
+.atoll-detail__row-title--link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+  transition: color 120ms ease, text-decoration-color 120ms ease;
+}
+.atoll-detail__row-title--link:hover,
+.atoll-detail__row-title--link:focus-visible {
+  color: var(--brand-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* KpiCard total ratio: "12 / 24" — make denominator subtle. */
 .atoll-kpi__total {
   font-size: var(--text-body);
