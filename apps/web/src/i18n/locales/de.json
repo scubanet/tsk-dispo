@@ -550,7 +550,10 @@
     "intake_tooltip": "Intake-Checkliste",
     "status_enrolled": "angemeldet",
     "status_certified": "zertifiziert",
-    "status_dropped": "abgebrochen"
+    "status_dropped": "abgebrochen",
+    "padi_referral_button": "PADI Referral",
+    "padi_referral_generating": "Wird erstellt…",
+    "padi_referral_error": "Fehler beim Erstellen"
   },
   "course_edit": {
     "title_new": "Neuer Kurs",

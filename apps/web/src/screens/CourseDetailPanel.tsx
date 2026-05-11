@@ -28,6 +28,13 @@ import { PrCheckOffSheet, type ScoreSchema } from './PrCheckOffSheet'
 import { IntakeChecklistSheet } from './cd/IntakeChecklistSheet'
 import { supabase } from '@/lib/supabase'
 import type { OutletCtx } from '@/layout/AppShell'
+import {
+  generatePadiReferralPdf,
+  downloadPdf,
+  splitE164Phone,
+  fetchInstructorBlockForCourse,
+} from '@/lib/padiReferralFill'
+import type { PadiReferralData } from '@/lib/padiReferralFieldMap'
 
 type Tab = 'overview' | 'assignments' | 'participants' | 'notes' | 'prs'
 
@@ -128,6 +135,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   const [intakeForCpId, setIntakeForCpId] = useState<string | null>(null)
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null)
   const [contactInitialTab, setContactInitialTab] = useState<TabKey>('overview')
+  const [padiGeneratingId, setPadiGeneratingId] = useState<string | null>(null)
 
   function openInstructorContact(id: string) {
     setSelectedContactId(id)
@@ -136,6 +144,67 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   function openParticipantContact(id: string) {
     setSelectedContactId(id)
     setContactInitialTab('overview')
+  }
+
+  async function handlePadiReferral(p: CourseParticipant) {
+    if (!p.student) return
+    setPadiGeneratingId(p.id)
+    try {
+      const diveCenterNr = localStorage.getItem('atoll.padi_dive_center_nr') ?? ''
+
+      // Parse birth date from student.birthday
+      let studentBirthTag: string | undefined
+      let studentBirthMonat: string | undefined
+      let studentBirthJahr: string | undefined
+      const bd = (p.student as { birthday?: string | null }).birthday
+      if (bd) {
+        const parts = bd.split('-')
+        if (parts.length === 3) {
+          studentBirthJahr  = parts[0]
+          studentBirthMonat = parts[1]
+          studentBirthTag   = parts[2]
+        }
+      }
+
+      // Split student phone (single phone field in Student type)
+      const phoneSplit = splitE164Phone(p.student.phone)
+
+      // Look up instructor block from course
+      const instBlock = await fetchInstructorBlockForCourse(courseId)
+
+      // Today for date fields and filename
+      const today = new Date().toISOString().slice(0, 10)
+      const [yyyy, mm, dd] = today.split('-')
+
+      const data: PadiReferralData = {
+        studentName: p.student.name,
+        studentBirthTag,
+        studentBirthMonat,
+        studentBirthJahr,
+        studentEmail: p.student.email ?? undefined,
+        studentPhonePrivatPrefix: phoneSplit.prefix || undefined,
+        studentPhonePrivatNumber: phoneSplit.number || undefined,
+        inst1DiveCenterNr: diveCenterNr || undefined,
+        inst1DatumTag: dd,
+        inst1DatumMonat: mm,
+        inst1DatumJahr: yyyy,
+        ...(instBlock && {
+          inst1Name:        instBlock.name,
+          inst1PadiNr:      instBlock.padiPro ?? undefined,
+          inst1Email:       instBlock.email ?? undefined,
+          inst1PhonePrefix: instBlock.phonePrefix || undefined,
+          inst1PhoneNumber: instBlock.phoneNumber || undefined,
+        }),
+      }
+
+      const bytes = await generatePadiReferralPdf(data)
+      const safeName = p.student.name.replace(/\s+/g, '-')
+      downloadPdf(bytes, `PADI-Referral-${safeName}-${today}.pdf`)
+    } catch (err) {
+      console.error('PADI referral generation failed', err)
+    } finally {
+      setPadiGeneratingId(null)
+    }
   }
 
   function refresh() {
@@ -490,6 +559,22 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                         {t('course_detail.intake')}
                       </button>
                     )}
+                    <button
+                      type="button"
+                      className="atoll-btn"
+                      style={{ height: 26, padding: '0 10px', fontSize: 'var(--text-meta)' }}
+                      disabled={padiGeneratingId === p.id}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        void handlePadiReferral(p)
+                      }}
+                      title="PADI Referral PDF"
+                    >
+                      <FdIcon.Document size={12} />
+                      {padiGeneratingId === p.id
+                        ? t('course_detail.padi_referral_generating')
+                        : t('course_detail.padi_referral_button')}
+                    </button>
                     <Pill tone={statusTone} size="sm">
                       {p.status === 'enrolled' ? t('course_detail.status_enrolled') :
                        p.status === 'certified' ? t('course_detail.status_certified') :

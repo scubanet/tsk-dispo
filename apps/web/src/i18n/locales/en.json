@@ -550,7 +550,10 @@
     "intake_tooltip": "Intake checklist",
     "status_enrolled": "enrolled",
     "status_certified": "certified",
-    "status_dropped": "dropped"
+    "status_dropped": "dropped",
+    "padi_referral_button": "PADI Referral",
+    "padi_referral_generating": "Generating…",
+    "padi_referral_error": "Error generating"
   },
   "course_edit": {
     "title_new": "New course",
