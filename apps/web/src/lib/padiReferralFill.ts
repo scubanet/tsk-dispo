@@ -95,6 +95,119 @@ export async function generatePadiReferralPdf(data: PadiReferralData): Promise<U
   return pdf.save()
 }
 
+/**
+ * Fetch course-day data and build auto-fill fields for the PADI referral PDF.
+ * Fills CW 1–5 (pool days), Knowledge Development Teil 1–5 (theory/pool days),
+ * and OW Tauchgänge 1–4 (see days).
+ */
+export async function buildCourseAutofillData(courseId: string): Promise<Partial<PadiReferralData>> {
+  // Fetch course dates with kind array
+  const { data: cd } = await supabase
+    .from('course_dates')
+    .select('date, kind')
+    .eq('course_id', courseId)
+
+  // Fetch haupt assignments with instructor initials
+  const { data: ca } = await supabase
+    .from('course_assignments')
+    .select('instructor_id, role, assigned_for_dates, instructor:instructors(id, initials)')
+    .eq('course_id', courseId)
+    .eq('role', 'haupt')
+
+  // Fetch PADI pro numbers for involved instructors
+  const instructorIds = (ca ?? []).map((a) => (a as any).instructor_id as string)
+  const { data: cis } = instructorIds.length === 0
+    ? { data: [] as Array<{ contact_id: string; padi_pro_number: string | null }> }
+    : await supabase
+        .from('contact_instructor')
+        .select('contact_id, padi_pro_number')
+        .in('contact_id', instructorIds)
+
+  /** Return initials + PADI Nr for the haupt instructor covering a given date. */
+  function infoForDate(date: string): { initials: string; padi: string } {
+    const assignments = (ca ?? []) as unknown as Array<{
+      instructor_id: string
+      role: string
+      assigned_for_dates: string[] | null
+      instructor: { id: string; initials: string | null } | { id: string; initials: string | null }[] | null
+    }>
+    const specific = assignments.find(
+      (a) => Array.isArray(a.assigned_for_dates) && a.assigned_for_dates.includes(date),
+    )
+    const fallback = assignments.find(
+      (a) => !a.assigned_for_dates || a.assigned_for_dates.length === 0,
+    )
+    const a = specific ?? fallback
+    if (!a) return { initials: '', padi: '' }
+    const rawInst = a.instructor
+    const inst = Array.isArray(rawInst) ? rawInst[0] : rawInst
+    const initials = inst?.initials ?? ''
+    const padi =
+      (cis ?? []).find((c) => c.contact_id === a.instructor_id)?.padi_pro_number ?? ''
+    return { initials: initials ?? '', padi: padi ?? '' }
+  }
+
+  /** Split ISO date string (YYYY-MM-DD) into tag/monat/jahr. */
+  function splitDate(iso: string): { tag: string; monat: string; jahr: string } {
+    const [yyyy, mm, dd] = iso.split('-')
+    return { tag: dd ?? '', monat: mm ?? '', jahr: yyyy ?? '' }
+  }
+
+  const courseDates = (cd ?? []) as Array<{ date: string; kind: string[] | null }>
+  const poolDays   = courseDates.filter((d) => (d.kind ?? []).includes('pool')).map((d) => d.date).sort()
+  const seeDays    = courseDates.filter((d) => (d.kind ?? []).includes('see')).map((d) => d.date).sort()
+  const theoryDays = courseDates.filter((d) => (d.kind ?? []).includes('theorie')).map((d) => d.date).sort()
+
+  const result: Partial<PadiReferralData> = {}
+
+  // CW 1–5: one entry per pool day (up to 5)
+  for (let i = 0; i < Math.min(poolDays.length, 5); i++) {
+    const date = poolDays[i]
+    const { tag, monat, jahr } = splitDate(date)
+    const { initials, padi } = infoForDate(date)
+    const n = (i + 1) as 1 | 2 | 3 | 4 | 5
+    result[`cw${n}Tag`]      = tag
+    result[`cw${n}Monat`]    = monat
+    result[`cw${n}Jahr`]     = jahr
+    result[`cw${n}Initialen`] = initials
+    result[`cw${n}PadiNr`]   = padi
+  }
+
+  // Knowledge Development Teil 1–5: spread theory days; fall back to pool days if no theory
+  // Only fill if we have at least one source day (graceful degrade)
+  const kdSource = theoryDays.length > 0 ? theoryDays : poolDays
+  for (let i = 0; i < 5; i++) {
+    const date = kdSource[i] ?? kdSource[0]
+    if (!date) break
+    const { tag, monat, jahr } = splitDate(date)
+    const { initials, padi } = infoForDate(date)
+    const n = (i + 1) as 1 | 2 | 3 | 4 | 5
+    result[`kd${n}Tag`]      = tag
+    result[`kd${n}Monat`]    = monat
+    result[`kd${n}Jahr`]     = jahr
+    result[`kd${n}Initialen`] = initials
+    result[`kd${n}PadiNr`]   = padi
+  }
+
+  // OW Tauchgänge 1–4: one entry per see day (up to 4)
+  for (let i = 0; i < Math.min(seeDays.length, 4); i++) {
+    const date = seeDays[i]
+    const { tag, monat, jahr } = splitDate(date)
+    const { initials, padi } = infoForDate(date)
+    const n = (i + 1) as 1 | 2 | 3 | 4
+    result[`ow${n}Tag`]      = tag
+    result[`ow${n}Monat`]    = monat
+    result[`ow${n}Jahr`]     = jahr
+    if (n !== 2) {
+      // ow2Initialen is unmapped (PDF field is a long label name, not reliably fillable)
+      result[`ow${n}Initialen`] = initials
+    }
+    result[`ow${n}PadiNr`]   = padi
+  }
+
+  return result
+}
+
 export function downloadPdf(bytes: Uint8Array, filename: string): void {
   const blob = new Blob([bytes as BlobPart], { type: 'application/pdf' })
   const url = URL.createObjectURL(blob)
