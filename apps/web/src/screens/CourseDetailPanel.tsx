@@ -33,6 +33,7 @@ import {
   downloadPdf,
   splitE164Phone,
   fetchInstructorBlockForCourse,
+  buildCourseAutofillData,
 } from '@/lib/padiReferralFill'
 import type { PadiReferralData } from '@/lib/padiReferralFieldMap'
 
@@ -203,8 +204,11 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       const privatSplit = splitE164Phone(privatPhone?.e164 ?? p.student.phone)
       const beruflichSplit = beruflichPhone ? splitE164Phone(beruflichPhone.e164) : { prefix: '', number: '' }
 
-      // Look up instructor block from course
-      const instBlock = await fetchInstructorBlockForCourse(courseId)
+      // Look up instructor block and course auto-fill data in parallel
+      const [instBlock, autofill] = await Promise.all([
+        fetchInstructorBlockForCourse(courseId),
+        buildCourseAutofillData(courseId),
+      ])
 
       // Today for date fields and filename
       const today = new Date().toISOString().slice(0, 10)
@@ -215,6 +219,9 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
         : p.student.name
 
       const data: PadiReferralData = {
+        // Course-derived auto-fill (CW, KD, OW dates + instructors)
+        ...autofill,
+        // Student block
         studentName,
         studentBirthTag,
         studentBirthMonat,
@@ -228,6 +235,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
         studentPhonePrivatNumber: privatSplit.number || undefined,
         studentPhoneBeruflichPrefix: beruflichSplit.prefix || undefined,
         studentPhoneBeruflichNumber: beruflichSplit.number || undefined,
+        // Instructor block 1
         inst1DiveCenterNr: diveCenterNr || undefined,
         inst1DatumTag: dd,
         inst1DatumMonat: mm,
