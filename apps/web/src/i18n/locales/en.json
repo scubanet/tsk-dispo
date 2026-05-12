@@ -553,7 +553,23 @@
     "status_dropped": "dropped",
     "padi_referral_button": "PADI Referral",
     "padi_referral_generating": "Generating…",
-    "padi_referral_error": "Error generating"
+    "padi_referral_error": "Error generating",
+    "tab_skillcheck": "Skill-Check"
+  },
+  "padi_skill_check": {
+    "filter_all": "All Days",
+    "filter_today": "Today",
+    "no_course_today": "No course day today",
+    "col_skill": "Skill",
+    "cell_empty_hint": "Click to record",
+    "label_date": "Date",
+    "label_tg_number": "Dive #",
+    "label_quiz": "Quiz passed",
+    "label_video": "Video watched",
+    "label_instructor": "Instructor",
+    "no_instructor": "— Instructor —",
+    "save": "Save",
+    "clear": "Clear"
   },
   "course_edit": {
     "title_new": "New course",

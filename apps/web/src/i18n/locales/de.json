@@ -553,7 +553,23 @@
     "status_dropped": "abgebrochen",
     "padi_referral_button": "PADI Referral",
     "padi_referral_generating": "Wird erstellt…",
-    "padi_referral_error": "Fehler beim Erstellen"
+    "padi_referral_error": "Fehler beim Erstellen",
+    "tab_skillcheck": "Skill-Check"
+  },
+  "padi_skill_check": {
+    "filter_all": "Alle Tage",
+    "filter_today": "Heute",
+    "no_course_today": "Kein Kursdag heute",
+    "col_skill": "Fertigkeit",
+    "cell_empty_hint": "Klicken zum Erfassen",
+    "label_date": "Datum",
+    "label_tg_number": "TG #",
+    "label_quiz": "Quiz bestanden",
+    "label_video": "Video gesehen",
+    "label_instructor": "Instructor",
+    "no_instructor": "— Instructor —",
+    "save": "Speichern",
+    "clear": "Löschen"
   },
   "course_edit": {
     "title_new": "Neuer Kurs",

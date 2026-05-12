@@ -25,6 +25,7 @@ import { AssignmentEditSheet } from './AssignmentEditSheet'
 import { EnrollStudentSheet } from './EnrollStudentSheet'
 import { StudentEditSheet } from './StudentEditSheet'
 import { PrCheckOffSheet, type ScoreSchema } from './PrCheckOffSheet'
+import { SkillCheckTab } from './SkillCheckTab'
 import { IntakeChecklistSheet } from './cd/IntakeChecklistSheet'
 import { supabase } from '@/lib/supabase'
 import type { OutletCtx } from '@/layout/AppShell'
@@ -37,7 +38,7 @@ import {
 } from '@/lib/padiReferralFill'
 import type { PadiReferralData } from '@/lib/padiReferralFieldMap'
 
-type Tab = 'overview' | 'assignments' | 'participants' | 'notes' | 'prs'
+type Tab = 'overview' | 'assignments' | 'participants' | 'notes' | 'prs' | 'skillcheck'
 
 // Mapping: course_type.code → pr_catalogs.course_type
 // Hinweis: DM ist kein originärer CD-Kurs, sondern dient als Recruiting-Kanal
@@ -207,7 +208,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       // Look up instructor block and course auto-fill data in parallel
       const [instBlock, autofill] = await Promise.all([
         fetchInstructorBlockForCourse(courseId),
-        buildCourseAutofillData(courseId),
+        buildCourseAutofillData(courseId, p.id),
       ])
 
       // Today for date fields and filename
@@ -295,10 +296,15 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
 
   if (!course) return <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
 
+  // SkillCheck-Tab nur bei OWD / OWD_DRY
+  const isOwdCourse = courseTypeCode === 'OWD' || courseTypeCode === 'OWD_DRY'
+
   // PR-Tab nur wenn CD + CD-Kurs + Catalog vorhanden
-  const visibleTabs: { value: Tab; label: string }[] = isCD && isCdCourse
-    ? [...BASE_TABS, { value: 'prs', label: t('course_detail.tab_prs') }]
-    : BASE_TABS
+  const visibleTabs: { value: Tab; label: string }[] = [
+    ...BASE_TABS,
+    ...(isOwdCourse ? [{ value: 'skillcheck' as Tab, label: t('course_detail.tab_skillcheck') }] : []),
+    ...(isCD && isCdCourse ? [{ value: 'prs' as Tab, label: t('course_detail.tab_prs') }] : []),
+  ]
 
   const haupt = assignments.find((a) => a.role === 'haupt')
   const announceUrl = waGroupShareUrl(
@@ -688,6 +694,15 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
             <div className="atoll-coursedetail__notes">{course.notes || '—'}</div>
           </div>
         </div>
+      )}
+
+      {tab === 'skillcheck' && (
+        <SkillCheckTab
+          courseId={courseId}
+          participants={participants}
+          assignments={assignments}
+          courseDates={courseDates}
+        />
       )}
 
       {tab === 'prs' && (
