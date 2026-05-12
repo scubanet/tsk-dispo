@@ -611,22 +611,24 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                         {t('course_detail.intake')}
                       </button>
                     )}
-                    <button
-                      type="button"
-                      className="atoll-btn"
-                      style={{ height: 26, padding: '0 10px', fontSize: 'var(--text-meta)' }}
-                      disabled={padiGeneratingId === p.id}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        void handlePadiReferral(p)
-                      }}
-                      title="PADI Referral PDF"
-                    >
-                      <FdIcon.Document size={12} />
-                      {padiGeneratingId === p.id
-                        ? t('course_detail.padi_referral_generating')
-                        : t('course_detail.padi_referral_button')}
-                    </button>
+                    {(courseTypeCode === 'OWD' || courseTypeCode === 'OWD_dry') && (
+                      <button
+                        type="button"
+                        className="atoll-btn"
+                        style={{ height: 26, padding: '0 10px', fontSize: 'var(--text-meta)' }}
+                        disabled={padiGeneratingId === p.id}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          void handlePadiReferral(p)
+                        }}
+                        title="PADI Referral PDF"
+                      >
+                        <FdIcon.Document size={12} />
+                        {padiGeneratingId === p.id
+                          ? t('course_detail.padi_referral_generating')
+                          : t('course_detail.padi_referral_button')}
+                      </button>
+                    )}
                     <Pill tone={statusTone} size="sm">
                       {p.status === 'enrolled' ? t('course_detail.status_enrolled') :
                        p.status === 'certified' ? t('course_detail.status_certified') :
