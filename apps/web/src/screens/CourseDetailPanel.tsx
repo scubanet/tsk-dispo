@@ -611,7 +611,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                         {t('course_detail.intake')}
                       </button>
                     )}
-                    {(courseTypeCode === 'OWD' || courseTypeCode === 'OWD_dry') && (
+                    {(courseTypeCode === 'OWD' || courseTypeCode === 'OWD_DRY') && (
                       <button
                         type="button"
                         className="atoll-btn"
