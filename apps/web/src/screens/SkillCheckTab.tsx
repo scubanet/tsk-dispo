@@ -124,14 +124,15 @@ function CellPopover({
     left: Math.min(anchorRect.left, window.innerWidth - 280),
     zIndex: 2000,
     width: 260,
-    background: 'var(--surface-elevated, #1c1c1e)',
-    border: '1px solid var(--border, rgba(255,255,255,.12))',
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border-primary)',
     borderRadius: 10,
-    boxShadow: '0 8px 32px rgba(0,0,0,.5)',
+    boxShadow: 'var(--shadow-popover)',
     padding: '12px 14px',
     display: 'grid',
     gap: 10,
     fontSize: 13,
+    color: 'var(--text-primary)',
   }
   if (above) {
     style.bottom = viewH - anchorRect.top + 4
@@ -520,8 +521,8 @@ export function SkillCheckTab({
                   </tr>
 
                   {!isCollapsed && sectionSkills.map((skill) => (
-                    <tr key={skill.code} style={{ borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,.04))' }}>
-                      <td style={{ padding: '5px 8px', fontSize: 12, color: 'var(--text-primary)', whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: 0, background: 'var(--surface)', zIndex: 1 }}>
+                    <tr key={skill.code} style={{ borderBottom: '1px solid var(--border-secondary)' }}>
+                      <td style={{ padding: '6px 8px', fontSize: 12, color: 'var(--text-primary)', whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: 0, background: 'var(--bg-card)', zIndex: 1 }}>
                         {skill.label_de}
                       </td>
                       {activeParticipants.map((p) => {
@@ -529,7 +530,7 @@ export function SkillCheckTab({
                         const isDone = !!record
                         const isOpen = popover?.participantId === p.id && popover?.skillCode === skill.code
                         return (
-                          <td key={p.id} style={{ textAlign: 'center', padding: '4px 4px' }}>
+                          <td key={p.id} style={{ textAlign: 'center', padding: '4px 8px' }}>
                             <button
                               type="button"
                               onClick={(e) => openPopover(e, p.id, skill.code)}
@@ -544,18 +545,31 @@ export function SkillCheckTab({
                                 border: isOpen
                                   ? '2px solid var(--brand-blue)'
                                   : isDone
-                                  ? '2px solid var(--brand-blue, #0a84ff)'
-                                  : '1px solid var(--border, rgba(255,255,255,.12))',
+                                  ? '2px solid var(--brand-blue)'
+                                  : '1.5px solid var(--border-primary)',
                                 background: isDone
-                                  ? 'rgba(10,132,255,.18)'
-                                  : 'transparent',
+                                  ? 'var(--brand-blue-50)'
+                                  : '#FFFFFF',
                                 cursor: 'pointer',
-                                display: 'flex',
+                                display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 fontSize: 14,
-                                color: isDone ? 'var(--brand-blue, #0a84ff)' : 'var(--text-tertiary)',
-                                transition: 'background .1s, border-color .1s',
+                                fontWeight: 600,
+                                color: isDone ? 'var(--brand-blue)' : 'var(--text-tertiary)',
+                                transition: 'background .1s, border-color .1s, transform .1s',
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isDone && !isOpen) {
+                                  e.currentTarget.style.borderColor = 'var(--brand-blue)'
+                                  e.currentTarget.style.background = 'var(--brand-blue-50)'
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isDone && !isOpen) {
+                                  e.currentTarget.style.borderColor = 'var(--border-primary)'
+                                  e.currentTarget.style.background = '#FFFFFF'
+                                }
                               }}
                             >
                               {isDone ? (skill.hasTgNumber ? (record.tg_number ? `${record.tg_number}` : '✓') : '✓') : ''}
