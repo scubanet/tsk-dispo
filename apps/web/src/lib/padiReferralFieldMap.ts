@@ -131,14 +131,15 @@ export interface PadiReferralData {
   cw4Tag?: string; cw4Monat?: string; cw4Jahr?: string; cw4Initialen?: string; cw4PadiNr?: string
   cw5Tag?: string; cw5Monat?: string; cw5Jahr?: string; cw5Initialen?: string; cw5PadiNr?: string
 
-  // Knowledge Development (KD Teil 1–5) — theory days
+  // Knowledge Development (KD Teil 1–5 + Quick Review) — theory days
   // Note: Quiz/Video columns are /Tx text fields in the PDF (not checkboxes).
-  //       They live at x=611 (undefined_69/73/77/81/85) — left unmapped (label column).
+  //       They live at x=611 (undefined_69/73/77/81/85/89) — left unmapped (label column).
   kd1Tag?: string; kd1Monat?: string; kd1Jahr?: string; kd1Initialen?: string; kd1PadiNr?: string
   kd2Tag?: string; kd2Monat?: string; kd2Jahr?: string; kd2Initialen?: string; kd2PadiNr?: string
   kd3Tag?: string; kd3Monat?: string; kd3Jahr?: string; kd3Initialen?: string; kd3PadiNr?: string
   kd4Tag?: string; kd4Monat?: string; kd4Jahr?: string; kd4Initialen?: string; kd4PadiNr?: string
   kd5Tag?: string; kd5Monat?: string; kd5Jahr?: string; kd5Initialen?: string; kd5PadiNr?: string
+  kdQrTag?: string; kdQrMonat?: string; kdQrJahr?: string; kdQrInitialen?: string  // Quick Review (PADI Nr field is a long label — unmapped)
 
   // Open Water dives (OW 1–4) — see days
   // OW1+OW2 share the left pair; OW3+OW4 share the right pair.
@@ -147,13 +148,47 @@ export interface PadiReferralData {
   ow2Tag?: string; ow2Monat?: string; ow2Jahr?: string; ow2PadiNr?: string  // no ow2Initialen (unmapped)
   ow3Tag?: string; ow3Monat?: string; ow3Jahr?: string; ow3Initialen?: string; ow3PadiNr?: string
   ow4Tag?: string; ow4Monat?: string; ow4Jahr?: string; ow4Initialen?: string; ow4PadiNr?: string
+
+  // Assessment (Beurteilung der Wasserfertigkeiten)
+  // y=435: 10 min float row; y=408: 200m swim row
+  assessFloatTag?: string; assessFloatMonat?: string; assessFloatJahr?: string; assessFloatInitialen?: string; assessFloatPadiNr?: string
+  assessSwimTag?: string;  assessSwimMonat?: string;  assessSwimJahr?: string;  assessSwimInitialen?: string;  assessSwimPadiNr?: string
+
+  // CW Flex — 7 items (each: Tag, Monat, Jahr, Initialen, PADI Nr)
+  // Row y=361: Abkoppeln des Inflatorschlauchs
+  cwFlexInflatorTag?: string; cwFlexInflatorMonat?: string; cwFlexInflatorJahr?: string; cwFlexInflatorInitialen?: string; cwFlexInflatorPadiNr?: string
+  // Row y=334: Lockeres Band
+  cwFlexBandTag?: string; cwFlexBandMonat?: string; cwFlexBandJahr?: string; cwFlexBandInitialen?: string; cwFlexBandPadiNr?: string
+  // Row y=306: Ablegen/Anlegen Gewichtssystem Oberfläche
+  cwFlexWeightSurfTag?: string; cwFlexWeightSurfMonat?: string; cwFlexWeightSurfJahr?: string; cwFlexWeightSurfInitialen?: string; cwFlexWeightSurfPadiNr?: string
+  // Row y=279: Abwerfen Bleigewichte Notfall
+  cwFlexEmergWeightTag?: string; cwFlexEmergWeightMonat?: string; cwFlexEmergWeightJahr?: string; cwFlexEmergWeightInitialen?: string; cwFlexEmergWeightPadiNr?: string
+  // Row y=252: Vorbereitung und Pflege der Ausrüstung (all undefined_ fields)
+  cwFlexPrepGearTag?: string; cwFlexPrepGearMonat?: string; cwFlexPrepGearJahr?: string; cwFlexPrepGearInitialen?: string; cwFlexPrepGearPadiNr?: string
+  // Row y=217: Schnorcheltauchen
+  cwFlexSnorkelTag?: string; cwFlexSnorkelMonat?: string; cwFlexSnorkelJahr?: string; cwFlexSnorkelInitialen?: string; cwFlexSnorkelPadiNr?: string
+  // Row y=183: Orientierung Trockentauchanzug
+  cwFlexDrysuitTag?: string; cwFlexDrysuitMonat?: string; cwFlexDrysuitJahr?: string; cwFlexDrysuitInitialen?: string; cwFlexDrysuitPadiNr?: string
+
+  // OW Flex — 10 items (each: TgNr, Initialen, PADI Nr)
+  // Columns: x=598 = TG Nr field, x=659 = Initialen, x=730 = PADI Nr
+  owFlexCrampTg?: string; owFlexCrampInit?: string; owFlexCrampPadi?: string
+  owFlexTowTg?: string;   owFlexTowInit?: string;   owFlexTowPadi?: string
+  owFlexDsmbTg?: string;  owFlexDsmbInit?: string;  owFlexDsmbPadi?: string
+  owFlexCompassStraightTg?: string; owFlexCompassStraightInit?: string; owFlexCompassStraightPadi?: string
+  owFlexSnorkelRegTg?: string;  owFlexSnorkelRegInit?: string;  owFlexSnorkelRegPadi?: string
+  owFlexWeightDropTg?: string;  owFlexWeightDropInit?: string;  owFlexWeightDropPadi?: string
+  owFlexScubaOffTg?: string;    owFlexScubaOffInit?: string;    owFlexScubaOffPadi?: string
+  owFlexWeightOffTg?: string;   owFlexWeightOffInit?: string;   owFlexWeightOffPadi?: string
+  owFlexUwCompassTg?: string;   owFlexUwCompassInit?: string;   owFlexUwCompassPadi?: string
+  owFlexCesaTg?: string;        owFlexCesaInit?: string;        owFlexCesaPadi?: string
 }
 
 /** Map data field → AcroForm field name. Text fields only (checkboxes handled separately). */
-export const FIELD_MAP: Record<
+export const FIELD_MAP: Partial<Record<
   Exclude<keyof PadiReferralData, 'studentGender'>,
   string
-> = {
+>> = {
   // Student
   studentName:         'Name Tauchschüler',
   studentBirthTag:     'Tag',
@@ -283,4 +318,103 @@ export const FIELD_MAP: Record<
   ow4Jahr:     'undefined_100',
   ow4Initialen: 'Initialen 2_2',
   ow4PadiNr:   'PADINr 2',
+
+  // ── KD Quick Review (y=479.5) ───────────────────────────────────────────
+  // Note: PADI Nr field is a long label string ("Anmerkung Falls...") — left unmapped.
+  kdQrTag:      'Quick Review',
+  kdQrMonat:    'undefined_87',
+  kdQrJahr:     'undefined_88',
+  kdQrInitialen: 'undefined_90',
+
+  // ── Assessment (Beurteilung der Wasserfertigkeiten) ──────────────────────
+  // y=435: 10 min float/tread  (field "10 Minuten schwimmen..."; init = "Flossen ohne Unterbrechung schwimmen")
+  // y=408: 200m / 300m swim    (all undefined_ fields)
+  assessFloatTag:      '10 Minuten schwimmen oder an der Oberfläche treiben',
+  assessFloatMonat:    'undefined_30',
+  assessFloatJahr:     'undefined_31',
+  assessFloatInitialen: 'Flossen ohne Unterbrechung schwimmen',
+  assessFloatPadiNr:   'undefined_29',
+
+  assessSwimTag:      'undefined_32',
+  assessSwimMonat:    'undefined_33',
+  assessSwimJahr:     'undefined_34',
+  assessSwimInitialen: 'undefined_35',
+  assessSwimPadiNr:   'undefined_36',
+
+  // ── CW Flex — 7 items ───────────────────────────────────────────────────
+  // Column layout: x=255=Tag, x=285=Monat, x=315=Jahr, x=349=Initialen, x=387=PADINr
+  //
+  // y=361: Abkoppeln des Inflatorschlauchs (init field oddly named "Vorbereitung und Pflege")
+  cwFlexInflatorTag:      'Abkoppeln des Inflatorschlauchs vom Tarierjacket',
+  cwFlexInflatorMonat:    'undefined_38',
+  cwFlexInflatorJahr:     'undefined_39',
+  cwFlexInflatorInitialen: 'Vorbereitung und Pflege der Ausrüstung',
+  cwFlexInflatorPadiNr:   'undefined_37',
+
+  // y=334: Lockeres Band einer Flaschenhalterung
+  cwFlexBandTag:      'Lockeres Band einer Flaschenhalterung',
+  cwFlexBandMonat:    'undefined_40',
+  cwFlexBandJahr:     'undefined_41',
+  cwFlexBandInitialen: 'undefined_42',
+  cwFlexBandPadiNr:   'undefined_43',
+
+  // y=306: Ablegen und Anlegen des Gewichtssystems Oberfläche
+  cwFlexWeightSurfTag:      'Ablegen und Anlegen des Gewichtssystems Oberfläche',
+  cwFlexWeightSurfMonat:    'undefined_45',
+  cwFlexWeightSurfJahr:     'undefined_46',
+  cwFlexWeightSurfInitialen: 'undefined_47',
+  cwFlexWeightSurfPadiNr:   'undefined_44',
+
+  // y=279: Abwerfen von Bleigewichten im Notfall
+  cwFlexEmergWeightTag:      'Abwerfen von Bleigewichten im Notfall',
+  cwFlexEmergWeightMonat:    'undefined_48',
+  cwFlexEmergWeightJahr:     'undefined_49',
+  cwFlexEmergWeightInitialen: 'undefined_50',
+  cwFlexEmergWeightPadiNr:   'undefined_51',
+
+  // y=252: Vorbereitung und Pflege der Ausrüstung (all undefined_ fields at this row)
+  cwFlexPrepGearTag:      'undefined_52',
+  cwFlexPrepGearMonat:    'undefined_53',
+  cwFlexPrepGearJahr:     'undefined_54',
+  cwFlexPrepGearInitialen: 'undefined_55',
+  cwFlexPrepGearPadiNr:   'undefined_56',
+
+  // y=217: Schnorcheltauchen
+  cwFlexSnorkelTag:      'Schnorcheltauchen',
+  cwFlexSnorkelMonat:    'undefined_57',
+  cwFlexSnorkelJahr:     'undefined_58',
+  cwFlexSnorkelInitialen: 'undefined_59',
+  cwFlexSnorkelPadiNr:   'undefined_60',
+
+  // y=183: Orientierung zum Tauchen im Trockentauchanzug
+  cwFlexDrysuitTag:      'Orientierung zum Tauchen im Trockentauchanzug',
+  cwFlexDrysuitMonat:    'undefined_61',
+  cwFlexDrysuitJahr:     'undefined_62',
+  cwFlexDrysuitInitialen: 'undefined_63',
+  cwFlexDrysuitPadiNr:   'undefined_64',
+
+  // ── OW Flex — 10 items ──────────────────────────────────────────────────
+  // Column layout: x=598 = TG Nr (text), x=659 = Initialen, x=730 = PADI Nr
+  // Row ordering (top to bottom, y decreasing):
+  //  1. cramp      y=338.6  TG Nr 1 / Instructor Initialen 1 / PADINr 1_2
+  //  2. tow        y=328.9  TG Nr 2 / Instructor Initialen 2 / PADINr 2_2
+  //  3. dsmb       y=308.8  TG Nr   / 1                      / 1_2
+  //  4. compass    y=288.6  TG Nr_2 / 2                      / 2_2
+  //  5. snorkel/reg y=277.6 TG Nr_3 / 1_3                    / 1_4
+  //  6. weight drop y=266.4 TG Nr_4 / 2_3                    / 2_4
+  //  7. scuba off   y=255.4 TG Nr_5 / 3                      / 3_2
+  //  8. weight off  y=244.3 TG Nr_6 / 4                      / 4_2
+  //  9. uw compass  y=233.2 TG Nr_7 / 5                      / 5_2
+  // 10. CESA        y=222.1 TG Nr_8 / [long label — skip]    / 6
+  owFlexCrampTg:   'TG Nr 1',  owFlexCrampInit:   'Instructor Initialen 1',  owFlexCrampPadi:   'PADINr 1_2',
+  owFlexTowTg:     'TG Nr 2',  owFlexTowInit:     'Instructor Initialen 2',  owFlexTowPadi:     'PADINr 2_2',
+  owFlexDsmbTg:    'TG Nr',    owFlexDsmbInit:    '1',                       owFlexDsmbPadi:    '1_2',
+  owFlexCompassStraightTg: 'TG Nr_2', owFlexCompassStraightInit: '2',        owFlexCompassStraightPadi: '2_2',
+  owFlexSnorkelRegTg: 'TG Nr_3', owFlexSnorkelRegInit: '1_3',                owFlexSnorkelRegPadi: '1_4',
+  owFlexWeightDropTg: 'TG Nr_4', owFlexWeightDropInit: '2_3',                owFlexWeightDropPadi: '2_4',
+  owFlexScubaOffTg:   'TG Nr_5', owFlexScubaOffInit:   '3',                  owFlexScubaOffPadi:   '3_2',
+  owFlexWeightOffTg:  'TG Nr_6', owFlexWeightOffInit:  '4',                  owFlexWeightOffPadi:  '4_2',
+  owFlexUwCompassTg:  'TG Nr_7', owFlexUwCompassInit:  '5',                  owFlexUwCompassPadi:  '5_2',
+  owFlexCesaTg:       'TG Nr_8', // owFlexCesaInit unmapped (long label field name)
+  owFlexCesaPadi:     '6',
 }
