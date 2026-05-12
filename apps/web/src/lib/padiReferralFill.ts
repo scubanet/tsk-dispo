@@ -70,18 +70,19 @@ export async function generatePadiReferralPdf(data: PadiReferralData): Promise<U
   const form = pdf.getForm()
 
   // Fill all mapped text fields.
-  // Year (Jahr) columns are narrow — default font cuts off the 4th digit. We
-  // shrink font size for any dataKey ending in "Jahr" so 4 digits fit.
+  // Year (Jahr) columns are narrow — 4-digit years got clipped even at small
+  // font sizes. We display the last 2 digits only (e.g. 1991 → "91", 2026 → "26").
   for (const [dataKey, pdfFieldName] of Object.entries(FIELD_MAP) as [string, string | undefined][]) {
     if (!pdfFieldName) continue
     const value = (data as unknown as Record<string, unknown>)[dataKey]
     if (value == null || value === '') continue
     try {
       const field = form.getTextField(pdfFieldName)
-      field.setText(String(value))
-      if (dataKey.endsWith('Jahr')) {
-        field.setFontSize(7)
+      let text = String(value)
+      if (dataKey.endsWith('Jahr') && text.length === 4) {
+        text = text.slice(-2)
       }
+      field.setText(text)
     } catch {
       console.warn(`PADI referral: text field "${pdfFieldName}" not found or wrong type`)
     }
@@ -278,12 +279,12 @@ export async function buildCourseAutofillData(courseId: string, participantId?: 
   const qrRec = skillMap.get('kd_quick_review')
   if (qrRec?.completed_on) {
     const { tag, monat, jahr } = splitDate(qrRec.completed_on)
-    const { initials } = infoForInstructor(qrRec.instructor_id)
+    const { initials, padi } = infoForInstructor(qrRec.instructor_id)
     result.kdQrTag      = tag
     result.kdQrMonat    = monat
     result.kdQrJahr     = jahr
     result.kdQrInitialen = initials
-    // Note: PADI Nr field for Quick Review is a long label — not mapped
+    result.kdQrPadiNr   = padi
   }
 
   // OW Tauchgänge 1–4: prefer skill record, fall back to see day N

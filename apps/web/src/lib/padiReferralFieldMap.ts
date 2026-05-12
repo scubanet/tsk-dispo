@@ -139,7 +139,7 @@ export interface PadiReferralData {
   kd3Tag?: string; kd3Monat?: string; kd3Jahr?: string; kd3Initialen?: string; kd3PadiNr?: string
   kd4Tag?: string; kd4Monat?: string; kd4Jahr?: string; kd4Initialen?: string; kd4PadiNr?: string
   kd5Tag?: string; kd5Monat?: string; kd5Jahr?: string; kd5Initialen?: string; kd5PadiNr?: string
-  kdQrTag?: string; kdQrMonat?: string; kdQrJahr?: string; kdQrInitialen?: string  // Quick Review (PADI Nr field is a long label — unmapped)
+  kdQrTag?: string; kdQrMonat?: string; kdQrJahr?: string; kdQrInitialen?: string; kdQrPadiNr?: string  // Quick Review (PADI Nr field has a long label name in the PDF)
 
   // Open Water dives (OW 1–4) — see days
   // OW1+OW2 share the left pair; OW3+OW4 share the right pair.
@@ -320,11 +320,12 @@ export const FIELD_MAP: Partial<Record<
   ow4PadiNr:   'PADINr 2',
 
   // ── KD Quick Review (y=479.5) ───────────────────────────────────────────
-  // Note: PADI Nr field is a long label string ("Anmerkung Falls...") — left unmapped.
+  // PADI Nr field has a long label name in the PDF — works fine when addressed by the exact string.
   kdQrTag:      'Quick Review',
   kdQrMonat:    'undefined_87',
   kdQrJahr:     'undefined_88',
   kdQrInitialen: 'undefined_90',
+  kdQrPadiNr:   'Anmerkung Falls die Entwicklung der Kenntnisse komplett abgeschlossen wurde ist nur eine einzige Unterschrift erforderlich',
 
   // ── Assessment (Beurteilung der Wasserfertigkeiten) ──────────────────────
   // y=435: 10 min float/tread  (field "10 Minuten schwimmen..."; init = "Flossen ohne Unterbrechung schwimmen")
