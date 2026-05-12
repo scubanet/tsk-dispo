@@ -69,13 +69,18 @@ export async function generatePadiReferralPdf(data: PadiReferralData): Promise<U
   const pdf = await PDFDocument.load(templateBytes)
   const form = pdf.getForm()
 
-  // Fill all mapped text fields
+  // Fill all mapped text fields.
+  // Year (Jahr) columns are narrow — default font cuts off the 4th digit. We
+  // shrink font size for any dataKey ending in "Jahr" so 4 digits fit.
   for (const [dataKey, pdfFieldName] of Object.entries(FIELD_MAP)) {
     const value = (data as unknown as Record<string, unknown>)[dataKey]
     if (value == null || value === '') continue
     try {
       const field = form.getTextField(pdfFieldName)
       field.setText(String(value))
+      if (dataKey.endsWith('Jahr')) {
+        field.setFontSize(7)
+      }
     } catch {
       console.warn(`PADI referral: text field "${pdfFieldName}" not found or wrong type`)
     }
