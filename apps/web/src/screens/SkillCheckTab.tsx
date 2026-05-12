@@ -178,7 +178,7 @@ function CellPopover({
             type="date"
             value={edit.date}
             onChange={(e) => setEdit((s) => ({ ...s, date: e.target.value }))}
-            style={{ fontSize: 13, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: '4px 8px', color: 'inherit' }}
+            style={{ fontSize: 13, background: '#FFFFFF', border: '1px solid var(--border-primary)', borderRadius: 6, padding: '6px 8px', color: 'var(--text-primary)', outline: 'none' }}
           />
         </label>
       )}
@@ -196,13 +196,14 @@ function CellPopover({
                 onClick={() => setEdit((s) => ({ ...s, tgNumber: String(n) }))}
                 style={{
                   flex: 1,
-                  padding: '4px 0',
+                  padding: '6px 0',
                   borderRadius: 6,
-                  border: '1px solid var(--border)',
-                  background: edit.tgNumber === String(n) ? 'var(--brand-blue)' : 'var(--surface)',
-                  color: edit.tgNumber === String(n) ? '#fff' : 'inherit',
+                  border: '1px solid var(--border-primary)',
+                  background: edit.tgNumber === String(n) ? 'var(--brand-blue)' : '#FFFFFF',
+                  color: edit.tgNumber === String(n) ? '#FFFFFF' : 'var(--text-primary)',
                   cursor: 'pointer',
                   fontSize: 13,
+                  fontWeight: edit.tgNumber === String(n) ? 600 : 400,
                 }}
               >
                 TG {n}
@@ -245,7 +246,7 @@ function CellPopover({
           <select
             value={edit.instructorId}
             onChange={(e) => setEdit((s) => ({ ...s, instructorId: e.target.value }))}
-            style={{ fontSize: 13, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: '4px 8px', color: 'inherit' }}
+            style={{ fontSize: 13, background: '#FFFFFF', border: '1px solid var(--border-primary)', borderRadius: 6, padding: '6px 8px', color: 'var(--text-primary)', outline: 'none' }}
           >
             <option value="">{t('padi_skill_check.no_instructor')}</option>
             {instructors.map((i) => (
@@ -491,7 +492,7 @@ export function SkillCheckTab({
                   <tr key={`section-${section}`}>
                     <td
                       colSpan={activeParticipants.length + 1}
-                      style={{ padding: '8px 8px 4px', borderTop: '1px solid var(--border, rgba(255,255,255,.08))' }}
+                      style={{ padding: '12px 8px 4px', borderTop: '1px solid var(--border-secondary)' }}
                     >
                       <button
                         type="button"
