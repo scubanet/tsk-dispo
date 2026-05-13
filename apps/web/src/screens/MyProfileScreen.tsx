@@ -23,7 +23,6 @@ import {
   Pill,
   Icon,
   padiLevelColor,
-  dateMedium,
   BrevetsView,
 } from '@/foundation'
 import { Sheet } from '@/components/Sheet'
@@ -33,10 +32,11 @@ import {
   fetchAvailability,
   fetchCertifications,
   type MySkill,
-  type AvailabilityRow,
+  type AvailabilityRow as AvailabilityRowData,
 } from '@/lib/queries'
 import type { Certification } from '@/types/foundation'
 import type { OutletCtx } from '@/layout/AppShell'
+import { AvailabilityRow, AvailabilityAddSheet } from '@/components/availability'
 
 interface Profile {
   name: string
@@ -62,7 +62,7 @@ export function MyProfileScreen() {
   const { user } = useOutletContext<OutletCtx>()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [skills, setSkills] = useState<MySkill[]>([])
-  const [availability, setAvailability] = useState<AvailabilityRow[]>([])
+  const [availability, setAvailability] = useState<AvailabilityRowData[]>([])
   const [brevets, setBrevets] = useState<Certification[]>([])
   const [showAddAvail, setShowAddAvail] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
@@ -217,7 +217,7 @@ export function MyProfileScreen() {
           ) : (
             <div className="atoll-myprofile__avail-list">
               {availability.map((a) => (
-                <AvailabilityRowView key={a.id} row={a} onDeleted={refetchAvail} />
+                <AvailabilityRow key={a.id} row={a} onDeleted={refetchAvail} />
               ))}
             </div>
           )}
@@ -238,50 +238,6 @@ export function MyProfileScreen() {
         instructorId={user.instructorId}
         currentEmail={profile.email}
       />
-    </div>
-  )
-}
-
-// ──────────────────────── Availability Row ────────────────────────
-
-function AvailabilityRowView({
-  row,
-  onDeleted,
-}: {
-  row: AvailabilityRow
-  onDeleted: () => void
-}) {
-  const { t } = useTranslation()
-  const tone =
-    row.kind === 'urlaub' ? 'brand' :
-    row.kind === 'abwesend' ? 'warning' :
-    'success'
-
-  async function del() {
-    if (!confirm(t('my_profile.confirm_delete', { kind: t(`my_profile.kind_${row.kind}`) }))) return
-    await supabase.from('availability').delete().eq('id', row.id)
-    onDeleted()
-  }
-
-  return (
-    <div className="atoll-myprofile__avail-row">
-      <Pill tone={tone} size="sm">{t(`my_profile.kind_${row.kind}`)}</Pill>
-      <div className="atoll-myprofile__avail-body">
-        <div className="atoll-myprofile__avail-date tabular-nums">
-          {dateMedium(row.from_date)}
-          {row.from_date !== row.to_date && ` – ${dateMedium(row.to_date)}`}
-        </div>
-        {row.note && <div className="atoll-myprofile__avail-note">{row.note}</div>}
-      </div>
-      <button
-        type="button"
-        className="atoll-iconbtn"
-        onClick={del}
-        title={t('common.delete')}
-        aria-label={t('common.delete')}
-      >
-        <Icon.Close size={14} />
-      </button>
     </div>
   )
 }
@@ -377,101 +333,3 @@ function ProfileEditSheet({
   )
 }
 
-// ──────────────────────── Availability Add Sheet ────────────────────────
-
-function AvailabilityAddSheet({
-  open, onClose, onCreated, instructorId,
-}: {
-  open: boolean
-  onClose: () => void
-  onCreated: () => void
-  instructorId: string
-}) {
-  const { t } = useTranslation()
-  const [kind, setKind] = useState<'urlaub' | 'abwesend' | 'verfügbar'>('urlaub')
-  const [fromDate, setFromDate] = useState(new Date().toISOString().slice(0, 10))
-  const [toDate, setToDate] = useState(new Date().toISOString().slice(0, 10))
-  const [note, setNote] = useState('')
-  const [saving, setSaving] = useState(false)
-
-  async function save() {
-    setSaving(true)
-    const { error } = await supabase.from('availability').insert({
-      instructor_id: instructorId,
-      from_date: fromDate,
-      to_date: toDate,
-      kind,
-      note: note.trim() || null,
-    })
-    setSaving(false)
-    if (error) {
-      alert(t('settings.recalc.error_prefix') + error.message)
-      return
-    }
-    onCreated()
-    onClose()
-    setKind('urlaub')
-    setNote('')
-  }
-
-  return (
-    <Sheet open={open} onClose={onClose} title={t('my_profile.add_availability')}>
-      <div style={{ display: 'grid', gap: 14 }}>
-        <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_kind')}</div>
-          <select
-            value={kind}
-            onChange={(e) => setKind(e.target.value as typeof kind)}
-            style={sheetInputStyle}
-          >
-            <option value="urlaub">{t('my_profile.kind_urlaub')}</option>
-            <option value="abwesend">{t('my_profile.kind_abwesend')}</option>
-            <option value="verfügbar">{t('my_profile.kind_verfügbar_long')}</option>
-          </select>
-        </div>
-
-        <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_from')}</div>
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            style={sheetInputStyle}
-          />
-        </div>
-
-        <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_to')}</div>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            style={sheetInputStyle}
-          />
-        </div>
-
-        <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_note')}</div>
-          <input
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder={t('my_profile.note_placeholder')}
-            style={sheetInputStyle}
-          />
-        </div>
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="atoll-btn" onClick={onClose}>{t('common.cancel')}</button>
-          <button
-            className="atoll-btn atoll-btn--primary"
-            onClick={save}
-            disabled={saving}
-            style={{ flex: 1 }}
-          >
-            {saving ? t('common.saving') : t('my_profile.add_entry')}
-          </button>
-        </div>
-      </div>
-    </Sheet>
-  )
-}
