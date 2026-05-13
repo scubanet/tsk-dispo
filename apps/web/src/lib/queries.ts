@@ -228,7 +228,7 @@ export interface AvailabilityRow {
   note: string | null
 }
 
-export async function fetchMyAvailability(instructorId: string): Promise<AvailabilityRow[]> {
+export async function fetchAvailability(instructorId: string): Promise<AvailabilityRow[]> {
   const { data, error } = await supabase
     .from('availability')
     .select('id, instructor_id, from_date, to_date, kind, note')

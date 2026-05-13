@@ -30,7 +30,7 @@ import { Sheet } from '@/components/Sheet'
 import { supabase } from '@/lib/supabase'
 import {
   fetchMySkills,
-  fetchMyAvailability,
+  fetchAvailability,
   fetchCertifications,
   type MySkill,
   type AvailabilityRow,
@@ -69,7 +69,7 @@ export function MyProfileScreen() {
 
   function refetchAvail() {
     if (!user.instructorId) return
-    fetchMyAvailability(user.instructorId).then(setAvailability)
+    fetchAvailability(user.instructorId).then(setAvailability)
   }
   function refetchProfile() {
     if (!user.instructorId) return
