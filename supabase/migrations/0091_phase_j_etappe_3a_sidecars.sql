@@ -133,6 +133,7 @@ DECLARE
   v_contact_id UUID;
   v_roles      TEXT[];
   v_phones     JSONB;
+  v_emails     JSONB;
   v_addresses  JSONB;
   v_languages  TEXT[];
   v_tags       TEXT[];
@@ -142,6 +143,14 @@ BEGIN
     WHEN p_contact->>'phone' IS NOT NULL AND p_contact->>'phone' <> ''
     THEN jsonb_build_array(jsonb_build_object(
       'label','mobile','e164',p_contact->>'phone','primary',true))
+    ELSE '[]'::jsonb
+  END;
+
+  -- Emails jsonb bauen aus primary_email (Konsistenz Liste ↔ Detail-Ansicht)
+  v_emails := CASE
+    WHEN p_contact->>'primary_email' IS NOT NULL AND p_contact->>'primary_email' <> ''
+    THEN jsonb_build_array(jsonb_build_object(
+      'label','work','email',p_contact->>'primary_email','primary',true))
     ELSE '[]'::jsonb
   END;
 
@@ -172,13 +181,14 @@ BEGIN
   IF p_contact_id IS NULL THEN
     -- ─── INSERT-Pfad ────────────────────────────────────────────────────
     INSERT INTO contacts (
-      kind, first_name, last_name, primary_email, phones, addresses,
+      kind, first_name, last_name, primary_email, emails, phones, addresses,
       languages, roles, tags, notes, birth_date, source
     ) VALUES (
       'person',
       p_contact->>'first_name',
       COALESCE(NULLIF(p_contact->>'last_name',''), '-'),
       NULLIF(p_contact->>'primary_email',''),
+      v_emails,
       v_phones,
       v_addresses,
       v_languages,
@@ -211,6 +221,7 @@ BEGIN
       first_name    = p_contact->>'first_name',
       last_name     = COALESCE(NULLIF(p_contact->>'last_name',''), '-'),
       primary_email = NULLIF(p_contact->>'primary_email',''),
+      emails        = v_emails,
       phones        = v_phones,
       addresses     = v_addresses,
       languages     = v_languages,
