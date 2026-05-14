@@ -4,11 +4,14 @@ import SwiftUI
 struct ATOLLApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
   @State private var auth = AuthState()
+  @State private var localeStore = LocaleStore()
 
   var body: some Scene {
     WindowGroup {
       RootView()
         .environment(auth)
+        .environment(localeStore)
+        .environment(\.locale, localeStore.locale)
         .onOpenURL { url in
           // Magic-Link callback: atoll://auth/callback?token_hash=...&type=...
           guard url.scheme == "atoll" else { return }
@@ -24,12 +27,24 @@ struct ATOLLApp: App {
             Task { await PushManager.shared.requestAuthorizationIfNeeded() }
           }
         }
+        .onChange(of: userPreferredLanguage(from: auth.status)) { _, _ in
+          // Beim Sign-In oder Refresh: locale-Override aus User uebernehmen
+          if case .signedIn(let user) = auth.status {
+            localeStore.adoptFromUser(user)
+          }
+        }
         .preferredColorScheme(nil) // System (light/dark/auto)
     }
   }
 
   private func instructorId(from status: AuthState.Status) -> UUID? {
     if case .signedIn(let user) = status { return user.legacyInstructorId }
+    return nil
+  }
+
+  /// Wird als Schluessel fuer onChange genutzt — nil wenn signedOut, sonst der prefLang.
+  private func userPreferredLanguage(from status: AuthState.Status) -> String? {
+    if case .signedIn(let user) = status { return user.preferredLanguage ?? "" }
     return nil
   }
 }

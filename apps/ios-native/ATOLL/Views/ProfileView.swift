@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     let user: CurrentUser
     @Environment(AuthState.self) private var auth
+    @Environment(LocaleStore.self) private var localeStore
     @State private var skillsStore = SkillsStore()
 
     var body: some View {
@@ -63,6 +64,22 @@ struct ProfileView: View {
                             }
                         }
                     }
+                }
+
+                // Sprache
+                Section("Sprache") {
+                    Picker("Anzeigesprache", selection: Binding(
+                        get: { localeStore.languageCode },
+                        set: { newCode in
+                            Task {
+                                await localeStore.setLanguage(newCode, for: user.authUserId)
+                            }
+                        }
+                    )) {
+                        Text("Deutsch").tag("de")
+                        Text("English").tag("en")
+                    }
+                    .pickerStyle(.segmented)
                 }
 
                 // Rolle / Kunde

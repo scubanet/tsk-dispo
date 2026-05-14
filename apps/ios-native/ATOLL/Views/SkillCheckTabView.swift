@@ -7,6 +7,7 @@ struct SkillCheckTabView: View {
 
   @State private var store = SkillCheckStore()
   @State private var skillForDateEdit: SkillDefinition?
+  @Environment(\.locale) private var locale
 
   var body: some View {
     Group {
@@ -78,7 +79,7 @@ struct SkillCheckTabView: View {
   }
 
   private func sectionHeader(_ section: String) -> some View {
-    Text(SkillSection.labelsDe[section] ?? section.uppercased())
+    Text(SkillSection.label(for: section, locale: locale))
       .font(.caption.bold())
       .tracking(0.5)
       .foregroundStyle(.secondary)
@@ -88,7 +89,7 @@ struct SkillCheckTabView: View {
   private func skillRow(_ skill: SkillDefinition) -> some View {
     VStack(alignment: .leading, spacing: 6) {
       HStack(alignment: .firstTextBaseline) {
-        Text(skill.label)
+        Text(skill.label(for: locale))
           .font(.subheadline.weight(.medium))
         Spacer()
         Button {

@@ -21,6 +21,15 @@ struct CourseParticipant: Codable, Identifiable, Hashable {
       }
     }
 
+    func label(for locale: Locale) -> String {
+      let isEn = locale.language.languageCode?.identifier == "en"
+      switch self {
+      case .enrolled:  return isEn ? "Enrolled"   : "Eingeschrieben"
+      case .certified: return isEn ? "Certified"  : "Zertifiziert"
+      case .dropped:   return isEn ? "Dropped"    : "Abgebrochen"
+      }
+    }
+
     /// Defensiv gegen zukünftige DB-Werte: unbekannte Status werden als
     /// `enrolled` interpretiert, statt die ganze Liste zu sprengen.
     init(from decoder: Decoder) throws {

@@ -18,7 +18,13 @@ struct SkillDefinition: Codable, Identifiable, Hashable {
     case displayOrder   = "display_order"
   }
 
-  var label: String { labelDe }
+  var label: String { labelDe }   // Default fuer alte Call-Sites — wird nach Refactor entfernt
+
+  /// Locale-aware label. Schaut auf den primary language code des aktuellen Locales
+  /// und gibt labelEn zurueck wenn "en", sonst labelDe als Default.
+  func label(for locale: Locale) -> String {
+    locale.language.languageCode?.identifier == "en" ? labelEn : labelDe
+  }
 }
 
 enum SkillSection {
@@ -30,5 +36,20 @@ enum SkillSection {
     "ow_dive":    "Freiwasser-Tauchgänge",
     "ow_flex":    "Tauchgangsflexible Fertigkeiten (OW)",
   ]
+  static let labelsEn: [String: String] = [
+    "cw_dive":    "Confined Water Dives",
+    "assessment": "Water Skills Assessment",
+    "cw_flex":    "Flexible Skills (CW)",
+    "kd":         "Knowledge Development",
+    "ow_dive":    "Open Water Dives",
+    "ow_flex":    "Flexible Skills (OW)",
+  ]
   static let order: [String] = ["cw_dive", "assessment", "cw_flex", "kd", "ow_dive", "ow_flex"]
+
+  /// Locale-aware Section-Label.
+  static func label(for code: String, locale: Locale) -> String {
+    let isEn = locale.language.languageCode?.identifier == "en"
+    let dict = isEn ? labelsEn : labelsDe
+    return dict[code] ?? code.uppercased()
+  }
 }
