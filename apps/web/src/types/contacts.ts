@@ -120,6 +120,11 @@ export interface ContactInstructor {
   emergency_contact_name?: string | null
   emergency_contact_phone?: string | null
   notes_internal?: string | null
+  // Aus Migration 0088
+  app_role?: string | null
+  preferred_language?: string | null
+  // Aus Migration 0091 (Phase J Etappe 3a)
+  initials?: string | null
   created_at: string
   updated_at: string
 }
@@ -135,6 +140,13 @@ export interface ContactStudent {
   candidate_target_level?: string | null
   medical_clearance_at?: string | null
   insurance_provider?: string | null
+  // Aus Migration 0088
+  preferred_language?: string | null
+  // Aus Migration 0091 (Phase J Etappe 3a)
+  level?: string | null
+  photo_url?: string | null
+  organization_role?: string | null
+  stage_changed_on?: string | null
   created_at: string
   updated_at: string
 }

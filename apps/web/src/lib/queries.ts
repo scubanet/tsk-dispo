@@ -239,34 +239,20 @@ export async function fetchAvailability(instructorId: string): Promise<Availabil
 }
 
 // ============================================================
-// Students
+// Students — Wrapper auf contactQueries.listStudents
 // ============================================================
+//
+// Phase J Etappe 3a: fetchStudents liest seit 0091 nicht mehr direkt aus
+// people, sondern delegiert an listStudents (contacts + contact_student).
+// Student-Shape ist Backward-Compatible, ohne padi_nr/organization_id
+// (existieren im neuen Modell nicht mehr auf Student-Ebene).
 
-export interface Student {
-  id: string
-  name: string
-  email: string | null
-  phone: string | null
-  birthday: string | null
-  padi_nr: string | null
-  level: string
-  notes: string | null
-  active: boolean
-  created_at: string
-  is_student?: boolean
-  is_candidate?: boolean
-  organization_id?: string | null
-  pipeline_stage?: string
-}
+import { listStudents, type StudentRow } from '@/lib/contactQueries'
+
+export type Student = StudentRow
 
 export async function fetchStudents(): Promise<Student[]> {
-  const { data, error } = await supabase
-    .from('people')
-    .select('id, name, email, phone, birthday, padi_nr, level, notes, active, created_at, is_student, is_candidate, organization_id, pipeline_stage')
-    .order('last_name')
-    .order('first_name')
-  if (error) throw error
-  return (data ?? []) as Student[]
+  return listStudents()
 }
 
 export interface StudentCertification {
