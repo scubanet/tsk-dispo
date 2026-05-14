@@ -117,7 +117,7 @@ ALTER TABLE public.contact_student
   ADD COLUMN IF NOT EXISTS level             TEXT,
   ADD COLUMN IF NOT EXISTS photo_url         TEXT,
   ADD COLUMN IF NOT EXISTS organization_role TEXT,
-  ADD COLUMN IF NOT EXISTS stage_changed_on  DATE;
+  ADD COLUMN IF NOT EXISTS stage_changed_on  TIMESTAMPTZ;
 
 ALTER TABLE public.contact_instructor
   ADD COLUMN IF NOT EXISTS initials TEXT;
@@ -129,7 +129,7 @@ COMMENT ON COLUMN public.contact_student.photo_url IS
 COMMENT ON COLUMN public.contact_student.organization_role IS
   'Rolle innerhalb der verknüpften Organisation (free-text).';
 COMMENT ON COLUMN public.contact_student.stage_changed_on IS
-  'Datum der letzten pipeline_stage-Änderung (Trigger-gesetzt).';
+  'Zeitpunkt der letzten pipeline_stage-Änderung (Trigger-gesetzt, TIMESTAMPTZ wie Legacy people.stage_changed_on).';
 COMMENT ON COLUMN public.contact_instructor.initials IS
   'Kürzel für PADI-Referral-Templates, SkillCheck-Matrix, etc.';
 
@@ -206,7 +206,7 @@ CREATE OR REPLACE FUNCTION tg_contact_student_stage_changed()
 RETURNS TRIGGER AS $$
 BEGIN
   IF OLD.pipeline_stage IS DISTINCT FROM NEW.pipeline_stage THEN
-    NEW.stage_changed_on := current_date;
+    NEW.stage_changed_on := now();
   END IF;
   RETURN NEW;
 END;
@@ -240,16 +240,22 @@ FROM contact_student
 WHERE contact_id = '<gleiche ID>';
 ```
 
-Expected: `stage_changed_on = current_date`.
+Expected: `stage_changed_on` ist now()-Timestamp (heute).
 
 ---
 
-## Task 4: Migration 0091 — Sync-Trigger erweitern (Legacy → Sidecar)
+## Task 4: ~~Migration 0091 — Sync-Trigger erweitern (Legacy → Sidecar)~~ ENTFÄLLT
 
-**Files:**
-- Modify: `supabase/migrations/0091_phase_j_etappe_3a_sidecars.sql` (Section 4 anhängen)
+**Begründung (14.05. Pre-Flight-Befund):** Die 0083-Forward-Sync-Triggers existieren in Production nicht mehr. Was läuft sind partial-Sync-Triggers (`trg_sync_student_name`, `trg_sync_pipeline_stage_changed`, `trg_sync_instructor_name`, `trg_auto_link_instructor`) — die spiegeln nur Namen + intra-Tabelle-Bookkeeping, nicht die neuen Felder. Die orphan'd Functions `sync_people_to_contacts` / `sync_instructors_to_contacts` rufen keine Triggers mehr auf, also wäre eine Erweiterung wirkungslos.
 
-- [ ] **Step 1: Sync-Trigger-Erweiterung schreiben**
+Diese Cleanup-Schulden werden in Etappe 3c (`0092_drop_legacy_triggers.sql`) bereinigt — nicht hier.
+
+**Hinweis für Etappe 3c:** Vor Trigger/Function-Drop in 3c noch prüfen, ob inzwischen ein anderer Pfad (z. B. Edge-Function, Cron-Job) auf diese Functions zurückgreift.
+
+---
+
+<details>
+<summary>Original-Task-Text (archiviert, NICHT mehr ausführen)</summary>
 
 Die `sync_people_to_contacts`-Function aus 0083 (mit 0088-Erweiterung) wird nochmal CREATE-OR-REPLACE'd, diesmal mit den 4 neuen Sidecar-Spalten in INSERT + UPDATE:
 
@@ -419,6 +425,8 @@ SELECT level FROM contact_student WHERE contact_id = '<obige ID>';
 ```
 
 Expected: `contact_student.level = 'OWD'`. Reset danach mit `UPDATE people SET level = '<Original>' WHERE id = '<ID>';`.
+
+</details>
 
 ---
 
