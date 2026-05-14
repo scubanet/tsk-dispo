@@ -17,7 +17,7 @@ struct SaldoView: View {
                         Text(store.errorMessage ?? "")
                     } actions: {
                         Button("Nochmal versuchen") {
-                            Task { await store.load(instructorId: user.id) }
+                            Task { await store.load(instructorId: user.legacyInstructorId) }
                         }
                     }
                 default:
@@ -33,8 +33,8 @@ struct SaldoView: View {
                 }
             }
             .navigationTitle("Saldo")
-            .refreshable { await store.load(instructorId: user.id) }
-            .task { await store.load(instructorId: user.id) }
+            .refreshable { await store.load(instructorId: user.legacyInstructorId) }
+            .task { await store.load(instructorId: user.legacyInstructorId) }
             .navigationDestination(for: Movement.self) { MovementDetailView(movement: $0) }
         }
     }

@@ -2,7 +2,8 @@ import Foundation
 import Supabase
 import SwiftUI
 
-/// App-weiter Auth-Zustand. Verwaltet Session, lädt aktuellen Instructor.
+/// App-weiter Auth-Zustand. Verwaltet Session, lädt aktuellen Instructor aus
+/// `contact_instructor` (canonical) + `instructors` (legacy fallback).
 @MainActor
 @Observable
 final class AuthState {
@@ -43,10 +44,8 @@ final class AuthState {
 
   /// Wird aufgerufen wenn die App mit `atoll://auth/callback?...` geöffnet wird.
   func handleAuthCallback(url: URL) async throws {
-    try await supabase.auth.session(from: url)
-    if let userID = try? await supabase.auth.session.user.id {
-      await loadCurrentUser(authUserId: userID)
-    }
+    let session = try await supabase.auth.session(from: url)
+    await loadCurrentUser(authUserId: session.user.id)
   }
 
   // MARK: – Sign out
@@ -73,22 +72,99 @@ final class AuthState {
     }
   }
 
-  // MARK: – Load user from `instructors` table
+  // MARK: – Load user (contact_instructor + legacy instructors)
+
+  /// PostgREST-Row-Wrapper für den primären `contact_instructor`-Lookup.
+  private struct ContactInstructorRow: Decodable {
+    let padiLevel: String?
+    let appRole: String?
+    let preferredLanguage: String?
+    let initials: String?
+    let contact: ContactRow
+
+    enum CodingKeys: String, CodingKey {
+      case padiLevel = "padi_level"
+      case appRole = "app_role"
+      case preferredLanguage = "preferred_language"
+      case initials
+      case contact = "contacts"
+    }
+
+    struct ContactRow: Decodable {
+      let id: UUID
+      let firstName: String
+      let lastName: String
+      let primaryEmail: String?
+
+      enum CodingKeys: String, CodingKey {
+        case id
+        case firstName = "first_name"
+        case lastName = "last_name"
+        case primaryEmail = "primary_email"
+      }
+    }
+  }
+
+  /// PostgREST-Row-Wrapper für den Legacy-Fallback aus `instructors`.
+  private struct InstructorLegacyRow: Decodable {
+    let id: UUID
+    let color: String?
+  }
 
   private func loadCurrentUser(authUserId: UUID) async {
+    // Primary: contact_instructor → contacts (canonical)
+    let primary: ContactInstructorRow?
     do {
-      let user: CurrentUser = try await supabase
-        .from("instructors")
-        .select("id, name, email, padi_level, role, auth_user_id, color, initials")
+      primary = try await supabase
+        .from("contact_instructor")
+        .select("padi_level, app_role, preferred_language, initials, contacts!inner(id, first_name, last_name, primary_email)")
         .eq("auth_user_id", value: authUserId)
         .single()
         .execute()
         .value
-      status = .signedIn(currentUser: user)
     } catch {
-      // Account existiert in auth.users aber kein instructor-Eintrag verknüpft.
-      // Nutzer sieht "Kein Instructor verknüpft" Hinweis.
-      status = .signedIn(currentUser: CurrentUser.unlinked(authUserId: authUserId))
+      #if DEBUG
+      print("⚠️ AuthState: contact_instructor query failed for \(authUserId): \(error)")
+      #endif
+      primary = nil
     }
+
+    // Legacy: instructors.id für rückwärtskompatible Stores
+    let legacy: InstructorLegacyRow? = try? await supabase
+      .from("instructors")
+      .select("id, color")
+      .eq("auth_user_id", value: authUserId)
+      .single()
+      .execute()
+      .value
+
+    #if DEBUG
+    if legacy == nil {
+      print("ℹ️ AuthState: no instructors row for auth_user_id \(authUserId) — legacyInstructorId will fall back to contacts.id; legacy stores will return empty results")
+    }
+    #endif
+
+    guard let p = primary else {
+      // Account existiert in auth.users aber kein contact_instructor.
+      status = .signedIn(currentUser: CurrentUser.unlinked(authUserId: authUserId))
+      return
+    }
+
+    let role = CurrentUser.Role(rawValue: p.appRole ?? "instructor") ?? .instructor
+
+    let user = CurrentUser(
+      id: p.contact.id,
+      instructorId: legacy?.id,
+      firstName: p.contact.firstName,
+      lastName: p.contact.lastName,
+      email: p.contact.primaryEmail,
+      padiLevel: p.padiLevel ?? "—",
+      role: role,
+      authUserId: authUserId,
+      preferredLanguage: p.preferredLanguage,
+      initials: p.initials,
+      color: legacy?.color
+    )
+    status = .signedIn(currentUser: user)
   }
 }

@@ -29,7 +29,7 @@ struct ATOLLApp: App {
   }
 
   private func instructorId(from status: AuthState.Status) -> UUID? {
-    if case .signedIn(let user) = status { return user.id }
+    if case .signedIn(let user) = status { return user.legacyInstructorId }
     return nil
   }
 }

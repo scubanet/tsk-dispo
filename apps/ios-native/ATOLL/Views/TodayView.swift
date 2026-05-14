@@ -25,8 +25,8 @@ struct TodayView: View {
         .padding(.bottom, 32)
       }
       .toolbar(.hidden, for: .navigationBar)
-      .refreshable { await store.load(instructorId: user.id) }
-      .task { await store.load(instructorId: user.id) }
+      .refreshable { await store.load(instructorId: user.legacyInstructorId) }
+      .task { await store.load(instructorId: user.legacyInstructorId) }
     }
   }
 
@@ -46,7 +46,7 @@ struct TodayView: View {
           .font(.callout)
           .foregroundStyle(.secondary)
         Button("Nochmal versuchen") {
-          Task { await store.load(instructorId: user.id) }
+          Task { await store.load(instructorId: user.legacyInstructorId) }
         }
         .buttonStyle(.bordered)
       }

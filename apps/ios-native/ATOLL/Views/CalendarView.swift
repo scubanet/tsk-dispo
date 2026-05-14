@@ -25,8 +25,8 @@ struct CalendarView: View {
             .navigationTitle("Kalender")
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: Assignment.self) { AssignmentDetailView(assignment: $0) }
-            .refreshable { await store.load(instructorId: user.id) }
-            .task { await store.load(instructorId: user.id) }
+            .refreshable { await store.load(instructorId: user.legacyInstructorId) }
+            .task { await store.load(instructorId: user.legacyInstructorId) }
         }
     }
 

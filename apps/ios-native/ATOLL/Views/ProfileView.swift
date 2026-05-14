@@ -81,8 +81,8 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Profil")
-            .refreshable { await skillsStore.load(instructorId: user.id) }
-            .task { await skillsStore.load(instructorId: user.id) }
+            .refreshable { await skillsStore.load(instructorId: user.legacyInstructorId) }
+            .task { await skillsStore.load(instructorId: user.legacyInstructorId) }
         }
     }
 }
