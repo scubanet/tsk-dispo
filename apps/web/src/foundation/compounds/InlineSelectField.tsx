@@ -85,8 +85,11 @@ export function InlineSelectField({
       <select
         defaultValue={value ?? ''}
         disabled={saving}
-        onChange={(e) => commit(e.target.value)}
-        onBlur={cancel}
+        onChange={(e) => void commit(e.target.value)}
+        // onBlur={cancel} entfernt: in manchen Browsern (Safari) feuert blur
+        // bevor change verarbeitet wird, dadurch wird die Component unmountet
+        // und der Commit ging verloren. Cancel weiterhin via Escape (siehe
+        // InlineField.handleEditKeyDown).
       >
         {allowEmpty && <option value="">—</option>}
         {options.map((o) => (
