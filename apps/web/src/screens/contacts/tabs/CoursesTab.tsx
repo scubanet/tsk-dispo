@@ -73,7 +73,7 @@ export function CoursesTab({ contactId, roles }: Props) {
             <ul className="courses-list">
               {assignments.map((a) => (
                 <li key={a.id} className="courses-list__item">
-                  <a href={`/courses/${a.courses?.id}`} className="courses-list__title">
+                  <a href={`/kurse/${a.courses?.id}`} className="courses-list__title">
                     {a.courses?.title ?? '—'}
                   </a>
                   <span className="courses-list__meta">{a.role}</span>
@@ -99,7 +99,7 @@ export function CoursesTab({ contactId, roles }: Props) {
             <ul className="courses-list">
               {participations.map((p) => (
                 <li key={p.id} className="courses-list__item">
-                  <a href={`/courses/${p.courses?.id}`} className="courses-list__title">
+                  <a href={`/kurse/${p.courses?.id}`} className="courses-list__title">
                     {p.courses?.title ?? '—'}
                   </a>
                   {p.courses?.start_date && (
