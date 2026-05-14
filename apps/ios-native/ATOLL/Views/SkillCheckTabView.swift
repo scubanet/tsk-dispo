@@ -6,6 +6,7 @@ struct SkillCheckTabView: View {
   let participants: [CourseParticipant]
 
   @State private var store = SkillCheckStore()
+  @State private var skillForDateEdit: SkillDefinition?
 
   var body: some View {
     Group {
@@ -42,6 +43,21 @@ struct SkillCheckTabView: View {
     }
     .refreshable { await reload() }
     .task { await reload() }
+    .sheet(item: $skillForDateEdit) { skill in
+      SkillDatePickerSheet(
+        skill: skill,
+        currentDate: store.dateForSkill(skill.skillCode),
+        onSave: { newDate in
+          Task {
+            await store.updateDateForSkill(
+              courseId: course.id,
+              skillCode: skill.skillCode,
+              newDate: newDate
+            )
+          }
+        }
+      )
+    }
   }
 
   private var skillsList: some View {
@@ -71,8 +87,29 @@ struct SkillCheckTabView: View {
 
   private func skillRow(_ skill: SkillDefinition) -> some View {
     VStack(alignment: .leading, spacing: 6) {
-      Text(skill.label)
-        .font(.subheadline.weight(.medium))
+      HStack(alignment: .firstTextBaseline) {
+        Text(skill.label)
+          .font(.subheadline.weight(.medium))
+        Spacer()
+        Button {
+          skillForDateEdit = skill
+        } label: {
+          HStack(spacing: 4) {
+            Text(Self.formatPillDate(store.dateForSkill(skill.skillCode)))
+            Image(systemName: "chevron.down")
+              .font(.system(size: 9, weight: .semibold))
+          }
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .padding(.horizontal, 8)
+          .padding(.vertical, 3)
+          .background(
+            Capsule()
+              .fill(Color(.systemGray6))
+          )
+        }
+        .buttonStyle(.plain)
+      }
       LazyVGrid(columns: chipColumns, alignment: .leading, spacing: 6) {
         ForEach(participants) { p in
           SkillChip(
@@ -121,5 +158,25 @@ struct SkillCheckTabView: View {
       await store.loadDefinitions(courseTypeCode: "owd")
     }
     await store.loadRecords(courseId: course.id)
+  }
+
+  private static let pillDateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "de_CH")
+    f.dateFormat = "d. MMM"
+    return f
+  }()
+
+  private static let isoDateParser: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyy-MM-dd"
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.timeZone = TimeZone(identifier: "Europe/Zurich")
+    return f
+  }()
+
+  private static func formatPillDate(_ isoDate: String) -> String {
+    guard let date = isoDateParser.date(from: isoDate) else { return isoDate }
+    return pillDateFormatter.string(from: date)
   }
 }

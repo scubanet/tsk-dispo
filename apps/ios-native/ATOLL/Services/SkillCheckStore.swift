@@ -10,6 +10,9 @@ final class SkillCheckStore {
 
   private(set) var definitions: [SkillDefinition] = []
   private(set) var recordsByKey: [String: SkillRecord] = [:]
+  /// Pro Skill das aktuelle Datum (das auch beim Tap auf einen Chip verwendet wird).
+  /// Beim Load aus dem ersten existierenden Record gefüllt, sonst Default heute.
+  private(set) var dateBySkill: [String: String] = [:]
   private(set) var loadState: LoadState = .idle
   private(set) var errorMessage: String?
 
@@ -53,6 +56,15 @@ final class SkillCheckStore {
       recordsByKey = Dictionary(uniqueKeysWithValues: rows.map {
         (Self.key(participantId: $0.participantId, skillCode: $0.skillCode), $0)
       })
+      // Per-skill date: nimm das erste gefundene completed_on. Bei korrektem
+      // Sync sind eh alle Records einer Skill auf demselben Datum.
+      var dates: [String: String] = [:]
+      for record in rows {
+        if let date = record.completedOn {
+          dates[record.skillCode] = date
+        }
+      }
+      dateBySkill = dates
       loadState = .loaded
     } catch {
       #if DEBUG
@@ -79,6 +91,7 @@ final class SkillCheckStore {
     defer { inFlight.remove(key) }
 
     let previous = recordsByKey[key]
+    let dateForRecord = dateBySkill[skillCode] ?? Self.todayIsoDate()
 
     // Optimistic: toggle local state first.
     if previous != nil {
@@ -89,9 +102,14 @@ final class SkillCheckStore {
         courseId: courseId,
         participantId: participantId,
         skillCode: skillCode,
-        completedOn: Self.isoDateFormatter.string(from: Date()),
+        completedOn: dateForRecord,
         instructorId: instructorId
       )
+      // Beim ersten Record für eine Skill setzen wir dateBySkill, damit der
+      // Date-Pill in der UI sofort den Default zeigt.
+      if dateBySkill[skillCode] == nil {
+        dateBySkill[skillCode] = dateForRecord
+      }
     }
 
     do {
@@ -106,7 +124,7 @@ final class SkillCheckStore {
           courseId: courseId,
           participantId: participantId,
           skillCode: skillCode,
-          completedOn: Self.isoDateFormatter.string(from: Date()),
+          completedOn: dateForRecord,
           instructorId: instructorId
         )
         let inserted: SkillRecord = try await supabase
@@ -134,6 +152,58 @@ final class SkillCheckStore {
 
   func isDone(participantId: UUID, skillCode: String) -> Bool {
     recordsByKey[Self.key(participantId: participantId, skillCode: skillCode)] != nil
+  }
+
+  /// Aktuelles Datum für einen Skill (für Anzeige im Pill und Default bei Toggle).
+  /// Fällt auf heute zurück wenn noch keine Records existieren.
+  func dateForSkill(_ skillCode: String) -> String {
+    dateBySkill[skillCode] ?? Self.todayIsoDate()
+  }
+
+  /// Mass-UPDATE aller bestehenden Records für (course, skill) auf ein neues Datum.
+  /// Setzt zusätzlich `dateBySkill[skillCode]`, damit neue Toggle-Aktionen das Datum übernehmen.
+  /// Optimistic mit Rollback bei Fehler.
+  func updateDateForSkill(courseId: UUID, skillCode: String, newDate: String) async {
+    let previousDate = dateBySkill[skillCode]
+    let previousRecords = recordsByKey
+
+    // Optimistic local update
+    dateBySkill[skillCode] = newDate
+    for (key, record) in recordsByKey where record.skillCode == skillCode {
+      recordsByKey[key] = SkillRecord(
+        id: record.id,
+        courseId: record.courseId,
+        participantId: record.participantId,
+        skillCode: record.skillCode,
+        completedOn: newDate,
+        instructorId: record.instructorId
+      )
+    }
+
+    do {
+      struct DateUpdate: Encodable {
+        let completed_on: String
+      }
+      try await supabase
+        .from("padi_skill_records")
+        .update(DateUpdate(completed_on: newDate))
+        .eq("course_id", value: courseId)
+        .eq("skill_code", value: skillCode)
+        .execute()
+      errorMessage = nil
+    } catch {
+      // Rollback
+      dateBySkill[skillCode] = previousDate
+      recordsByKey = previousRecords
+      #if DEBUG
+      print("⚠️ SkillCheckStore.updateDateForSkill failed: \(error)")
+      #endif
+      errorMessage = error.localizedDescription
+    }
+  }
+
+  private static func todayIsoDate() -> String {
+    isoDateFormatter.string(from: Date())
   }
 
   private static func key(participantId: UUID, skillCode: String) -> String {
