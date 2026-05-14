@@ -267,7 +267,9 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   useEffect(() => {
     fetchAllCourses().then((all) => setCourse(all.find((c) => c.id === courseId) ?? null))
     fetchCourseAssignments(courseId).then(setAssignments)
-    fetchCourseParticipants(courseId).then(setParticipants)
+    fetchCourseParticipants(courseId)
+    .then(setParticipants)
+    .catch((err) => console.error('[course-detail] fetchCourseParticipants failed', err))
     fetchCourseDates(courseId).then(setCourseDates)
   }, [courseId, refreshTick])
 

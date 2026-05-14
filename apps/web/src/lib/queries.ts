@@ -370,15 +370,51 @@ export interface CourseParticipant {
 }
 
 export async function fetchCourseParticipants(courseId: string): Promise<CourseParticipant[]> {
+  // Phase J Etappe 3c: people-Tabelle gedroppt in 0093, FK course_participants.student_id
+  // zeigt seit 0092 auf contacts(id). Embed entsprechend auf contacts mit client-side
+  // Mapping zurück auf das bestehende Student-Shape, damit Consumer (CourseDetailPanel,
+  // PADI-Referral-PDF) unverändert weiterlaufen.
   const { data, error } = await supabase
     .from('course_participants')
     .select(`
       id, course_id, student_id, status, enrolled_at, certificate_nr, notes, certified_by_instructor_id, certified_on,
-      student:people(id, name, email, phone, birthday, padi_nr, notes, active, created_at)
+      contact:contacts(id, first_name, last_name, display_name, primary_email, phones, birth_date, notes, archived_at, created_at)
     `)
     .eq('course_id', courseId)
   if (error) throw error
-  return (data ?? []) as unknown as CourseParticipant[]
+  return (data ?? []).map((cp: any) => ({
+    id: cp.id,
+    course_id: cp.course_id,
+    student_id: cp.student_id,
+    status: cp.status,
+    enrolled_at: cp.enrolled_at,
+    certificate_nr: cp.certificate_nr,
+    notes: cp.notes,
+    certified_by_instructor_id: cp.certified_by_instructor_id,
+    certified_on: cp.certified_on,
+    student: cp.contact
+      ? {
+          id: cp.contact.id,
+          name:
+            cp.contact.display_name ||
+            [cp.contact.first_name, cp.contact.last_name].filter(Boolean).join(' '),
+          email: cp.contact.primary_email ?? null,
+          phone: Array.isArray(cp.contact.phones)
+            ? (cp.contact.phones.find((p: any) => p?.primary)?.e164 ??
+               cp.contact.phones[0]?.e164 ??
+               null)
+            : null,
+          birthday: cp.contact.birth_date,
+          level: null,
+          notes: cp.contact.notes,
+          active: cp.contact.archived_at === null,
+          created_at: cp.contact.created_at,
+          is_student: false,
+          is_candidate: false,
+          pipeline_stage: null,
+        }
+      : null,
+  })) as unknown as CourseParticipant[]
 }
 
 export async function fetchStudentCourses(studentId: string): Promise<CourseParticipant[]> {
