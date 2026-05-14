@@ -3,7 +3,7 @@ import SwiftUI
 struct ParticipantsTabView: View {
   let course: Course
   let user: CurrentUser
-  @State private var store = ParticipantsStore()
+  let store: ParticipantsStore
   @State private var intakeStore = IntakeStore()
   @State private var selectedParticipant: CourseParticipant?
 
@@ -46,10 +46,7 @@ struct ParticipantsTabView: View {
       await store.load(courseId: course.id)
       await reloadIntakes()
     }
-    .task {
-      await store.load(courseId: course.id)
-      await reloadIntakes()
-    }
+    .task { await reloadIntakes() }
     .sheet(item: $selectedParticipant) { participant in
       IntakeSheet(
         participant: participant,

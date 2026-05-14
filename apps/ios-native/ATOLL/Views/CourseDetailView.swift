@@ -17,6 +17,7 @@ struct CourseDetailView: View {
   }
 
   @State private var selectedTab: Tab = .participants
+  @State private var participantsStore = ParticipantsStore()
 
   var body: some View {
     VStack(spacing: 0) {
@@ -33,14 +34,15 @@ struct CourseDetailView: View {
 
       switch selectedTab {
       case .participants:
-        ParticipantsTabView(course: course, user: user)
+        ParticipantsTabView(course: course, user: user, store: participantsStore)
       case .skillCheck:
-        SkillCheckTabView(course: course)
+        SkillCheckTabView(course: course, user: user, participants: participantsStore.participants)
       case .info:
         CourseInfoTabView(course: course)
       }
     }
     .navigationTitle(course.title)
     .navigationBarTitleDisplayMode(.inline)
+    .task { await participantsStore.load(courseId: course.id) }
   }
 }
