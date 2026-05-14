@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
+import { getContactWithSidecars, listRelationships } from '@/lib/contactQueries'
 
 interface Form {
   // Stamm
@@ -11,7 +12,6 @@ interface Form {
   email: string
   phone: string
   birthday: string
-  padi_nr: string
   level: string
   notes: string
 
@@ -93,7 +93,6 @@ const EMPTY: Form = {
   email: '',
   phone: '',
   birthday: '',
-  padi_nr: '',
   level: 'Anfänger',
   notes: '',
 
@@ -134,53 +133,65 @@ export function StudentEditSheet({
     if (!open) return
     setError(null)
     if (showCdFields) {
-      supabase.from('organizations').select('id, name').order('name').then(({ data }) => {
-        setOrgs((data ?? []) as Org[])
-      })
+      supabase
+        .from('contacts')
+        .select('id, display_name, legal_name, trading_name')
+        .eq('kind', 'organization')
+        .is('archived_at', null)
+        .order('display_name')
+        .then(({ data }) => {
+          const rows = (data ?? []).map((o: { id: string; display_name: string | null; legal_name: string | null; trading_name: string | null }) => ({
+            id: o.id,
+            name: o.display_name ?? o.trading_name ?? o.legal_name ?? '(unnamed)',
+          }))
+          setOrgs(rows)
+        })
     }
     if (studentId) {
-      const cols = [
-        'first_name','last_name','name','email','phone','birthday','padi_nr','level','notes','active',
-        'address','postal_code','city','country','photo_url',
-        'pipeline_stage','lead_source','tags','languages','organization_id','organization_role','is_candidate','is_student',
-      ].join(',')
-      supabase
-        .from('people')
-        .select(cols)
-        .eq('id', studentId)
-        .single()
-        .then(({ data }) => {
-          if (!data) return
-          const d = data as any
-          // Fallback: legacy Daten ohne first/last → aus name splitten
-          const first = d.first_name?.trim() || (d.name ?? '').split(' ')[0] || ''
-          const last  = d.last_name?.trim()  || (d.name ?? '').split(' ').slice(1).join(' ') || ''
-          setForm({
-            first_name: first,
-            last_name: last,
-            email: d.email ?? '',
-            phone: d.phone ?? '',
-            birthday: d.birthday ?? '',
-            padi_nr: d.padi_nr ?? '',
-            level: d.level ?? 'Anfänger',
-            notes: d.notes ?? '',
+      void (async () => {
+        const cws = await getContactWithSidecars(studentId)
+        if (!cws) return
+        const phones = (cws.phones as Array<{ e164?: string; primary?: boolean }> | null) ?? []
+        const primaryPhone = phones.find((p) => p.primary)?.e164 ?? phones[0]?.e164 ?? ''
+        const addresses = (cws.addresses as Array<{
+          street?: string; postal_code?: string; city?: string; country?: string; primary?: boolean
+        }> | null) ?? []
+        const primaryAddr = addresses.find((a) => a.primary) ?? addresses[0]
 
-            address: d.address ?? '',
-            postal_code: d.postal_code ?? '',
-            city: d.city ?? '',
-            country: d.country ?? '',
-            photo_url: d.photo_url ?? '',
+        let orgId = ''
+        if (showCdFields) {
+          const rels = await listRelationships(studentId)
+          const worksAt = rels.find(
+            (r) => r.kind === 'works_at' && r.from_contact_id === studentId,
+          )
+          orgId = worksAt?.to_contact_id ?? ''
+        }
 
-            pipeline_stage: d.pipeline_stage ?? 'none',
-            lead_source: d.lead_source ?? '',
-            tags: Array.isArray(d.tags) ? d.tags.join(', ') : '',
-            languages: Array.isArray(d.languages) ? d.languages : [],
-            organization_id: d.organization_id ?? '',
-            organization_role: d.organization_role ?? '',
-            is_student: d.is_student !== undefined ? !!d.is_student : true,
-            is_candidate: !!d.is_candidate,
-          })
+        setForm({
+          first_name: cws.first_name ?? '',
+          last_name:  cws.last_name === '-' ? '' : (cws.last_name ?? ''),
+          email:      cws.primary_email ?? '',
+          phone:      primaryPhone,
+          birthday:   cws.birth_date ?? '',
+          level:      cws.student?.level ?? 'Anfänger',
+          notes:      cws.notes ?? '',
+
+          address:     primaryAddr?.street      ?? '',
+          postal_code: primaryAddr?.postal_code ?? '',
+          city:        primaryAddr?.city        ?? '',
+          country:     primaryAddr?.country     ?? '',
+          photo_url:   cws.student?.photo_url   ?? '',
+
+          pipeline_stage:    cws.student?.pipeline_stage    ?? 'none',
+          lead_source:       cws.student?.lead_source       ?? '',
+          tags:              (cws.tags ?? []).join(', '),
+          languages:         cws.languages ?? [],
+          organization_id:   orgId,
+          organization_role: cws.student?.organization_role ?? '',
+          is_student:        (cws.roles ?? []).includes('student'),
+          is_candidate:      cws.student?.is_candidate ?? false,
         })
+      })()
     } else {
       setForm({
         ...EMPTY,
@@ -202,57 +213,58 @@ export function StudentEditSheet({
     if (!form.first_name.trim()) return
     setSaving(true)
     setError(null)
-    const base: Record<string, unknown> = {
+
+    const contactPayload: Record<string, unknown> = {
       first_name: form.first_name.trim(),
-      last_name: form.last_name.trim(),
-      email: form.email.trim() || null,
-      phone: form.phone.trim() || null,
-      birthday: form.birthday || null,
-      padi_nr: form.padi_nr.trim() || null,
-      level: form.level || 'Anfänger',
-      notes: form.notes.trim() || null,
+      last_name:  form.last_name.trim() || null,
+      primary_email: form.email.trim() || null,
+      phone:      form.phone.trim() || null,
+      birthday:   form.birthday || null,
+      notes:      form.notes.trim() || null,
+      is_student: showCdFields ? form.is_student : true,
+      is_candidate: showCdFields ? form.is_candidate : false,
     }
-    // CD-Felder nur senden wenn UI sie geliefert hat — sonst werden sie nicht überschrieben
+
     if (showCdFields) {
-      Object.assign(base, {
-        address: form.address.trim(),
+      contactPayload.address = {
+        street:      form.address.trim(),
         postal_code: form.postal_code.trim(),
-        city: form.city.trim(),
-        country: form.country.trim(),
-        photo_url: form.photo_url.trim() || null,
-        pipeline_stage: form.pipeline_stage,
-        lead_source: form.lead_source.trim(),
-        tags: csvToArray(form.tags),
-        languages: form.languages,
-        organization_id: form.organization_id || null,
-        organization_role: form.organization_role.trim(),
-        is_student: form.is_student,
-        is_candidate: form.is_candidate,
-      })
+        city:        form.city.trim(),
+        country:     form.country.trim(),
+      }
+      contactPayload.tags = csvToArray(form.tags)
+      contactPayload.languages = form.languages
     }
-    if (isEdit) {
-      const { error: updErr } = await supabase
-        .from('people')
-        .update(base)
-        .eq('id', studentId!)
-      if (updErr) { setError(updErr.message); setSaving(false); return }
-      setSaving(false); onSaved(); onClose()
-    } else {
-      const { data: created, error: insErr } = await supabase
-        .from('people')
-        .insert(base)
-        .select('id')
-        .single()
-      if (insErr) { setError(insErr.message); setSaving(false); return }
-      setSaving(false); onSaved(created?.id); onClose()
+
+    const studentPayload: Record<string, unknown> = {
+      pipeline_stage:    showCdFields ? form.pipeline_stage : 'none',
+      lead_source:       showCdFields ? form.lead_source.trim() : '',
+      is_candidate:      showCdFields ? form.is_candidate : false,
+      level:             form.level || 'Anfänger',
+      photo_url:         showCdFields ? (form.photo_url.trim() || null) : null,
+      organization_role: showCdFields ? (form.organization_role.trim() || null) : null,
     }
+
+    const { data, error: rpcErr } = await supabase.rpc('student_upsert', {
+      p_contact_id: studentId ?? null,
+      p_contact:    contactPayload,
+      p_student:    studentPayload,
+      p_org_id:     showCdFields && form.organization_id ? form.organization_id : null,
+    })
+
+    if (rpcErr) { setError(rpcErr.message); setSaving(false); return }
+    setSaving(false)
+    onSaved(data as string)
+    onClose()
   }
 
   async function deleteStudent() {
     if (!isEdit) return
     if (!confirm(t('student_edit.confirm_delete'))) return
     setSaving(true)
-    const { error: delErr } = await supabase.from('people').delete().eq('id', studentId!)
+    // CASCADE auf contacts.id räumt contact_student + contact_relationships
+    // automatisch auf (definiert in 0079).
+    const { error: delErr } = await supabase.from('contacts').delete().eq('id', studentId!)
     setSaving(false)
     if (delErr) { setError(delErr.message); return }
     onSaved()
@@ -281,14 +293,9 @@ export function StudentEditSheet({
             </Field>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Field label={t('student_edit.label_birthday')}>
-              <input type="date" value={form.birthday} onChange={(e) => set('birthday', e.target.value)} style={inputStyle} />
-            </Field>
-            <Field label={t('student_edit.label_padi_nr')}>
-              <input value={form.padi_nr} onChange={(e) => set('padi_nr', e.target.value)} placeholder={t('student_edit.placeholder_optional')} style={inputStyle} />
-            </Field>
-          </div>
+          <Field label={t('student_edit.label_birthday')}>
+            <input type="date" value={form.birthday} onChange={(e) => set('birthday', e.target.value)} style={inputStyle} />
+          </Field>
 
           <Field label={t('student_edit.label_level')}>
             <select value={form.level} onChange={(e) => set('level', e.target.value)} style={inputStyle}>
