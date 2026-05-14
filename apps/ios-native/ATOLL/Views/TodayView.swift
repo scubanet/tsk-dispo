@@ -27,6 +27,9 @@ struct TodayView: View {
       .toolbar(.hidden, for: .navigationBar)
       .refreshable { await store.load(instructorId: user.legacyInstructorId) }
       .task { await store.load(instructorId: user.legacyInstructorId) }
+      .navigationDestination(for: Course.self) { course in
+        CourseDetailView(course: course, user: user)
+      }
     }
   }
 
@@ -77,10 +80,14 @@ struct TodayView: View {
           )
         } else {
           ForEach(store.today()) { assignment in
-            NavigationLink(value: assignment) {
+            if let course = assignment.course {
+              NavigationLink(value: course) {
+                AssignmentCard(assignment: assignment, dateLabel: "Heute")
+              }
+              .buttonStyle(.plain)
+            } else {
               AssignmentCard(assignment: assignment, dateLabel: "Heute")
             }
-            .buttonStyle(.plain)
           }
         }
       }
@@ -92,20 +99,24 @@ struct TodayView: View {
         VStack(alignment: .leading, spacing: 10) {
           sectionHeader("Nächste 7 Tage", count: upcoming.count)
           ForEach(upcoming) { assignment in
-            NavigationLink(value: assignment) {
+            if let course = assignment.course {
+              NavigationLink(value: course) {
+                AssignmentCard(
+                  assignment: assignment,
+                  dateLabel: dateLabel(for: assignment)
+                )
+              }
+              .buttonStyle(.plain)
+            } else {
               AssignmentCard(
                 assignment: assignment,
                 dateLabel: dateLabel(for: assignment)
               )
             }
-            .buttonStyle(.plain)
           }
         }
         .padding(.horizontal)
       }
-    }
-    .navigationDestination(for: Assignment.self) { a in
-      AssignmentDetailView(assignment: a)
     }
   }
 

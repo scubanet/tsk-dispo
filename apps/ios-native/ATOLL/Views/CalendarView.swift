@@ -24,7 +24,7 @@ struct CalendarView: View {
             }
             .navigationTitle("Kurse")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: Assignment.self) { AssignmentDetailView(assignment: $0) }
+            .navigationDestination(for: Course.self) { CourseDetailView(course: $0, user: user) }
             .refreshable { await store.load(instructorId: user.legacyInstructorId) }
             .task { await store.load(instructorId: user.legacyInstructorId) }
         }
@@ -113,8 +113,12 @@ struct CalendarView: View {
                         .padding(.top, 6)
                 } else {
                     ForEach(assignments) { a in
-                        NavigationLink(value: a) { AssignmentCard(assignment: a, dateLabel: "Tag") }
-                            .buttonStyle(.plain)
+                        if let course = a.course {
+                            NavigationLink(value: course) { AssignmentCard(assignment: a, dateLabel: "Tag") }
+                                .buttonStyle(.plain)
+                        } else {
+                            AssignmentCard(assignment: a, dateLabel: "Tag")
+                        }
                     }
                 }
             }
@@ -129,14 +133,22 @@ struct CalendarView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(assignments) { a in
-                        NavigationLink(value: a) {
+                        if let course = a.course {
+                            NavigationLink(value: course) {
+                                AssignmentCard(
+                                    assignment: a,
+                                    dateLabel: a.course?.nextDateOnOrAfter(.now)
+                                        .map { AppDate.relativeLabel($0) } ?? "—"
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        } else {
                             AssignmentCard(
                                 assignment: a,
                                 dateLabel: a.course?.nextDateOnOrAfter(.now)
                                     .map { AppDate.relativeLabel($0) } ?? "—"
                             )
                         }
-                        .buttonStyle(.plain)
                     }
                 }
             }
