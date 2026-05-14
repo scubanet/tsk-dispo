@@ -336,11 +336,28 @@ export function SkillCheckTab({
       .map((a) => a.instructor?.id)
       .filter((id): id is string => !!id)
     if (ids.length === 0) return
+    // Phase J Etappe 3b: contacts JOIN contact_instructor (initials seit 0091)
     supabase
-      .from('instructors')
-      .select('id, name, initials')
+      .from('contacts')
+      .select('id, display_name, last_name, first_name, instructor:contact_instructor!inner(initials)')
       .in('id', ids)
-      .then(({ data }) => setInstructors((data ?? []) as InstructorOption[]))
+      .then(({ data }) => {
+        const rows = (data ?? []).map((c: unknown) => {
+          const row = c as {
+            id: string
+            display_name: string | null
+            last_name: string | null
+            first_name: string | null
+            instructor: { initials: string | null } | null
+          }
+          return {
+            id: row.id,
+            name: row.display_name ?? [row.last_name, row.first_name].filter(Boolean).join(', '),
+            initials: row.instructor?.initials ?? '',
+          }
+        })
+        setInstructors(rows)
+      })
   }, [assignments])
 
   // Build record lookup: `${participantId}::${skillCode}` → record

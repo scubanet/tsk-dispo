@@ -157,27 +157,19 @@ export async function buildCourseAutofillData(courseId: string, participantId?: 
   const skillInstructorIds = [...new Set(skillRecords.map((r) => r.instructor_id).filter((id): id is string => !!id))]
   const allInstructorIds = [...new Set([...instructorIds, ...skillInstructorIds])]
 
-  // Re-fetch contact_instructor to cover skill-record instructors not in assignments
+  // Phase J Etappe 3b: contact_instructor liefert sowohl padi_pro_number als auch
+  // initials (Spalte aus 0091). Eine Query reicht für beide Maps.
   const { data: allCis } = allInstructorIds.length === 0
-    ? { data: [] as Array<{ contact_id: string; padi_pro_number: string | null }> }
+    ? { data: [] as Array<{ contact_id: string; padi_pro_number: string | null; initials: string | null }> }
     : await supabase
         .from('contact_instructor')
-        .select('contact_id, padi_pro_number')
+        .select('contact_id, padi_pro_number, initials')
         .in('contact_id', allInstructorIds)
 
-  // Also fetch initials for skill-record instructors
-  const { data: instRows } = skillInstructorIds.length === 0
-    ? { data: [] as Array<{ id: string; initials: string | null }> }
-    : await supabase
-        .from('instructors')
-        .select('id, initials')
-        .in('id', skillInstructorIds)
   const instInitialsMap = new Map<string, string>()
-  for (const i of (instRows ?? []) as Array<{ id: string; initials: string | null }>) {
-    if (i.initials) instInitialsMap.set(i.id, i.initials)
-  }
   const ciMap = new Map<string, string>()
-  for (const c of (allCis ?? [])) {
+  for (const c of (allCis ?? []) as Array<{ contact_id: string; padi_pro_number: string | null; initials: string | null }>) {
+    if (c.initials) instInitialsMap.set(c.contact_id, c.initials)
     if (c.padi_pro_number) ciMap.set(c.contact_id, c.padi_pro_number)
   }
 
