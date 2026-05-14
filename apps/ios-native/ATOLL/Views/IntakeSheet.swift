@@ -23,7 +23,7 @@ struct IntakeSheet: View {
           Toggle(isOn: $medical) {
             VStack(alignment: .leading, spacing: 2) {
               Text("Medical Statement").font(.body)
-              Text("unterschrieben (ohne Arztzeichnung)")
+              Text("unterschrieben")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
@@ -39,7 +39,7 @@ struct IntakeSheet: View {
           Toggle(isOn: $safeDiving) {
             VStack(alignment: .leading, spacing: 2) {
               Text("Safe Diving Procedures").font(.body)
-              Text("Standard-Verfahren besprochen")
+              Text("PADI-Formular unterschrieben")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
