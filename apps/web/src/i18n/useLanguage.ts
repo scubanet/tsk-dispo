@@ -1,11 +1,11 @@
 /**
  * useLanguage — pick / read the user's UI language.
  *
- * Phase J — Etappe 2c.1:
- *   • Read   from `contact_instructor.preferred_language` (Login = Instructor)
- *   • Write  defensiv: Sidecar + Legacy `instructors`-Tabelle
- *            (Edge-Functions für E-Mail/Push lesen noch instructors.preferred_language —
- *             Single-Write auf den Sidecar kommt mit Etappe 3 wenn Sync-Triggers droppen).
+ * Phase J — Etappe 3b:
+ *   • Read  from `contact_instructor.preferred_language`
+ *   • Write Single-Write auf Sidecar. Legacy `instructors`-Write entfernt.
+ *           Falls Edge-Functions noch auf instructors.preferred_language lesen,
+ *           greift bis Etappe 3c (Tabellen-Drop) der Snapshot-Wert.
  *
  * Cache: localStorage (instant boot, no flicker).
  */
@@ -32,7 +32,7 @@ export function useLanguage() {
       const userId = auth?.user?.id
       if (!userId) return
 
-      // 1) New source of truth: contact_instructor sidecar
+      // Single source of truth: contact_instructor sidecar
       void supabase
         .from('contact_instructor')
         .update({ preferred_language: newLang })
@@ -41,18 +41,6 @@ export function useLanguage() {
           if (error) {
             // eslint-disable-next-line no-console
             console.warn('[i18n] could not persist to contact_instructor:', error.message)
-          }
-        })
-
-      // 2) Legacy instructors-Tabelle — bis Edge-Functions migriert sind
-      void supabase
-        .from('instructors')
-        .update({ preferred_language: newLang })
-        .eq('auth_user_id', userId)
-        .then(({ error }) => {
-          if (error) {
-            // eslint-disable-next-line no-console
-            console.warn('[i18n] could not persist to instructors (legacy):', error.message)
           }
         })
     },
