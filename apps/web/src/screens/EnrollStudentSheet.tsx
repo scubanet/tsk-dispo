@@ -114,7 +114,7 @@ export function EnrollStudentSheet({
         const q = search.toLowerCase()
         return s.name.toLowerCase().includes(q) ||
                s.email?.toLowerCase().includes(q) ||
-               s.padi_nr?.toLowerCase().includes(q)
+               s.phone?.toLowerCase().includes(q)
       })
       .slice(0, 50)
   }, [students, search, alreadyEnrolledStudentIds, isEdit])
@@ -211,7 +211,7 @@ export function EnrollStudentSheet({
                   >
                     <div>{s.name}</div>
                     <div className="caption-2">
-                      {[s.email, s.phone, s.padi_nr].filter(Boolean).join(' · ') || '—'}
+                      {[s.email, s.phone].filter(Boolean).join(' · ') || '—'}
                     </div>
                   </button>
                 ))
@@ -224,7 +224,7 @@ export function EnrollStudentSheet({
           <div className="glass-thin" style={{ padding: 12, borderRadius: 12 }}>
             <div style={{ fontWeight: 500 }}>{selectedStudent.name}</div>
             <div className="caption">
-              {[selectedStudent.email, selectedStudent.phone, selectedStudent.padi_nr].filter(Boolean).join(' · ') || '—'}
+              {[selectedStudent.email, selectedStudent.phone].filter(Boolean).join(' · ') || '—'}
             </div>
           </div>
         )}

@@ -592,9 +592,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                       {p.student?.name ?? '—'}
                     </button>
                     <div className="atoll-detail__row-meta">
-                      {[p.student?.padi_nr ? `PADI ${p.student.padi_nr}` : null, p.student?.email]
-                        .filter(Boolean)
-                        .join(' · ') || '—'}
+                      {p.student?.email ?? '—'}
                     </div>
                   </div>
                   <div className="atoll-detail__row-pills">
