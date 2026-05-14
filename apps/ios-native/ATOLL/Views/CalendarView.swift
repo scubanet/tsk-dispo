@@ -22,7 +22,7 @@ struct CalendarView: View {
                 Divider().padding(.top, 4)
                 ScrollView { dayDetails.padding() }
             }
-            .navigationTitle("Kalender")
+            .navigationTitle("Kurse")
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: Assignment.self) { AssignmentDetailView(assignment: $0) }
             .refreshable { await store.load(instructorId: user.legacyInstructorId) }

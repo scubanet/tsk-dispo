@@ -11,15 +11,11 @@ struct MainTabView: View {
                 }
             CalendarView(user: user)
                 .tabItem {
-                    Label("Kalender", systemImage: "calendar")
+                    Label("Kurse", systemImage: "calendar")
                 }
-            AssignmentsView(user: user)
+            StudentsView(user: user)
                 .tabItem {
-                    Label("Einsätze", systemImage: "list.bullet.rectangle")
-                }
-            SaldoView(user: user)
-                .tabItem {
-                    Label("Saldo", systemImage: "creditcard.fill")
+                    Label("Studenten", systemImage: "person.2.fill")
                 }
             ProfileView(user: user)
                 .tabItem {
