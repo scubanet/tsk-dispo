@@ -1,8 +1,11 @@
 import SwiftUI
+import EventKit
 import AtollCore
 
 @main
 struct AtollCalApp: App {
+  @Environment(\.scenePhase) private var scenePhase
+
   @State private var auth: AuthState
   @State private var localeStore: LocaleStore
   @State private var calendarStore: SystemCalendarStore
@@ -29,6 +32,15 @@ struct AtollCalApp: App {
         .onOpenURL { url in
           guard url.scheme == "atollcal" else { return }
           Task { try? await auth.handleAuthCallback(url: url) }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+          if newPhase == .active {
+            // Bei App-Foreground: Auth-Status + EventKit-State refreshen,
+            // dann globalen EKEventStoreChanged broadcasten damit alle
+            // Calendar-Views ihre Events neu laden.
+            calendarStore.refreshAuthStatus()
+            NotificationCenter.default.post(name: .EKEventStoreChanged, object: nil)
+          }
         }
         .preferredColorScheme(nil)
     }
