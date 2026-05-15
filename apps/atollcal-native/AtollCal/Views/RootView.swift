@@ -11,9 +11,7 @@ struct RootView: View {
     case .signedOut:
       SignInView()
     case .signedIn:
-      // Kommt in Task 3 — vorerst Placeholder
-      Text("Logged in — CalendarRoot kommt in Task 3")
-        .padding()
+      CalendarRoot()
     }
   }
 }
