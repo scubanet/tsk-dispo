@@ -29,4 +29,30 @@ public final class SystemCalendarStore {
     }
     refreshAuthStatus()
   }
+
+  /// Liefert alle EKEvents im Range, gefiltert nach den angegebenen Calendar-Ids.
+  /// Wenn calendarIds nil oder leer: ALLE Events aus erlaubten Kalendern.
+  public func events(in range: DateInterval, calendarIds: Set<String>? = nil) -> [EKEvent] {
+    guard authorizationStatus == .fullAccess else { return [] }
+    let cals: [EKCalendar]
+    if let ids = calendarIds, !ids.isEmpty {
+      cals = calendars.filter { ids.contains($0.calendarIdentifier) }
+    } else {
+      cals = calendars
+    }
+    guard !cals.isEmpty else { return [] }
+    let pred = store.predicateForEvents(withStart: range.start, end: range.end, calendars: cals)
+    return store.events(matching: pred)
+  }
+
+  /// Subscribe für externe EKEvent-Änderungen — z.B. wenn iCloud syncted.
+  /// Caller hält den zurückgegebenen Token solange er benachrichtigt werden will.
+  public func observeChanges(handler: @escaping () -> Void) -> NSObjectProtocol {
+    NotificationCenter.default.addObserver(
+      forName: .EKEventStoreChanged,
+      object: store,
+      queue: .main,
+      using: { _ in handler() }
+    )
+  }
 }
