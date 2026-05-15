@@ -18,6 +18,7 @@ struct CalendarRoot: View {
         .toolbar {
           ToolbarItem(placement: .topBarLeading) {
             Button("Heute") { focusedDate = Date() }
+              .keyboardShortcut("t", modifiers: [.command])
           }
           ToolbarItem(placement: .principal) {
             Button {
@@ -71,9 +72,14 @@ struct CalendarRoot: View {
     } detail: {
       content
         .navigationTitle(formattedTitle)
+        .focusable()
+        .focusEffectDisabled()
+        .onKeyPress(.leftArrow) { navigateBackward(); return .handled }
+        .onKeyPress(.rightArrow) { navigateForward(); return .handled }
         .toolbar {
           ToolbarItem {
             Button("Heute") { focusedDate = Date() }
+              .keyboardShortcut("t", modifiers: [.command])
           }
           ToolbarItem {
             Button {
@@ -116,6 +122,30 @@ struct CalendarRoot: View {
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+  }
+
+  private func navigateBackward() {
+    let cal = Calendar.current
+    let component: Calendar.Component = {
+      switch selectedView {
+      case .day:   return .day
+      case .week:  return .weekOfYear
+      case .month: return .month
+      }
+    }()
+    focusedDate = cal.date(byAdding: component, value: -1, to: focusedDate) ?? focusedDate
+  }
+
+  private func navigateForward() {
+    let cal = Calendar.current
+    let component: Calendar.Component = {
+      switch selectedView {
+      case .day:   return .day
+      case .week:  return .weekOfYear
+      case .month: return .month
+      }
+    }()
+    focusedDate = cal.date(byAdding: component, value: 1, to: focusedDate) ?? focusedDate
   }
 
   private var formattedTitle: String {
