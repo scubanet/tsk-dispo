@@ -1,6 +1,7 @@
 import Foundation
 import Supabase
 import SwiftUI
+import AtollCore
 
 /// App-weiter Auth-Zustand. Verwaltet Session, lädt aktuellen Instructor aus
 /// `contact_instructor` (canonical) + `instructors` (legacy fallback).

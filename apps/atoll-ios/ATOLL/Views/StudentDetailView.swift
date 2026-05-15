@@ -1,4 +1,5 @@
 import SwiftUI
+import AtollCore
 
 struct StudentDetailView: View {
   let student: Student

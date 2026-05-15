@@ -1,4 +1,5 @@
 import SwiftUI
+import AtollCore
 
 struct MainTabView: View {
     let user: CurrentUser

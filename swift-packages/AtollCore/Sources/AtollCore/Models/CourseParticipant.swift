@@ -1,19 +1,19 @@
 import Foundation
 
 /// Read-Modell für PostgREST `course_participants` join nested `student:contacts(...)`.
-struct CourseParticipant: Codable, Identifiable, Hashable {
-  let id: UUID
-  let courseId: UUID
-  let studentId: UUID
-  let status: Status
-  let certificateNr: String?
-  let notes: String?
-  let student: Student?
+public struct CourseParticipant: Codable, Identifiable, Hashable {
+  public let id: UUID
+  public let courseId: UUID
+  public let studentId: UUID
+  public let status: Status
+  public let certificateNr: String?
+  public let notes: String?
+  public let student: Student?
 
-  enum Status: String, Codable, Hashable {
+  public enum Status: String, Codable, Hashable {
     case enrolled, certified, dropped
 
-    var label: String {
+    public var label: String {
       switch self {
       case .enrolled:  "Eingeschrieben"
       case .certified: "Zertifiziert"
@@ -21,7 +21,7 @@ struct CourseParticipant: Codable, Identifiable, Hashable {
       }
     }
 
-    func label(for locale: Locale) -> String {
+    public func label(for locale: Locale) -> String {
       let isEn = locale.language.languageCode?.identifier == "en"
       switch self {
       case .enrolled:  return isEn ? "Enrolled"   : "Eingeschrieben"
@@ -32,7 +32,7 @@ struct CourseParticipant: Codable, Identifiable, Hashable {
 
     /// Defensiv gegen zukünftige DB-Werte: unbekannte Status werden als
     /// `enrolled` interpretiert, statt die ganze Liste zu sprengen.
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
       let raw = try decoder.singleValueContainer().decode(String.self)
       self = Status(rawValue: raw) ?? .enrolled
     }

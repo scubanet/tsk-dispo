@@ -1,8 +1,8 @@
 import Foundation
 
-enum AppDate {
+public enum AppDate {
     /// Parser für PostgREST DATE-Strings ("yyyy-MM-dd").
-    static func parseISODate(_ s: String) -> Date? {
+    public static func parseISODate(_ s: String) -> Date? {
         isoDateFormatter.date(from: s)
     }
 
@@ -34,7 +34,7 @@ enum AppDate {
         return f
     }()
 
-    static func relativeLabel(_ date: Date) -> String {
+    public static func relativeLabel(_ date: Date) -> String {
         let cal = Calendar.current
         if cal.isDateInToday(date) { return "Heute" }
         if cal.isDateInTomorrow(date) { return "Morgen" }

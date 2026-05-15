@@ -1,4 +1,5 @@
 import SwiftUI
+import AtollCore
 
 struct IntakeSheet: View {
   let participant: CourseParticipant

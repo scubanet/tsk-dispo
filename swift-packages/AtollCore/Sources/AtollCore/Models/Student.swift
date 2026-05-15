@@ -2,23 +2,23 @@ import Foundation
 
 /// Read-Modell für PostgREST `contacts` join `contact_student` (1:1 sidecar).
 /// Wird in `CourseParticipant.student` eingebettet.
-struct Student: Codable, Identifiable, Hashable {
-  let id: UUID                       // = contacts.id
-  let firstName: String
-  let lastName: String
-  let primaryEmail: String?
-  let contactStudent: ContactStudentInfo?
+public struct Student: Codable, Identifiable, Hashable {
+  public let id: UUID                       // = contacts.id
+  public let firstName: String
+  public let lastName: String
+  public let primaryEmail: String?
+  public let contactStudent: ContactStudentInfo?
 
   /// Convenience für UI — die zwei häufigsten Sidecar-Felder.
-  var level: String? { contactStudent?.level }
-  var photoUrl: String? { contactStudent?.photoUrl }
+  public var level: String? { contactStudent?.level }
+  public var photoUrl: String? { contactStudent?.photoUrl }
 
-  var displayName: String {
+  public var displayName: String {
     let trimmed = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
     return trimmed.isEmpty ? "—" : trimmed
   }
 
-  var initials: String {
+  public var initials: String {
     let f = firstName.first.map(String.init) ?? ""
     let l = lastName.first.map(String.init) ?? ""
     let combined = (f + l).uppercased()
@@ -33,9 +33,9 @@ struct Student: Codable, Identifiable, Hashable {
     case contactStudent = "contact_student"
   }
 
-  struct ContactStudentInfo: Codable, Hashable {
-    let level: String?
-    let photoUrl: String?
+  public struct ContactStudentInfo: Codable, Hashable {
+    public let level: String?
+    public let photoUrl: String?
 
     enum CodingKeys: String, CodingKey {
       case level

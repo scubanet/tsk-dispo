@@ -1,4 +1,5 @@
 import SwiftUI
+import AtollCore
 
 struct CourseInfoTabView: View {
   let course: Course

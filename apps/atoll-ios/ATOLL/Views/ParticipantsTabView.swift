@@ -1,4 +1,5 @@
 import SwiftUI
+import AtollCore
 
 struct ParticipantsTabView: View {
   let course: Course

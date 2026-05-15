@@ -1,13 +1,13 @@
 import Foundation
 
-struct SkillDefinition: Codable, Identifiable, Hashable {
-  let id: UUID
-  let courseTypeCode: String
-  let skillCode: String
-  let section: String
-  let labelDe: String
-  let labelEn: String
-  let displayOrder: Int
+public struct SkillDefinition: Codable, Identifiable, Hashable {
+  public let id: UUID
+  public let courseTypeCode: String
+  public let skillCode: String
+  public let section: String
+  public let labelDe: String
+  public let labelEn: String
+  public let displayOrder: Int
 
   enum CodingKeys: String, CodingKey {
     case id, section
@@ -18,17 +18,17 @@ struct SkillDefinition: Codable, Identifiable, Hashable {
     case displayOrder   = "display_order"
   }
 
-  var label: String { labelDe }   // Default fuer alte Call-Sites — wird nach Refactor entfernt
+  public var label: String { labelDe }   // Default fuer alte Call-Sites — wird nach Refactor entfernt
 
   /// Locale-aware label. Schaut auf den primary language code des aktuellen Locales
   /// und gibt labelEn zurueck wenn "en", sonst labelDe als Default.
-  func label(for locale: Locale) -> String {
+  public func label(for locale: Locale) -> String {
     locale.language.languageCode?.identifier == "en" ? labelEn : labelDe
   }
 }
 
-enum SkillSection {
-  static let labelsDe: [String: String] = [
+public enum SkillSection {
+  public static let labelsDe: [String: String] = [
     "cw_dive":    "Confined Water Tauchgänge",
     "assessment": "Beurteilung der Wasserfertigkeiten",
     "cw_flex":    "Tauchgangsflexible Fertigkeiten (CW)",
@@ -36,7 +36,7 @@ enum SkillSection {
     "ow_dive":    "Freiwasser-Tauchgänge",
     "ow_flex":    "Tauchgangsflexible Fertigkeiten (OW)",
   ]
-  static let labelsEn: [String: String] = [
+  public static let labelsEn: [String: String] = [
     "cw_dive":    "Confined Water Dives",
     "assessment": "Water Skills Assessment",
     "cw_flex":    "Flexible Skills (CW)",
@@ -44,10 +44,10 @@ enum SkillSection {
     "ow_dive":    "Open Water Dives",
     "ow_flex":    "Flexible Skills (OW)",
   ]
-  static let order: [String] = ["cw_dive", "assessment", "cw_flex", "kd", "ow_dive", "ow_flex"]
+  public static let order: [String] = ["cw_dive", "assessment", "cw_flex", "kd", "ow_dive", "ow_flex"]
 
   /// Locale-aware Section-Label.
-  static func label(for code: String, locale: Locale) -> String {
+  public static func label(for code: String, locale: Locale) -> String {
     let isEn = locale.language.languageCode?.identifier == "en"
     let dict = isEn ? labelsEn : labelsDe
     return dict[code] ?? code.uppercased()

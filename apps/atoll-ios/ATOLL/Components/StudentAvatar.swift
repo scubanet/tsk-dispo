@@ -1,4 +1,5 @@
 import SwiftUI
+import AtollCore
 
 /// Initialen-Avatar in einer konsistenten Farbe basierend auf dem ID-Hash.
 /// Zweck: Bessere Wiedererkennung in Teilnehmer-Listen und Skill-Chips.

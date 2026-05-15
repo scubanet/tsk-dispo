@@ -1,4 +1,5 @@
 import SwiftUI
+import AtollCore
 
 struct RoleBadge: View {
     let role: AssignmentRole

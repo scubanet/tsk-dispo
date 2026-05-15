@@ -1,4 +1,5 @@
 import SwiftUI
+import AtollCore
 
 struct StatusChip: View {
     let status: CourseStatus
