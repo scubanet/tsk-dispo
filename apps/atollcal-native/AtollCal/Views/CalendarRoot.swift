@@ -7,6 +7,7 @@ struct CalendarRoot: View {
   @State private var selectedView: CalendarViewKind = .week
   @State private var focusedDate: Date = Date()
   @State private var showingDatePicker = false
+  @State private var showingSettings = false
 
   var body: some View {
     #if os(iOS)
@@ -53,7 +54,13 @@ struct CalendarRoot: View {
             }
             .pickerStyle(.segmented)
           }
+          ToolbarItem(placement: .topBarTrailing) {
+            Button { showingSettings = true } label: {
+              Image(systemName: "gearshape")
+            }
+          }
         }
+        .sheet(isPresented: $showingSettings) { SettingsView() }
     }
     #else
     NavigationSplitView {
@@ -80,7 +87,13 @@ struct CalendarRoot: View {
                 .padding()
             }
           }
+          ToolbarItem {
+            Button { showingSettings = true } label: {
+              Image(systemName: "gearshape")
+            }
+          }
         }
+        .sheet(isPresented: $showingSettings) { SettingsView() }
     }
     #endif
   }
