@@ -1,11 +1,16 @@
 import SwiftUI
 
 /// Runder Avatar mit Initialen, optional gefärbt.
-struct AvatarView: View {
-  let initials: String
-  let color: String?  // hex string from DB, e.g. "#0A84FF"
+public struct AvatarView: View {
+  public let initials: String
+  public let color: String?  // hex string from DB, e.g. "#0A84FF"
 
-  var body: some View {
+  public init(initials: String, color: String? = nil) {
+    self.initials = initials
+    self.color = color
+  }
+
+  public var body: some View {
     GeometryReader { geo in
       let size = min(geo.size.width, geo.size.height)
       Circle()

@@ -1,5 +1,6 @@
 import SwiftUI
 import AtollCore
+import AtollDesign
 
 struct TodayView: View {
   let user: CurrentUser
@@ -9,7 +10,7 @@ struct TodayView: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 20) {
-          BrandHeader()
+          BrandHeader(appName: Config.appName, tenantName: Config.tenantName)
 
           // Greeting
           VStack(alignment: .leading, spacing: 4) {

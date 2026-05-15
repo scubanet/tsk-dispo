@@ -18,6 +18,8 @@ packages:
     from: 2.0.0
   AtollCore:
     path: ../../swift-packages/AtollCore
+  AtollDesign:
+    path: ../../swift-packages/AtollDesign
 
 targets:
   ATOLL:
@@ -57,5 +59,6 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2" # iPhone + iPad
     dependencies:
       - package: AtollCore
+      - package: AtollDesign
       - package: Supabase
         product: Supabase

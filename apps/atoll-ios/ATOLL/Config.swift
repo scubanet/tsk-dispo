@@ -1,4 +1,5 @@
 import Foundation
+import AtollCore
 
 /// Supabase Konfiguration.
 ///
@@ -17,4 +18,11 @@ enum Config {
   static let appName = "ATOLL"
   static let appTagline = "The Scuba OS"
   static let tenantName = "TSK Zürich"
+}
+
+/// AtollCore-Konformität — verbindet Config mit dem geteilten Supabase-Client.
+struct AppSupabaseConfig: SupabaseConfig {
+  var supabaseURL: URL { Config.supabaseURL }
+  var supabaseAnonKey: String { Config.supabaseAnonKey }
+  var authRedirectURL: URL { Config.authRedirectURL }
 }

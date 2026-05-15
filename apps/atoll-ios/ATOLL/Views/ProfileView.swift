@@ -1,5 +1,6 @@
 import SwiftUI
 import AtollCore
+import AtollDesign
 
 struct ProfileView: View {
     let user: CurrentUser

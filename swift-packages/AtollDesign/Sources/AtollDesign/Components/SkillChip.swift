@@ -1,14 +1,21 @@
 import SwiftUI
 
-struct SkillChip: View {
-  let initials: String
+public struct SkillChip: View {
+  public let initials: String
   /// Reserviert für Long-Press-Detail-Sheet (post-Pitch) — wird aktuell
   /// vom Component nicht gelesen, aber vom Parent für `onTap` benötigt.
-  let participantId: UUID
-  let isDone: Bool
-  let onTap: () -> Void
+  public let participantId: UUID
+  public let isDone: Bool
+  public let onTap: () -> Void
 
-  var body: some View {
+  public init(initials: String, participantId: UUID, isDone: Bool, onTap: @escaping () -> Void) {
+    self.initials = initials
+    self.participantId = participantId
+    self.isDone = isDone
+    self.onTap = onTap
+  }
+
+  public var body: some View {
     Button(action: onTap) {
       HStack(spacing: 4) {
         Text(initials)

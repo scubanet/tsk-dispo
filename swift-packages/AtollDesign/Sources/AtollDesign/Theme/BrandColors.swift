@@ -14,7 +14,7 @@ import SwiftUI
 ///   - 900 (deepest)        (e.g. `.brandBlue900`)
 ///
 /// Use via `Color.brandTeal50` etc. — works in light + dark mode unchanged.
-extension Color {
+public extension Color {
   // ─────────────── Brand Blue (primary action, OWD/AOWD) ───────────────
   static let brandBlue     = Color(hex: 0x185FA5)
   static let brandBlue50   = Color(hex: 0xE6F1FB)
@@ -67,7 +67,7 @@ extension Color {
 }
 
 /// Hex initializer (e.g. `Color(hex: 0x185FA5)`).
-extension Color {
+public extension Color {
   init(hex: UInt32) {
     let r = Double((hex >> 16) & 0xFF) / 255
     let g = Double((hex >>  8) & 0xFF) / 255
@@ -78,7 +78,7 @@ extension Color {
 
 /// Maps a PADI level string (DM, OWSI, MI, CD, …) to its avatar color.
 /// Mirrors `padiLevelColor()` from `apps/web/src/foundation/lib/colors.ts`.
-extension Color {
+public extension Color {
   static func padiLevel(_ level: String?) -> Color {
     switch level {
     case "CD":            return .brandPink

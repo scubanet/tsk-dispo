@@ -2,6 +2,7 @@ import Foundation
 import UIKit
 import UserNotifications
 import Supabase
+import AtollCore
 
 /// Verwaltet Push-Permission, APNs-Token-Capturing und Sync zur DB.
 @MainActor

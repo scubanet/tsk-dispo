@@ -1,4 +1,5 @@
 import SwiftUI
+import AtollCore
 
 struct RootView: View {
   @Environment(AuthState.self) private var auth

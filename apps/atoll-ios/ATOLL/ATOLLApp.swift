@@ -1,10 +1,23 @@
 import SwiftUI
+import AtollCore
 
 @main
 struct ATOLLApp: App {
+  // Config-Registrierung vor jedem Zugriff auf SupabaseClient.shared.
+  // Das `static let` läuft genau einmal — der Force-Read in init()
+  // garantiert, dass die Registrierung passiert bevor @State-Property-
+  // Initializer (insbesondere AuthState.init()) feuern.
+  private static let _configRegistered: Void = {
+    AtollCoreConfig.register(AppSupabaseConfig())
+  }()
+
   @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
   @State private var auth = AuthState()
   @State private var localeStore = LocaleStore()
+
+  init() {
+    _ = Self._configRegistered
+  }
 
   var body: some Scene {
     WindowGroup {

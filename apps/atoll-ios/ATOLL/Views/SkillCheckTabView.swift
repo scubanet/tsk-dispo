@@ -1,5 +1,6 @@
 import SwiftUI
 import AtollCore
+import AtollDesign
 
 struct SkillCheckTabView: View {
   let course: Course
