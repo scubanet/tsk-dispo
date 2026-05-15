@@ -6,6 +6,7 @@ struct CalendarRoot: View {
   @Environment(SystemCalendarStore.self) var calendarStore
   @State private var selectedView: CalendarViewKind = .week
   @State private var focusedDate: Date = Date()
+  @State private var showingDatePicker = false
 
   var body: some View {
     #if os(iOS)
@@ -16,6 +17,33 @@ struct CalendarRoot: View {
         .toolbar {
           ToolbarItem(placement: .topBarLeading) {
             Button("Heute") { focusedDate = Date() }
+          }
+          ToolbarItem(placement: .principal) {
+            Button {
+              showingDatePicker = true
+            } label: {
+              Text(formattedTitle).font(.headline)
+            }
+            .sheet(isPresented: $showingDatePicker) {
+              NavigationStack {
+                DatePicker(
+                  "Datum",
+                  selection: $focusedDate,
+                  displayedComponents: .date
+                )
+                .datePickerStyle(.graphical)
+                .padding()
+                .navigationTitle("Datum")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                  ToolbarItem(placement: .confirmationAction) {
+                    Button("Fertig") { showingDatePicker = false }
+                  }
+                }
+              }
+              .presentationDetents([.medium, .large])
+              .presentationDragIndicator(.visible)
+            }
           }
           ToolbarItem(placement: .topBarTrailing) {
             Picker("Ansicht", selection: $selectedView) {
@@ -39,6 +67,18 @@ struct CalendarRoot: View {
         .toolbar {
           ToolbarItem {
             Button("Heute") { focusedDate = Date() }
+          }
+          ToolbarItem {
+            Button {
+              showingDatePicker = true
+            } label: {
+              Image(systemName: "calendar")
+            }
+            .popover(isPresented: $showingDatePicker) {
+              DatePicker("Datum", selection: $focusedDate, displayedComponents: .date)
+                .datePickerStyle(.graphical)
+                .padding()
+            }
           }
         }
     }
