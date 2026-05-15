@@ -115,7 +115,7 @@ struct MonthView: View {
     let isToday = cal.isDateInToday(day)
     // Single-day-Events only — multi-day kommen via Overlay
     let allEvents = eventsByDay[cal.startOfDay(for: day)] ?? []
-    let dayEvents = allEvents.filter { !isMultiDayEvent($0) }
+    let dayEvents = allEvents.filter { !isAllDayOrMultiDayEvent($0) }
 
     return VStack(alignment: .leading, spacing: 2) {
       Text("\(cal.component(.day, from: day))")
@@ -161,6 +161,10 @@ struct MonthView: View {
     let startDay = cal.startOfDay(for: ev.startDate)
     let endDay = cal.startOfDay(for: ev.endDate.addingTimeInterval(-1))  // -1 sec damit Event 00:00–23:59 als ein Tag gilt
     return !cal.isDate(startDay, inSameDayAs: endDay)
+  }
+
+  private func isAllDayOrMultiDayEvent(_ ev: CalendarEvent) -> Bool {
+    return ev.isAllDay || isMultiDayEvent(ev)
   }
 
   private func enabledCalendarIds() -> Set<String> {
@@ -231,7 +235,7 @@ extension MonthView {
     var multiDayEvents: [CalendarEvent] = []
     for events in eventsByDay.values {
       for ev in events {
-        guard isMultiDayEvent(ev) else { continue }
+        guard isAllDayOrMultiDayEvent(ev) else { continue }
         if !seen.contains(ev.id) {
           seen.insert(ev.id)
           multiDayEvents.append(ev)

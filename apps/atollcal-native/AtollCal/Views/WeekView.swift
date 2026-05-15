@@ -41,7 +41,38 @@ struct WeekView: View {
         .padding(.vertical, 6)
         .background(Color.secondary.opacity(0.05))
 
-        // Stunden-Grid + Spalten
+        // All-day Zone — spans über Wochen-Spalten
+        let spans = allDaySpans(in: days)
+        let lanes = (spans.map(\.lane).max() ?? -1) + 1
+        let rowHeight: CGFloat = 18
+        let zoneHeight = CGFloat(lanes) * rowHeight + (lanes > 0 ? 8 : 0)
+
+        if !spans.isEmpty {
+          ZStack(alignment: .topLeading) {
+            Color.secondary.opacity(0.05)
+            ForEach(spans) { span in
+              let yOffset = CGFloat(span.lane) * rowHeight + 4
+              let xOffset = CGFloat(span.startDayInWeek) * columnWidth + hourLabelWidth + gutterWidth + 2
+              let width = CGFloat(span.lengthInWeek) * columnWidth - 4
+
+              HStack(spacing: 4) {
+                Rectangle().fill(span.event.color).frame(width: 3, height: 12)
+                Text(span.event.title).font(.caption2).lineLimit(1)
+                Spacer(minLength: 0)
+              }
+              .padding(.horizontal, 4)
+              .frame(width: width, height: rowHeight - 2, alignment: .leading)
+              .background(span.event.color.opacity(0.15))
+              .cornerRadius(3)
+              .offset(x: xOffset, y: yOffset)
+              .contentShape(Rectangle())
+              .onTapGesture { selectedEvent = span.event }
+            }
+          }
+          .frame(height: zoneHeight)
+        }
+
+        // Stunden-Grid + Spalten (nur timed Events)
         ScrollView {
           ZStack(alignment: .topLeading) {
             // Hour labels + horizontale Grid-Linien
@@ -63,7 +94,7 @@ struct WeekView: View {
               }
             }
 
-            // Day columns mit Events + Now-Indikator für heute
+            // Day columns mit timed Events + Now-Indikator für heute
             HStack(spacing: 0) {
               Spacer().frame(width: hourLabelWidth + gutterWidth)
               ForEach(days, id: \.self) { day in
@@ -75,7 +106,7 @@ struct WeekView: View {
                     .frame(maxHeight: .infinity)
                     .offset(x: -0.25)
 
-                  ForEach(eventsByDay[Calendar.current.startOfDay(for: day)] ?? []) { ev in
+                  ForEach((eventsByDay[Calendar.current.startOfDay(for: day)] ?? []).filter { !$0.isAllDay }) { ev in
                     eventLayout(for: ev, dayStart: Calendar.current.startOfDay(for: day))
                   }
                   if Calendar.current.isDateInToday(day) {
@@ -138,6 +169,117 @@ struct WeekView: View {
       .frame(maxWidth: .infinity, minHeight: height, maxHeight: height, alignment: .topLeading)
       .offset(y: yOffset)
       .padding(.horizontal, 2)
+  }
+
+  private struct AllDaySpan: Identifiable {
+    let id: String
+    let event: CalendarEvent
+    let startDayInWeek: Int   // 0 = Mo
+    let lengthInWeek: Int     // 1..7
+    var lane: Int = 0
+  }
+
+  /// Berechnet Spans für all-day Events der Woche, mit greedy-lane-allocation.
+  private func allDaySpans(in days: [Date]) -> [AllDaySpan] {
+    let cal = Calendar.current
+    guard let weekStart = days.first.map({ cal.startOfDay(for: $0) }),
+          let weekLast = days.last.map({ cal.startOfDay(for: $0) }) else { return [] }
+    let weekEnd = cal.date(byAdding: .day, value: 1, to: weekLast) ?? weekLast
+
+    // 1. Sammle distinct all-day Events:
+    //    - Für ATOLL: dedupliziere via assignment.id (statt event.id)
+    //    - Für System: dedupliziere via event.id
+    var uniqueEvents: [CalendarEvent] = []
+    var seenAtollAssignments = Set<UUID>()
+    var seenSystemIds = Set<String>()
+
+    for events in eventsByDay.values {
+      for ev in events where ev.isAllDay {
+        switch ev {
+        case .atoll(let assignment, _):
+          if !seenAtollAssignments.contains(assignment.id) {
+            seenAtollAssignments.insert(assignment.id)
+            uniqueEvents.append(ev)
+          }
+        case .system:
+          if !seenSystemIds.contains(ev.id) {
+            seenSystemIds.insert(ev.id)
+            uniqueEvents.append(ev)
+          }
+        }
+      }
+    }
+
+    // 2. Compute span-range im Wochen-Kontext.
+    struct RawSpan {
+      let event: CalendarEvent
+      let spanStart: Date  // dayStart
+      let spanEnd: Date    // dayStart (inklusiv)
+    }
+
+    var rawSpans: [RawSpan] = []
+    for ev in uniqueEvents {
+      let evStart: Date
+      let evEnd: Date
+
+      switch ev {
+      case .atoll(let assignment, _):
+        guard let course = assignment.course else { continue }
+        let allDates = course.allDates
+        guard let minDate = allDates.min(), let maxDate = allDates.max() else { continue }
+        evStart = cal.startOfDay(for: minDate)
+        evEnd = cal.startOfDay(for: maxDate)
+      case .system(let ek):
+        evStart = cal.startOfDay(for: ek.startDate)
+        evEnd = cal.startOfDay(for: ek.endDate.addingTimeInterval(-1))
+      }
+
+      // Wochen-Schnitt
+      let spanStart = max(evStart, weekStart)
+      let spanEndCapped = min(evEnd, cal.startOfDay(for: days.last ?? evEnd))
+      guard spanStart <= spanEndCapped else { continue }
+
+      // Nur anzeigen wenn der Span die aktuelle Woche überschneidet
+      guard spanStart < weekEnd && spanEndCapped >= weekStart else { continue }
+
+      rawSpans.append(RawSpan(event: ev, spanStart: spanStart, spanEnd: spanEndCapped))
+    }
+
+    // 3. Sortiere by spanStart ascending (für lane-allocation determinism)
+    rawSpans.sort { $0.spanStart < $1.spanStart }
+
+    // 4. Lane-allocation: greedy. Pro span finde den niedrigsten lane-index der frei ist.
+    var laneEndDates: [Date] = []
+    var spans: [AllDaySpan] = []
+
+    for raw in rawSpans {
+      let startCol = cal.dateComponents([.day], from: weekStart, to: raw.spanStart).day ?? 0
+      let length = (cal.dateComponents([.day], from: raw.spanStart, to: raw.spanEnd).day ?? 0) + 1
+
+      // Finde freie Lane
+      var lane = 0
+      while lane < laneEndDates.count {
+        if raw.spanStart > laneEndDates[lane] {
+          laneEndDates[lane] = raw.spanEnd
+          break
+        }
+        lane += 1
+      }
+      if lane == laneEndDates.count {
+        // Alle Lanes belegt → neue Lane
+        laneEndDates.append(raw.spanEnd)
+      }
+
+      spans.append(AllDaySpan(
+        id: "\(raw.event.id)-\(startCol)-\(length)",
+        event: raw.event,
+        startDayInWeek: startCol,
+        lengthInWeek: length,
+        lane: lane
+      ))
+    }
+
+    return spans
   }
 
   private func enabledCalendarIds() -> Set<String> {

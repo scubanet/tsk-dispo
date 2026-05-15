@@ -16,15 +16,39 @@ struct DayView: View {
   private let hourHeight: CGFloat = 60
 
   var body: some View {
-    TimeAxisGrid(hourHeight: hourHeight) {
-      ZStack(alignment: .topLeading) {
-        // Event-Bars
-        ForEach(events) { ev in
-          eventLayout(for: ev)
+    VStack(spacing: 0) {
+      // All-day Zone — kompakte Bars über dem Zeitraster
+      if !allDayEvents.isEmpty {
+        VStack(spacing: 2) {
+          ForEach(allDayEvents) { ev in
+            HStack(spacing: 6) {
+              Rectangle().fill(ev.color).frame(width: 3, height: 14)
+              Text(ev.title).font(.caption).lineLimit(1)
+              Spacer()
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
+            .background(ev.color.opacity(0.15))
+            .cornerRadius(4)
+            .contentShape(Rectangle())
+            .onTapGesture { selectedEvent = ev }
+          }
         }
-        // Now-Indikator nur wenn heute
-        if Calendar.current.isDateInToday(date) {
-          NowIndicator(hourHeight: hourHeight)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color.secondary.opacity(0.05))
+      }
+
+      TimeAxisGrid(hourHeight: hourHeight) {
+        ZStack(alignment: .topLeading) {
+          // Nur timed Events im Zeitraster
+          ForEach(timedEvents) { ev in
+            eventLayout(for: ev)
+          }
+          // Now-Indikator nur wenn heute
+          if Calendar.current.isDateInToday(date) {
+            NowIndicator(hourHeight: hourHeight)
+          }
         }
       }
     }
@@ -52,6 +76,14 @@ struct DayView: View {
     return EventBar(event: ev, onTap: { selectedEvent = ev })
       .frame(maxWidth: .infinity, minHeight: height, maxHeight: height, alignment: .topLeading)
       .offset(y: yOffset)
+  }
+
+  private var allDayEvents: [CalendarEvent] {
+    events.filter { $0.isAllDay }
+  }
+
+  private var timedEvents: [CalendarEvent] {
+    events.filter { !$0.isAllDay }
   }
 
   private func enabledCalendarIds() -> Set<String> {
