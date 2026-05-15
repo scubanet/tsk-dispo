@@ -95,7 +95,10 @@ struct CalendarRoot: View {
         switch selectedView {
         case .day:   DayView(date: $focusedDate)
         case .week:  WeekView(anchor: $focusedDate)
-        case .month: MonthView(anchor: $focusedDate)
+        case .month: MonthView(anchor: $focusedDate, onDayTap: { day in
+          focusedDate = day
+          selectedView = .day
+        })
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)

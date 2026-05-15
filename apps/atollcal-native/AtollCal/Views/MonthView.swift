@@ -4,6 +4,10 @@ import AtollDesign
 
 struct MonthView: View {
   @Binding var anchor: Date
+  /// Optional callback wenn der User einen Tag antippt — Caller (CalendarRoot)
+  /// kann auf DayView dieses Tages umschalten.
+  var onDayTap: (Date) -> Void = { _ in }
+
   @Environment(SystemCalendarStore.self) var calendarStore
   @Environment(AtollEventLoader.self) var atollLoader
   @Environment(AuthState.self) var auth
@@ -110,6 +114,8 @@ struct MonthView: View {
     .frame(maxWidth: .infinity, minHeight: 70, alignment: .topLeading)
     .background(isToday ? Color.accentColor.opacity(0.1) : Color.clear)
     .border(Color.secondary.opacity(0.1), width: 0.5)
+    .contentShape(Rectangle())  // ganze Cell tap-bar machen, nicht nur Text
+    .onTapGesture { onDayTap(day) }
   }
 
   private func enabledCalendarIds() -> Set<String> {
