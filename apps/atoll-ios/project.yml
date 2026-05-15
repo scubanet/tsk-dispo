@@ -16,6 +16,8 @@ packages:
   Supabase:
     url: https://github.com/supabase/supabase-swift
     from: 2.0.0
+  AtollCore:
+    path: ../../swift-packages/AtollCore
 
 targets:
   ATOLL:
@@ -54,5 +56,6 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         TARGETED_DEVICE_FAMILY: "1,2" # iPhone + iPad
     dependencies:
+      - package: AtollCore
       - package: Supabase
         product: Supabase
