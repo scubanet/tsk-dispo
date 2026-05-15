@@ -33,7 +33,6 @@ targets:
       - package: AtollCore
       - package: AtollDesign
       - sdk: EventKit.framework
-      - sdk: EventKitUI.framework
     info:
       path: AtollCal/Info.plist
       properties:

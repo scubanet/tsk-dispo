@@ -1,11 +1,30 @@
 import SwiftUI
+import AtollCore
 
 @main
 struct AtollCalApp: App {
+  @State private var auth: AuthState
+  @State private var localeStore: LocaleStore
+
+  init() {
+    // MUSS vor State(initialValue: AuthState()) laufen — AuthState.init() greift sofort
+    // auf SupabaseClient.shared zu, der die registrierte Config braucht.
+    AtollCoreConfig.register(AppSupabaseConfig())
+    _auth = State(initialValue: AuthState())
+    _localeStore = State(initialValue: LocaleStore())
+  }
+
   var body: some Scene {
     WindowGroup {
-      Text("AtollCal — wird in Task 2 implementiert")
-        .padding()
+      RootView()
+        .environment(auth)
+        .environment(localeStore)
+        .environment(\.locale, localeStore.locale)
+        .onOpenURL { url in
+          guard url.scheme == "atollcal" else { return }
+          Task { try? await auth.handleAuthCallback(url: url) }
+        }
+        .preferredColorScheme(nil)
     }
   }
 }
