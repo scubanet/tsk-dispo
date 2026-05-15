@@ -15,6 +15,7 @@ struct MonthView: View {
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
 
   @State private var eventsByDay: [Date: [CalendarEvent]] = [:]
+  @State private var selectedEvent: CalendarEvent?
 
   var body: some View {
     VStack(spacing: 0) {
@@ -68,6 +69,8 @@ struct MonthView: View {
             .background(span.event.color.opacity(0.15))
             .cornerRadius(2)
             .offset(x: xOffset + 2, y: yOffset)
+            .contentShape(Rectangle())
+            .onTapGesture { selectedEvent = span.event }
           }
         }
       }
@@ -87,6 +90,7 @@ struct MonthView: View {
           }
         }
     )
+    .sheet(item: $selectedEvent) { EventDetailSheet(event: $0) }
   }
 
   /// 6 Wochen × 7 Tage, beginnend am Montag der Woche die den 1. des Monats enthält.
@@ -132,6 +136,8 @@ struct MonthView: View {
               .foregroundColor(isCurrentMonth ? .primary : .secondary)
           }
           .padding(.horizontal, 2)
+          .contentShape(Rectangle())
+          .onTapGesture { selectedEvent = ev }
         }
         if dayEvents.count > 3 {
           Text("+\(dayEvents.count - 3) more")

@@ -11,6 +11,7 @@ struct WeekView: View {
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
 
   @State private var eventsByDay: [Date: [CalendarEvent]] = [:]
+  @State private var selectedEvent: CalendarEvent?
 
   private let hourHeight: CGFloat = 60
   private let hourLabelWidth: CGFloat = 50
@@ -103,6 +104,7 @@ struct WeekView: View {
     .onReceive(NotificationCenter.default.publisher(for: .EKEventStoreChanged)) { _ in
       Task { await loadAll() }
     }
+    .sheet(item: $selectedEvent) { EventDetailSheet(event: $0) }
   }
 
   /// Mo–So der Woche in der `anchor` liegt (ISO 8601 Wochenstart = Montag).
@@ -132,7 +134,7 @@ struct WeekView: View {
     let yOffset = startMinutes / 60.0 * Double(hourHeight)
     let height = durationMinutes / 60.0 * Double(hourHeight)
 
-    return EventBar(event: ev, compact: true)
+    return EventBar(event: ev, compact: true, onTap: { selectedEvent = ev })
       .frame(maxWidth: .infinity, minHeight: height, maxHeight: height, alignment: .topLeading)
       .offset(y: yOffset)
       .padding(.horizontal, 2)

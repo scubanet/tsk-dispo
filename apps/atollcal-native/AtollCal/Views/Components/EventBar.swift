@@ -5,6 +5,7 @@ import SwiftUI
 struct EventBar: View {
   let event: CalendarEvent
   var compact: Bool = false  // für WeekView/MonthView dichteres Layout
+  var onTap: () -> Void = {}
 
   var body: some View {
     HStack(alignment: .top, spacing: 6) {
@@ -29,5 +30,7 @@ struct EventBar: View {
     .padding(.horizontal, 4)
     .background(event.color.opacity(0.15))
     .cornerRadius(4)
+    .contentShape(Rectangle())
+    .onTapGesture { onTap() }
   }
 }

@@ -11,6 +11,7 @@ struct DayView: View {
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
 
   @State private var events: [CalendarEvent] = []
+  @State private var selectedEvent: CalendarEvent?
 
   private let hourHeight: CGFloat = 60
 
@@ -32,6 +33,9 @@ struct DayView: View {
     .onReceive(NotificationCenter.default.publisher(for: .EKEventStoreChanged)) { _ in
       Task { await loadAll() }
     }
+    .sheet(item: $selectedEvent) { ev in
+      EventDetailSheet(event: ev)
+    }
   }
 
   private func eventLayout(for ev: CalendarEvent) -> some View {
@@ -45,7 +49,7 @@ struct DayView: View {
     let yOffset = startMinutes / 60.0 * Double(hourHeight)
     let height = durationMinutes / 60.0 * Double(hourHeight)
 
-    return EventBar(event: ev)
+    return EventBar(event: ev, onTap: { selectedEvent = ev })
       .frame(maxWidth: .infinity, minHeight: height, maxHeight: height, alignment: .topLeading)
       .offset(y: yOffset)
   }
