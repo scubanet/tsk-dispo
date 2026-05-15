@@ -5,6 +5,6 @@
 //
 // Module:
 //   • Models/    — Course, Assignment, Student, Skill, etc.
-//   • (Auth/     — kommt in Task 4)
-//   • (Supabase/ — kommt in Task 4)
-//   • (Locale/   — kommt in Task 4)
+//   • Auth/      — AuthState (Magic-Link, Session)
+//   • Supabase/  — SupabaseClient.shared, SupabaseConfig protocol, AtollCoreConfig.register
+//   • Locale/    — LocaleStore (Sprach-Override)

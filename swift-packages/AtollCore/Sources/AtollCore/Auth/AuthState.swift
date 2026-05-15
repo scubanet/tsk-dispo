@@ -1,31 +1,30 @@
 import Foundation
 import Supabase
 import SwiftUI
-import AtollCore
 
 /// App-weiter Auth-Zustand. Verwaltet Session, lädt aktuellen Instructor aus
 /// `contact_instructor` (canonical) + `instructors` (legacy fallback).
 @MainActor
 @Observable
-final class AuthState {
-  enum Status {
+public final class AuthState {
+  public enum Status {
     case loading
     case signedOut
     case signedIn(currentUser: CurrentUser)
   }
 
-  private(set) var status: Status = .loading
+  public private(set) var status: Status = .loading
 
   private let supabase = SupabaseClient.shared
 
-  init() {
+  public init() {
     Task { await bootstrap() }
     Task { await listenToAuthChanges() }
   }
 
   // MARK: – Bootstrap
 
-  func bootstrap() async {
+  public func bootstrap() async {
     do {
       let session = try await supabase.auth.session
       await loadCurrentUser(authUserId: session.user.id)
@@ -36,22 +35,22 @@ final class AuthState {
 
   // MARK: – Sign in
 
-  func sendMagicLink(to email: String) async throws {
+  public func sendMagicLink(to email: String) async throws {
     try await supabase.auth.signInWithOTP(
       email: email,
-      redirectTo: Config.authRedirectURL
+      redirectTo: AtollCoreConfig.current.authRedirectURL
     )
   }
 
   /// Wird aufgerufen wenn die App mit `atoll://auth/callback?...` geöffnet wird.
-  func handleAuthCallback(url: URL) async throws {
+  public func handleAuthCallback(url: URL) async throws {
     let session = try await supabase.auth.session(from: url)
     await loadCurrentUser(authUserId: session.user.id)
   }
 
   // MARK: – Sign out
 
-  func signOut() async {
+  public func signOut() async {
     try? await supabase.auth.signOut()
     status = .signedOut
   }

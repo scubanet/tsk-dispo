@@ -1,6 +1,6 @@
 # ATOLL App Suite Foundation
 
-**Status:** Draft (User-Review pending)
+**Status:** Implementiert (2026-05-15)
 **Date:** 2026-05-14
 **Author:** Dominik Weckherlin (with Claude)
 **Spec Owner:** Dominik
@@ -160,16 +160,16 @@ Jeder Schritt = ein Commit. Kann notfalls einzeln rückgängig gemacht werden.
 
 ## 8. Akzeptanzkriterien
 
-- [ ] `apps/ios-native/` ist nach `apps/atoll-ios/` umbenannt, Xcode-Projekt baut weiterhin
-- [ ] `swift-packages/AtollCore/` existiert als Swift Package mit `Package.swift`
-- [ ] `swift-packages/AtollDesign/` existiert als Swift Package mit `Package.swift`
-- [ ] Alle Models aus `apps/atoll-ios/ATOLL/Models/` sind nach `AtollCore/Sources/AtollCore/Models/` umgezogen, ATOLL-iOS-App importiert sie aus dem Package
-- [ ] `SupabaseClient+Shared`, `AuthState`, `LocaleStore` sind in `AtollCore` umgezogen, ATOLL-iOS-App importiert sie
-- [ ] `BrandColors` + alle wiederverwendbaren Components sind in `AtollDesign` umgezogen, ATOLL-iOS-App importiert sie
-- [ ] ATOLL-iOS-App buildet ohne Fehler nach kompletter Migration
-- [ ] Manueller Smoke-Test: Login, Today-Screen, Skill-Check, Logout funktionieren identisch zu vor der Migration
-- [ ] Existierende `Localizable.xcstrings` und `Assets.xcassets` bleiben in der App (nicht in AtollDesign, weil App-spezifisch)
-- [ ] Kein neuer Bug eingeschleppt — Vergleich zur Production-Version per Hand-Test der Hauptflows
+- [x] `apps/ios-native/` ist nach `apps/atoll-ios/` umbenannt, Xcode-Projekt baut weiterhin
+- [x] `swift-packages/AtollCore/` existiert als Swift Package mit `Package.swift`
+- [x] `swift-packages/AtollDesign/` existiert als Swift Package mit `Package.swift`
+- [x] Alle Models aus `apps/atoll-ios/ATOLL/Models/` sind nach `AtollCore/Sources/AtollCore/Models/` umgezogen, ATOLL-iOS-App importiert sie aus dem Package
+- [x] `SupabaseClient+Shared`, `AuthState`, `LocaleStore` sind in `AtollCore` umgezogen, ATOLL-iOS-App importiert sie
+- [x] `BrandColors` + alle wiederverwendbaren Components sind in `AtollDesign` umgezogen, ATOLL-iOS-App importiert sie
+- [x] ATOLL-iOS-App buildet ohne Fehler nach kompletter Migration
+- [x] Manueller Smoke-Test: Login, Today-Screen, Skill-Check, Logout funktionieren identisch zu vor der Migration
+- [x] Existierende `Localizable.xcstrings` und `Assets.xcassets` bleiben in der App (nicht in AtollDesign, weil App-spezifisch)
+- [x] Kein neuer Bug eingeschleppt — Vergleich zur Production-Version per Hand-Test der Hauptflows
 
 ## 9. Risiken + Verifizieren vor Implementierung
 

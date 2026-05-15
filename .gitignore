@@ -28,4 +28,7 @@ apps/Apple/
 # Lokale DB-Backups
 /backup-*.sql
 
+# Xcode/SPM-Metadata in Local-Path-Packages (regeneriert beim Open)
+swift-packages/*/.swiftpm/
+
 ~$*
