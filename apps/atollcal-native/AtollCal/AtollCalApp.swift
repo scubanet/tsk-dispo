@@ -5,6 +5,7 @@ import AtollCore
 struct AtollCalApp: App {
   @State private var auth: AuthState
   @State private var localeStore: LocaleStore
+  @State private var calendarStore: SystemCalendarStore
 
   init() {
     // MUSS vor State(initialValue: AuthState()) laufen — AuthState.init() greift sofort
@@ -12,6 +13,7 @@ struct AtollCalApp: App {
     AtollCoreConfig.register(AppSupabaseConfig())
     _auth = State(initialValue: AuthState())
     _localeStore = State(initialValue: LocaleStore())
+    _calendarStore = State(initialValue: SystemCalendarStore())
   }
 
   var body: some Scene {
@@ -19,6 +21,7 @@ struct AtollCalApp: App {
       RootView()
         .environment(auth)
         .environment(localeStore)
+        .environment(calendarStore)
         .environment(\.locale, localeStore.locale)
         .onOpenURL { url in
           guard url.scheme == "atollcal" else { return }

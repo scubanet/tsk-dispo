@@ -1,7 +1,9 @@
 import SwiftUI
 import AtollCore
+import EventKit
 
 struct CalendarRoot: View {
+  @Environment(SystemCalendarStore.self) var calendarStore
   @State private var selectedView: CalendarViewKind = .week
   @State private var focusedDate: Date = Date()
 
@@ -45,10 +47,18 @@ struct CalendarRoot: View {
 
   @ViewBuilder
   private var content: some View {
-    switch selectedView {
-    case .day:   DayView(date: $focusedDate)
-    case .week:  WeekView(anchor: $focusedDate)
-    case .month: MonthView(anchor: $focusedDate)
+    VStack(spacing: 0) {
+      if calendarStore.authorizationStatus != .fullAccess {
+        PermissionBanner(store: calendarStore)
+      }
+      Group {
+        switch selectedView {
+        case .day:   DayView(date: $focusedDate)
+        case .week:  WeekView(anchor: $focusedDate)
+        case .month: MonthView(anchor: $focusedDate)
+        }
+      }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
   }
 
@@ -66,5 +76,26 @@ struct CalendarRoot: View {
       formatter.dateFormat = "MMMM yyyy"
       return formatter.string(from: focusedDate)
     }
+  }
+}
+
+private struct PermissionBanner: View {
+  let store: SystemCalendarStore
+
+  var body: some View {
+    VStack(spacing: 8) {
+      Text("Kalender-Zugriff erforderlich")
+        .font(.headline)
+      Text("AtollCal braucht Zugriff auf deine System-Kalender (iCloud, Google etc.).")
+        .font(.caption)
+        .multilineTextAlignment(.center)
+      Button("Zugriff erlauben") {
+        Task { await store.requestAccess() }
+      }
+      .buttonStyle(.borderedProminent)
+    }
+    .padding()
+    .frame(maxWidth: .infinity)
+    .background(Color.yellow.opacity(0.15))
   }
 }
