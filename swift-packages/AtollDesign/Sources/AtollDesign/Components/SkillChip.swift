@@ -16,7 +16,9 @@ public struct SkillChip: View {
   }
 
   public var body: some View {
-    Button(action: onTap) {
+    Button {
+      onTap()
+    } label: {
       HStack(spacing: 4) {
         Text(initials)
           .font(.caption.bold().monospacedDigit())
@@ -32,11 +34,11 @@ public struct SkillChip: View {
       .frame(maxWidth: .infinity)
       .background(
         RoundedRectangle(cornerRadius: 6)
-          .fill(isDone ? Color(red: 0.62, green: 0.88, blue: 0.79) : Color(.systemGray6))
+          .fill(isDone ? Color(red: 0.62, green: 0.88, blue: 0.79) : Color.gray.opacity(0.15))
       )
       .overlay(
         RoundedRectangle(cornerRadius: 6)
-          .stroke(isDone ? Color.clear : Color(.systemGray3), lineWidth: 0.5)
+          .stroke(isDone ? Color.clear : Color.gray.opacity(0.4), lineWidth: 0.5)
       )
     }
     .buttonStyle(.plain)

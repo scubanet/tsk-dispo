@@ -38,5 +38,4 @@ public struct AtollLogo: View {
     AtollLogo(size: 128)
   }
   .padding()
-  .background(Color(.systemBackground))
 }
