@@ -30,14 +30,44 @@ struct MonthView: View {
       .padding(.vertical, 6)
       .background(Color.secondary.opacity(0.05))
 
-      // 6×7-Grid
-      let weeks = monthWeeks
-      VStack(spacing: 0) {
-        ForEach(weeks.indices, id: \.self) { weekIdx in
-          HStack(spacing: 0) {
-            ForEach(weeks[weekIdx], id: \.self) { day in
-              dayCell(day)
+      // 6×7-Grid mit Multi-Day-Span-Overlay
+      GeometryReader { geo in
+        let cellWidth = geo.size.width / 7
+        let weeks = monthWeeks
+        let cellHeight: CGFloat = max(70, geo.size.height / CGFloat(weeks.count))
+
+        ZStack(alignment: .topLeading) {
+          // Day-Cells
+          VStack(spacing: 0) {
+            ForEach(weeks.indices, id: \.self) { weekIdx in
+              HStack(spacing: 0) {
+                ForEach(weeks[weekIdx], id: \.self) { day in
+                  dayCell(day)
+                    .frame(height: cellHeight)
+                }
+              }
             }
+          }
+
+          // Multi-Day-Spans als Overlay
+          ForEach(multiDayEventSpans(in: weeks)) { span in
+            let yOffset = CGFloat(span.weekIndex) * cellHeight + 22  // unter Day-Number
+            let xOffset = CGFloat(span.startDayInWeek) * cellWidth
+            let width = CGFloat(span.lengthInWeek) * cellWidth - 4
+
+            HStack(spacing: 3) {
+              Rectangle().fill(span.event.color).frame(width: 2)
+              Text(span.event.title)
+                .font(.system(size: 9))
+                .lineLimit(1)
+                .foregroundColor(.primary)
+              Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 2)
+            .frame(width: width, height: 12)
+            .background(span.event.color.opacity(0.15))
+            .cornerRadius(2)
+            .offset(x: xOffset + 2, y: yOffset)
           }
         }
       }
@@ -79,7 +109,9 @@ struct MonthView: View {
     let cal = Calendar.current
     let isCurrentMonth = cal.isDate(day, equalTo: anchor, toGranularity: .month)
     let isToday = cal.isDateInToday(day)
-    let dayEvents = eventsByDay[cal.startOfDay(for: day)] ?? []
+    // Single-day-Events only — multi-day kommen via Overlay
+    let allEvents = eventsByDay[cal.startOfDay(for: day)] ?? []
+    let dayEvents = allEvents.filter { !isMultiDayEvent($0) }
 
     return VStack(alignment: .leading, spacing: 2) {
       Text("\(cal.component(.day, from: day))")
@@ -114,8 +146,15 @@ struct MonthView: View {
     .frame(maxWidth: .infinity, minHeight: 70, alignment: .topLeading)
     .background(isToday ? Color.accentColor.opacity(0.1) : Color.clear)
     .border(Color.secondary.opacity(0.1), width: 0.5)
-    .contentShape(Rectangle())  // ganze Cell tap-bar machen, nicht nur Text
+    .contentShape(Rectangle())
     .onTapGesture { onDayTap(day) }
+  }
+
+  private func isMultiDayEvent(_ ev: CalendarEvent) -> Bool {
+    let cal = Calendar.current
+    let startDay = cal.startOfDay(for: ev.startDate)
+    let endDay = cal.startOfDay(for: ev.endDate.addingTimeInterval(-1))  // -1 sec damit Event 00:00–23:59 als ein Tag gilt
+    return !cal.isDate(startDay, inSameDayAs: endDay)
   }
 
   private func enabledCalendarIds() -> Set<String> {
@@ -163,5 +202,66 @@ struct MonthView: View {
     }
 
     eventsByDay = byDay.mapValues { $0.sorted(by: { $0.startDate < $1.startDate }) }
+  }
+}
+
+// MARK: - Multi-Day Span Support
+
+private struct MultiDayEventSpan: Identifiable {
+  let id: String
+  let event: CalendarEvent
+  let weekIndex: Int
+  let startDayInWeek: Int  // 0-6
+  let lengthInWeek: Int    // 1-7
+}
+
+extension MonthView {
+  fileprivate func multiDayEventSpans(in weeks: [[Date]]) -> [MultiDayEventSpan] {
+    var spans: [MultiDayEventSpan] = []
+    let cal = Calendar.current
+
+    // Sammle distinct Multi-Day-Events aus eventsByDay
+    var seen = Set<String>()
+    var multiDayEvents: [CalendarEvent] = []
+    for events in eventsByDay.values {
+      for ev in events {
+        guard isMultiDayEvent(ev) else { continue }
+        if !seen.contains(ev.id) {
+          seen.insert(ev.id)
+          multiDayEvents.append(ev)
+        }
+      }
+    }
+
+    for ev in multiDayEvents {
+      // Event-Range
+      let evStart = cal.startOfDay(for: ev.startDate)
+      let evEnd = cal.startOfDay(for: ev.endDate.addingTimeInterval(-1))  // letzter Tag inklusiv
+
+      for (weekIdx, week) in weeks.enumerated() {
+        guard let weekStartRaw = week.first,
+              let weekLastRaw = week.last else { continue }
+        let weekStart = cal.startOfDay(for: weekStartRaw)
+        let weekLast = cal.startOfDay(for: weekLastRaw)
+
+        // Schnittmenge zwischen Event und Wochen-Range
+        let spanStart = max(evStart, weekStart)
+        let spanEnd = min(evEnd, weekLast)
+        guard spanStart <= spanEnd else { continue }
+
+        let startDayInWeek = cal.dateComponents([.day], from: weekStart, to: spanStart).day ?? 0
+        let length = (cal.dateComponents([.day], from: spanStart, to: spanEnd).day ?? 0) + 1
+
+        spans.append(MultiDayEventSpan(
+          id: "\(ev.id)-w\(weekIdx)",
+          event: ev,
+          weekIndex: weekIdx,
+          startDayInWeek: startDayInWeek,
+          lengthInWeek: length
+        ))
+      }
+    }
+
+    return spans
   }
 }
