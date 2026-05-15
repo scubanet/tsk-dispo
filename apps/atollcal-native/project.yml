@@ -1,0 +1,58 @@
+name: AtollCal
+options:
+  bundleIdPrefix: swiss.atoll
+  deploymentTarget:
+    iOS: "17.0"
+    macOS: "14.0"
+  developmentLanguage: de
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+    SUPPORTS_MACCATALYST: NO
+    SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+
+packages:
+  AtollCore:
+    path: ../../swift-packages/AtollCore
+  AtollDesign:
+    path: ../../swift-packages/AtollDesign
+
+targets:
+  AtollCal:
+    type: application
+    platform: [iOS, macOS]
+    sources:
+      - path: AtollCal
+    resources:
+      - path: AtollCal/Assets.xcassets
+    dependencies:
+      - package: AtollCore
+      - package: AtollDesign
+      - sdk: EventKit.framework
+      - sdk: EventKitUI.framework
+    info:
+      path: AtollCal/Info.plist
+      properties:
+        CFBundleDisplayName: AtollCal
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen:
+          UIColorName: AccentColor
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        ITSAppUsesNonExemptEncryption: false
+        NSCalendarsFullAccessUsageDescription: "AtollCal zeigt deine Termine aus iCloud, Google und anderen Kalendern an."
+        CFBundleURLTypes:
+          - CFBundleURLName: swiss.atoll.cal
+            CFBundleURLSchemes:
+              - atollcal
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: swiss.atoll.cal
+        INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: "AtollCal zeigt deine Termine aus iCloud, Google und anderen Kalendern an."
