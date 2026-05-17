@@ -315,6 +315,9 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
                 title: conflicts[0].conflicting_course_title,
                 role: conflicts[0].conflicting_role,
               })}
+              <div className="caption-2" style={{ marginTop: 4 }}>
+                {t('assignment_edit.conflict_hint')}
+              </div>
             </div>
           </div>
         )}

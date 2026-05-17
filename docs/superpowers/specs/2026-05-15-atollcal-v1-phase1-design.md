@@ -1,6 +1,6 @@
 # AtollCal v1 Phase 1 — Calendar-Basis + ATOLL-Integration
 
-**Status:** Draft (User-Review pending)
+**Status:** Implementiert (2026-05-15)
 **Date:** 2026-05-15
 **Author:** Dominik Weckherlin (with Claude)
 **Spec Owner:** Dominik
@@ -392,22 +392,22 @@ Bewusst nicht in Phase 1, kommen als eigene Specs/Pläne:
 
 ## 9. Akzeptanzkriterien
 
-- [ ] App-Target `apps/atollcal-native/` existiert, baut auf iOS 17+ und macOS 14+
-- [ ] Magic-Link-Login mit `atollcal://` URL-Scheme funktioniert
-- [ ] EventKit-Permission wird beim ersten Start angefragt
-- [ ] Day-View zeigt Events des gewählten Tags aus System-Kalendern + ATOLL
+- [x] App-Target `apps/atollcal-native/` existiert, baut auf iOS 17+ und macOS 14+
+- [x] Magic-Link-Login mit `atollcal://` URL-Scheme funktioniert
+- [x] EventKit-Permission wird beim ersten Start angefragt
+- [x] Day-View zeigt Events des gewählten Tags aus System-Kalendern + ATOLL
       korrekt platziert auf der Zeitachse
-- [ ] Week-View zeigt 7 Tage mit horizontalem Swipe für Wochen-Wechsel
-- [ ] Month-View zeigt 7×6-Grid mit Event-Indikatoren pro Tag
-- [ ] „Heute"-Button springt in jeder View zum aktuellen Datum
-- [ ] Tap auf ein Event öffnet EventDetailSheet mit allen relevanten Infos
-- [ ] Settings: Calendar-Sources lassen sich an/abschalten und der Filter wird
+- [x] Week-View zeigt 7 Tage mit horizontalem Swipe für Wochen-Wechsel
+- [x] Month-View zeigt 7×6-Grid mit Event-Indikatoren pro Tag
+- [x] „Heute"-Button springt in jeder View zum aktuellen Datum
+- [x] Tap auf ein Event öffnet EventDetailSheet mit allen relevanten Infos
+- [x] Settings: Calendar-Sources lassen sich an/abschalten und der Filter wird
       sofort wirksam
-- [ ] Pull-to-Refresh in jeder View triggert ATOLL-Reload (System-Events
+- [x] Pull-to-Refresh in jeder View triggert ATOLL-Reload (System-Events
       kommen via EKEventStoreChanged-Notification automatisch)
-- [ ] iOS und macOS sehen erkennbar verwandt aus, plattform-typische
+- [x] iOS und macOS sehen erkennbar verwandt aus, plattform-typische
       Patterns (TabView vs NavigationSplitView)
-- [ ] Bei Logout/Re-Login behält der User seine Calendar-Source-Selection
+- [x] Bei Logout/Re-Login behält der User seine Calendar-Source-Selection
       (AppStorage)
-- [ ] Beide AtollCore + AtollDesign Packages werden importiert und genutzt
+- [x] Beide AtollCore + AtollDesign Packages werden importiert und genutzt
       (BrandHeader im SignIn, Brand-Colors in Event-Bars)

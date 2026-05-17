@@ -351,6 +351,7 @@
     "days_hint": "Leer = ganzer Kurs. Auswahl = nur an diesen Tagen.",
     "confirmed_label": "Person hat zugesagt (bestätigt)",
     "conflict_text": "Person ist an mind. einem dieser Tage bereits zugewiesen für \"{{title}}\" als {{role}}.",
+    "conflict_hint": "Du kannst trotzdem speichern.",
     "remove": "Entfernen",
     "assign": "Zuweisen",
     "confirm_delete": "Diese Zuweisung wirklich entfernen? Die zugehörige Vergütungsbuchung wird automatisch storniert."

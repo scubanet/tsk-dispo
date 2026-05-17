@@ -351,6 +351,7 @@
     "days_hint": "Empty = whole course. Selection = only those days.",
     "confirmed_label": "Person has accepted (confirmed)",
     "conflict_text": "Person is already assigned on at least one of these days to \"{{title}}\" as {{role}}.",
+    "conflict_hint": "You can still save.",
     "remove": "Remove",
     "assign": "Assign",
     "confirm_delete": "Really remove this assignment? The associated pay record will be reversed automatically."
