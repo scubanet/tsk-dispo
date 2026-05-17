@@ -21,7 +21,16 @@
 }
 .btn:hover { filter: brightness(1.05); }
 .btn:active { transform: scale(0.97); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled,
+.btn[disabled] {
+  background: var(--surface-strong);
+  color: var(--ink-3, var(--ink-2));
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: none;
+}
+.btn:disabled:hover,
+.btn[disabled]:hover { filter: none; }
 .btn-secondary { background: var(--surface-strong); color: var(--ink); border: 0.5px solid var(--hairline); }
 .btn-ghost { background: transparent; color: var(--accent); }
 .btn-icon {
