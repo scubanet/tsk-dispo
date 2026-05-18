@@ -4,7 +4,7 @@ import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { supabase } from '@/lib/supabase'
 import { fetchStudents, type Student } from '@/lib/queries'
-import { listActiveInstructors } from '@/lib/contactQueries'
+import { listActiveInstructors, listCandidates } from '@/lib/contactQueries'
 
 type Status = 'enrolled' | 'certified' | 'dropped'
 
@@ -81,10 +81,18 @@ export function EnrollStudentSheet({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const isProCourse = isInstructorLevelCourse(courseTypeCode)
+
   useEffect(() => {
     if (!open) return
     setError(null)
-    fetchStudents().then(setStudents)
+    // Pro-Kurse: Kandidaten-Liste (kein contact_student-Join nötig — Kandidaten
+    // können nur als Instructor existieren). Sonst: reguläre Schüler.
+    if (isProCourse) {
+      listCandidates().then((rows) => setStudents(rows as Student[]))
+    } else {
+      fetchStudents().then(setStudents)
+    }
     listActiveInstructors()
       .then((rows) => setInstructors(rows.map(({ id, name, active }) => ({ id, name, active }))))
       .catch((err) => console.error('[enroll-student] load instructors failed', err))
@@ -104,7 +112,7 @@ export function EnrollStudentSheet({
       setNotes('')
       setSearch('')
     }
-  }, [open, existingParticipation])
+  }, [open, existingParticipation, isProCourse])
 
   // Wenn Status auf 'certified' wechselt und kein Datum gesetzt → heute als Default
   useEffect(() => {
@@ -113,7 +121,6 @@ export function EnrollStudentSheet({
     }
   }, [status, certifiedOn])
 
-  const isProCourse = isInstructorLevelCourse(courseTypeCode)
   const filteredStudents = useMemo(() => {
     const enrolled = new Set(alreadyEnrolledStudentIds)
     return students

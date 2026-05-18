@@ -295,6 +295,58 @@ export async function listStudents(): Promise<StudentRow[]> {
   })
 }
 
+/**
+ * Kandidaten-Liste für IDC/SPEI-Enrollment.
+ *
+ * Filter: contacts.roles enthält 'candidate'. KEIN contact_student-Join
+ * (Kandidaten können gleichzeitig Instructor sein und brauchen keinen
+ * Student-Sidecar).
+ */
+export async function listCandidates(): Promise<StudentRow[]> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select(
+      'id, first_name, last_name, display_name, primary_email, phones, birth_date, ' +
+        'notes, roles, archived_at, created_at',
+    )
+    .is('archived_at', null)
+    .contains('roles', ['candidate'])
+    .order('last_name', { nullsFirst: false })
+    .order('first_name', { nullsFirst: false })
+  if (error) throw error
+  return (data ?? []).map((c: unknown) => {
+    const row = c as {
+      id: string
+      first_name: string | null
+      last_name: string | null
+      display_name: string | null
+      primary_email: string | null
+      phones: Array<{ e164?: string; primary?: boolean }> | null
+      birth_date: string | null
+      notes: string | null
+      roles: string[] | null
+      archived_at: string | null
+      created_at: string
+    }
+    const primaryPhone =
+      (row.phones ?? []).find((p) => p.primary)?.e164 ?? row.phones?.[0]?.e164 ?? null
+    return {
+      id: row.id,
+      name: row.display_name ?? [row.last_name, row.first_name].filter(Boolean).join(', '),
+      email: row.primary_email,
+      phone: primaryPhone,
+      birthday: row.birth_date,
+      level: null,
+      notes: row.notes,
+      active: row.archived_at === null,
+      created_at: row.created_at,
+      is_student: (row.roles ?? []).includes('student'),
+      is_candidate: true,
+      pipeline_stage: null,
+    }
+  })
+}
+
 // ────────────────────── Inline-edit helpers ───────────────────────────
 
 export async function updateContactField<K extends keyof Contact>(
