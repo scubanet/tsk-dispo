@@ -417,13 +417,18 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                 const hasTheory = cd.has_theory != null ? !!cd.has_theory : cd.type === 'theorie'
                 const hasPool   = cd.has_pool   != null ? !!cd.has_pool   : cd.type === 'pool'
                 const hasLake   = cd.has_lake   != null ? !!cd.has_lake   : cd.type === 'see'
+                const hm = (s: string | null | undefined) => (s ? s.slice(0, 5) : '')
+                const timeRange = (from: string | null | undefined, to: string | null | undefined) =>
+                  from || to ? ` ${hm(from)}–${hm(to)}` : ''
                 return (
                   <div key={cd.id} className="atoll-coursedetail__date-row">
                     <span className="atoll-coursedetail__date tabular-nums">
                       {format(new Date(cd.date), 'EEE, d. MMM', { locale: dfLocale })}
                     </span>
                     {hasTheory && (
-                      <Pill tone="neutral" size="sm">📚 {t('course_edit.type_theory')}</Pill>
+                      <Pill tone="neutral" size="sm">
+                        📚 {t('course_edit.type_theory')}{timeRange(cd.theory_from, cd.theory_to)}
+                      </Pill>
                     )}
                     {hasPool && (
                       <Pill
@@ -431,11 +436,14 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                         size="sm"
                       >
                         🏊 {poolMeta?.label ?? cd.pool_location ?? t('course_edit.type_pool')}
+                        {timeRange(cd.pool_from, cd.pool_to)}
                         {cd.pool_reserved ? ' ✓' : ' …'}
                       </Pill>
                     )}
                     {hasLake && (
-                      <Pill tone="success" size="sm">🌊 {t('course_edit.type_lake')}</Pill>
+                      <Pill tone="success" size="sm">
+                        🌊 {t('course_edit.type_lake')}{timeRange(cd.lake_from, cd.lake_to)}
+                      </Pill>
                     )}
                   </div>
                 )

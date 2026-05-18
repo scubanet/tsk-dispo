@@ -90,17 +90,27 @@ export interface CourseDate {
   has_lake?: boolean
   time_from: string | null
   time_to: string | null
+  // Per-Type-Zeiten (Migration 0095)
+  theory_from: string | null
+  theory_to: string | null
+  pool_from: string | null
+  pool_to: string | null
+  lake_from: string | null
+  lake_to: string | null
   note: string | null
 }
 
 export async function fetchCourseDates(courseId: string): Promise<CourseDate[]> {
   const { data, error } = await supabase
     .from('course_dates')
-    .select('id, course_id, date, type, pool_location, pool_reserved, has_theory, has_pool, has_lake, time_from, time_to, note')
+    .select(
+      'id, course_id, date, type, pool_location, pool_reserved, has_theory, has_pool, has_lake, ' +
+        'time_from, time_to, theory_from, theory_to, pool_from, pool_to, lake_from, lake_to, note',
+    )
     .eq('course_id', courseId)
     .order('date')
   if (error) throw error
-  return (data ?? []) as CourseDate[]
+  return (data ?? []) as unknown as CourseDate[]
 }
 
 export const POOL_LOCATIONS: { value: PoolLocation; label: string }[] = [
