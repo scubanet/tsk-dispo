@@ -284,11 +284,10 @@ struct DayView: View {
         end:   cal.date(byAdding: .month, value: 1, to: range.end) ?? range.end
       )
       await atollLoader.reload(for: instructorId, range: extendedRange)
+      // Single-day range so the helper filters per-module events down to today.
+      let dayRange = range
       for assignment in atollLoader.assignments {
-        guard let course = assignment.course else { continue }
-        for d in course.allDates where cal.isDate(d, inSameDayAs: date) {
-          combined.append(.atoll(assignment: assignment, dayDate: d))
-        }
+        combined.append(contentsOf: CalendarEvent.expandATOLL(assignment, in: dayRange))
       }
     }
 

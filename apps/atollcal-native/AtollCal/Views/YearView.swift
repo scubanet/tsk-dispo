@@ -96,12 +96,9 @@ struct YearView: View {
     }
     if atollEnabled {
       for assignment in atollLoader.assignments {
-        guard let course = assignment.course else { continue }
-        for d in course.allDates {
-          let key = cal.startOfDay(for: d)
-          if key >= range.start && key < range.end {
-            counts[key, default: 0] += 1
-          }
+        for ev in CalendarEvent.expandATOLL(assignment, in: range) {
+          let key = cal.startOfDay(for: ev.startDate)
+          counts[key, default: 0] += 1
         }
       }
     }

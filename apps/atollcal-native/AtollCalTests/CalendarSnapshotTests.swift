@@ -107,7 +107,7 @@ final class CalendarSnapshotTests: XCTestCase {
     """
     let assignment = try JSONDecoder().decode(Assignment.self, from: Data(json.utf8))
     let day = Course.dateFormatter.date(from: "2026-05-18") ?? Date()
-    return .atoll(assignment: assignment, dayDate: day)
+    return .atoll(assignment: assignment, dayDate: day, module: nil)
   }
 }
 

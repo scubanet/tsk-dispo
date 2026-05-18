@@ -47,7 +47,7 @@ struct EventDetailSheet: View {
           if let notes = ek.notes, !notes.isEmpty {
             Section("Notizen") { Text(notes) }
           }
-        case .atoll(let assignment, _):
+        case .atoll(let assignment, _, let module):
           Section("ATOLL — Tauchkurs") {
             Label("Rolle: \(assignment.role.rawValue)", systemImage: "person.badge.shield.checkmark")
             if let course = assignment.course, let status = course.status {
@@ -59,6 +59,22 @@ struct EventDetailSheet: View {
             } else {
               Label("Nicht bestätigt", systemImage: "questionmark.circle")
                 .foregroundStyle(.orange)
+            }
+          }
+          if let module {
+            Section("Modul") {
+              Label(module.type.label, systemImage: module.type.systemImage)
+              Label(moduleTimeRange(module), systemImage: "clock")
+              if module.type == .pool, let location = module.location, !location.isEmpty {
+                Label("Pool: \(location)", systemImage: "mappin")
+                if let reserved = module.reserved {
+                  Label(
+                    reserved ? "Slot bestätigt" : "Slot nicht bestätigt",
+                    systemImage: reserved ? "checkmark.seal.fill" : "questionmark.diamond"
+                  )
+                  .foregroundStyle(reserved ? .green : .orange)
+                }
+              }
             }
           }
           if let course = assignment.course, let notes = course.notes, !notes.isEmpty {
@@ -119,7 +135,7 @@ struct EventDetailSheet: View {
     switch event {
     case .system(let ek):
       EventEditorSheet(editing: ek)
-    case .atoll(let assignment, _):
+    case .atoll(let assignment, _, _):
       EventEditorSheet(readonlyAtoll: assignment)
     }
   }
@@ -134,6 +150,16 @@ struct EventDetailSheet: View {
     } catch {
       deleteError = "Löschen fehlgeschlagen: \(error.localizedDescription)"
     }
+  }
+
+  /// Formats `module.start`–`module.end` as `HH:MM–HH:MM` in the user's
+  /// locale. Module times are wall-clock in `Europe/Zurich` per AtollCore.
+  private func moduleTimeRange(_ module: CourseModule) -> String {
+    let f = DateFormatter()
+    f.locale = locale
+    f.timeStyle = .short
+    f.dateStyle = .none
+    return "\(f.string(from: module.start))–\(f.string(from: module.end))"
   }
 
   private var formattedDateRange: String {

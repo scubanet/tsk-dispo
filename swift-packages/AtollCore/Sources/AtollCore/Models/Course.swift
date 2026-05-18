@@ -32,12 +32,18 @@ public struct Course: Codable, Identifiable, Hashable {
     public let location: String?
     public let additionalDates: [String]?
     public let courseType: CourseType?
+    /// Per-day module times (migration 0095). Optional — older Codable payloads
+    /// without the nested select still decode cleanly. Empty array semantics:
+    /// the course has no recorded module times yet → caller falls back to
+    /// `allDates` (legacy single-time-per-day rendering).
+    public let courseDates: [CourseDate]?
 
     enum CodingKeys: String, CodingKey {
         case id, title, status, info, notes, location
         case startDate = "start_date"
         case additionalDates = "additional_dates"
         case courseType = "course_types"
+        case courseDates = "course_dates"
     }
 
     public var allDates: [Date] {

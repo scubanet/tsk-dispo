@@ -271,7 +271,7 @@ struct WeekView: View {
     for events in eventsByDay.values {
       for ev in events where ev.isAllDay {
         switch ev {
-        case .atoll(let assignment, _):
+        case .atoll(let assignment, _, _):
           if !seenAtollAssignments.contains(assignment.id) {
             seenAtollAssignments.insert(assignment.id)
             uniqueEvents.append(ev)
@@ -296,7 +296,7 @@ struct WeekView: View {
       let evStart: Date
       let evEnd: Date
       switch ev {
-      case .atoll(let assignment, _):
+      case .atoll(let assignment, _, _):
         guard let course = assignment.course else { continue }
         let allDates = course.allDates
         guard let minDate = allDates.min(), let maxDate = allDates.max() else { continue }
@@ -376,13 +376,11 @@ struct WeekView: View {
         end:   cal.date(byAdding: .month, value: 1, to: weekEnd) ?? weekEnd
       )
       await atollLoader.reload(for: instructorId, range: extendedRange)
+      // Expand per-module events for the week range, then bucket by start day.
       for assignment in atollLoader.assignments {
-        guard let course = assignment.course else { continue }
-        for d in course.allDates {
-          let dayStart = cal.startOfDay(for: d)
-          if dayStart >= weekStart && dayStart < weekEnd {
-            byDay[dayStart, default: []].append(.atoll(assignment: assignment, dayDate: d))
-          }
+        for ev in CalendarEvent.expandATOLL(assignment, in: range) {
+          let key = cal.startOfDay(for: ev.startDate)
+          byDay[key, default: []].append(ev)
         }
       }
     }

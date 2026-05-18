@@ -309,12 +309,9 @@ struct MonthView: View {
       )
       await atollLoader.reload(for: instructorId, range: extendedRange)
       for assignment in atollLoader.assignments {
-        guard let course = assignment.course else { continue }
-        for d in course.allDates {
-          let dayStart = cal.startOfDay(for: d)
-          if dayStart >= rangeStart && dayStart < rangeEnd {
-            byDay[dayStart, default: []].append(.atoll(assignment: assignment, dayDate: d))
-          }
+        for ev in CalendarEvent.expandATOLL(assignment, in: range) {
+          let key = cal.startOfDay(for: ev.startDate)
+          byDay[key, default: []].append(ev)
         }
       }
     }
