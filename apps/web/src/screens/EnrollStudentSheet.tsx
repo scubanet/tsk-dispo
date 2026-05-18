@@ -35,6 +35,15 @@ interface Props {
   alreadyEnrolledStudentIds?: string[]
   /** Open the new-student create flow inline */
   onNewStudent?: () => void
+  /** course_types.code des aktuellen Kurses. Bei IDC/SPEI_* wird die Picker-
+   *  Liste auf Kandidaten gefiltert; sonst auf reguläre Schüler. */
+  courseTypeCode?: string | null
+}
+
+/** Pro-Level-Kurse (Instructor-Ausbildung): Teilnehmer sind Kandidaten, nicht Schüler. */
+function isInstructorLevelCourse(code: string | null | undefined): boolean {
+  if (!code) return false
+  return code === 'IDC' || code.startsWith('SPEI')
 }
 
 const inputStyle = {
@@ -50,7 +59,7 @@ const inputStyle = {
 
 export function EnrollStudentSheet({
   open, onClose, onSaved, courseId, existingParticipation, alreadyEnrolledStudentIds = [],
-  onNewStudent,
+  onNewStudent, courseTypeCode = null,
 }: Props) {
   const { t } = useTranslation()
   const STATUSES: { value: Status; label: string }[] = [
@@ -104,10 +113,14 @@ export function EnrollStudentSheet({
     }
   }, [status, certifiedOn])
 
+  const isProCourse = isInstructorLevelCourse(courseTypeCode)
   const filteredStudents = useMemo(() => {
     const enrolled = new Set(alreadyEnrolledStudentIds)
     return students
       .filter((s) => s.active)
+      // Pro-Kurse (IDC/SPEI): nur Kandidaten zulassen. Sonst: reguläre Schüler
+      // (is_candidate=false oder unbestimmt — also alle, die nicht eindeutig Kandidat sind).
+      .filter((s) => (isProCourse ? s.is_candidate : !s.is_candidate))
       .filter((s) => isEdit || !enrolled.has(s.id))
       .filter((s) => {
         if (!search) return true
@@ -117,7 +130,7 @@ export function EnrollStudentSheet({
                s.phone?.toLowerCase().includes(q)
       })
       .slice(0, 50)
-  }, [students, search, alreadyEnrolledStudentIds, isEdit])
+  }, [students, search, alreadyEnrolledStudentIds, isEdit, isProCourse])
 
   async function save() {
     if (!studentId) return

@@ -674,6 +674,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
         onClose={() => setEnrollOpen(false)}
         onSaved={refresh}
         courseId={courseId}
+        courseTypeCode={courseTypeCode}
         existingParticipation={editingParticipation as any}
         alreadyEnrolledStudentIds={participants.map((p) => p.student_id)}
         onNewStudent={() => setNewStudentOpen(true)}
