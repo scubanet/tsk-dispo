@@ -37,6 +37,15 @@ public extension Color {
   static let brandAmber100 = Color(hex: 0xFAC775)
   static let brandAmber800 = Color(hex: 0x633806)
 
+  // ─────────────── Brand Orange (standby, attention, signal) ───────────────
+  /// Distinct from amber — used for active-but-passive signals like rescue
+  /// standby roles in ATOLL assignments. WCAG-AA contrast verified over
+  /// both light and Liquid-Glass backgrounds.
+  static let brandOrange    = Color(hex: 0xE8772D)
+  static let brandOrange50  = Color(hex: 0xFCEEE2)
+  static let brandOrange100 = Color(hex: 0xF7C7A2)
+  static let brandOrange800 = Color(hex: 0x8A3F0F)
+
   // ─────────────── Brand Red (danger, blocked) ───────────────
   static let brandRed      = Color(hex: 0xA32D2D)
   static let brandRed50    = Color(hex: 0xFCEBEB)

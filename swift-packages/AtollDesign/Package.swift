@@ -1,12 +1,12 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(
   name: "AtollDesign",
   defaultLocalization: "de",
   platforms: [
-    .iOS(.v17),
-    .macOS(.v14),
+    .iOS("26.0"),
+    .macOS("26.0"),
   ],
   products: [
     .library(
@@ -22,6 +22,9 @@ let package = Package(
       name: "AtollDesign",
       dependencies: [
         .product(name: "AtollCore", package: "AtollCore"),
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6),
       ]
     ),
   ]

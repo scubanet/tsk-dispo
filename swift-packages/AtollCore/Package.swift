@@ -1,12 +1,12 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(
   name: "AtollCore",
   defaultLocalization: "de",
   platforms: [
-    .iOS(.v17),
-    .macOS(.v14),
+    .iOS("26.0"),
+    .macOS("26.0"),
   ],
   products: [
     .library(
@@ -22,11 +22,17 @@ let package = Package(
       name: "AtollCore",
       dependencies: [
         .product(name: "Supabase", package: "supabase-swift"),
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6),
       ]
     ),
     .testTarget(
       name: "AtollCoreTests",
-      dependencies: ["AtollCore"]
+      dependencies: ["AtollCore"],
+      swiftSettings: [
+        .swiftLanguageMode(.v6),
+      ]
     ),
   ]
 )
