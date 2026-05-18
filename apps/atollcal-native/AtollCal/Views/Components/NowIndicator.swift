@@ -1,12 +1,15 @@
 import SwiftUI
+import AtollDesign
 
-/// Rote Linie mit Punkt für die aktuelle Zeit. Caller positioniert es nach
-/// hourHeight-Maß (start-of-day origin) — wird automatisch alle 60 Sek refresht.
+/// Red current-time line with a Liquid-Glass pill carrying the live `HH:mm`
+/// timestamp. The pill anchors the line at the left edge of the events column.
+///
+/// Refreshes once per minute via `Task.sleep` — Swift-6 / strict-concurrency
+/// clean, no `Timer.publish` callback to argue with.
 struct NowIndicator: View {
   let hourHeight: CGFloat
 
   @State private var now = Date()
-  private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
   var body: some View {
     let cal = Calendar.current
@@ -14,15 +17,31 @@ struct NowIndicator: View {
     let minute = cal.component(.minute, from: now)
     let yOffset = (Double(hour) + Double(minute) / 60.0) * Double(hourHeight)
 
-    HStack(spacing: 0) {
-      Circle()
-        .fill(Color.red)
-        .frame(width: 8, height: 8)
+    HStack(spacing: 4) {
+      Text(timeString)
+        .font(.caption2)
+        .fontWeight(.semibold)
+        .foregroundStyle(.white)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .atollGlassPill(tint: .red)
       Rectangle()
         .fill(Color.red)
         .frame(height: 1.5)
     }
-    .offset(y: yOffset)
-    .onReceive(timer) { now = $0 }
+    .offset(y: yOffset - 9)  // centre pill on the time line
+    .task {
+      // Tick every minute while the view is mounted.
+      while !Task.isCancelled {
+        now = Date()
+        try? await Task.sleep(for: .seconds(60))
+      }
+    }
+  }
+
+  private var timeString: String {
+    let f = DateFormatter()
+    f.dateFormat = "HH:mm"
+    return f.string(from: now)
   }
 }

@@ -2,118 +2,48 @@ import SwiftUI
 import AtollCore
 import AtollDesign
 
+/// 7-day grid view: header row + all-day spans + hour grid via `TimeAxisGrid`.
+///
+/// Compact-column mode kicks in when each day column would be < 50pt wide
+/// (iPhone SE landscape / split-view). In that mode:
+/// - Weekday header uses `.caption2`, day-number `.subheadline`.
+/// - EventBars render as colour-only stripes (no title text would fit).
 struct WeekView: View {
   @Binding var anchor: Date
   @Environment(SystemCalendarStore.self) var calendarStore
   @Environment(AtollEventLoader.self) var atollLoader
   @Environment(AuthState.self) var auth
+  @Environment(\.locale) var locale
+
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
 
   @State private var eventsByDay: [Date: [CalendarEvent]] = [:]
   @State private var selectedEvent: CalendarEvent?
+  @State private var scrolledHour: Int? = nil
 
   private let hourHeight: CGFloat = 60
-  private let hourLabelWidth: CGFloat = 50
-  private let gutterWidth: CGFloat = 6
+  private let compactColumnThreshold: CGFloat = 50
 
   var body: some View {
     GeometryReader { geo in
-      let columnWidth = (geo.size.width - hourLabelWidth - gutterWidth) / 7
       let days = daysOfWeek
+      let columnWidth = max(0, (geo.size.width - TimeGridConstants.labelWidth - TimeGridConstants.gutter) / 7)
+      let isCompact = columnWidth < compactColumnThreshold
 
       VStack(spacing: 0) {
-        // Day-Header-Zeile
-        HStack(spacing: 0) {
-          Spacer().frame(width: hourLabelWidth + gutterWidth)
-          ForEach(days, id: \.self) { day in
-            VStack(spacing: 2) {
-              Text(weekdayLabel(day))
-                .font(.caption)
-                .foregroundColor(Calendar.current.isDateInToday(day) ? .accentColor : .secondary)
-              Text("\(Calendar.current.component(.day, from: day))")
-                .font(.headline)
-                .foregroundColor(Calendar.current.isDateInToday(day) ? .accentColor : .primary)
-            }
-            .frame(width: columnWidth)
-          }
-        }
-        .padding(.vertical, 6)
-        .background(Color.secondary.opacity(0.05))
+        dayHeader(days: days, isCompact: isCompact, columnWidth: columnWidth)
 
-        // All-day Zone — spans über Wochen-Spalten
-        let spans = allDaySpans(in: days)
-        let lanes = (spans.map(\.lane).max() ?? -1) + 1
-        let rowHeight: CGFloat = 18
-        let zoneHeight = CGFloat(lanes) * rowHeight + (lanes > 0 ? 8 : 0)
+        allDayZone(days: days, columnWidth: columnWidth)
 
-        if !spans.isEmpty {
-          ZStack(alignment: .topLeading) {
-            Color.secondary.opacity(0.05)
-            ForEach(spans) { span in
-              let yOffset = CGFloat(span.lane) * rowHeight + 4
-              let xOffset = CGFloat(span.startDayInWeek) * columnWidth + hourLabelWidth + gutterWidth + 2
-              let width = CGFloat(span.lengthInWeek) * columnWidth - 4
-
-              HStack(spacing: 4) {
-                Rectangle().fill(span.event.color).frame(width: 3, height: 12)
-                Text(span.event.title).font(.caption2).lineLimit(1)
-                Spacer(minLength: 0)
-              }
-              .padding(.horizontal, 4)
-              .frame(width: width, height: rowHeight - 2, alignment: .leading)
-              .background(span.event.color.opacity(0.15))
-              .cornerRadius(3)
-              .offset(x: xOffset, y: yOffset)
-              .contentShape(Rectangle())
-              .onTapGesture { selectedEvent = span.event }
-            }
-          }
-          .frame(height: zoneHeight)
-        }
-
-        // Stunden-Grid + Spalten (nur timed Events)
-        ScrollView {
-          ZStack(alignment: .topLeading) {
-            // Hour labels + horizontale Grid-Linien
-            VStack(spacing: 0) {
-              ForEach(0..<24, id: \.self) { hour in
-                HStack(spacing: 0) {
-                  Text(String(format: "%02d:00", hour))
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .frame(width: hourLabelWidth, alignment: .trailing)
-                    .padding(.trailing, 6)
-                    .padding(.top, -6)
-                  Rectangle()
-                    .fill(Color.secondary.opacity(0.2))
-                    .frame(height: 0.5)
-                  Spacer(minLength: 0)
-                }
-                .frame(height: hourHeight, alignment: .top)
-              }
-            }
-
-            // Day columns mit timed Events + Now-Indikator für heute
+        TimeAxisGrid(hourHeight: hourHeight,
+                     hourLabelWidth: TimeGridConstants.labelWidth,
+                     scrolledHour: $scrolledHour) {
+          GlassEffectContainer(spacing: 4) {
             HStack(spacing: 0) {
-              Spacer().frame(width: hourLabelWidth + gutterWidth)
               ForEach(days, id: \.self) { day in
-                ZStack(alignment: .topLeading) {
-                  // Vertikale Trennlinie zwischen Spalten
-                  Rectangle()
-                    .fill(Color.secondary.opacity(0.1))
-                    .frame(width: 0.5)
-                    .frame(maxHeight: .infinity)
-                    .offset(x: -0.25)
-
-                  ForEach((eventsByDay[Calendar.current.startOfDay(for: day)] ?? []).filter { !$0.isAllDay }) { ev in
-                    eventLayout(for: ev, dayStart: Calendar.current.startOfDay(for: day))
-                  }
-                  if Calendar.current.isDateInToday(day) {
-                    NowIndicator(hourHeight: hourHeight)
-                  }
-                }
-                .frame(width: columnWidth, alignment: .topLeading)
+                dayColumn(day: day, columnWidth: columnWidth, isCompact: isCompact)
+                  .frame(width: columnWidth, alignment: .topLeading)
               }
             }
           }
@@ -123,39 +53,123 @@ struct WeekView: View {
     .gesture(
       DragGesture(minimumDistance: 50)
         .onEnded { value in
+          let cal = Calendar.current
           if value.translation.width < -50 {
-            anchor = Calendar.current.date(byAdding: .weekOfYear, value: 1, to: anchor) ?? anchor
+            anchor = cal.date(byAdding: .weekOfYear, value:  1, to: anchor) ?? anchor
           } else if value.translation.width > 50 {
-            anchor = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: anchor) ?? anchor
+            anchor = cal.date(byAdding: .weekOfYear, value: -1, to: anchor) ?? anchor
           }
         }
     )
     .refreshable { await loadAll() }
-    .task(id: anchor) { await loadAll() }
+    .task(id: anchor) {
+      await loadAll()
+      scrolledHour = preferredOpeningHour
+    }
     .onReceive(NotificationCenter.default.publisher(for: .EKEventStoreChanged)) { _ in
       Task { await loadAll() }
     }
     .sheet(item: $selectedEvent) { EventDetailSheet(event: $0) }
   }
 
-  /// Mo–So der Woche in der `anchor` liegt (ISO 8601 Wochenstart = Montag).
-  private var daysOfWeek: [Date] {
-    var cal = Calendar(identifier: .iso8601)
-    cal.firstWeekday = 2  // Montag
-    let weekday = cal.component(.weekday, from: anchor)
-    let daysFromMonday = (weekday + 5) % 7  // Sun=1→6, Mon=2→0, Tue=3→1, ... , Sat=7→5
-    let monday = cal.date(byAdding: .day, value: -daysFromMonday, to: cal.startOfDay(for: anchor)) ?? anchor
-    return (0..<7).compactMap { cal.date(byAdding: .day, value: $0, to: monday) }
+  // MARK: - Header row
+
+  private func dayHeader(days: [Date], isCompact: Bool, columnWidth: CGFloat) -> some View {
+    HStack(spacing: 0) {
+      Spacer().frame(width: TimeGridConstants.labelWidth + TimeGridConstants.gutter)
+      ForEach(days, id: \.self) { day in
+        VStack(spacing: 2) {
+          Text(weekdayLabel(day))
+            .font(isCompact ? .caption2 : .caption)
+            .foregroundStyle(Calendar.current.isDateInToday(day) ? Color.accentColor : Color.secondary)
+          Text("\(Calendar.current.component(.day, from: day))")
+            .font(isCompact ? .subheadline : .headline)
+            .foregroundStyle(dayNumberColor(day))
+        }
+        .frame(width: columnWidth)
+      }
+    }
+    .padding(.vertical, 6)
+    .background(.thinMaterial.opacity(0.6))
   }
 
-  private func weekdayLabel(_ d: Date) -> String {
-    let f = DateFormatter()
-    f.locale = Locale(identifier: "de_CH")
-    f.dateFormat = "EE"
-    return f.string(from: d)
+  private func dayNumberColor(_ day: Date) -> Color {
+    let cal = Calendar.current
+    if cal.isDateInToday(day) { return .accentColor }
+    let weekday = cal.component(.weekday, from: day)
+    if weekday == 1 || weekday == 7 { return Color.secondary.opacity(0.7) }  // Sa/So dim
+    return .primary
   }
 
-  private func eventLayout(for ev: CalendarEvent, dayStart: Date) -> some View {
+  // MARK: - All-day zone (multi-day spans)
+
+  @ViewBuilder
+  private func allDayZone(days: [Date], columnWidth: CGFloat) -> some View {
+    let spans = allDaySpans(in: days)
+    let lanes = (spans.map(\.lane).max() ?? -1) + 1
+    let rowHeight: CGFloat = 18
+    let zoneHeight = CGFloat(lanes) * rowHeight + (lanes > 0 ? 8 : 0)
+
+    if !spans.isEmpty {
+      ZStack(alignment: .topLeading) {
+        Color.clear
+        ForEach(spans) { span in
+          let yOffset = CGFloat(span.lane) * rowHeight + 4
+          let xOffset = CGFloat(span.startDayInWeek) * columnWidth + TimeGridConstants.labelWidth + TimeGridConstants.gutter + 2
+          let width = max(0, CGFloat(span.lengthInWeek) * columnWidth - 4)
+
+          HStack(spacing: 4) {
+            Rectangle().fill(span.event.color).frame(width: 3, height: 12)
+            Text(span.event.title).font(.caption2).lineLimit(1)
+            Spacer(minLength: 0)
+          }
+          .padding(.horizontal, 4)
+          .frame(width: width, height: rowHeight - 2, alignment: .leading)
+          .background(span.event.color.opacity(0.15))
+          .clipShape(.rect(cornerRadius: 3))
+          .offset(x: xOffset, y: yOffset)
+          .contentShape(Rectangle())
+          .onTapGesture { selectedEvent = span.event }
+        }
+      }
+      .frame(height: zoneHeight)
+      .background(.thinMaterial.opacity(0.5))
+    }
+  }
+
+  // MARK: - Day column inside the time grid
+
+  private func dayColumn(day: Date, columnWidth: CGFloat, isCompact: Bool) -> some View {
+    let cal = Calendar.current
+    let isToday = cal.isDateInToday(day)
+    let dayStart = cal.startOfDay(for: day)
+    let dayTimedEvents = (eventsByDay[dayStart] ?? []).filter { !$0.isAllDay }
+
+    return ZStack(alignment: .topLeading) {
+      // Today column tint — subtle, not Glass (would compete with EventBar glass)
+      if isToday {
+        Rectangle()
+          .fill(Color.accentColor.opacity(0.05))
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
+      // Vertical separator
+      Rectangle()
+        .fill(Color.secondary.opacity(0.1))
+        .frame(width: 0.5)
+        .frame(maxHeight: .infinity)
+        .offset(x: -0.25)
+
+      ForEach(dayTimedEvents) { ev in
+        eventLayout(for: ev, dayStart: dayStart, isCompact: isCompact)
+      }
+      if isToday {
+        NowIndicator(hourHeight: hourHeight)
+      }
+    }
+    .frame(width: columnWidth, alignment: .topLeading)
+  }
+
+  private func eventLayout(for ev: CalendarEvent, dayStart: Date, isCompact: Bool) -> some View {
     let cal = Calendar.current
     let dayEnd = cal.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
     let evStart = max(ev.startDate, dayStart)
@@ -164,31 +178,63 @@ struct WeekView: View {
     let durationMinutes = max(15, evEnd.timeIntervalSince(evStart) / 60)
     let yOffset = startMinutes / 60.0 * Double(hourHeight)
     let height = durationMinutes / 60.0 * Double(hourHeight)
+    let style: EventBar.Style = isCompact ? .colorOnly : .auto
 
-    return EventBar(event: ev, compact: true, onTap: { selectedEvent = ev })
+    return EventBar(event: ev, measuredHeight: height, style: style, onTap: { selectedEvent = ev })
       .frame(maxWidth: .infinity, minHeight: height, maxHeight: height, alignment: .topLeading)
       .offset(y: yOffset)
       .padding(.horizontal, 2)
   }
 
+  // MARK: - Days of week / preferred opening hour
+
+  /// Mo–So der Woche in der `anchor` liegt (ISO 8601 = Montag).
+  private var daysOfWeek: [Date] {
+    var cal = Calendar(identifier: .iso8601)
+    cal.firstWeekday = 2
+    let weekday = cal.component(.weekday, from: anchor)
+    let daysFromMonday = (weekday + 5) % 7
+    let monday = cal.date(byAdding: .day, value: -daysFromMonday, to: cal.startOfDay(for: anchor)) ?? anchor
+    return (0..<7).compactMap { cal.date(byAdding: .day, value: $0, to: monday) }
+  }
+
+  /// On mount / week change: if "today" falls inside this week, scroll to the
+  /// live hour. Otherwise default to 08:00.
+  private var preferredOpeningHour: Int {
+    let cal = Calendar.current
+    let days = daysOfWeek
+    let today = Date()
+    if let first = days.first, let last = days.last,
+       cal.startOfDay(for: today) >= cal.startOfDay(for: first),
+       cal.startOfDay(for: today) <= cal.startOfDay(for: last) {
+      return cal.component(.hour, from: today)
+    }
+    return 8
+  }
+
+  private func weekdayLabel(_ d: Date) -> String {
+    let f = DateFormatter()
+    f.locale = locale
+    f.dateFormat = "EE"
+    return f.string(from: d)
+  }
+
+  // MARK: - All-day spans (greedy lane allocation)
+
   private struct AllDaySpan: Identifiable {
     let id: String
     let event: CalendarEvent
-    let startDayInWeek: Int   // 0 = Mo
-    let lengthInWeek: Int     // 1..7
+    let startDayInWeek: Int
+    let lengthInWeek: Int
     var lane: Int = 0
   }
 
-  /// Berechnet Spans für all-day Events der Woche, mit greedy-lane-allocation.
   private func allDaySpans(in days: [Date]) -> [AllDaySpan] {
     let cal = Calendar.current
     guard let weekStart = days.first.map({ cal.startOfDay(for: $0) }),
           let weekLast = days.last.map({ cal.startOfDay(for: $0) }) else { return [] }
     let weekEnd = cal.date(byAdding: .day, value: 1, to: weekLast) ?? weekLast
 
-    // 1. Sammle distinct all-day Events:
-    //    - Für ATOLL: dedupliziere via assignment.id (statt event.id)
-    //    - Für System: dedupliziere via event.id
     var uniqueEvents: [CalendarEvent] = []
     var seenAtollAssignments = Set<UUID>()
     var seenSystemIds = Set<String>()
@@ -210,18 +256,16 @@ struct WeekView: View {
       }
     }
 
-    // 2. Compute span-range im Wochen-Kontext.
     struct RawSpan {
       let event: CalendarEvent
-      let spanStart: Date  // dayStart
-      let spanEnd: Date    // dayStart (inklusiv)
+      let spanStart: Date
+      let spanEnd: Date
     }
 
     var rawSpans: [RawSpan] = []
     for ev in uniqueEvents {
       let evStart: Date
       let evEnd: Date
-
       switch ev {
       case .atoll(let assignment, _):
         guard let course = assignment.course else { continue }
@@ -234,29 +278,21 @@ struct WeekView: View {
         evEnd = cal.startOfDay(for: ek.endDate.addingTimeInterval(-1))
       }
 
-      // Wochen-Schnitt
       let spanStart = max(evStart, weekStart)
       let spanEndCapped = min(evEnd, cal.startOfDay(for: days.last ?? evEnd))
       guard spanStart <= spanEndCapped else { continue }
-
-      // Nur anzeigen wenn der Span die aktuelle Woche überschneidet
       guard spanStart < weekEnd && spanEndCapped >= weekStart else { continue }
 
       rawSpans.append(RawSpan(event: ev, spanStart: spanStart, spanEnd: spanEndCapped))
     }
-
-    // 3. Sortiere by spanStart ascending (für lane-allocation determinism)
     rawSpans.sort { $0.spanStart < $1.spanStart }
 
-    // 4. Lane-allocation: greedy. Pro span finde den niedrigsten lane-index der frei ist.
     var laneEndDates: [Date] = []
     var spans: [AllDaySpan] = []
-
     for raw in rawSpans {
       let startCol = cal.dateComponents([.day], from: weekStart, to: raw.spanStart).day ?? 0
       let length = (cal.dateComponents([.day], from: raw.spanStart, to: raw.spanEnd).day ?? 0) + 1
 
-      // Finde freie Lane
       var lane = 0
       while lane < laneEndDates.count {
         if raw.spanStart > laneEndDates[lane] {
@@ -266,10 +302,8 @@ struct WeekView: View {
         lane += 1
       }
       if lane == laneEndDates.count {
-        // Alle Lanes belegt → neue Lane
         laneEndDates.append(raw.spanEnd)
       }
-
       spans.append(AllDaySpan(
         id: "\(raw.event.id)-\(startCol)-\(length)",
         event: raw.event,
@@ -278,7 +312,6 @@ struct WeekView: View {
         lane: lane
       ))
     }
-
     return spans
   }
 
@@ -300,7 +333,6 @@ struct WeekView: View {
 
     var byDay: [Date: [CalendarEvent]] = [:]
 
-    // System-Kalender
     let sysIds = enabledCalendarIds()
     let sysEvents = calendarStore.events(in: range, calendarIds: sysIds.isEmpty ? nil : sysIds)
     for ek in sysEvents {
@@ -308,9 +340,7 @@ struct WeekView: View {
       byDay[dayStart, default: []].append(.system(ek))
     }
 
-    // ATOLL — extended range damit Multi-Day-Kurse mitkommen
-    if atollEnabled,
-       case .signedIn(let user) = auth.status {
+    if atollEnabled, case .signedIn(let user) = auth.status {
       let instructorId = user.legacyInstructorId
       let extendedRange = DateInterval(
         start: cal.date(byAdding: .month, value: -1, to: weekStart) ?? weekStart,
@@ -330,4 +360,10 @@ struct WeekView: View {
 
     eventsByDay = byDay.mapValues { $0.sorted(by: { $0.startDate < $1.startDate }) }
   }
+}
+
+/// Shared layout constants so WeekView and TimeAxisGrid agree on the gutter.
+private enum TimeGridConstants {
+  static let labelWidth: CGFloat = 50
+  static let gutter: CGFloat = 6
 }

@@ -65,7 +65,7 @@ enum CalendarEvent: Identifiable, Hashable {
     }
   }
 
-  /// Color für Event-Bar. Brand-Color für ATOLL, Calendar-Color für System.
+  /// Color für Event-Bar. Brand-Role-Color für ATOLL, Calendar-Color für System.
   var color: Color {
     switch self {
     case .system(let e):
@@ -73,9 +73,16 @@ enum CalendarEvent: Identifiable, Hashable {
         return Color(cgColor: cgColor)
       }
       return .gray
-    case .atoll:
-      return .brandBlue
+    case .atoll(let a, _):
+      return .atollRole(a.role)
     }
+  }
+
+  /// `AssignmentRole` if this is an ATOLL event — used by EventDetailSheet to
+  /// label the role and by tests to verify role/colour mapping.
+  var atollRole: AssignmentRole? {
+    if case .atoll(let a, _) = self { return a.role }
+    return nil
   }
 
   var isATOLL: Bool {
