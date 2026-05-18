@@ -248,6 +248,8 @@ struct CalendarRoot: View {
       shortcutSink(key: "1") { selectedView = .day }
       shortcutSink(key: "2") { selectedView = .week }
       shortcutSink(key: "3") { selectedView = .month }
+      shortcutSink(key: "4") { selectedView = .quarter }
+      shortcutSink(key: "5") { selectedView = .year }
       shortcutSink(key: "n") { showingEventEditor = true }
       shortcutSink(key: ",") { showingSettings = true }
     }
@@ -302,6 +304,20 @@ struct CalendarRoot: View {
             })
             .id(CalendarViewKind.month)
             .transition(.opacity.combined(with: .blurReplace))
+          case .quarter:
+            QuarterView(anchor: focusedDate, onSelectDay: { day in
+              focusedDate.wrappedValue = day
+              withAnimation(.snappy) { selectedView = .day }
+            })
+            .id(CalendarViewKind.quarter)
+            .transition(.opacity.combined(with: .blurReplace))
+          case .year:
+            YearView(anchor: focusedDate, onSelectMonth: { month in
+              focusedDate.wrappedValue = month
+              withAnimation(.snappy) { selectedView = .month }
+            })
+            .id(CalendarViewKind.year)
+            .transition(.opacity.combined(with: .blurReplace))
           }
         }
         .animation(.snappy(duration: 0.25), value: selectedView)
@@ -314,14 +330,17 @@ struct CalendarRoot: View {
 
   private func navigate(by delta: Int) {
     let cal = Calendar.current
-    let component: Calendar.Component
-    switch selectedView {
-    case .day:   component = .day
-    case .week:  component = .weekOfYear
-    case .month: component = .month
-    }
+    let (component, multiplier): (Calendar.Component, Int) = {
+      switch selectedView {
+      case .day:     return (.day, 1)
+      case .week:    return (.weekOfYear, 1)
+      case .month:   return (.month, 1)
+      case .quarter: return (.month, 3)
+      case .year:    return (.year, 1)
+      }
+    }()
     withAnimation(.snappy) {
-      let new = cal.date(byAdding: component, value: delta, to: focusedDate.wrappedValue)
+      let new = cal.date(byAdding: component, value: delta * multiplier, to: focusedDate.wrappedValue)
       if let new { focusedDate.wrappedValue = new }
     }
   }
@@ -336,6 +355,10 @@ struct CalendarRoot: View {
       formatter.dateFormat = "'KW' w yyyy"
     case .month:
       formatter.dateFormat = "MMMM yyyy"
+    case .quarter:
+      formatter.dateFormat = "'Q'Q yyyy"
+    case .year:
+      formatter.dateFormat = "yyyy"
     }
     return formatter.string(from: focusedDate.wrappedValue)
   }

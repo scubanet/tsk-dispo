@@ -1,4 +1,5 @@
 import SwiftUI
+import EventKit
 import AtollCore
 import AtollDesign
 
@@ -19,8 +20,11 @@ struct MonthView: View {
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
 
+  @Environment(\.openURL) private var openURL
+
   @State private var eventsByDay: [Date: [CalendarEvent]] = [:]
   @State private var selectedEvent: CalendarEvent?
+  @State private var editingEKEvent: IdentifiableEKEvent?
 
   /// All cell-internal sizes in one place so the multi-day overlay y-offset
   /// stays in sync with the day-number height.
@@ -91,6 +95,17 @@ struct MonthView: View {
             .offset(x: xOffset + 2, y: yOffset)
             .contentShape(Rectangle())
             .onTapGesture { selectedEvent = span.event }
+            .contextMenu {
+              AtollEventContextMenu(
+                event: span.event,
+                onView: { selectedEvent = span.event },
+                onEdit: { ek in editingEKEvent = IdentifiableEKEvent(ek) },
+                onDelete: { ek in try? calendarStore.remove(ek) },
+                onOpenAtollWeb: {
+                  if let url = URL(string: "https://atoll.swiss") { openURL(url) }
+                }
+              )
+            }
           }
         }
       }
@@ -112,6 +127,9 @@ struct MonthView: View {
         }
     )
     .sheet(item: $selectedEvent) { EventDetailSheet(event: $0) }
+    .sheet(item: $editingEKEvent) { wrapped in
+      EventEditorSheet(editing: wrapped.event)
+    }
   }
 
   // MARK: - Weekday header
@@ -189,6 +207,17 @@ struct MonthView: View {
           .frame(height: CellMetrics.eventRowHeight, alignment: .leading)
           .contentShape(Rectangle())
           .onTapGesture { selectedEvent = ev }
+          .contextMenu {
+            AtollEventContextMenu(
+              event: ev,
+              onView: { selectedEvent = ev },
+              onEdit: { ek in editingEKEvent = IdentifiableEKEvent(ek) },
+              onDelete: { ek in try? calendarStore.remove(ek) },
+              onOpenAtollWeb: {
+                if let url = URL(string: "https://atoll.swiss") { openURL(url) }
+              }
+            )
+          }
         }
         if hiddenCount > 0 {
           Text("+\(hiddenCount) weitere")

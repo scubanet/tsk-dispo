@@ -1,4 +1,5 @@
 import SwiftUI
+import EventKit
 import AtollCore
 import AtollDesign
 
@@ -19,13 +20,26 @@ struct DayView: View {
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
 
+  @Environment(\.openURL) private var openURL
+
   @State private var events: [CalendarEvent] = []
   @State private var selectedEvent: CalendarEvent?
+  @State private var editingEKEvent: IdentifiableEKEvent?
   @State private var showingAllDaySheet: Bool = false
   @State private var scrolledHour: Int? = nil
 
+  /// Active drag-to-create selection in the timed grid (y-coordinates in the
+  /// `TimeAxisGrid`'s coordinate space). `nil` when no drag is in progress.
+  @State private var dragSelection: DragSelection?
+
+  /// Set when a drag-to-create finishes — triggers the EventEditorSheet via
+  /// `.sheet(item:)`. Wrapper around DateInterval so it can be Identifiable.
+  @State private var quickAddRange: QuickAddRange?
+
   private let hourHeight: CGFloat = 60
   private let maxAllDayVisible: Int = 3
+  private let dragSnapMinutes: Int = 15
+  private let dragMinDuration: Int = 30  // minutes — minimum slot length on quick-add
 
   var body: some View {
     VStack(spacing: 0) {
@@ -34,6 +48,49 @@ struct DayView: View {
       TimeAxisGrid(hourHeight: hourHeight,
                    scrolledHour: $scrolledHour) {
         ZStack(alignment: .topLeading) {
+          // Drag capture background — sits behind events so taps on events
+          // still hit them, but drags on empty space create new slots.
+          Color.clear
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .gesture(
+              DragGesture(minimumDistance: 8)
+                .onChanged { value in
+                  if dragSelection == nil {
+                    dragSelection = DragSelection(
+                      startY: value.startLocation.y,
+                      currentY: value.location.y
+                    )
+                  } else {
+                    dragSelection?.currentY = value.location.y
+                  }
+                }
+                .onEnded { value in
+                  guard let sel = dragSelection else { return }
+                  let interval = dateInterval(
+                    startY: min(sel.startY, sel.currentY),
+                    endY:   max(sel.startY, sel.currentY)
+                  )
+                  quickAddRange = QuickAddRange(interval: interval)
+                  dragSelection = nil
+                }
+            )
+
+          // Live drag preview rectangle.
+          if let sel = dragSelection {
+            let top = min(sel.startY, sel.currentY)
+            let height = max(8, abs(sel.currentY - sel.startY))
+            RoundedRectangle(cornerRadius: 6)
+              .fill(Color.accentColor.opacity(0.22))
+              .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                  .strokeBorder(Color.accentColor, lineWidth: 1)
+              )
+              .frame(height: height)
+              .offset(y: top)
+              .allowsHitTesting(false)
+          }
+
           ForEach(timedEvents) { ev in
             eventLayout(for: ev)
           }
@@ -54,6 +111,12 @@ struct DayView: View {
     }
     .sheet(item: $selectedEvent) { ev in
       EventDetailSheet(event: ev)
+    }
+    .sheet(item: $editingEKEvent) { wrapped in
+      EventEditorSheet(editing: wrapped.event)
+    }
+    .sheet(item: $quickAddRange) { range in
+      EventEditorSheet(initialInterval: range.interval)
     }
     .sheet(isPresented: $showingAllDaySheet) {
       AllDayListSheet(events: allDayEvents) { tapped in
@@ -117,6 +180,17 @@ struct DayView: View {
     .clipShape(.rect(cornerRadius: 4))
     .contentShape(Rectangle())
     .onTapGesture { selectedEvent = ev }
+    .contextMenu {
+      AtollEventContextMenu(
+        event: ev,
+        onView: { selectedEvent = ev },
+        onEdit: { ek in editingEKEvent = IdentifiableEKEvent(ek) },
+        onDelete: { ek in try? calendarStore.remove(ek) },
+        onOpenAtollWeb: {
+          if let url = URL(string: "https://atoll.swiss") { openURL(url) }
+        }
+      )
+    }
   }
 
   // MARK: - Timed event layout
@@ -135,6 +209,17 @@ struct DayView: View {
     return EventBar(event: ev, measuredHeight: height, onTap: { selectedEvent = ev })
       .frame(maxWidth: .infinity, minHeight: height, maxHeight: height, alignment: .topLeading)
       .offset(y: yOffset)
+      .contextMenu {
+        AtollEventContextMenu(
+          event: ev,
+          onView: { selectedEvent = ev },
+          onEdit: { ek in editingEKEvent = IdentifiableEKEvent(ek) },
+          onDelete: { ek in try? calendarStore.remove(ek) },
+          onOpenAtollWeb: {
+            if let url = URL(string: "https://atoll.swiss") { openURL(url) }
+          }
+        )
+      }
   }
 
   // MARK: - Helpers
@@ -159,6 +244,25 @@ struct DayView: View {
       return Set(arr)
     }
     return []
+  }
+
+  /// Convert a vertical y-range (in TimeAxisGrid coordinates) into a snapped
+  /// `DateInterval` anchored to the current `date`. Minimum length enforced so
+  /// a tiny drag still produces a usable slot.
+  private func dateInterval(startY: CGFloat, endY: CGFloat) -> DateInterval {
+    let cal = Calendar.current
+    let dayStart = cal.startOfDay(for: date)
+    let rawStartMin = max(0, Int((Double(startY) / Double(hourHeight)) * 60))
+    let rawEndMin = max(rawStartMin + dragMinDuration, Int((Double(endY) / Double(hourHeight)) * 60))
+    // Snap both edges to the nearest 15-min boundary.
+    let snappedStart = (rawStartMin / dragSnapMinutes) * dragSnapMinutes
+    let snappedEnd = max(
+      snappedStart + dragMinDuration,
+      ((rawEndMin + dragSnapMinutes - 1) / dragSnapMinutes) * dragSnapMinutes
+    )
+    let start = cal.date(byAdding: .minute, value: snappedStart, to: dayStart) ?? dayStart
+    let end = cal.date(byAdding: .minute, value: snappedEnd, to: dayStart) ?? dayStart
+    return DateInterval(start: start, end: end)
   }
 
   private func loadAll() async {
@@ -190,6 +294,20 @@ struct DayView: View {
 
     events = combined.sorted(by: { $0.startDate < $1.startDate })
   }
+}
+
+// MARK: - Drag-to-create helpers
+
+/// In-flight drag selection in y-pixels of the TimeAxisGrid coordinate space.
+fileprivate struct DragSelection: Equatable {
+  var startY: CGFloat
+  var currentY: CGFloat
+}
+
+/// Identifiable wrapper around `DateInterval` so it works with `.sheet(item:)`.
+fileprivate struct QuickAddRange: Identifiable {
+  let id = UUID()
+  let interval: DateInterval
 }
 
 // MARK: - All-day list sheet

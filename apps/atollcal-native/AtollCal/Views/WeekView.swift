@@ -1,4 +1,5 @@
 import SwiftUI
+import EventKit
 import AtollCore
 import AtollDesign
 
@@ -18,8 +19,11 @@ struct WeekView: View {
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
 
+  @Environment(\.openURL) private var openURL
+
   @State private var eventsByDay: [Date: [CalendarEvent]] = [:]
   @State private var selectedEvent: CalendarEvent?
+  @State private var editingEKEvent: IdentifiableEKEvent?
   @State private var scrolledHour: Int? = nil
 
   private let hourHeight: CGFloat = 60
@@ -70,6 +74,9 @@ struct WeekView: View {
       Task { await loadAll() }
     }
     .sheet(item: $selectedEvent) { EventDetailSheet(event: $0) }
+    .sheet(item: $editingEKEvent) { wrapped in
+      EventEditorSheet(editing: wrapped.event)
+    }
   }
 
   // MARK: - Header row
@@ -130,6 +137,17 @@ struct WeekView: View {
           .offset(x: xOffset, y: yOffset)
           .contentShape(Rectangle())
           .onTapGesture { selectedEvent = span.event }
+          .contextMenu {
+            AtollEventContextMenu(
+              event: span.event,
+              onView: { selectedEvent = span.event },
+              onEdit: { ek in editingEKEvent = IdentifiableEKEvent(ek) },
+              onDelete: { ek in try? calendarStore.remove(ek) },
+              onOpenAtollWeb: {
+                if let url = URL(string: "https://atoll.swiss") { openURL(url) }
+              }
+            )
+          }
         }
       }
       .frame(height: zoneHeight)
@@ -184,6 +202,17 @@ struct WeekView: View {
       .frame(maxWidth: .infinity, minHeight: height, maxHeight: height, alignment: .topLeading)
       .offset(y: yOffset)
       .padding(.horizontal, 2)
+      .contextMenu {
+        AtollEventContextMenu(
+          event: ev,
+          onView: { selectedEvent = ev },
+          onEdit: { ek in editingEKEvent = IdentifiableEKEvent(ek) },
+          onDelete: { ek in try? calendarStore.remove(ek) },
+          onOpenAtollWeb: {
+            if let url = URL(string: "https://atoll.swiss") { openURL(url) }
+          }
+        )
+      }
   }
 
   // MARK: - Days of week / preferred opening hour

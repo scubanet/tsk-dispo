@@ -15,7 +15,10 @@ import AtollDesign
 ///                              web app and aren't writable here.
 struct EventEditorSheet: View {
   enum Mode {
+    /// Create with a single seed date — snaps to next round hour or 09:00.
     case create(initialDate: Date)
+    /// Create with explicit start + end (used by drag-to-create in DayView).
+    case createInterval(DateInterval)
     case edit(EKEvent)
     case readonlyAtoll(Assignment)
   }
@@ -23,6 +26,7 @@ struct EventEditorSheet: View {
   let mode: Mode
 
   init(initialDate: Date) { self.mode = .create(initialDate: initialDate) }
+  init(initialInterval: DateInterval) { self.mode = .createInterval(initialInterval) }
   init(editing event: EKEvent) { self.mode = .edit(event) }
   init(readonlyAtoll assignment: Assignment) { self.mode = .readonlyAtoll(assignment) }
 
@@ -102,7 +106,7 @@ struct EventEditorSheet: View {
         switch mode {
         case .readonlyAtoll(let assignment):
           atollReadonly(assignment: assignment)
-        case .create, .edit:
+        case .create, .createInterval, .edit:
           editForm
         }
       }
@@ -277,6 +281,12 @@ struct EventEditorSheet: View {
       endDate = start.addingTimeInterval(3600)
       selectedCalendarId = calendarStore.writableCalendars.first?.calendarIdentifier
 
+    case .createInterval(let interval):
+      // Drag-to-create: honour both edges literally.
+      startDate = interval.start
+      endDate = interval.end
+      selectedCalendarId = calendarStore.writableCalendars.first?.calendarIdentifier
+
     case .edit(let event):
       title = event.title ?? ""
       isAllDay = event.isAllDay
@@ -322,7 +332,7 @@ struct EventEditorSheet: View {
 
     let event: EKEvent
     switch mode {
-    case .create:
+    case .create, .createInterval:
       event = calendarStore.makeNewEvent()
     case .edit(let existing):
       event = existing
