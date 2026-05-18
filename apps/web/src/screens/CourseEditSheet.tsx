@@ -27,6 +27,19 @@ interface DateEntry {
   has_lake: boolean
   pool_location: PoolLocation | null
   pool_reserved: boolean
+  // Per-Type-Zeiten ("HH:MM" oder "")
+  theory_from: string
+  theory_to: string
+  pool_from: string
+  pool_to: string
+  lake_from: string
+  lake_to: string
+}
+
+/** "HH:MM:SS" oder "HH:MM" → "HH:MM" für <input type="time"> */
+function normalizeTime(t: string | null | undefined): string {
+  if (!t) return ''
+  return t.length >= 5 ? t.slice(0, 5) : t
 }
 
 /** Liefert primary type aus den Booleans — Pool > See > Theorie (Wassertage haben Vorrang in Anzeige) */
@@ -74,7 +87,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
   const [title, setTitle] = useState('')
   const [status, setStatus] = useState<'tentative' | 'confirmed' | 'completed' | 'cancelled'>('tentative')
   const [dates, setDates] = useState<DateEntry[]>([
-    { date: new Date().toISOString().slice(0, 10), type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false },
+    { date: new Date().toISOString().slice(0, 10), type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false, theory_from: '', theory_to: '', pool_from: '', pool_to: '', lake_from: '', lake_to: '' },
   ])
   const [numParticipants, setNumParticipants] = useState(0)
   const [info, setInfo] = useState('')
@@ -107,7 +120,10 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           .single(),
         supabase
           .from('course_dates')
-          .select('date, type, pool_location, pool_reserved, has_theory, has_pool, has_lake')
+          .select(
+            'date, type, pool_location, pool_reserved, has_theory, has_pool, has_lake, ' +
+              'theory_from, theory_to, pool_from, pool_to, lake_from, lake_to',
+          )
           .eq('course_id', courseId)
           .order('date'),
       ]).then(([courseRes, datesRes]) => {
@@ -121,18 +137,38 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         setNotes(c.notes ?? '')
 
         // Combine course_dates rows with start_date + additional_dates as fallback
-        const cdMap = new Map<string, { type: CourseDateType; pool: PoolLocation | null; reserved: boolean; theory: boolean; lake: boolean; poolFlag: boolean }>()
-        for (const cd of datesRes.data ?? []) {
+        interface CDMeta {
+          type: CourseDateType
+          pool: PoolLocation | null
+          reserved: boolean
+          theory: boolean
+          lake: boolean
+          poolFlag: boolean
+          theory_from: string
+          theory_to: string
+          pool_from: string
+          pool_to: string
+          lake_from: string
+          lake_to: string
+        }
+        const cdMap = new Map<string, CDMeta>()
+        for (const cd of (datesRes.data ?? []) as unknown as Array<Record<string, unknown>>) {
           const x = cd as any
           // Falls Booleans schon gesetzt sind (Migration durch), nimm sie. Sonst aus type ableiten.
           const theory = x.has_theory != null ? !!x.has_theory : x.type === 'theorie'
           const poolFlag = x.has_pool != null ? !!x.has_pool : x.type === 'pool'
           const lake = x.has_lake != null ? !!x.has_lake : x.type === 'see'
-          cdMap.set(cd.date, {
-            type: cd.type as CourseDateType,
-            pool: cd.pool_location as PoolLocation | null,
+          cdMap.set(x.date, {
+            type: x.type as CourseDateType,
+            pool: x.pool_location as PoolLocation | null,
             reserved: !!x.pool_reserved,
             theory, poolFlag, lake,
+            theory_from: normalizeTime(x.theory_from),
+            theory_to:   normalizeTime(x.theory_to),
+            pool_from:   normalizeTime(x.pool_from),
+            pool_to:     normalizeTime(x.pool_to),
+            lake_from:   normalizeTime(x.lake_from),
+            lake_to:     normalizeTime(x.lake_to),
           })
         }
 
@@ -147,17 +183,23 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
             has_lake: meta?.lake ?? false,
             pool_location: meta?.pool ?? null,
             pool_reserved: meta?.reserved ?? false,
+            theory_from: meta?.theory_from ?? '',
+            theory_to:   meta?.theory_to   ?? '',
+            pool_from:   meta?.pool_from   ?? '',
+            pool_to:     meta?.pool_to     ?? '',
+            lake_from:   meta?.lake_from   ?? '',
+            lake_to:     meta?.lake_to     ?? '',
           }
         })
 
         setDates(merged.length > 0 ? merged : [
-          { date: c.start_date, type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false },
+          { date: c.start_date, type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false, theory_from: '', theory_to: '', pool_from: '', pool_to: '', lake_from: '', lake_to: '' },
         ])
       })
     } else {
       // Reset for create mode
       setTypeId(''); setTitle(''); setStatus('tentative')
-      setDates([{ date: new Date().toISOString().slice(0, 10), type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false }])
+      setDates([{ date: new Date().toISOString().slice(0, 10), type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false, theory_from: '', theory_to: '', pool_from: '', pool_to: '', lake_from: '', lake_to: '' }])
       setNumParticipants(0)
       setInfo(''); setNotes(''); setHaupt('')
     }
@@ -182,7 +224,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
   function addDate() {
     setDates((prev) => [
       ...prev,
-      { date: '', type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false },
+      { date: '', type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false, theory_from: '', theory_to: '', pool_from: '', pool_to: '', lake_from: '', lake_to: '' },
     ])
   }
   function removeDateAt(idx: number) {
@@ -334,6 +376,13 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           has_lake: d.has_lake,
           pool_location: d.has_pool ? d.pool_location : null,
           pool_reserved: d.has_pool ? d.pool_reserved : false,
+          // Per-Type-Zeiten — nur senden wenn Type aktiv, sonst NULL
+          theory_from: d.has_theory ? (d.theory_from || null) : null,
+          theory_to:   d.has_theory ? (d.theory_to   || null) : null,
+          pool_from:   d.has_pool   ? (d.pool_from   || null) : null,
+          pool_to:     d.has_pool   ? (d.pool_to     || null) : null,
+          lake_from:   d.has_lake   ? (d.lake_from   || null) : null,
+          lake_to:     d.has_lake   ? (d.lake_to     || null) : null,
         }
       })
       if (rows.length > 0) {
@@ -435,6 +484,40 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                     <Icon name="x" size={12} />
                   </button>
                 </div>
+                {(d.has_theory || d.has_pool || d.has_lake) && (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 12 }}>
+                    {d.has_theory && (
+                      <TimeRange
+                        emoji="📚"
+                        label={t('course_edit.type_theory')}
+                        from={d.theory_from}
+                        to={d.theory_to}
+                        onFrom={(v) => updateDate(i, { theory_from: v })}
+                        onTo={(v) => updateDate(i, { theory_to: v })}
+                      />
+                    )}
+                    {d.has_pool && (
+                      <TimeRange
+                        emoji="🏊"
+                        label={t('course_edit.type_pool')}
+                        from={d.pool_from}
+                        to={d.pool_to}
+                        onFrom={(v) => updateDate(i, { pool_from: v })}
+                        onTo={(v) => updateDate(i, { pool_to: v })}
+                      />
+                    )}
+                    {d.has_lake && (
+                      <TimeRange
+                        emoji="🌊"
+                        label={t('course_edit.type_lake')}
+                        from={d.lake_from}
+                        to={d.lake_to}
+                        onFrom={(v) => updateDate(i, { lake_from: v })}
+                        onTo={(v) => updateDate(i, { lake_to: v })}
+                      />
+                    )}
+                  </div>
+                )}
                 {d.has_pool && (
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     <select
@@ -579,6 +662,52 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
 
 function Label({ children }: { children: string }) {
   return <div className="caption-2" style={{ marginBottom: 4 }}>{children.toUpperCase()}</div>
+}
+
+function TimeRange({
+  emoji,
+  label,
+  from,
+  to,
+  onFrom,
+  onTo,
+}: {
+  emoji: string
+  label: string
+  from: string
+  to: string
+  onFrom: (v: string) => void
+  onTo: (v: string) => void
+}) {
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '4px 8px',
+        borderRadius: 6,
+        border: '0.5px solid var(--hairline)',
+        background: 'var(--surface-strong)',
+      }}
+      title={label}
+    >
+      <span style={{ marginRight: 2 }}>{emoji}</span>
+      <input
+        type="time"
+        value={from}
+        onChange={(e) => onFrom(e.target.value)}
+        style={{ width: 70, border: 0, background: 'transparent', font: 'inherit', fontSize: 12, color: 'var(--ink)' }}
+      />
+      <span style={{ opacity: 0.5 }}>–</span>
+      <input
+        type="time"
+        value={to}
+        onChange={(e) => onTo(e.target.value)}
+        style={{ width: 70, border: 0, background: 'transparent', font: 'inherit', fontSize: 12, color: 'var(--ink)' }}
+      />
+    </div>
+  )
 }
 
 function TypeToggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
