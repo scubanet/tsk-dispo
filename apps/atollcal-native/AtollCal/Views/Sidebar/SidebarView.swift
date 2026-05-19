@@ -139,9 +139,16 @@ struct SidebarView: View {
     let end = cal.date(byAdding: .day, value: agendaHorizonDays, to: start) ?? start
     let range = DateInterval(start: start, end: end)
 
-    // ATOLL: trigger a reload covering the agenda range.
+    // ATOLL: trigger a reload covering an *extended* range — courses with
+    // start_date in the past month but additional course_dates within the
+    // agenda window would otherwise be filtered out by the Supabase query
+    // (which checks courses.start_date against the requested range).
     if atollEnabled, case .signedIn(let user) = auth.status {
-      await atollLoader.reload(for: user.legacyInstructorId, range: range)
+      let extendedRange = DateInterval(
+        start: cal.date(byAdding: .month, value: -1, to: start) ?? start,
+        end:   cal.date(byAdding: .month, value:  1, to: end)   ?? end
+      )
+      await atollLoader.reload(for: user.legacyInstructorId, range: extendedRange)
     }
 
     let sysIds = enabledCalendarIds()

@@ -47,57 +47,68 @@ struct DayView: View {
 
       TimeAxisGrid(hourHeight: hourHeight,
                    scrolledHour: $scrolledHour) {
-        ZStack(alignment: .topLeading) {
-          // Drag capture background — sits behind events so taps on events
-          // still hit them, but drags on empty space create new slots.
-          Color.clear
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle())
-            .gesture(
-              DragGesture(minimumDistance: 8)
-                .onChanged { value in
-                  if dragSelection == nil {
-                    dragSelection = DragSelection(
-                      startY: value.startLocation.y,
-                      currentY: value.location.y
-                    )
-                  } else {
-                    dragSelection?.currentY = value.location.y
+        GeometryReader { geo in
+          // Compute lane allocation up-front so each event knows its column
+          // index + total lanes (= cluster width).
+          let layout = layoutTimedEvents(timedEvents)
+
+          ZStack(alignment: .topLeading) {
+            // Drag capture background — sits behind events so taps on events
+            // still hit them, but drags on empty space create new slots.
+            Color.clear
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+              .contentShape(Rectangle())
+              .gesture(
+                DragGesture(minimumDistance: 8)
+                  .onChanged { value in
+                    if dragSelection == nil {
+                      dragSelection = DragSelection(
+                        startY: value.startLocation.y,
+                        currentY: value.location.y
+                      )
+                    } else {
+                      dragSelection?.currentY = value.location.y
+                    }
                   }
-                }
-                .onEnded { value in
-                  guard let sel = dragSelection else { return }
-                  let interval = dateInterval(
-                    startY: min(sel.startY, sel.currentY),
-                    endY:   max(sel.startY, sel.currentY)
-                  )
-                  quickAddRange = QuickAddRange(interval: interval)
-                  dragSelection = nil
-                }
-            )
-
-          // Live drag preview rectangle.
-          if let sel = dragSelection {
-            let top = min(sel.startY, sel.currentY)
-            let height = max(8, abs(sel.currentY - sel.startY))
-            RoundedRectangle(cornerRadius: 6)
-              .fill(Color.accentColor.opacity(0.22))
-              .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                  .strokeBorder(Color.accentColor, lineWidth: 1)
+                  .onEnded { value in
+                    guard let sel = dragSelection else { return }
+                    let interval = dateInterval(
+                      startY: min(sel.startY, sel.currentY),
+                      endY:   max(sel.startY, sel.currentY)
+                    )
+                    quickAddRange = QuickAddRange(interval: interval)
+                    dragSelection = nil
+                  }
               )
-              .frame(height: height)
-              .offset(y: top)
-              .allowsHitTesting(false)
-          }
 
-          ForEach(timedEvents) { ev in
-            eventLayout(for: ev)
-          }
-          if Calendar.current.isDateInToday(date) {
-            NowIndicator(hourHeight: hourHeight)
+            // Live drag preview rectangle.
+            if let sel = dragSelection {
+              let top = min(sel.startY, sel.currentY)
+              let height = max(8, abs(sel.currentY - sel.startY))
+              RoundedRectangle(cornerRadius: 6)
+                .fill(Color.accentColor.opacity(0.22))
+                .overlay(
+                  RoundedRectangle(cornerRadius: 6)
+                    .strokeBorder(Color.accentColor, lineWidth: 1)
+                )
+                .frame(height: height)
+                .offset(y: top)
+                .allowsHitTesting(false)
+            }
+
+            ForEach(timedEvents) { ev in
+              eventLayout(
+                for: ev,
+                info: layout[ev.id] ?? EventLayoutInfo(lane: 0, totalLanes: 1),
+                availableWidth: geo.size.width
+              )
+            }
+            if Calendar.current.isDateInToday(date) {
+              NowIndicator(hourHeight: hourHeight)
+            }
           }
         }
+        .frame(height: hourHeight * 24)
       }
     }
     .refreshable { await loadAll() }
@@ -195,7 +206,9 @@ struct DayView: View {
 
   // MARK: - Timed event layout
 
-  private func eventLayout(for ev: CalendarEvent) -> some View {
+  private func eventLayout(for ev: CalendarEvent,
+                           info: EventLayoutInfo,
+                           availableWidth: CGFloat) -> some View {
     let cal = Calendar.current
     let dayStart = cal.startOfDay(for: date)
     let dayEnd = cal.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
@@ -206,9 +219,15 @@ struct DayView: View {
     let yOffset = startMinutes / 60.0 * Double(hourHeight)
     let height = durationMinutes / 60.0 * Double(hourHeight)
 
+    // Side-by-side layout for overlapping clusters. Single events get full
+    // width (totalLanes = 1); a 2-event overlap each gets half; etc.
+    let columnWidth = availableWidth / CGFloat(info.totalLanes)
+    let xOffset = CGFloat(info.lane) * columnWidth
+    let barWidth = max(0, columnWidth - 2)  // 2pt gap between adjacent columns
+
     return EventBar(event: ev, measuredHeight: height, onTap: { selectedEvent = ev })
-      .frame(maxWidth: .infinity, minHeight: height, maxHeight: height, alignment: .topLeading)
-      .offset(y: yOffset)
+      .frame(width: barWidth, height: height, alignment: .topLeading)
+      .offset(x: xOffset, y: yOffset)
       .contextMenu {
         AtollEventContextMenu(
           event: ev,
@@ -244,6 +263,61 @@ struct DayView: View {
       return Set(arr)
     }
     return []
+  }
+
+  /// Per-event positioning info: lane index inside its overlap cluster, and
+  /// the cluster's total lane count. `lane=0, totalLanes=1` → full-width.
+  fileprivate struct EventLayoutInfo {
+    let lane: Int
+    let totalLanes: Int
+  }
+
+  /// Greedy lane allocation for overlapping timed events. Two events overlap
+  /// when their `[start, end)` intervals intersect. Events that don't overlap
+  /// anybody get `totalLanes=1` (full width); a 2-event overlap each gets
+  /// `totalLanes=2` (half width side-by-side); 3-event cluster → thirds; etc.
+  ///
+  /// Algorithm: sort by start (then end-desc for stability), assign the lowest
+  /// free lane greedily. Then for each event, scan its direct overlaps to
+  /// determine the cluster's effective lane count.
+  private func layoutTimedEvents(_ events: [CalendarEvent]) -> [String: EventLayoutInfo] {
+    let sorted = events.sorted { lhs, rhs in
+      if lhs.startDate != rhs.startDate { return lhs.startDate < rhs.startDate }
+      return lhs.endDate > rhs.endDate
+    }
+
+    // Step 1: greedy lane assignment.
+    var laneEndTimes: [Date] = []
+    var laneByID: [String: Int] = [:]
+    for ev in sorted {
+      var lane = 0
+      while lane < laneEndTimes.count {
+        if ev.startDate >= laneEndTimes[lane] { break }
+        lane += 1
+      }
+      if lane < laneEndTimes.count {
+        laneEndTimes[lane] = ev.endDate
+      } else {
+        laneEndTimes.append(ev.endDate)
+      }
+      laneByID[ev.id] = lane
+    }
+
+    // Step 2: per-event cluster width = max(lane among events overlapping me) + 1.
+    var result: [String: EventLayoutInfo] = [:]
+    for ev in sorted {
+      var maxLane = laneByID[ev.id] ?? 0
+      for other in sorted where other.id != ev.id {
+        if ev.startDate < other.endDate && other.startDate < ev.endDate {
+          maxLane = max(maxLane, laneByID[other.id] ?? 0)
+        }
+      }
+      result[ev.id] = EventLayoutInfo(
+        lane: laneByID[ev.id] ?? 0,
+        totalLanes: maxLane + 1
+      )
+    }
+    return result
   }
 
   /// Convert a vertical y-range (in TimeAxisGrid coordinates) into a snapped
