@@ -30,6 +30,7 @@ struct WeekView: View {
   }
 
   @Environment(\.openURL) private var openURL
+  @Environment(\.undoManager) private var undoManager
 
   @State private var eventsByDay: [Date: [CalendarEvent]] = [:]
   @State private var selectedEvent: CalendarEvent?
@@ -303,7 +304,7 @@ struct WeekView: View {
     let newStart = snappedDropDate(from: locationY, dayStart: dayStart)
     guard newStart >= Date() else { return false }
     do {
-      try calendarStore.reschedule(ek, to: newStart)
+      try calendarStore.reschedule(ek, to: newStart, undoManager: undoManager)
       return true
     } catch {
       return false

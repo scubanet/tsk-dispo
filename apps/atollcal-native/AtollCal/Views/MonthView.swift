@@ -22,6 +22,7 @@ struct MonthView: View {
   @AppStorage("calendarSourceFilter") private var sourceFilter: CalendarSourceFilter = .all
 
   @Environment(\.openURL) private var openURL
+  @Environment(\.undoManager) private var undoManager
 
   @State private var eventsByDay: [Date: [CalendarEvent]] = [:]
   @State private var selectedEvent: CalendarEvent?
@@ -264,7 +265,7 @@ struct MonthView: View {
     let minuteOffset = (timeComps.hour ?? 0) * 60 + (timeComps.minute ?? 0)
     guard let newStart = cal.date(byAdding: .minute, value: minuteOffset, to: dayStart) else { return false }
     do {
-      try calendarStore.reschedule(ek, to: newStart)
+      try calendarStore.reschedule(ek, to: newStart, undoManager: undoManager)
       return true
     } catch {
       return false

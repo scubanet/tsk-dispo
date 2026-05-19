@@ -31,6 +31,7 @@ struct DayView: View {
   }
 
   @Environment(\.openURL) private var openURL
+  @Environment(\.undoManager) private var undoManager
 
   @State private var events: [CalendarEvent] = []
   @State private var selectedEvent: CalendarEvent?
@@ -421,7 +422,7 @@ struct DayView: View {
     // these zones (see CalendarRescheduleDropDelegate.dropUpdated).
     guard newStart >= Date() else { return false }
     do {
-      try calendarStore.reschedule(ek, to: newStart)
+      try calendarStore.reschedule(ek, to: newStart, undoManager: undoManager)
       return true
     } catch {
       return false

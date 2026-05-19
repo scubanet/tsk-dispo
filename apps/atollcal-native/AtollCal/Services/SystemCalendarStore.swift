@@ -89,10 +89,28 @@ public final class SystemCalendarStore {
 
   /// Reschedules an event to `newStart`, preserving its duration. Always uses
   /// `span: .thisEvent` so recurring patterns only move the dragged instance.
-  public func reschedule(_ event: EKEvent, to newStart: Date) throws {
-    let duration = event.endDate.timeIntervalSince(event.startDate)
+  ///
+  /// When an `undoManager` is supplied, the inverse reschedule is registered
+  /// so ⌘Z restores the previous start. Because the undo handler calls
+  /// `reschedule` recursively (with the *current* `undoManager`), redo works
+  /// automatically — `UndoManager` flips the stack while undoing, so the
+  /// "new" registration becomes the redo entry.
+  public func reschedule(_ event: EKEvent, to newStart: Date, undoManager: UndoManager? = nil) throws {
+    guard let oldStart = event.startDate as Date?,
+          let oldEnd = event.endDate as Date? else { return }
+    let identifier = event.eventIdentifier
+    let duration = oldEnd.timeIntervalSince(oldStart)
     event.startDate = newStart
     event.endDate = newStart.addingTimeInterval(duration)
     try save(event, span: .thisEvent)
+
+    guard let undoManager, let identifier else { return }
+    undoManager.registerUndo(withTarget: self) { store in
+      MainActor.assumeIsolated {
+        guard let ek = store.event(withIdentifier: identifier) else { return }
+        try? store.reschedule(ek, to: oldStart, undoManager: undoManager)
+      }
+    }
+    undoManager.setActionName(String(localized: "Termin verschieben"))
   }
 }
