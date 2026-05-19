@@ -1,5 +1,6 @@
 import SwiftUI
 import EventKit
+import UniformTypeIdentifiers
 import AtollCore
 import AtollDesign
 
@@ -41,17 +42,20 @@ struct DayView: View {
   /// `TimeAxisGrid`'s coordinate space). `nil` when no drag is in progress.
   @State private var dragSelection: DragSelection?
 
+  /// Live drop state for drag-to-reschedule. Tracks cursor y and dragged
+  /// event duration so the body can render a "where will this land" hint.
+  @State private var dropState = CalendarDropState()
+
   /// Set when a drag-to-create finishes — triggers the EventEditorSheet via
   /// `.sheet(item:)`. Wrapper around DateInterval so it can be Identifiable.
   @State private var quickAddRange: QuickAddRange?
 
-  // NOTE: drag-to-reschedule of events was attempted but proved unsolvable
-  // in pure SwiftUI on macOS 26 within this view hierarchy (ScrollView →
-  // GeometryReader → ZStack). Multiple patterns were tried — none reliably
-  // delivered drag gestures to the foreground events. Time changes happen
-  // via Tap → Detail → "Bearbeiten" → EventEditor for now. A future
-  // iteration could wrap the day grid in NSViewRepresentable + a native
-  // NSPanGestureRecognizer for full drag-to-reschedule control.
+  // Drag-to-reschedule uses Transferable (`.draggable` + `.dropDestination`)
+  // rather than `DragGesture` on the foreground events — DragGesture proved
+  // unsolvable inside ScrollView → GeometryReader → ZStack on macOS 26. The
+  // tradeoff is no live snap preview during the drag (we get the system drag
+  // pellet); the drop snaps to the nearest 15-min slot on release. ATOLL
+  // events are deliberately excluded from drag (see `CalendarEvent.isReschedulable`).
 
   private let hourHeight: CGFloat = 60
   private let maxAllDayVisible: Int = 3
@@ -97,6 +101,13 @@ struct DayView: View {
                     dragSelection = nil
                   }
               )
+              .onDrop(of: [.atollSystemEvent], delegate: CalendarRescheduleDropDelegate(
+                state: dropState,
+                dayStart: Calendar.current.startOfDay(for: date),
+                onPerform: { payload, y in
+                  handleEventDrop(payload: payload, locationY: y)
+                }
+              ))
 
             if let sel = dragSelection {
               let top = min(sel.startY, sel.currentY)
@@ -121,6 +132,9 @@ struct DayView: View {
             }
             if Calendar.current.isDateInToday(date) {
               NowIndicator(hourHeight: hourHeight)
+            }
+            if let y = dropState.hoverY {
+              dropTimeHint(at: y)
             }
           }
         }
@@ -251,6 +265,7 @@ struct DayView: View {
     return EventBar(event: ev, measuredHeight: height, onTap: { selectedEvent = ev })
       .frame(width: barWidth, height: height, alignment: .topLeading)
       .opacity(isPast ? 0.55 : 1.0)
+      .draggableIfPossible(ev.dragPayload)
       .offset(x: xOffset, y: yOffset)
       .contextMenu {
         AtollEventContextMenu(
@@ -342,6 +357,61 @@ struct DayView: View {
       )
     }
     return result
+  }
+
+  /// Drop handler for system event drags. Snaps `locationY` to the nearest
+  /// 15-min slot inside `date` and reschedules the event there, keeping its
+  /// original duration. Returns true on success; false silently absorbs
+  /// errors (event vanished, calendar read-only).
+  /// Renders the live snap-position indicator during a drop. Shows where the
+  /// event's TOP will land (= cursor y on macOS, where `.draggable`'s drag
+  /// image is anchored at the grab point — grab the top of the event for the
+  /// most predictable landing).
+  @ViewBuilder
+  private func dropTimeHint(at hoverY: CGFloat) -> some View {
+    let rawMin = max(0, Int((Double(hoverY) / Double(hourHeight)) * 60))
+    let snapped = (rawMin / dragSnapMinutes) * dragSnapMinutes
+    let snappedY = CGFloat(snapped) / 60 * hourHeight
+    let cal = Calendar.current
+    let dayStart = cal.startOfDay(for: date)
+    let snappedDate = cal.date(byAdding: .minute, value: snapped, to: dayStart) ?? dayStart
+
+    HStack(spacing: 4) {
+      Text(Self.hintTimeFormatter.string(from: snappedDate))
+        .font(.caption2)
+        .fontWeight(.semibold)
+        .foregroundStyle(.white)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 1)
+        .background(Color.accentColor)
+        .clipShape(.rect(cornerRadius: 3))
+      Rectangle()
+        .fill(Color.accentColor)
+        .frame(height: 1)
+    }
+    .offset(y: snappedY)
+    .allowsHitTesting(false)
+  }
+
+  private static let hintTimeFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "HH:mm"
+    return f
+  }()
+
+  private func handleEventDrop(payload: SystemEventDragPayload, locationY: CGFloat) -> Bool {
+    guard let ek = calendarStore.event(withIdentifier: payload.eventIdentifier) else { return false }
+    let cal = Calendar.current
+    let dayStart = cal.startOfDay(for: date)
+    let rawMin = max(0, Int((Double(locationY) / Double(hourHeight)) * 60))
+    let snapped = (rawMin / dragSnapMinutes) * dragSnapMinutes
+    guard let newStart = cal.date(byAdding: .minute, value: snapped, to: dayStart) else { return false }
+    do {
+      try calendarStore.reschedule(ek, to: newStart)
+      return true
+    } catch {
+      return false
+    }
   }
 
   /// Convert a vertical y-range (in TimeAxisGrid coordinates) into a snapped

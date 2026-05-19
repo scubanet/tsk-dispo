@@ -41,9 +41,24 @@ struct MonthView: View {
     }
   }
 
+  private var monthSwipeGesture: some Gesture {
+    DragGesture(minimumDistance: 50)
+      .onEnded { value in
+        let cal = Calendar.current
+        if value.translation.width < -50 {
+          anchor = cal.date(byAdding: .month, value:  1, to: anchor) ?? anchor
+        } else if value.translation.width > 50 {
+          anchor = cal.date(byAdding: .month, value: -1, to: anchor) ?? anchor
+        }
+      }
+  }
+
   var body: some View {
     VStack(spacing: 0) {
+      // Swipe-to-navigate is scoped to the header so it doesn't compete with
+      // `.draggable` on event rows inside the day cells.
       weekdayHeader
+        .gesture(monthSwipeGesture)
 
       GeometryReader { geo in
         let cellWidth = geo.size.width / 7
@@ -116,17 +131,6 @@ struct MonthView: View {
     .onReceive(NotificationCenter.default.publisher(for: .EKEventStoreChanged)) { _ in
       Task { await loadAll() }
     }
-    .gesture(
-      DragGesture(minimumDistance: 50)
-        .onEnded { value in
-          let cal = Calendar.current
-          if value.translation.width < -50 {
-            anchor = cal.date(byAdding: .month, value:  1, to: anchor) ?? anchor
-          } else if value.translation.width > 50 {
-            anchor = cal.date(byAdding: .month, value: -1, to: anchor) ?? anchor
-          }
-        }
-    )
     .sheet(item: $selectedEvent) { EventDetailSheet(event: $0) }
     .sheet(item: $editingEKEvent) { wrapped in
       EventEditorSheet(editing: wrapped.event)
@@ -209,6 +213,7 @@ struct MonthView: View {
           .frame(height: CellMetrics.eventRowHeight, alignment: .leading)
           .contentShape(Rectangle())
           .onTapGesture { selectedEvent = ev }
+          .draggableIfPossible(ev.dragPayload)
           .contextMenu {
             AtollEventContextMenu(
               event: ev,
@@ -238,6 +243,29 @@ struct MonthView: View {
     .opacity(isPast && !isToday ? 0.65 : 1.0)
     .contentShape(Rectangle())
     .onTapGesture { onDayTap(day) }
+    .dropDestination(for: SystemEventDragPayload.self) { items, _ in
+      return handleEventDrop(items: items, droppedOn: day)
+    }
+  }
+
+  /// Drop handler for MonthView. Moves the event to `day`, keeping its
+  /// original wall-clock time-of-day. Duration is preserved by
+  /// `SystemCalendarStore.reschedule(_:to:)`.
+  private func handleEventDrop(items: [SystemEventDragPayload], droppedOn day: Date) -> Bool {
+    guard let payload = items.first,
+          let ek = calendarStore.event(withIdentifier: payload.eventIdentifier)
+    else { return false }
+    let cal = Calendar.current
+    let timeComps = cal.dateComponents([.hour, .minute], from: ek.startDate)
+    let dayStart = cal.startOfDay(for: day)
+    let minuteOffset = (timeComps.hour ?? 0) * 60 + (timeComps.minute ?? 0)
+    guard let newStart = cal.date(byAdding: .minute, value: minuteOffset, to: dayStart) else { return false }
+    do {
+      try calendarStore.reschedule(ek, to: newStart)
+      return true
+    } catch {
+      return false
+    }
   }
 
   private func dayNumberColor(isToday: Bool, isCurrentMonth: Bool, isWeekend: Bool) -> Color {

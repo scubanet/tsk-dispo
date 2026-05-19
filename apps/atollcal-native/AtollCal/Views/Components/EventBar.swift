@@ -64,6 +64,9 @@ struct EventBar: View {
   private var titleOnlyCompact: some View {
     HStack(spacing: 4) {
       Rectangle().fill(event.color).frame(width: 2)
+      if let t = formattedStartTime {
+        Text(t).font(.caption2).fontWeight(.medium)
+      }
       Text(event.title)
         .font(.caption2)
         .lineLimit(1)
@@ -90,6 +93,12 @@ struct EventBar: View {
     HStack(alignment: .top, spacing: 6) {
       Rectangle().fill(event.color).frame(width: 3)
       VStack(alignment: .leading, spacing: 2) {
+        if let t = formattedTimeRange {
+          Text(t)
+            .font(.caption2)
+            .fontWeight(.medium)
+            .foregroundStyle(.secondary)
+        }
         Text(event.title).font(.caption).lineLimit(2)
         if let loc = event.location, !loc.isEmpty {
           Text(loc)
@@ -103,6 +112,24 @@ struct EventBar: View {
     .padding(.vertical, 3)
     .padding(.horizontal, 4)
   }
+
+  // MARK: - Time formatting
+
+  private var formattedStartTime: String? {
+    guard !event.isAllDay else { return nil }
+    return Self.timeFormatter.string(from: event.startDate)
+  }
+
+  private var formattedTimeRange: String? {
+    guard !event.isAllDay else { return nil }
+    return "\(Self.timeFormatter.string(from: event.startDate))–\(Self.timeFormatter.string(from: event.endDate))"
+  }
+
+  private static let timeFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "HH:mm"
+    return f
+  }()
 }
 
 /// Conditional `.onTapGesture` modifier — when `action` is nil the inner

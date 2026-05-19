@@ -1,5 +1,6 @@
 import SwiftUI
 import EventKit
+import UniformTypeIdentifiers
 import AtollCore
 import AtollDesign
 
@@ -34,9 +35,23 @@ struct WeekView: View {
   @State private var selectedEvent: CalendarEvent?
   @State private var editingEKEvent: IdentifiableEKEvent?
   @State private var scrolledHour: Int? = nil
+  @State private var dropState = CalendarDropState()
 
   private let hourHeight: CGFloat = 60
   private let compactColumnThreshold: CGFloat = 50
+  private let dragSnapMinutes: Int = 15
+
+  private var weekSwipeGesture: some Gesture {
+    DragGesture(minimumDistance: 50)
+      .onEnded { value in
+        let cal = Calendar.current
+        if value.translation.width < -50 {
+          anchor = cal.date(byAdding: .weekOfYear, value:  1, to: anchor) ?? anchor
+        } else if value.translation.width > 50 {
+          anchor = cal.date(byAdding: .weekOfYear, value: -1, to: anchor) ?? anchor
+        }
+      }
+  }
 
   var body: some View {
     GeometryReader { geo in
@@ -51,7 +66,10 @@ struct WeekView: View {
       let isCompact = columnWidth < compactColumnThreshold
 
       VStack(spacing: 0) {
+        // Swipe-to-navigate is scoped to the header so it doesn't compete
+        // with `.draggable` on event bars inside the grid.
         dayHeader(days: days, isCompact: isCompact, columnWidth: columnWidth, labelArea: labelArea)
+          .gesture(weekSwipeGesture)
 
         allDayZone(days: days, columnWidth: columnWidth, labelArea: labelArea)
 
@@ -70,17 +88,6 @@ struct WeekView: View {
         }
       }
     }
-    .gesture(
-      DragGesture(minimumDistance: 50)
-        .onEnded { value in
-          let cal = Calendar.current
-          if value.translation.width < -50 {
-            anchor = cal.date(byAdding: .weekOfYear, value:  1, to: anchor) ?? anchor
-          } else if value.translation.width > 50 {
-            anchor = cal.date(byAdding: .weekOfYear, value: -1, to: anchor) ?? anchor
-          }
-        }
-    )
     .refreshable { await loadAll() }
     .task(id: anchor) {
       await loadAll()
@@ -199,9 +206,48 @@ struct WeekView: View {
       if isToday {
         NowIndicator(hourHeight: hourHeight)
       }
+      if let y = dropState.hoverY, dropState.activeDayStart == dayStart {
+        dropTimeHint(at: y, dayStart: dayStart)
+      }
     }
     .frame(width: columnWidth, alignment: .topLeading)
+    .onDrop(of: [.atollSystemEvent], delegate: CalendarRescheduleDropDelegate(
+      state: dropState,
+      dayStart: dayStart,
+      onPerform: { payload, y in
+        handleEventDrop(payload: payload, dayStart: dayStart, locationY: y)
+      }
+    ))
   }
+
+  @ViewBuilder
+  private func dropTimeHint(at hoverY: CGFloat, dayStart: Date) -> some View {
+    let rawMin = max(0, Int((Double(hoverY) / Double(hourHeight)) * 60))
+    let snapped = (rawMin / dragSnapMinutes) * dragSnapMinutes
+    let snappedY = CGFloat(snapped) / 60 * hourHeight
+    let cal = Calendar.current
+    let snappedDate = cal.date(byAdding: .minute, value: snapped, to: dayStart) ?? dayStart
+
+    HStack(spacing: 4) {
+      Text(Self.hintTimeFormatter.string(from: snappedDate))
+        .font(.caption2)
+        .fontWeight(.semibold)
+        .foregroundStyle(.white)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 1)
+        .background(Color.accentColor)
+        .clipShape(.rect(cornerRadius: 3))
+      Rectangle().fill(Color.accentColor).frame(height: 1)
+    }
+    .offset(y: snappedY)
+    .allowsHitTesting(false)
+  }
+
+  private static let hintTimeFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "HH:mm"
+    return f
+  }()
 
   private func eventLayout(for ev: CalendarEvent, dayStart: Date, isCompact: Bool) -> some View {
     let cal = Calendar.current
@@ -219,6 +265,7 @@ struct WeekView: View {
     return EventBar(event: ev, measuredHeight: height, style: style, onTap: { selectedEvent = ev })
       .frame(maxWidth: .infinity, minHeight: height, maxHeight: height, alignment: .topLeading)
       .opacity(isPast ? 0.55 : 1.0)
+      .draggableIfPossible(ev.dragPayload)
       .offset(y: yOffset)
       .padding(.horizontal, 2)
       .contextMenu {
@@ -232,6 +279,25 @@ struct WeekView: View {
           }
         )
       }
+  }
+
+  // MARK: - Drop handler
+
+  /// Snaps `locationY` (relative to the dropped-on day column, which spans the
+  /// full 24h of `dayStart`) to a 15-min slot and reschedules the resolved
+  /// EKEvent there. Duration is preserved.
+  private func handleEventDrop(payload: SystemEventDragPayload, dayStart: Date, locationY: CGFloat) -> Bool {
+    guard let ek = calendarStore.event(withIdentifier: payload.eventIdentifier) else { return false }
+    let cal = Calendar.current
+    let rawMin = max(0, Int((Double(locationY) / Double(hourHeight)) * 60))
+    let snapped = (rawMin / dragSnapMinutes) * dragSnapMinutes
+    guard let newStart = cal.date(byAdding: .minute, value: snapped, to: dayStart) else { return false }
+    do {
+      try calendarStore.reschedule(ek, to: newStart)
+      return true
+    } catch {
+      return false
+    }
   }
 
   // MARK: - Days of week / preferred opening hour

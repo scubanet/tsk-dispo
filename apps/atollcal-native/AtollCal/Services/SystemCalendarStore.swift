@@ -79,4 +79,20 @@ public final class SystemCalendarStore {
     try store.remove(event, span: span, commit: true)
     NotificationCenter.default.post(name: .EKEventStoreChanged, object: store)
   }
+
+  /// Looks up an EKEvent by its persistent identifier. Used by drag-and-drop
+  /// to resolve a drag payload (which carries just the identifier) back to
+  /// the live event before mutating it.
+  public func event(withIdentifier identifier: String) -> EKEvent? {
+    store.event(withIdentifier: identifier)
+  }
+
+  /// Reschedules an event to `newStart`, preserving its duration. Always uses
+  /// `span: .thisEvent` so recurring patterns only move the dragged instance.
+  public func reschedule(_ event: EKEvent, to newStart: Date) throws {
+    let duration = event.endDate.timeIntervalSince(event.startDate)
+    event.startDate = newStart
+    event.endDate = newStart.addingTimeInterval(duration)
+    try save(event, span: .thisEvent)
+  }
 }

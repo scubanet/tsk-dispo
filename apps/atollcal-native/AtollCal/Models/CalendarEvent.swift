@@ -123,6 +123,16 @@ enum CalendarEvent: Identifiable, Hashable {
   }
 
   // MARK: - Hashable
-  func hash(into hasher: inout Hasher) { hasher.combine(id) }
-  static func == (lhs: CalendarEvent, rhs: CalendarEvent) -> Bool { lhs.id == rhs.id }
+  // Note: startDate / endDate are included so SwiftUI `@State<[CalendarEvent]>`
+  // detects a rescheduled event as "changed" and re-renders the grid. With
+  // id-only equality, drag-to-reschedule wouldn't refresh the visual position
+  // because the new and old EKEvent reference share the same identifier.
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+    hasher.combine(startDate)
+    hasher.combine(endDate)
+  }
+  static func == (lhs: CalendarEvent, rhs: CalendarEvent) -> Bool {
+    lhs.id == rhs.id && lhs.startDate == rhs.startDate && lhs.endDate == rhs.endDate
+  }
 }
