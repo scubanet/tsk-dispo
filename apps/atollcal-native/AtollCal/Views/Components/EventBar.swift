@@ -15,7 +15,11 @@ struct EventBar: View {
   let event: CalendarEvent
   var measuredHeight: CGFloat = 60
   var style: Style = .auto
-  var onTap: () -> Void = {}
+  /// Optional tap action. Pass `nil` when the caller wants to handle the
+  /// tap externally (e.g. DayView, where drag-to-reschedule and the tap
+  /// gesture must live on the same wrapper to avoid gesture conflicts on
+  /// macOS).
+  var onTap: (() -> Void)?
 
   enum Style {
     /// Caller hands us a height; we pick the renderer tier.
@@ -38,10 +42,10 @@ struct EventBar: View {
       }
     }
     .contentShape(Rectangle())
-    .onTapGesture(perform: onTap)
     .accessibilityElement(children: .ignore)
     .accessibilityAddTraits(.isButton)
     .accessibilityLabel(event.title)
+    .modifier(OptionalTapModifier(action: onTap))
   }
 
   // MARK: - Auto-style
@@ -98,5 +102,21 @@ struct EventBar: View {
     }
     .padding(.vertical, 3)
     .padding(.horizontal, 4)
+  }
+}
+
+/// Conditional `.onTapGesture` modifier — when `action` is nil the inner
+/// tap recognizer is omitted entirely so it can't compete with gestures the
+/// caller attaches at a higher level.
+private struct OptionalTapModifier: ViewModifier {
+  let action: (() -> Void)?
+
+  @ViewBuilder
+  func body(content: Content) -> some View {
+    if let action {
+      content.onTapGesture(perform: action)
+    } else {
+      content
+    }
   }
 }

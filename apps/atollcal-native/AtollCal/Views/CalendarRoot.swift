@@ -20,6 +20,7 @@ struct CalendarRoot: View {
   @SceneStorage("focusedDateInterval") private var focusedDateInterval: Double = Date().timeIntervalSince1970
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
+  @AppStorage("calendarSourceFilter") private var sourceFilter: CalendarSourceFilter = .all
 
   @State private var showingDatePicker = false
   @State private var showingSettings = false
@@ -107,6 +108,7 @@ struct CalendarRoot: View {
           .symbolEffect(.pulse)
       }
     }
+    ToolbarItem(placement: .topBarTrailing) { sourceFilterMenu }
     ToolbarItem(placement: .topBarTrailing) { addEventButton }
     ToolbarItem(placement: .topBarTrailing) { settingsButton }
     #else
@@ -129,9 +131,34 @@ struct CalendarRoot: View {
           .controlSize(.small)
       }
     }
+    ToolbarItem { sourceFilterMenu }
     ToolbarItem { addEventButton }
     ToolbarItem { settingsButton }
     #endif
+  }
+
+  private var sourceFilterMenu: some View {
+    Menu {
+      ForEach(CalendarSourceFilter.allCases) { f in
+        Button {
+          sourceFilter = f
+          // Nudge all views to reload by broadcasting the EKEvent-changed
+          // notification — they already react to it for system-calendar updates.
+          NotificationCenter.default.post(name: .EKEventStoreChanged, object: nil)
+        } label: {
+          if sourceFilter == f {
+            Label(f.label, systemImage: "checkmark")
+          } else {
+            Label(f.label, systemImage: f.systemImage)
+          }
+        }
+      }
+    } label: {
+      Image(systemName: sourceFilter == .all
+            ? "line.3.horizontal.decrease.circle"
+            : "line.3.horizontal.decrease.circle.fill")
+    }
+    .help("Kalenderquellen filtern")
   }
 
   // MARK: - Shared toolbar items

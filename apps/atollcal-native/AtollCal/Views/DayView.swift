@@ -19,6 +19,7 @@ struct DayView: View {
 
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
+  @AppStorage("calendarSourceFilter") private var sourceFilter: CalendarSourceFilter = .all
 
   @Environment(\.openURL) private var openURL
 
@@ -36,6 +37,14 @@ struct DayView: View {
   /// `.sheet(item:)`. Wrapper around DateInterval so it can be Identifiable.
   @State private var quickAddRange: QuickAddRange?
 
+  // NOTE: drag-to-reschedule of events was attempted but proved unsolvable
+  // in pure SwiftUI on macOS 26 within this view hierarchy (ScrollView →
+  // GeometryReader → ZStack). Multiple patterns were tried — none reliably
+  // delivered drag gestures to the foreground events. Time changes happen
+  // via Tap → Detail → "Bearbeiten" → EventEditor for now. A future
+  // iteration could wrap the day grid in NSViewRepresentable + a native
+  // NSPanGestureRecognizer for full drag-to-reschedule control.
+
   private let hourHeight: CGFloat = 60
   private let maxAllDayVisible: Int = 3
   private let dragSnapMinutes: Int = 15
@@ -48,13 +57,12 @@ struct DayView: View {
       TimeAxisGrid(hourHeight: hourHeight,
                    scrolledHour: $scrolledHour) {
         GeometryReader { geo in
-          // Compute lane allocation up-front so each event knows its column
-          // index + total lanes (= cluster width).
           let layout = layoutTimedEvents(timedEvents)
 
           ZStack(alignment: .topLeading) {
-            // Drag capture background — sits behind events so taps on events
-            // still hit them, but drags on empty space create new slots.
+            // Drag-to-create background: simple drag on empty space creates
+            // a new event in that time range. Events sit ON TOP of this
+            // layer; clicks on events go to EventBar's internal onTap.
             Color.clear
               .frame(maxWidth: .infinity, maxHeight: .infinity)
               .contentShape(Rectangle())
@@ -81,7 +89,6 @@ struct DayView: View {
                   }
               )
 
-            // Live drag preview rectangle.
             if let sel = dragSelection {
               let top = min(sel.startY, sel.currentY)
               let height = max(8, abs(sel.currentY - sel.startY))
@@ -180,7 +187,11 @@ struct DayView: View {
   }
 
   private func allDayRow(_ ev: CalendarEvent) -> some View {
-    HStack(spacing: 6) {
+    let cal = Calendar.current
+    let isPast = cal.startOfDay(for: ev.endDate.addingTimeInterval(-1))
+      < cal.startOfDay(for: Date())
+
+    return HStack(spacing: 6) {
       Rectangle().fill(ev.color).frame(width: 3, height: 14)
       Text(ev.title).font(.caption).lineLimit(1)
       Spacer(minLength: 0)
@@ -189,6 +200,7 @@ struct DayView: View {
     .padding(.vertical, 2)
     .background(ev.color.opacity(0.15))
     .clipShape(.rect(cornerRadius: 4))
+    .opacity(isPast ? 0.55 : 1.0)
     .contentShape(Rectangle())
     .onTapGesture { selectedEvent = ev }
     .contextMenu {
@@ -225,8 +237,11 @@ struct DayView: View {
     let xOffset = CGFloat(info.lane) * columnWidth
     let barWidth = max(0, columnWidth - 2)  // 2pt gap between adjacent columns
 
+    let isPast = ev.endDate < Date()
+
     return EventBar(event: ev, measuredHeight: height, onTap: { selectedEvent = ev })
       .frame(width: barWidth, height: height, alignment: .topLeading)
+      .opacity(isPast ? 0.55 : 1.0)
       .offset(x: xOffset, y: yOffset)
       .contextMenu {
         AtollEventContextMenu(
@@ -347,11 +362,13 @@ struct DayView: View {
 
     var combined: [CalendarEvent] = []
 
-    let sysIds = enabledCalendarIds()
-    let sysEvents = calendarStore.events(in: range, calendarIds: sysIds.isEmpty ? nil : sysIds)
-    combined.append(contentsOf: sysEvents.map { .system($0) })
+    if sourceFilter.includesSystem {
+      let sysIds = enabledCalendarIds()
+      let sysEvents = calendarStore.events(in: range, calendarIds: sysIds.isEmpty ? nil : sysIds)
+      combined.append(contentsOf: sysEvents.map { .system($0) })
+    }
 
-    if atollEnabled, case .signedIn(let user) = auth.status {
+    if sourceFilter.includesATOLL, atollEnabled, case .signedIn(let user) = auth.status {
       let instructorId = user.legacyInstructorId
       let extendedRange = DateInterval(
         start: cal.date(byAdding: .month, value: -1, to: range.start) ?? range.start,

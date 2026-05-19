@@ -18,6 +18,7 @@ struct WeekView: View {
 
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
+  @AppStorage("calendarSourceFilter") private var sourceFilter: CalendarSourceFilter = .all
 
   @Environment(\.openURL) private var openURL
 
@@ -198,8 +199,11 @@ struct WeekView: View {
     let height = durationMinutes / 60.0 * Double(hourHeight)
     let style: EventBar.Style = isCompact ? .colorOnly : .auto
 
+    let isPast = ev.endDate < Date()
+
     return EventBar(event: ev, measuredHeight: height, style: style, onTap: { selectedEvent = ev })
       .frame(maxWidth: .infinity, minHeight: height, maxHeight: height, alignment: .topLeading)
+      .opacity(isPast ? 0.55 : 1.0)
       .offset(y: yOffset)
       .padding(.horizontal, 2)
       .contextMenu {
@@ -362,14 +366,16 @@ struct WeekView: View {
 
     var byDay: [Date: [CalendarEvent]] = [:]
 
-    let sysIds = enabledCalendarIds()
-    let sysEvents = calendarStore.events(in: range, calendarIds: sysIds.isEmpty ? nil : sysIds)
-    for ek in sysEvents {
-      let dayStart = cal.startOfDay(for: ek.startDate)
-      byDay[dayStart, default: []].append(.system(ek))
+    if sourceFilter.includesSystem {
+      let sysIds = enabledCalendarIds()
+      let sysEvents = calendarStore.events(in: range, calendarIds: sysIds.isEmpty ? nil : sysIds)
+      for ek in sysEvents {
+        let dayStart = cal.startOfDay(for: ek.startDate)
+        byDay[dayStart, default: []].append(.system(ek))
+      }
     }
 
-    if atollEnabled, case .signedIn(let user) = auth.status {
+    if sourceFilter.includesATOLL, atollEnabled, case .signedIn(let user) = auth.status {
       let instructorId = user.legacyInstructorId
       let extendedRange = DateInterval(
         start: cal.date(byAdding: .month, value: -1, to: weekStart) ?? weekStart,

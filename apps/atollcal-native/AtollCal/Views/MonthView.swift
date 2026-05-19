@@ -19,6 +19,7 @@ struct MonthView: View {
   @Environment(\.locale) var locale
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
+  @AppStorage("calendarSourceFilter") private var sourceFilter: CalendarSourceFilter = .all
 
   @Environment(\.openURL) private var openURL
 
@@ -169,6 +170,7 @@ struct MonthView: View {
     let cal = Calendar.current
     let isCurrentMonth = cal.isDate(day, equalTo: anchor, toGranularity: .month)
     let isToday = cal.isDateInToday(day)
+    let isPast = cal.startOfDay(for: day) < cal.startOfDay(for: Date())
     let weekday = cal.component(.weekday, from: day)
     let isWeekend = weekday == 1 || weekday == 7
 
@@ -233,6 +235,7 @@ struct MonthView: View {
     .frame(maxWidth: .infinity, minHeight: CellMetrics.minCellHeight, alignment: .topLeading)
     .background(isToday ? Color.accentColor.opacity(0.08) : Color.clear)
     .overlay(Rectangle().strokeBorder(Color.secondary.opacity(0.1), lineWidth: 0.5))
+    .opacity(isPast && !isToday ? 0.65 : 1.0)
     .contentShape(Rectangle())
     .onTapGesture { onDayTap(day) }
   }
@@ -294,14 +297,16 @@ struct MonthView: View {
 
     var byDay: [Date: [CalendarEvent]] = [:]
 
-    let sysIds = enabledCalendarIds()
-    let sysEvents = calendarStore.events(in: range, calendarIds: sysIds.isEmpty ? nil : sysIds)
-    for ek in sysEvents {
-      let dayStart = cal.startOfDay(for: ek.startDate)
-      byDay[dayStart, default: []].append(.system(ek))
+    if sourceFilter.includesSystem {
+      let sysIds = enabledCalendarIds()
+      let sysEvents = calendarStore.events(in: range, calendarIds: sysIds.isEmpty ? nil : sysIds)
+      for ek in sysEvents {
+        let dayStart = cal.startOfDay(for: ek.startDate)
+        byDay[dayStart, default: []].append(.system(ek))
+      }
     }
 
-    if atollEnabled, case .signedIn(let user) = auth.status {
+    if sourceFilter.includesATOLL, atollEnabled, case .signedIn(let user) = auth.status {
       let instructorId = user.legacyInstructorId
       let extendedRange = DateInterval(
         start: cal.date(byAdding: .month, value: -1, to: rangeStart) ?? rangeStart,

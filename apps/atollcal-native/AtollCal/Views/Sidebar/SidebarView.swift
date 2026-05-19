@@ -1,4 +1,5 @@
 import SwiftUI
+import EventKit
 import AtollCore
 import AtollDesign
 
@@ -32,6 +33,7 @@ struct SidebarView: View {
 
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
+  @AppStorage("calendarSourceFilter") private var sourceFilter: CalendarSourceFilter = .all
 
   /// Month displayed in the mini-calendar header. Driven by `focusedDate`
   /// changes (synced) but can also be advanced via chevrons; chevrons set
@@ -143,7 +145,7 @@ struct SidebarView: View {
     // start_date in the past month but additional course_dates within the
     // agenda window would otherwise be filtered out by the Supabase query
     // (which checks courses.start_date against the requested range).
-    if atollEnabled, case .signedIn(let user) = auth.status {
+    if sourceFilter.includesATOLL, atollEnabled, case .signedIn(let user) = auth.status {
       let extendedRange = DateInterval(
         start: cal.date(byAdding: .month, value: -1, to: start) ?? start,
         end:   cal.date(byAdding: .month, value:  1, to: end)   ?? end
@@ -152,10 +154,9 @@ struct SidebarView: View {
     }
 
     let sysIds = enabledCalendarIds()
-    let sysEvents = calendarStore.events(
-      in: range,
-      calendarIds: sysIds.isEmpty ? nil : sysIds
-    )
+    let sysEvents: [EKEvent] = sourceFilter.includesSystem
+      ? calendarStore.events(in: range, calendarIds: sysIds.isEmpty ? nil : sysIds)
+      : []
 
     var allDayByDay: [Date: [CalendarEvent]] = [:]
     var timedByDay: [Date: [CalendarEvent]] = [:]
@@ -178,7 +179,7 @@ struct SidebarView: View {
       }
     }
 
-    if atollEnabled {
+    if sourceFilter.includesATOLL, atollEnabled {
       for assignment in atollLoader.assignments {
         for ev in CalendarEvent.expandATOLL(assignment, in: range) {
           let key = cal.startOfDay(for: ev.startDate)
@@ -224,17 +225,16 @@ struct SidebarView: View {
     let range = DateInterval(start: windowStart, end: windowEnd)
 
     let sysIds = enabledCalendarIds()
-    let sysEvents = calendarStore.events(
-      in: range,
-      calendarIds: sysIds.isEmpty ? nil : sysIds
-    )
+    let sysEvents: [EKEvent] = sourceFilter.includesSystem
+      ? calendarStore.events(in: range, calendarIds: sysIds.isEmpty ? nil : sysIds)
+      : []
 
     var counts: [Date: Int] = [:]
     for ek in sysEvents {
       let key = cal.startOfDay(for: ek.startDate)
       counts[key, default: 0] += 1
     }
-    if atollEnabled {
+    if sourceFilter.includesATOLL, atollEnabled {
       for assignment in atollLoader.assignments {
         for ev in CalendarEvent.expandATOLL(assignment, in: range) {
           let key = cal.startOfDay(for: ev.startDate)

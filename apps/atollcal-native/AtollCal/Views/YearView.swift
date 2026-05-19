@@ -1,4 +1,5 @@
 import SwiftUI
+import EventKit
 import AtollCore
 
 /// Full-year overview: 4 × 3 grid of compact month previews. Tap a month
@@ -17,6 +18,7 @@ struct YearView: View {
 
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
+  @AppStorage("calendarSourceFilter") private var sourceFilter: CalendarSourceFilter = .all
 
   @State private var eventCountByDay: [Date: Int] = [:]
 
@@ -80,21 +82,20 @@ struct YearView: View {
     else { return }
     let range = DateInterval(start: rangeStart, end: rangeEnd)
 
-    if atollEnabled, case .signedIn(let user) = auth.status {
+    if sourceFilter.includesATOLL, atollEnabled, case .signedIn(let user) = auth.status {
       await atollLoader.reload(for: user.legacyInstructorId, range: range)
     }
 
     var counts: [Date: Int] = [:]
     let sysIds = enabledCalendarIds()
-    let sysEvents = calendarStore.events(
-      in: range,
-      calendarIds: sysIds.isEmpty ? nil : sysIds
-    )
+    let sysEvents: [EKEvent] = sourceFilter.includesSystem
+      ? calendarStore.events(in: range, calendarIds: sysIds.isEmpty ? nil : sysIds)
+      : []
     for ek in sysEvents {
       let key = cal.startOfDay(for: ek.startDate)
       counts[key, default: 0] += 1
     }
-    if atollEnabled {
+    if sourceFilter.includesATOLL, atollEnabled {
       for assignment in atollLoader.assignments {
         for ev in CalendarEvent.expandATOLL(assignment, in: range) {
           let key = cal.startOfDay(for: ev.startDate)
