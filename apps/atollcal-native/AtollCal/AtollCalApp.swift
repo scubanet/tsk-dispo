@@ -10,6 +10,7 @@ struct AtollCalApp: App {
   @State private var localeStore: LocaleStore
   @State private var calendarStore: SystemCalendarStore
   @State private var atollLoader: AtollEventLoader
+  @State private var toastCenter: ToastCenter
 
   init() {
     // MUSS vor State(initialValue: AuthState()) laufen — AuthState.init() greift sofort
@@ -19,6 +20,7 @@ struct AtollCalApp: App {
     _localeStore = State(initialValue: LocaleStore())
     _calendarStore = State(initialValue: SystemCalendarStore())
     _atollLoader = State(initialValue: AtollEventLoader())
+    _toastCenter = State(initialValue: ToastCenter())
   }
 
   var body: some Scene {
@@ -28,7 +30,9 @@ struct AtollCalApp: App {
         .environment(localeStore)
         .environment(calendarStore)
         .environment(atollLoader)
+        .environment(toastCenter)
         .environment(\.locale, localeStore.locale)
+        .toastBanner(from: toastCenter)
         .onOpenURL { url in
           guard url.scheme == "atollcal" else { return }
           Task { try? await auth.handleAuthCallback(url: url) }

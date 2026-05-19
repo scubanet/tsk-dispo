@@ -23,6 +23,7 @@ struct MonthView: View {
 
   @Environment(\.openURL) private var openURL
   @Environment(\.undoManager) private var undoManager
+  @Environment(ToastCenter.self) private var toastCenter
 
   @State private var eventsByDay: [Date: [CalendarEvent]] = [:]
   @State private var selectedEvent: CalendarEvent?
@@ -268,6 +269,7 @@ struct MonthView: View {
       try calendarStore.reschedule(ek, to: newStart, undoManager: undoManager)
       return true
     } catch {
+      toastCenter.show("Termin verschieben fehlgeschlagen: \(error.localizedDescription)")
       return false
     }
   }
