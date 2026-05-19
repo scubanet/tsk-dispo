@@ -91,6 +91,9 @@ struct CalendarRescheduleDropDelegate: DropDelegate {
   /// Day this drop zone represents (used to disambiguate which column in a
   /// multi-column view should render the live hint).
   let dayStart: Date
+  /// Returns true if the drop at the given local y would land in the past.
+  /// Used to drive the `.forbidden` drop operation (system "no-drop" cursor).
+  let isPastDrop: (CGFloat) -> Bool
   let onPerform: @MainActor (SystemEventDragPayload, CGFloat) -> Bool
 
   func validateDrop(info: DropInfo) -> Bool {
@@ -105,7 +108,7 @@ struct CalendarRescheduleDropDelegate: DropDelegate {
   func dropUpdated(info: DropInfo) -> DropProposal? {
     state.hoverY = info.location.y
     state.activeDayStart = dayStart
-    return DropProposal(operation: .move)
+    return DropProposal(operation: isPastDrop(info.location.y) ? .forbidden : .move)
   }
 
   func dropExited(info: DropInfo) {

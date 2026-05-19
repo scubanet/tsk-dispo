@@ -214,6 +214,9 @@ struct WeekView: View {
     .onDrop(of: [.atollSystemEvent], delegate: CalendarRescheduleDropDelegate(
       state: dropState,
       dayStart: dayStart,
+      isPastDrop: { y in
+        snappedDropDate(from: y, dayStart: dayStart) < Date()
+      },
       onPerform: { payload, y in
         handleEventDrop(payload: payload, dayStart: dayStart, locationY: y)
       }
@@ -222,11 +225,11 @@ struct WeekView: View {
 
   @ViewBuilder
   private func dropTimeHint(at hoverY: CGFloat, dayStart: Date) -> some View {
-    let rawMin = max(0, Int((Double(hoverY) / Double(hourHeight)) * 60))
-    let snapped = (rawMin / dragSnapMinutes) * dragSnapMinutes
+    let snapped = snappedDropMinutes(from: hoverY)
     let snappedY = CGFloat(snapped) / 60 * hourHeight
-    let cal = Calendar.current
-    let snappedDate = cal.date(byAdding: .minute, value: snapped, to: dayStart) ?? dayStart
+    let snappedDate = snappedDropDate(from: hoverY, dayStart: dayStart)
+    let isPast = snappedDate < Date()
+    let tint: Color = isPast ? .red : .accentColor
 
     HStack(spacing: 4) {
       Text(Self.hintTimeFormatter.string(from: snappedDate))
@@ -235,12 +238,21 @@ struct WeekView: View {
         .foregroundStyle(.white)
         .padding(.horizontal, 5)
         .padding(.vertical, 1)
-        .background(Color.accentColor)
+        .background(tint)
         .clipShape(.rect(cornerRadius: 3))
-      Rectangle().fill(Color.accentColor).frame(height: 1)
+      Rectangle().fill(tint).frame(height: 1)
     }
     .offset(y: snappedY)
     .allowsHitTesting(false)
+  }
+
+  private func snappedDropMinutes(from hoverY: CGFloat) -> Int {
+    let rawMin = max(0, Int((Double(hoverY) / Double(hourHeight)) * 60))
+    return (rawMin / dragSnapMinutes) * dragSnapMinutes
+  }
+
+  private func snappedDropDate(from hoverY: CGFloat, dayStart: Date) -> Date {
+    Calendar.current.date(byAdding: .minute, value: snappedDropMinutes(from: hoverY), to: dayStart) ?? dayStart
   }
 
   private static let hintTimeFormatter: DateFormatter = {
@@ -288,10 +300,8 @@ struct WeekView: View {
   /// EKEvent there. Duration is preserved.
   private func handleEventDrop(payload: SystemEventDragPayload, dayStart: Date, locationY: CGFloat) -> Bool {
     guard let ek = calendarStore.event(withIdentifier: payload.eventIdentifier) else { return false }
-    let cal = Calendar.current
-    let rawMin = max(0, Int((Double(locationY) / Double(hourHeight)) * 60))
-    let snapped = (rawMin / dragSnapMinutes) * dragSnapMinutes
-    guard let newStart = cal.date(byAdding: .minute, value: snapped, to: dayStart) else { return false }
+    let newStart = snappedDropDate(from: locationY, dayStart: dayStart)
+    guard newStart >= Date() else { return false }
     do {
       try calendarStore.reschedule(ek, to: newStart)
       return true

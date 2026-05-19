@@ -256,6 +256,9 @@ struct MonthView: View {
           let ek = calendarStore.event(withIdentifier: payload.eventIdentifier)
     else { return false }
     let cal = Calendar.current
+    // Reject drops onto past days (today is allowed even if some hours are
+    // already in the past — the time-of-day is preserved).
+    guard cal.startOfDay(for: day) >= cal.startOfDay(for: Date()) else { return false }
     let timeComps = cal.dateComponents([.hour, .minute], from: ek.startDate)
     let dayStart = cal.startOfDay(for: day)
     let minuteOffset = (timeComps.hour ?? 0) * 60 + (timeComps.minute ?? 0)
