@@ -9,8 +9,23 @@ struct SettingsView: View {
 
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
+  @AppStorage("secondaryTimeZoneID") private var secondaryTimeZoneID: String = ""
 
   @State private var enabledIds: Set<String> = []
+
+  /// Curated list of secondary time-zone options. The empty string disables
+  /// the overlay; other entries are valid `TimeZone(identifier:)` strings.
+  private let secondaryTimeZoneOptions: [(id: String, label: String)] = [
+    ("", "Keine"),
+    ("Asia/Manila", "Manila (Philippinen)"),
+    ("Asia/Bangkok", "Bangkok / Indonesien"),
+    ("Asia/Dubai", "Dubai"),
+    ("America/New_York", "New York"),
+    ("America/Los_Angeles", "Los Angeles"),
+    ("Australia/Sydney", "Sydney"),
+    ("Pacific/Auckland", "Auckland"),
+    ("UTC", "UTC"),
+  ]
 
   var body: some View {
     NavigationStack {
@@ -64,6 +79,25 @@ struct SettingsView: View {
           }
         }
 
+        Section("Zweite Zeitzone") {
+          Picker("Anzeige in Day/Week-View", selection: $secondaryTimeZoneID) {
+            ForEach(secondaryTimeZoneOptions, id: \.id) { opt in
+              Text(opt.label).tag(opt.id)
+            }
+          }
+          if !secondaryTimeZoneID.isEmpty,
+             let tz = TimeZone(identifier: secondaryTimeZoneID) {
+            HStack {
+              Text("Aktuell")
+              Spacer()
+              Text(currentTimeIn(tz))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .monospacedDigit()
+            }
+          }
+        }
+
         Section("Über") {
           HStack {
             Text("AtollCal")
@@ -107,5 +141,13 @@ struct SettingsView: View {
        let str = String(data: data, encoding: .utf8) {
       enabledCalendarIdsJSON = str
     }
+  }
+
+  /// Current wall-clock time in the given timezone, formatted as "HH:mm".
+  private func currentTimeIn(_ tz: TimeZone) -> String {
+    let f = DateFormatter()
+    f.timeZone = tz
+    f.dateFormat = "HH:mm"
+    return f.string(from: Date())
   }
 }

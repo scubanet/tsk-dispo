@@ -19,6 +19,14 @@ struct WeekView: View {
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
   @AppStorage("calendarSourceFilter") private var sourceFilter: CalendarSourceFilter = .all
+  @AppStorage("secondaryTimeZoneID") private var secondaryTimeZoneID: String = ""
+
+  /// Resolved secondary timezone from the persisted identifier, or `nil`
+  /// when none is configured.
+  private var secondaryTimeZone: TimeZone? {
+    guard !secondaryTimeZoneID.isEmpty else { return nil }
+    return TimeZone(identifier: secondaryTimeZoneID)
+  }
 
   @Environment(\.openURL) private var openURL
 
@@ -33,16 +41,23 @@ struct WeekView: View {
   var body: some View {
     GeometryReader { geo in
       let days = daysOfWeek
-      let columnWidth = max(0, (geo.size.width - TimeGridConstants.labelWidth - TimeGridConstants.gutter) / 7)
+      // Label area widens when the secondary-TZ column is enabled — keep the
+      // day-column-width calculation in sync with TimeAxisGrid's layout.
+      let labelArea = TimeAxisGrid<EmptyView>.totalLabelWidth(
+        hourLabelWidth: TimeGridConstants.labelWidth,
+        secondaryTimeZone: secondaryTimeZone
+      )
+      let columnWidth = max(0, (geo.size.width - labelArea - TimeGridConstants.gutter) / 7)
       let isCompact = columnWidth < compactColumnThreshold
 
       VStack(spacing: 0) {
-        dayHeader(days: days, isCompact: isCompact, columnWidth: columnWidth)
+        dayHeader(days: days, isCompact: isCompact, columnWidth: columnWidth, labelArea: labelArea)
 
-        allDayZone(days: days, columnWidth: columnWidth)
+        allDayZone(days: days, columnWidth: columnWidth, labelArea: labelArea)
 
         TimeAxisGrid(hourHeight: hourHeight,
                      hourLabelWidth: TimeGridConstants.labelWidth,
+                     secondaryTimeZone: secondaryTimeZone,
                      scrolledHour: $scrolledHour) {
           GlassEffectContainer(spacing: 4) {
             HStack(spacing: 0) {
@@ -82,9 +97,9 @@ struct WeekView: View {
 
   // MARK: - Header row
 
-  private func dayHeader(days: [Date], isCompact: Bool, columnWidth: CGFloat) -> some View {
+  private func dayHeader(days: [Date], isCompact: Bool, columnWidth: CGFloat, labelArea: CGFloat) -> some View {
     HStack(spacing: 0) {
-      Spacer().frame(width: TimeGridConstants.labelWidth + TimeGridConstants.gutter)
+      Spacer().frame(width: labelArea + TimeGridConstants.gutter)
       ForEach(days, id: \.self) { day in
         VStack(spacing: 2) {
           Text(weekdayLabel(day))
@@ -112,7 +127,7 @@ struct WeekView: View {
   // MARK: - All-day zone (multi-day spans)
 
   @ViewBuilder
-  private func allDayZone(days: [Date], columnWidth: CGFloat) -> some View {
+  private func allDayZone(days: [Date], columnWidth: CGFloat, labelArea: CGFloat) -> some View {
     let spans = allDaySpans(in: days)
     let lanes = (spans.map(\.lane).max() ?? -1) + 1
     let rowHeight: CGFloat = 18
@@ -123,7 +138,7 @@ struct WeekView: View {
         Color.clear
         ForEach(spans) { span in
           let yOffset = CGFloat(span.lane) * rowHeight + 4
-          let xOffset = CGFloat(span.startDayInWeek) * columnWidth + TimeGridConstants.labelWidth + TimeGridConstants.gutter + 2
+          let xOffset = CGFloat(span.startDayInWeek) * columnWidth + labelArea + TimeGridConstants.gutter + 2
           let width = max(0, CGFloat(span.lengthInWeek) * columnWidth - 4)
 
           HStack(spacing: 4) {

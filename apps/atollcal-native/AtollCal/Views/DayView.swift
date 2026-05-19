@@ -20,6 +20,14 @@ struct DayView: View {
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
   @AppStorage("calendarSourceFilter") private var sourceFilter: CalendarSourceFilter = .all
+  @AppStorage("secondaryTimeZoneID") private var secondaryTimeZoneID: String = ""
+
+  /// Resolved secondary timezone from the persisted identifier, or `nil`
+  /// when none is configured.
+  private var secondaryTimeZone: TimeZone? {
+    guard !secondaryTimeZoneID.isEmpty else { return nil }
+    return TimeZone(identifier: secondaryTimeZoneID)
+  }
 
   @Environment(\.openURL) private var openURL
 
@@ -55,6 +63,7 @@ struct DayView: View {
       allDayZone
 
       TimeAxisGrid(hourHeight: hourHeight,
+                   secondaryTimeZone: secondaryTimeZone,
                    scrolledHour: $scrolledHour) {
         GeometryReader { geo in
           let layout = layoutTimedEvents(timedEvents)
