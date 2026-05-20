@@ -1,0 +1,111 @@
+# ===== ATOLL Web — Infomaniak Apache config =====
+# Owner: Mack · Security review: Vex · Updated: 2026-05-20
+#
+# This file is shipped via the Vite build (lives in apps/web/public/ and gets
+# copied to apps/web/dist/.htaccess on `npm run build`). The CI rsync pushes
+# it to the Infomaniak document root on every deploy.
+#
+# Two Infomaniak-default sections are preserved verbatim at the bottom:
+# the full DEFLATE filter list and the git-protection rule.
+
+# ─────────────────────────────────────────────────────────────────────
+# 1) Force HTTPS — every plain-HTTP request gets a 301 redirect to https://
+# ─────────────────────────────────────────────────────────────────────
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # ─── 2) SPA fallback ─────────────────────────────────────────────
+  # Every path that is NOT an existing file or directory falls back to
+  # index.html so React Router can render the requested route.
+  # Without this, a direct visit to https://tsk.atoll-os.com/kurse/123
+  # would return 404.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# ─────────────────────────────────────────────────────────────────────
+# 3) Security headers
+# ─────────────────────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+  # HSTS — once stable for 2+ weeks, append `; preload` and submit to
+  # https://hstspreload.org/. Two-year max-age, applies to subdomains.
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"
+
+  # Content-Security-Policy — pinned to self + Supabase.
+  # If new external integrations appear, widen accordingly.
+  Header always set Content-Security-Policy "default-src 'self'; \
+    connect-src 'self' https://*.supabase.co wss://*.supabase.co; \
+    img-src 'self' data: blob: https:; \
+    style-src 'self' 'unsafe-inline'; \
+    script-src 'self'; \
+    font-src 'self' data:; \
+    frame-ancestors 'none'; \
+    base-uri 'self'; \
+    form-action 'self'; \
+    manifest-src 'self'; \
+    worker-src 'self' blob:"
+
+  # Clickjacking + sniffing
+  Header always set X-Frame-Options "DENY"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Browser feature isolation
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=(), payment=()"
+</IfModule>
+
+# ─────────────────────────────────────────────────────────────────────
+# 4) Cache control
+# ─────────────────────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+  # Hashed static assets (Vite writes `name.<hash>.js` etc) are immutable.
+  <FilesMatch "\.(js|mjs|css|woff2|woff|svg|png|jpg|jpeg|gif|webp|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # index.html must NEVER cache — it's how users discover new asset URLs
+  # after a deploy. Caching it = users stuck on stale builds.
+  <FilesMatch "^index\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  # PWA manifest — short cache so install-card updates propagate.
+  <FilesMatch "manifest\.webmanifest$">
+    Header set Cache-Control "public, max-age=300"
+  </FilesMatch>
+</IfModule>
+
+# ─────────────────────────────────────────────────────────────────────
+# 5) MIME types
+# ─────────────────────────────────────────────────────────────────────
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+  AddType font/woff2 .woff2
+</IfModule>
+
+# ─────────────────────────────────────────────────────────────────────
+# 6) Block dotfiles + sensitive paths
+# ─────────────────────────────────────────────────────────────────────
+<FilesMatch "(^\.|/\.).*">
+  Require all denied
+</FilesMatch>
+# Explicit exceptions: .htaccess (Apache reads internally) and well-known.
+<Files ".well-known">
+  Require all granted
+</Files>
+
+# ─────────────────────────────────────────────────────────────────────
+# 7) Infomaniak defaults preserved verbatim (gzip + git protection)
+# ─────────────────────────────────────────────────────────────────────
+SetOutputFilter DEFLATE
+AddOutputFilterByType DEFLATE "application/atom+xml" "application/javascript" "application/json" "application/ld+json" "application/manifest+json" "application/rdf+xml" "application/rss+xml" "application/schema+json" "application/vnd.geo+json" "application/vnd.ms-fontobject" "application/x-font-ttf" "application/x-javascript" "application/x-web-app-manifest+json" "application/xhtml+xml" "application/xml" "font/eot" "font/opentype" "image/bmp" "image/svg+xml" "image/vnd.microsoft.icon" "image/x-icon" "text/cache-manifest" "text/css" "text/html" "text/javascript" "text/plain" "text/vcard" "text/vnd.rim.location.xloc" "text/vtt" "text/x-component" "text/x-cross-domain-policy" "text/xml"
+
+# SECTION BEGIN GIT PROTECTION
+RedirectMatch 404 /\.git
+# SECTION END GIT PROTECTION

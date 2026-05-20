@@ -1,0 +1,88 @@
+name: Deploy ATOLL Web → tsk.atoll-os.com
+
+# Runs on every push to main that touches apps/web/** (or this workflow file).
+# Also manually triggerable via the Actions tab.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - '.github/workflows/deploy-tsk-web.yml'
+  workflow_dispatch:
+
+# Only one deploy at a time — newer pushes cancel in-flight older ones.
+concurrency:
+  group: deploy-tsk-web
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Build & deploy to Infomaniak
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: apps/web
+        run: npm run typecheck
+
+      - name: Run unit tests
+        working-directory: apps/web
+        run: npm test
+
+      - name: Build production bundle
+        working-directory: apps/web
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: npm run build
+
+      - name: Setup SSH agent with Infomaniak key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.INFOMANIAK_SSH_KEY }}
+
+      - name: Pin host key (avoid interactive prompt)
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.INFOMANIAK_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Rsync dist/ to Infomaniak document root
+        working-directory: apps/web
+        run: |
+          rsync -avz --delete \
+            --exclude='.infomaniak-maintenance.html' \
+            --exclude='.user.ini' \
+            dist/ \
+            ${{ secrets.INFOMANIAK_USER }}@${{ secrets.INFOMANIAK_HOST }}:${{ secrets.INFOMANIAK_PATH }}
+
+      - name: Smoke test — live site responds
+        run: |
+          set -e
+          STATUS_ROOT=$(curl -fsSL -o /dev/null -w "%{http_code}" https://tsk.atoll-os.com/)
+          STATUS_DEEP=$(curl -fsSL -o /dev/null -w "%{http_code}" https://tsk.atoll-os.com/kurse)
+          echo "Root: $STATUS_ROOT  ·  Deep link: $STATUS_DEEP"
+          # Both should be 200 — deep link relies on SPA fallback in .htaccess
+          test "$STATUS_ROOT" = "200"
+          test "$STATUS_DEEP" = "200"
+
+      - name: Verify security headers landed
+        run: |
+          echo "── Security headers on production ──"
+          curl -fsSI https://tsk.atoll-os.com/ | grep -iE "strict-transport|content-security|x-frame|x-content-type|referrer-policy|permissions-policy" || \
+            (echo "::warning::Security headers not detected — verify .htaccess deployed correctly" && exit 0)
