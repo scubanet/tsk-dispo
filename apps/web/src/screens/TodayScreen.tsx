@@ -16,7 +16,7 @@
  * Dispatcher/CD see the full dashboard. Instructors see their personal view.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { addDays, isSameDay, isWithinInterval, startOfDay } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext } from 'react-router-dom'
@@ -35,15 +35,12 @@ import {
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { tplDailyDigest, waGroupShareUrl } from '@/lib/whatsapp'
 import {
-  fetchCoursesInRange,
-  fetchAssignmentsForCourses,
-  fetchKpis,
-  fetchMyAssignments,
   type CourseRow as CourseRowData,
-  type AssignmentRow,
-  type Kpis,
-  type MyAssignment,
 } from '@/lib/queries'
+import { useCoursesInRange } from '@/hooks/useCoursesInRange'
+import { useAssignmentsForCourses } from '@/hooks/useAssignmentsForCourses'
+import { useKpis } from '@/hooks/useKpis'
+import { useMyAssignments } from '@/hooks/useMyAssignments'
 import type { OutletCtx } from '@/layout/AppShell'
 import type { CourseType } from '@/types/foundation'
 
@@ -84,26 +81,18 @@ function courseDates(c: CourseRowData): Date[] {
 function DispatcherToday() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const [kpis, setKpis] = useState<Kpis | null>(null)
-  const [candidates, setCandidates] = useState<CourseRowData[]>([])
-  const [assignments, setAssignments] = useState<AssignmentRow[]>([])
 
-  useEffect(() => {
-    const startStr = toISODate(startOfDay(new Date()))
-    const weekEnd = toISODate(addDays(new Date(), 7))
-    Promise.all([fetchKpis(), fetchCoursesInRange(startStr, weekEnd)]).then(
-      async ([k, all]) => {
-        setKpis(k)
-        setCandidates(all)
-        const ids = all.map((c) => c.id)
-        const a = await fetchAssignmentsForCourses(ids)
-        setAssignments(a)
-      },
-    )
-  }, [])
-
+  // Today + 7 days is recomputed each render — cheap, and `useCoursesInRange`
+  // de-dupes any extra calls within the 30 s staleTime window.
   const todayDate = startOfDay(new Date())
   const weekEndDate = addDays(todayDate, 7)
+  const startStr = toISODate(todayDate)
+  const weekEnd = toISODate(weekEndDate)
+
+  const { data: kpis } = useKpis()
+  const { data: candidates = [] } = useCoursesInRange(startStr, weekEnd)
+  const courseIds = useMemo(() => candidates.map((c) => c.id), [candidates])
+  const { data: assignments = [] } = useAssignmentsForCourses(courseIds)
 
   const today = useMemo(
     () =>
@@ -282,12 +271,7 @@ function InstructorToday() {
   const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
-  const [mine, setMine] = useState<MyAssignment[]>([])
-
-  useEffect(() => {
-    if (!user.instructorId) return
-    fetchMyAssignments(user.instructorId).then(setMine)
-  }, [user.instructorId])
+  const { data: mine = [] } = useMyAssignments(user.instructorId)
 
   const todayDate = startOfDay(new Date())
   const todays = mine.filter(
