@@ -16,8 +16,9 @@
  * tokens (red / amber).
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   addDays,
   addMonths,
@@ -44,7 +45,9 @@ import {
   toISODate,
 } from '@/foundation'
 import type { CourseType } from '@/types/foundation'
-import { fetchCoursesInRange, fetchAssignmentsForCourses, type CourseRow } from '@/lib/queries'
+import { type CourseRow } from '@/lib/queries'
+import { useCoursesInRange } from '@/hooks/useCoursesInRange'
+import { useAssignmentsForCourses } from '@/hooks/useAssignmentsForCourses'
 import { CourseEditSheet } from './CourseEditSheet'
 import type { OutletCtx } from '@/layout/AppShell'
 
@@ -127,12 +130,10 @@ export function CalendarScreen() {
   const { user } = useOutletContext<OutletCtx>()
   const isDispatcher =
     user.role === 'dispatcher' || user.role === 'cd' || user.role === 'owner'
+  const qc = useQueryClient()
   const [mode, setMode] = useState<Mode>('month')
   const [anchor, setAnchor] = useState<Date>(new Date())
-  const [courses, setCourses] = useState<CourseRow[]>([])
-  const [hauptByCourse, setHauptByCourse] = useState<Set<string>>(new Set())
   const [editOpen, setEditOpen] = useState(false)
-  const [refreshTick, setRefreshTick] = useState(0)
 
   const range = useMemo(() => {
     if (mode === 'week') {
@@ -143,17 +144,16 @@ export function CalendarScreen() {
     return { start: startOfMonth(anchor), end: endOfMonth(anchor) }
   }, [anchor, mode])
 
-  useEffect(() => {
-    fetchCoursesInRange(toISODate(range.start), toISODate(range.end)).then(async (cs) => {
-      setCourses(cs)
-      const ids = cs.map((c) => c.id)
-      const assignments = await fetchAssignmentsForCourses(ids)
-      const withHaupt = new Set(
-        assignments.filter((a) => a.role === 'haupt').map((a) => a.course_id),
-      )
-      setHauptByCourse(withHaupt)
-    })
-  }, [range, refreshTick])
+  const { data: courses = [] } = useCoursesInRange(
+    toISODate(range.start),
+    toISODate(range.end),
+  )
+  const courseIds = useMemo(() => courses.map((c) => c.id), [courses])
+  const { data: assignments = [] } = useAssignmentsForCourses(courseIds)
+  const hauptByCourse = useMemo(
+    () => new Set(assignments.filter((a) => a.role === 'haupt').map((a) => a.course_id)),
+    [assignments],
+  )
 
   function prev() {
     setAnchor((d) => (mode === 'week' ? subWeeks(d, 1) : subMonths(d, 1)))
@@ -208,7 +208,12 @@ export function CalendarScreen() {
       <CourseEditSheet
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        onSaved={() => setRefreshTick((tick) => tick + 1)}
+        onSaved={() => {
+          // Invalidate both groups — the new/edited course may have
+          // changed dates (→ range query) and/or assignments.
+          qc.invalidateQueries({ queryKey: ['courses'] })
+          qc.invalidateQueries({ queryKey: ['assignments'] })
+        }}
         courseId={null}
       />
 
