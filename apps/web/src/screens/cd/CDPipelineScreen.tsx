@@ -8,7 +8,7 @@
  *   └────────────────────────────────────────────────────────────────────────┘
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -18,7 +18,7 @@ import {
   Pill,
   Icon,
 } from '@/foundation'
-import { listPipelineContacts } from '@/lib/contactQueries'
+import { usePipelineContacts } from '@/hooks/usePipelineContacts'
 import type { OutletCtx } from '@/layout/AppShell'
 import { ContactDetailPanel } from '../contacts/ContactDetailPanel'
 
@@ -44,36 +44,26 @@ const COL_TONE: Record<ColCode, 'neutral' | 'info' | 'warning' | 'success' | 'da
 export function CDPipelineScreen() {
   const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
-  const [rows, setRows] = useState<Row[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: raw = [], isLoading: loading } = usePipelineContacts()
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    listPipelineContacts()
-      .then((data) => {
-        if (cancelled) return
-        // Filter out null pipeline_stage rows from the type-safe Row shape
-        setRows(
-          data
-            .filter((r): r is Row => r.pipeline_stage !== null && r.stage_changed_on !== null)
-            .map((r) => ({
-              id: r.id,
-              first_name: r.first_name,
-              last_name: r.last_name,
-              pipeline_stage: r.pipeline_stage as string,
-              stage_changed_on: r.stage_changed_on as string,
-            })),
+  // Filter out null pipeline_stage rows; the kanban only renders staged contacts.
+  const rows = useMemo<Row[]>(
+    () =>
+      raw
+        .filter(
+          (r): r is Row =>
+            r.pipeline_stage !== null && r.stage_changed_on !== null,
         )
-        setLoading(false)
-      })
-      .catch((err) => {
-        if (cancelled) return
-        console.error('[cd] pipeline load failed', err)
-        setLoading(false)
-      })
-    return () => { cancelled = true }
-  }, [])
+        .map((r) => ({
+          id: r.id,
+          first_name: r.first_name,
+          last_name: r.last_name,
+          pipeline_stage: r.pipeline_stage as string,
+          stage_changed_on: r.stage_changed_on as string,
+        })),
+    [raw],
+  )
 
   const cols = useMemo(
     () =>

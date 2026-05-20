@@ -12,9 +12,10 @@
  *   └─────────────────────────────────────────────────────────┘
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   PageHeader,
   FilterTabBar,
@@ -25,29 +26,10 @@ import {
   Icon,
   dateTimeShort,
 } from '@/foundation'
-import { supabase } from '@/lib/supabase'
+import { useCommunicationEntries } from '@/hooks/useCommunicationEntries'
 import { CommunicationEditSheet, CHANNELS } from './CommunicationEditSheet'
 import { ContactDetailPanel } from '../contacts/ContactDetailPanel'
 import type { OutletCtx } from '@/layout/AppShell'
-
-interface Entry {
-  id: string
-  contact_id: string
-  channel: string
-  direction: string
-  occurred_on: string
-  subject: string | null
-  body: string | null
-  duration_minutes: number | null
-  outcome: string | null
-  contact: {
-    id: string
-    name: string
-    is_student: boolean
-    is_candidate: boolean
-  } | null
-  created_by_instructor: { id: string; name: string } | null
-}
 
 type DirFilter = 'all' | 'inbound' | 'outbound'
 
@@ -57,38 +39,19 @@ export function CommunicationHubScreen() {
   const canAccess =
     user.role === 'dispatcher' || user.role === 'cd' || user.role === 'owner'
 
-  const [rows, setRows] = useState<Entry[]>([])
-  const [loading, setLoading] = useState(true)
+  const qc = useQueryClient()
+  const { data: rows = [], isLoading: loading } = useCommunicationEntries(canAccess)
   const [search, setSearch] = useState('')
   const [channel, setChannel] = useState('')
   const [direction, setDirection] = useState<DirFilter>('all')
   const [editOpen, setEditOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
-  const [refreshTick, setRefreshTick] = useState(0)
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!canAccess) return
-    let cancelled = false
-    setLoading(true)
-    supabase
-      .from('communication_entries')
-      .select(
-        'id, contact_id, channel, direction, occurred_on, subject, body, duration_minutes, outcome, contact:people!contact_id(id, name, is_student, is_candidate), created_by_instructor:instructors!created_by(id, name)',
-      )
-      .order('occurred_on', { ascending: false })
-      .limit(500)
-      .then(({ data, error }) => {
-        if (cancelled) return
-        if (error) console.error('[comm-hub] load failed', error)
-        setRows((data ?? []) as unknown as Entry[])
-        setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [canAccess, refreshTick])
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ['communicationEntries'] })
+  }
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {
@@ -271,7 +234,7 @@ export function CommunicationHubScreen() {
       <CommunicationEditSheet
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        onSaved={() => setRefreshTick((tick) => tick + 1)}
+        onSaved={invalidate}
         entryId={editingId}
         createdById={user.instructorId}
       />
@@ -279,7 +242,7 @@ export function CommunicationHubScreen() {
       <CommunicationEditSheet
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onSaved={() => setRefreshTick((tick) => tick + 1)}
+        onSaved={invalidate}
         createdById={user.instructorId}
       />
 

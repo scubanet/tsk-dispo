@@ -226,6 +226,44 @@ export async function listPipelineContacts(): Promise<
   return mapped
 }
 
+// ────────────────────── Communication entries ─────────────────────────
+
+export interface CommunicationEntry {
+  id: string
+  contact_id: string
+  channel: string
+  direction: string
+  occurred_on: string
+  subject: string | null
+  body: string | null
+  duration_minutes: number | null
+  outcome: string | null
+  contact: {
+    id: string
+    name: string
+    is_student: boolean
+    is_candidate: boolean
+  } | null
+  created_by_instructor: { id: string; name: string } | null
+}
+
+/**
+ * Reads recent communication entries (touchpoints) with their contact and
+ * created-by instructor joined. Bounded at 500 rows — the CommunicationHub
+ * is a recency view, not an archive.
+ */
+export async function fetchCommunicationEntries(): Promise<CommunicationEntry[]> {
+  const { data, error } = await supabase
+    .from('communication_entries')
+    .select(
+      'id, contact_id, channel, direction, occurred_on, subject, body, duration_minutes, outcome, contact:people!contact_id(id, name, is_student, is_candidate), created_by_instructor:instructors!created_by(id, name)',
+    )
+    .order('occurred_on', { ascending: false })
+    .limit(500)
+  if (error) throw error
+  return (data ?? []) as unknown as CommunicationEntry[]
+}
+
 // ────────────────────── Students-Liste ────────────────────────────────
 
 /**
