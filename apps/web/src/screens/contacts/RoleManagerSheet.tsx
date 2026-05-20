@@ -6,7 +6,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Drawer } from '@/foundation/layouts/Drawer'
-import { supabase } from '@/lib/supabase'
+import { useSetContactRoles } from '@/hooks/useContactMutations'
 import type { ContactRole } from '@/types/contacts'
 
 // Role value → i18n key map
@@ -33,9 +33,10 @@ interface Props {
 
 export function RoleManagerSheet({ contactId, currentRoles, open, onClose, onSaved }: Props) {
   const { t } = useTranslation()
+  const setRoles = useSetContactRoles()
   const [draft, setDraft] = useState<ContactRole[]>(currentRoles)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const saving = setRoles.isPending
 
   function toggle(role: ContactRole, checked: boolean) {
     setDraft((prev) =>
@@ -44,54 +45,13 @@ export function RoleManagerSheet({ contactId, currentRoles, open, onClose, onSav
   }
 
   async function handleSave() {
-    setSaving(true)
     setError(null)
     try {
-      // 1. Update contacts.roles
-      const { error: rolesErr } = await supabase
-        .from('contacts')
-        .update({ roles: draft })
-        .eq('id', contactId)
-      if (rolesErr) throw rolesErr
-
-      // 2. Manage instructor sidecar
-      const hadInstructor = currentRoles.includes('instructor')
-      const wantsInstructor = draft.includes('instructor')
-      if (!hadInstructor && wantsInstructor) {
-        const { error: insErr } = await supabase
-          .from('contact_instructor')
-          .insert({ contact_id: contactId, account_balance: 0, active: true })
-        if (insErr) throw insErr
-      } else if (hadInstructor && !wantsInstructor) {
-        const { error: delErr } = await supabase
-          .from('contact_instructor')
-          .delete()
-          .eq('contact_id', contactId)
-        if (delErr) throw delErr
-      }
-
-      // 3. Manage student sidecar
-      const hadStudent = currentRoles.includes('student')
-      const wantsStudent = draft.includes('student')
-      if (!hadStudent && wantsStudent) {
-        const { error: insErr } = await supabase
-          .from('contact_student')
-          .insert({ contact_id: contactId, is_candidate: false })
-        if (insErr) throw insErr
-      } else if (hadStudent && !wantsStudent) {
-        const { error: delErr } = await supabase
-          .from('contact_student')
-          .delete()
-          .eq('contact_id', contactId)
-        if (delErr) throw delErr
-      }
-
+      await setRoles.mutateAsync({ contactId, currentRoles, newRoles: draft })
       onSaved()
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error'))
-    } finally {
-      setSaving(false)
     }
   }
 

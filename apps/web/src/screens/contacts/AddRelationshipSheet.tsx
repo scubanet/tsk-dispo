@@ -2,10 +2,11 @@
  * AddRelationshipSheet — search for a contact and add a relationship.
  */
 
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Drawer } from '@/foundation/layouts/Drawer'
-import { listContacts, addRelationship } from '@/lib/contactQueries'
+import { useContactList } from '@/hooks/useContactList'
+import { useAddRelationship } from '@/hooks/useContactMutations'
 import type { RelationshipKind, Contact } from '@/types/contacts'
 
 const KIND_OPTIONS: { value: RelationshipKind; labelKey: string }[] = [
@@ -32,31 +33,32 @@ interface Props {
 export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: Props) {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
-  const [results, setResults] = useState<Contact[]>([])
   const [selected, setSelected] = useState<Contact | null>(null)
   const [kind, setKind] = useState<RelationshipKind>('works_at')
   const [roleAtOrg, setRoleAtOrg] = useState('')
   const [isPrimary, setIsPrimary] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Search effect
-  useEffect(() => {
-    if (search.length < 2) {
-      setResults([])
-      return
-    }
-    listContacts({ searchText: search }, 0, 20).then(({ rows }) => {
-      setResults(rows.filter((c) => c.id !== fromContactId))
-    })
-  }, [search, fromContactId])
+  const addMutation = useAddRelationship()
+  const saving = addMutation.isPending
+
+  // Live search via shared useContactList hook. Gated by ≥2 chars so typing
+  // 'a' doesn't fetch the whole addressbook.
+  const { data: searchResult } = useContactList(
+    search.length >= 2 ? { searchText: search } : {},
+    0,
+    20,
+  )
+  const results = useMemo<Contact[]>(() => {
+    if (search.length < 2 || !searchResult?.rows) return []
+    return searchResult.rows.filter((c) => c.id !== fromContactId)
+  }, [searchResult, search, fromContactId])
 
   async function handleSave() {
     if (!selected) return
-    setSaving(true)
     setError(null)
     try {
-      await addRelationship({
+      await addMutation.mutateAsync({
         from_contact_id: fromContactId,
         to_contact_id: selected.id,
         kind,
@@ -67,14 +69,11 @@ export function AddRelationshipSheet({ fromContactId, open, onClose, onSaved }: 
       onSaved()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('contacts.rel_error_save'))
-    } finally {
-      setSaving(false)
     }
   }
 
   function resetState() {
     setSearch('')
-    setResults([])
     setSelected(null)
     setKind('works_at')
     setRoleAtOrg('')

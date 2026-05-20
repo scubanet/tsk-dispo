@@ -10,7 +10,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Drawer } from '@/foundation/layouts/Drawer'
-import { createContact, findPotentialDuplicates } from '@/lib/contactQueries'
+import { useCreateContact } from '@/hooks/useContactMutations'
 import type { ContactKind, ContactRole } from '@/types/contacts'
 
 interface Props {
@@ -47,10 +47,11 @@ function resetState() {
 
 export function CreateContactSheet({ open, onClose, onCreated }: Props) {
   const { t } = useTranslation()
+  const createMutation = useCreateContact()
   const [form, setForm] = useState(resetState())
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [dupWarning, setDupWarning] = useState<string | null>(null)
+  const saving = createMutation.isPending
 
   // Reset form when drawer opens
   useEffect(() => {
@@ -84,9 +85,8 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
       return
     }
 
-    setSaving(true)
     try {
-      const newId = await createContact({
+      const { id: newId, duplicate } = await createMutation.mutateAsync({
         kind: form.kind,
         first_name: form.kind === 'person' ? form.firstName.trim() || undefined : undefined,
         last_name:  form.kind === 'person' ? form.lastName.trim()  || undefined : undefined,
@@ -98,26 +98,19 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
         roles: form.roles,
       })
 
-      // Check for potential duplicates
-      try {
-        const dups = await findPotentialDuplicates(newId)
-        if (dups.length > 0) {
-          const first = dups[0]
-          setDupWarning(
-            t('contacts.dup_warning', { name: first.display_name, info: first.primary_email ?? first.kind })
-          )
-          // Still proceed — warning is informational
-        }
-      } catch {
-        // Dedup errors are non-fatal
+      if (duplicate) {
+        setDupWarning(
+          t('contacts.dup_warning', {
+            name: duplicate.display_name,
+            info: duplicate.primary_email ?? duplicate.kind,
+          }),
+        )
       }
 
       onCreated(newId)
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('contacts.save_error'))
-    } finally {
-      setSaving(false)
     }
   }
 

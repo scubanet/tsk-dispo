@@ -7,10 +7,12 @@
  *   3. Confirm & execute merge
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Drawer } from '@/foundation/layouts/Drawer'
-import { listContacts, getContactWithSidecars, mergeContacts } from '@/lib/contactQueries'
+import { useContactList } from '@/hooks/useContactList'
+import { useContactWithSidecars } from '@/hooks/useContactWithSidecars'
+import { useMergeContacts } from '@/hooks/useContactMutations'
 import type { Contact, ContactWithSidecars } from '@/types/contacts'
 
 interface Props {
@@ -23,84 +25,50 @@ interface Props {
 export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props) {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
-  const [results, setResults] = useState<Contact[]>([])
-  const [searching, setSearching] = useState(false)
-
   const [loserId, setLoserId] = useState<string | null>(null)
-  const [winner, setWinner] = useState<ContactWithSidecars | null>(null)
-  const [loser, setLoser] = useState<ContactWithSidecars | null>(null)
-  const [loadingPreview, setLoadingPreview] = useState(false)
-
-  const [merging, setMerging] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const mergeMutation = useMergeContacts()
+  const merging = mergeMutation.isPending
+
+  // Live search via shared cache; gated by ≥2 chars.
+  const { data: searchResult, isFetching: searching } = useContactList(
+    search.length >= 2 ? { searchText: search } : {},
+    0,
+    20,
+  )
+  const results = useMemo<Contact[]>(() => {
+    if (search.length < 2 || !searchResult?.rows) return []
+    return searchResult.rows.filter((c) => c.id !== winnerId)
+  }, [searchResult, search, winnerId])
+
+  // Sidecar reads for both winner + loser — enable as soon as loser picked.
+  const { data: winner = null, isLoading: winnerLoading } = useContactWithSidecars(
+    loserId ? winnerId : null,
+  )
+  const { data: loser = null, isLoading: loserLoading } = useContactWithSidecars(loserId)
+  const loadingPreview = winnerLoading || loserLoading
 
   // Reset state when sheet opens/closes
   useEffect(() => {
     if (!open) {
       setSearch('')
-      setResults([])
       setLoserId(null)
-      setWinner(null)
-      setLoser(null)
       setError(null)
     }
   }, [open])
-
-  // Search contacts when search text changes
-  useEffect(() => {
-    if (search.length < 2) {
-      setResults([])
-      return
-    }
-    let cancelled = false
-    setSearching(true)
-    listContacts({ searchText: search }, 0, 20)
-      .then(({ rows }) => {
-        if (!cancelled) {
-          // Exclude the winner from results
-          setResults(rows.filter((c) => c.id !== winnerId))
-        }
-      })
-      .catch(() => { /* silent */ })
-      .finally(() => { if (!cancelled) setSearching(false) })
-    return () => { cancelled = true }
-  }, [search, winnerId])
-
-  // Fetch both contacts when loser is selected
-  const loadPreview = useCallback(() => {
-    if (!loserId) return
-    setLoadingPreview(true)
-    setError(null)
-    Promise.all([
-      getContactWithSidecars(winnerId),
-      getContactWithSidecars(loserId),
-    ])
-      .then(([w, l]) => {
-        setWinner(w)
-        setLoser(l)
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : t('contacts.merge_error_loading')))
-      .finally(() => setLoadingPreview(false))
-  }, [winnerId, loserId])
-
-  useEffect(() => {
-    if (loserId) loadPreview()
-  }, [loserId, loadPreview])
 
   async function handleMerge() {
     if (!loserId) return
     if (!window.confirm(t('contacts.merge_confirm'))) return
 
-    setMerging(true)
     setError(null)
     try {
-      await mergeContacts(winnerId, loserId)
+      await mergeMutation.mutateAsync({ winnerId, loserId })
       onMerged()
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('contacts.merge_error_merge'))
-    } finally {
-      setMerging(false)
     }
   }
 
@@ -194,7 +162,7 @@ export function MergeContactsSheet({ winnerId, open, onClose, onMerged }: Props)
           <>
             <button
               type="button"
-              onClick={() => { setLoserId(null); setWinner(null); setLoser(null) }}
+              onClick={() => setLoserId(null)}
               style={{ alignSelf: 'flex-start', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--brand-blue)', fontSize: 'var(--text-label)', padding: 0 }}
             >
               {t('contacts.merge_back')}

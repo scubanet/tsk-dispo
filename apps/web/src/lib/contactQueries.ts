@@ -914,3 +914,54 @@ export async function deleteContact(contactId: string): Promise<void> {
   const { error } = await supabase.from('contacts').delete().eq('id', contactId)
   if (error) throw error
 }
+
+// ────────────────────── Role management ────────────────────────────────────
+
+/**
+ * Diffs the given role lists and updates `contacts.roles` plus the
+ * instructor/student sidecars accordingly. Used by RoleManagerSheet.
+ */
+export async function setContactRoles(
+  contactId: string,
+  currentRoles: ContactRole[],
+  newRoles: ContactRole[],
+): Promise<void> {
+  // 1. Update the roles array on the contacts row.
+  const { error: rolesErr } = await supabase
+    .from('contacts')
+    .update({ roles: newRoles })
+    .eq('id', contactId)
+  if (rolesErr) throw rolesErr
+
+  // 2. Instructor sidecar diff.
+  const hadInstructor = currentRoles.includes('instructor')
+  const wantsInstructor = newRoles.includes('instructor')
+  if (!hadInstructor && wantsInstructor) {
+    const { error } = await supabase
+      .from('contact_instructor')
+      .insert({ contact_id: contactId, account_balance: 0, active: true })
+    if (error) throw error
+  } else if (hadInstructor && !wantsInstructor) {
+    const { error } = await supabase
+      .from('contact_instructor')
+      .delete()
+      .eq('contact_id', contactId)
+    if (error) throw error
+  }
+
+  // 3. Student sidecar diff.
+  const hadStudent = currentRoles.includes('student')
+  const wantsStudent = newRoles.includes('student')
+  if (!hadStudent && wantsStudent) {
+    const { error } = await supabase
+      .from('contact_student')
+      .insert({ contact_id: contactId, is_candidate: false })
+    if (error) throw error
+  } else if (hadStudent && !wantsStudent) {
+    const { error } = await supabase
+      .from('contact_student')
+      .delete()
+      .eq('contact_id', contactId)
+    if (error) throw error
+  }
+}
