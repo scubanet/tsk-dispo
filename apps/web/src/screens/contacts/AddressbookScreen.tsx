@@ -8,9 +8,10 @@
  *   ?tab=<tabkey>  active detail tab
  */
 
-import { useEffect, useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   MasterDetail,
   ListPane,
@@ -21,8 +22,9 @@ import {
   Icon,
   avatarColor,
 } from '@/foundation'
-import { listContacts, type ContactListFilter } from '@/lib/contactQueries'
-import type { Contact, ContactRole } from '@/types/contacts'
+import { type ContactListFilter } from '@/lib/contactQueries'
+import { useContactList } from '@/hooks/useContactList'
+import type { ContactRole } from '@/types/contacts'
 import { ContactDetailPanel, type TabKey } from './ContactDetailPanel'
 import { CreateContactSheet } from './CreateContactSheet'
 
@@ -102,19 +104,15 @@ export function AddressbookScreen() {
 
   const currentView = SAVED_VIEWS.find((v) => v.id === viewId) ?? SAVED_VIEWS[0]
 
-  const [rows, setRows] = useState<Contact[]>([])
-  const [loading, setLoading] = useState(false)
+  const qc = useQueryClient()
+  const filter: ContactListFilter = {
+    ...currentView.filter,
+    searchText: search || undefined,
+  }
+  const { data, isFetching: loading } = useContactList(filter, 0, 500)
+  const rows = data?.rows ?? []
+
   const [createOpen, setCreateOpen] = useState(false)
-
-  const load = useCallback(() => {
-    setLoading(true)
-    listContacts({ ...currentView.filter, searchText: search || undefined }, 0, 500)
-      .then(({ rows: r }) => setRows(r))
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [viewId, search]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => { load() }, [load])
 
   // ── Param helpers ──────────────────────────────────────────────────────
 
@@ -283,7 +281,7 @@ export function AddressbookScreen() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={(newId) => {
-          load()
+          qc.invalidateQueries({ queryKey: ['contacts'] })
           selectContact(newId)
         }}
       />
