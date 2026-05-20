@@ -1,20 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { format } from 'date-fns'
 import { de, enGB } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { supabase } from '@/lib/supabase'
-import { listActiveInstructors } from '@/lib/contactQueries'
-
-interface Instructor { id: string; name: string; padi_level: string }
-interface Conflict {
-  conflicting_course_id: string
-  conflicting_course_title: string
-  conflicting_role: string
-}
-
-type AssignmentRoleValue = 'haupt' | 'assist' | 'opfer'
+import { useActiveInstructors } from '@/hooks/useActiveInstructors'
+import { useScheduleConflicts } from '@/hooks/useCourseEdit'
+import {
+  useCourseTypeCode,
+  useSaveAssignment,
+  useDeleteAssignment,
+} from '@/hooks/useAssignmentEdit'
+import type { AssignmentRoleValue } from '@/lib/queries'
 
 interface ExistingAssignment {
   id: string
@@ -56,36 +53,26 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
   const OPFER_ROLE = { value: 'opfer' as const, label: t('assignment_edit.role_opfer') }
   const isEdit = !!existingAssignment
 
-  const [instructors, setInstructors] = useState<Instructor[]>([])
+  const { data: instructorRows = [] } = useActiveInstructors()
+  const instructors = useMemo(
+    () => instructorRows.map(({ id, name, padi_level }) => ({ id, name, padi_level })),
+    [instructorRows],
+  )
+  const { data: courseTypeCode = null } = useCourseTypeCode(courseId)
+  const saveMutation = useSaveAssignment()
+  const deleteMutation = useDeleteAssignment()
+  const saving = saveMutation.isPending || deleteMutation.isPending
+
   const [instructorId, setInstructorId] = useState('')
   const [role, setRole] = useState<AssignmentRoleValue>('assist')
-  const [courseTypeCode, setCourseTypeCode] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   /** Empty array means "all dates" */
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set())
-  const [conflicts, setConflicts] = useState<Conflict[]>([])
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) return
     setError(null)
-
-    listActiveInstructors()
-      .then((rows) => setInstructors(rows.map(({ id, name, padi_level }) => ({ id, name, padi_level }))))
-      .catch((err) => console.error('[assignment-edit] load instructors failed', err))
-
-    // Course-Type-Code laden — bestimmt ob Opfer-Rolle verfügbar ist
-    supabase
-      .from('courses')
-      .select('course_types(code)')
-      .eq('id', courseId)
-      .single()
-      .then(({ data }) => {
-        const code = (data as any)?.course_types?.code ?? null
-        setCourseTypeCode(code)
-      })
-
     if (existingAssignment) {
       setInstructorId(existingAssignment.instructor_id)
       // Legacy 'dmt' wird transparent als 'assist' behandelt
@@ -100,32 +87,22 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
       setConfirmed(false)
       setSelectedDates(new Set())
     }
-  }, [open, existingAssignment, courseId])
+  }, [open, existingAssignment])
 
   const isRescueCourse = courseTypeCode === 'RESC'
   const availableRoles = isRescueCourse ? [...BASE_ROLES, OPFER_ROLE] : BASE_ROLES
 
-  // Conflict-check for selected dates (or all)
-  useEffect(() => {
-    if (!instructorId) {
-      setConflicts([])
-      return
-    }
-    const dates = selectedDates.size === 0 ? allDates : [...selectedDates]
-    if (dates.length === 0) {
-      setConflicts([])
-      return
-    }
-    supabase
-      .rpc('conflict_check', { p_instructor_id: instructorId, p_dates: dates })
-      .then(({ data }) => {
-        // Filter out conflicts with the same course (in edit mode editing oneself)
-        const filtered = ((data ?? []) as Conflict[]).filter(
-          (c) => c.conflicting_course_id !== courseId,
-        )
-        setConflicts(filtered)
-      })
-  }, [instructorId, selectedDates, allDates, courseId])
+  // Conflict-check (selected dates ∪ all-mode). Filter out self-collisions
+  // with the current course in edit mode.
+  const checkDates = useMemo(
+    () => (selectedDates.size === 0 ? allDates : [...selectedDates]),
+    [selectedDates, allDates],
+  )
+  const { data: rawConflicts = [] } = useScheduleConflicts(instructorId || null, checkDates)
+  const conflicts = useMemo(
+    () => rawConflicts.filter((c) => c.conflicting_course_id !== courseId),
+    [rawConflicts, courseId],
+  )
 
   function toggleDate(d: string) {
     setSelectedDates((prev) => {
@@ -138,7 +115,6 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
 
   async function save() {
     if (!instructorId) return
-    setSaving(true)
     setError(null)
 
     // Persist dates: if user selected all, store empty array (means "all")
@@ -147,53 +123,35 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
         ? []
         : [...selectedDates]
 
-    if (isEdit) {
-      const { error: updErr } = await supabase
-        .from('course_assignments')
-        .update({
-          instructor_id: instructorId,
-          role,
-          confirmed,
-          assigned_for_dates: datesToStore,
-        })
-        .eq('id', existingAssignment!.id)
-      if (updErr) {
-        setError(updErr.message); setSaving(false); return
-      }
-    } else {
-      const { error: insErr } = await supabase
-        .from('course_assignments')
-        .insert({
+    try {
+      await saveMutation.mutateAsync({
+        assignmentId: existingAssignment?.id ?? null,
+        input: {
           course_id: courseId,
           instructor_id: instructorId,
           role,
           confirmed,
           assigned_for_dates: datesToStore,
-        })
-      if (insErr) {
-        setError(insErr.message); setSaving(false); return
-      }
+        },
+      })
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
     }
-
-    setSaving(false)
-    onSaved()
-    onClose()
   }
 
   async function deleteAssignment() {
     if (!existingAssignment) return
     if (!confirm(t('assignment_edit.confirm_delete'))) return
-    setSaving(true)
-    const { error: delErr } = await supabase
-      .from('course_assignments')
-      .delete()
-      .eq('id', existingAssignment.id)
-    setSaving(false)
-    if (delErr) {
-      setError(delErr.message); return
+    setError(null)
+    try {
+      await deleteMutation.mutateAsync(existingAssignment.id)
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
     }
-    onSaved()
-    onClose()
   }
 
   return (
