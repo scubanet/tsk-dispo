@@ -10,9 +10,10 @@
  *   6. Benutzer              — read-only list with auth-link state
  */
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   PageHeader,
   Banner,
@@ -20,34 +21,21 @@ import {
   Icon,
   chf,
 } from '@/foundation'
-import { supabase } from '@/lib/supabase'
+import {
+  updateCompRate,
+  updateCourseTypeUnits,
+  updateCompUnitsForCourseType,
+  recalcAllCompensations,
+  type CourseTypeUnitField,
+} from '@/lib/queries'
+import {
+  useCompRates,
+  useSettingsCourseTypes,
+  useSettingsUsers,
+} from '@/hooks/useSettings'
 import { useLanguage } from '@/i18n/useLanguage'
 import type { Lang } from '@/i18n'
 import type { OutletCtx } from '@/layout/AppShell'
-
-interface CompRate {
-  id: string
-  level: string
-  hourly_rate_chf: number
-}
-
-interface CourseType {
-  id: string
-  code: string
-  label: string
-  theory_units: number
-  pool_units: number
-  lake_units: number
-  active: boolean
-}
-
-interface UserRow {
-  id: string
-  name: string
-  email: string | null
-  role: string
-  auth_linked: boolean
-}
 
 export function SettingsScreen() {
   const { t } = useTranslation()
@@ -55,9 +43,10 @@ export function SettingsScreen() {
   const { user } = useOutletContext<OutletCtx>()
   const isDispatcher = user.role === 'dispatcher' || user.role === 'cd' || user.role === 'owner'
 
-  const [rates, setRates] = useState<CompRate[]>([])
-  const [courseTypes, setCourseTypes] = useState<CourseType[]>([])
-  const [users, setUsers] = useState<UserRow[]>([])
+  const qc = useQueryClient()
+  const { data: rates = [] } = useCompRates()
+  const { data: courseTypes = [] } = useSettingsCourseTypes()
+  const { data: users = [] } = useSettingsUsers()
   const [dirty, setDirty] = useState(false)
   const [recalcing, setRecalcing] = useState(false)
   const [recalcMsg, setRecalcMsg] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
@@ -68,101 +57,44 @@ export function SettingsScreen() {
     () => localStorage.getItem('atoll.padi_dive_center_nr') ?? '',
   )
 
-  function refetch() {
-    supabase
-      .from('comp_rates')
-      .select('id, level, hourly_rate_chf')
-      .is('valid_to', null)
-      .order('level')
-      .then(({ data }) => setRates((data as CompRate[] | null) ?? []))
-
-    supabase
-      .from('course_types')
-      .select('id, code, label, theory_units, pool_units, lake_units, active')
-      .eq('active', true)
-      .order('code')
-      .then(({ data }) => setCourseTypes((data as CourseType[] | null) ?? []))
-
-    // Phase J — Etappe 2d: User-Liste aus contact_instructor JOIN contacts
-    // (app_role + auth_user_id im Sidecar seit Migration 0088).
-    supabase
-      .from('contact_instructor')
-      .select(
-        'contact_id, app_role, auth_user_id, ' +
-          'contact:contacts!inner(display_name, primary_email, last_name, first_name, archived_at)',
-      )
-      .then(({ data }) => {
-        const rows =
-          ((data ?? []) as unknown as Array<{
-            contact_id: string
-            app_role: string
-            auth_user_id: string | null
-            contact: {
-              display_name: string | null
-              primary_email: string | null
-              last_name: string | null
-              first_name: string | null
-              archived_at: string | null
-            } | null
-          }>)
-            .filter((d) => d.contact?.archived_at == null)
-            .sort((a, b) => {
-              const al = (a.contact?.last_name ?? '').toLowerCase()
-              const bl = (b.contact?.last_name ?? '').toLowerCase()
-              if (al !== bl) return al.localeCompare(bl)
-              const af = (a.contact?.first_name ?? '').toLowerCase()
-              const bf = (b.contact?.first_name ?? '').toLowerCase()
-              return af.localeCompare(bf)
-            })
-        setUsers(
-          rows.map((d) => ({
-            id: d.contact_id,
-            name: d.contact?.display_name ?? '—',
-            email: d.contact?.primary_email ?? null,
-            role: d.app_role,
-            auth_linked: !!d.auth_user_id,
-          })),
-        )
-      })
-  }
-
-  useEffect(() => { refetch() }, [])
-
   async function saveRate(rateId: string, newValue: number) {
-    setRates((prev) => prev.map((r) => (r.id === rateId ? { ...r, hourly_rate_chf: newValue } : r)))
-    const { error } = await supabase
-      .from('comp_rates')
-      .update({ hourly_rate_chf: newValue })
-      .eq('id', rateId)
-    if (error) {
-      alert(t('settings.recalc.save_failed') + error.message)
-      refetch()
-      return
+    // Optimistic: patch the cached list in-place. The fetch-on-error path
+    // restores authoritative values via invalidate.
+    qc.setQueryData(['settings', 'compRates'], (prev: typeof rates | undefined) =>
+      (prev ?? []).map((r) => (r.id === rateId ? { ...r, hourly_rate_chf: newValue } : r)),
+    )
+    try {
+      await updateCompRate(rateId, newValue)
+      setDirty(true)
+    } catch (err) {
+      alert(t('settings.recalc.save_failed') + (err instanceof Error ? err.message : String(err)))
+      qc.invalidateQueries({ queryKey: ['settings', 'compRates'] })
     }
-    setDirty(true)
   }
 
   async function saveCourseType(
     id: string,
-    field: 'theory_units' | 'pool_units' | 'lake_units',
+    field: CourseTypeUnitField,
     newValue: number,
   ) {
-    setCourseTypes((prev) => prev.map((c) => (c.id === id ? { ...c, [field]: newValue } : c)))
-    const { error } = await supabase
-      .from('course_types')
-      .update({ [field]: newValue })
-      .eq('id', id)
-    if (error) {
-      alert(t('settings.recalc.save_failed') + error.message)
-      refetch()
+    qc.setQueryData(['settings', 'courseTypes'], (prev: typeof courseTypes | undefined) =>
+      (prev ?? []).map((c) => (c.id === id ? { ...c, [field]: newValue } : c)),
+    )
+    try {
+      await updateCourseTypeUnits(id, field, newValue)
+    } catch (err) {
+      alert(t('settings.recalc.save_failed') + (err instanceof Error ? err.message : String(err)))
+      qc.invalidateQueries({ queryKey: ['settings', 'courseTypes'] })
       return
     }
-    const compUnitField = field.replace('_units', '_h')
-    const { error: cuErr } = await supabase
-      .from('comp_units')
-      .update({ [compUnitField]: newValue })
-      .eq('course_type_id', id)
-    if (cuErr) alert(t('settings.recalc.comp_units_sync_failed') + cuErr.message)
+    // Keep comp_units in sync. Failure here is non-blocking — the rate
+    // hours can drift from course-type units, recalc will reconcile.
+    const compUnitField = field.replace('_units', '_h') as 'theory_h' | 'pool_h' | 'lake_h'
+    try {
+      await updateCompUnitsForCourseType(id, compUnitField, newValue)
+    } catch (err) {
+      alert(t('settings.recalc.comp_units_sync_failed') + (err instanceof Error ? err.message : String(err)))
+    }
     setDirty(true)
   }
 
@@ -170,20 +102,28 @@ export function SettingsScreen() {
     if (!confirm(t('settings.recalc.confirm'))) return
     setRecalcing(true)
     setRecalcMsg(null)
-    const { data, error } = await supabase.rpc('recalc_all_compensations')
-    setRecalcing(false)
-    if (error) {
-      setRecalcMsg({ kind: 'error', text: t('settings.recalc.error_prefix') + error.message })
-      return
+    try {
+      const row = await recalcAllCompensations()
+      setRecalcing(false)
+      setRecalcMsg({
+        kind: 'success',
+        text: row
+          ? t('settings.recalc.result', { deleted: row.deleted_count, inserted: row.inserted_count })
+          : t('settings.recalc.result_generic'),
+      })
+      setDirty(false)
+      // Recalc rewrites movements globally → blow away any cached saldo /
+      // movements / KPI snapshots so the UI doesn't keep showing stale numbers.
+      qc.invalidateQueries({ queryKey: ['saldi'] })
+      qc.invalidateQueries({ queryKey: ['myMovements'] })
+      qc.invalidateQueries({ queryKey: ['cockpit'] })
+    } catch (err) {
+      setRecalcing(false)
+      setRecalcMsg({
+        kind: 'error',
+        text: t('settings.recalc.error_prefix') + (err instanceof Error ? err.message : String(err)),
+      })
     }
-    const row = Array.isArray(data) && data[0] ? data[0] : null
-    setRecalcMsg({
-      kind: 'success',
-      text: row
-        ? t('settings.recalc.result', { deleted: row.deleted_count, inserted: row.inserted_count })
-        : t('settings.recalc.result_generic'),
-    })
-    setDirty(false)
   }
 
   return (

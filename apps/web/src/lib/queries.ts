@@ -510,6 +510,151 @@ export async function updateInstructorPhones(
   if (error) throw error
 }
 
+// ──────────────────────── Settings ────────────────────────
+
+export interface CompRate {
+  id: string
+  level: string
+  hourly_rate_chf: number
+}
+
+export interface SettingsCourseType {
+  id: string
+  code: string
+  label: string
+  theory_units: number
+  pool_units: number
+  lake_units: number
+  active: boolean
+}
+
+export interface SettingsUser {
+  id: string
+  name: string
+  email: string | null
+  role: string
+  auth_linked: boolean
+}
+
+export type CourseTypeUnitField = 'theory_units' | 'pool_units' | 'lake_units'
+export type CompUnitField = 'theory_h' | 'pool_h' | 'lake_h'
+
+/** Reads currently-valid compensation rates (valid_to IS NULL). */
+export async function fetchCompRates(): Promise<CompRate[]> {
+  const { data, error } = await supabase
+    .from('comp_rates')
+    .select('id, level, hourly_rate_chf')
+    .is('valid_to', null)
+    .order('level')
+  if (error) throw error
+  return (data ?? []) as CompRate[]
+}
+
+/** Reads active course types with their unit allocations. */
+export async function fetchSettingsCourseTypes(): Promise<SettingsCourseType[]> {
+  const { data, error } = await supabase
+    .from('course_types')
+    .select('id, code, label, theory_units, pool_units, lake_units, active')
+    .eq('active', true)
+    .order('code')
+  if (error) throw error
+  return (data ?? []) as SettingsCourseType[]
+}
+
+/**
+ * Reads the User-Liste (Settings → Benutzer) via `contact_instructor` JOIN
+ * `contacts`. Filters out archived contacts and sorts by last/first name.
+ */
+export async function fetchSettingsUsers(): Promise<SettingsUser[]> {
+  const { data, error } = await supabase
+    .from('contact_instructor')
+    .select(
+      'contact_id, app_role, auth_user_id, ' +
+        'contact:contacts!inner(display_name, primary_email, last_name, first_name, archived_at)',
+    )
+  if (error) throw error
+  const rows =
+    ((data ?? []) as unknown as Array<{
+      contact_id: string
+      app_role: string
+      auth_user_id: string | null
+      contact: {
+        display_name: string | null
+        primary_email: string | null
+        last_name: string | null
+        first_name: string | null
+        archived_at: string | null
+      } | null
+    }>)
+      .filter((d) => d.contact?.archived_at == null)
+      .sort((a, b) => {
+        const al = (a.contact?.last_name ?? '').toLowerCase()
+        const bl = (b.contact?.last_name ?? '').toLowerCase()
+        if (al !== bl) return al.localeCompare(bl)
+        const af = (a.contact?.first_name ?? '').toLowerCase()
+        const bf = (b.contact?.first_name ?? '').toLowerCase()
+        return af.localeCompare(bf)
+      })
+  return rows.map((d) => ({
+    id: d.contact_id,
+    name: d.contact?.display_name ?? '—',
+    email: d.contact?.primary_email ?? null,
+    role: d.app_role,
+    auth_linked: !!d.auth_user_id,
+  }))
+}
+
+/** Patches one `comp_rates.hourly_rate_chf`. */
+export async function updateCompRate(rateId: string, newValue: number): Promise<void> {
+  const { error } = await supabase
+    .from('comp_rates')
+    .update({ hourly_rate_chf: newValue })
+    .eq('id', rateId)
+  if (error) throw error
+}
+
+/** Patches one unit-allocation column on `course_types`. */
+export async function updateCourseTypeUnits(
+  id: string,
+  field: CourseTypeUnitField,
+  newValue: number,
+): Promise<void> {
+  const { error } = await supabase
+    .from('course_types')
+    .update({ [field]: newValue })
+    .eq('id', id)
+  if (error) throw error
+}
+
+/**
+ * Patches the matching `comp_units.<theory|pool|lake>_h` row for a given
+ * course-type. Settings keeps these two tables in sync; the field name
+ * maps `*_units → *_h`.
+ */
+export async function updateCompUnitsForCourseType(
+  courseTypeId: string,
+  field: CompUnitField,
+  newValue: number,
+): Promise<void> {
+  const { error } = await supabase
+    .from('comp_units')
+    .update({ [field]: newValue })
+    .eq('course_type_id', courseTypeId)
+  if (error) throw error
+}
+
+export interface RecalcResult {
+  deleted_count: number
+  inserted_count: number
+}
+
+/** Invokes the `recalc_all_compensations` RPC and returns the row counts. */
+export async function recalcAllCompensations(): Promise<RecalcResult | null> {
+  const { data, error } = await supabase.rpc('recalc_all_compensations')
+  if (error) throw error
+  return Array.isArray(data) && data[0] ? (data[0] as RecalcResult) : null
+}
+
 // ──────────────────────── Skills ────────────────────────
 
 export interface SkillRow {
