@@ -510,6 +510,201 @@ export async function updateInstructorPhones(
   if (error) throw error
 }
 
+// ──────────────────────── Course edit ────────────────────────
+
+export interface CourseTypeOption {
+  id: string
+  code: string
+  label: string
+}
+
+export interface CourseForEdit {
+  type_id: string
+  title: string
+  status: 'tentative' | 'confirmed' | 'completed' | 'cancelled'
+  start_date: string
+  additional_dates: string[]
+  num_participants: number
+  info: string | null
+  notes: string | null
+}
+
+export interface CourseDateForEdit {
+  date: string
+  type: CourseDateType
+  pool_location: PoolLocation | null
+  pool_reserved: boolean
+  has_theory: boolean | null
+  has_pool: boolean | null
+  has_lake: boolean | null
+  theory_from: string | null
+  theory_to: string | null
+  pool_from: string | null
+  pool_to: string | null
+  lake_from: string | null
+  lake_to: string | null
+}
+
+export interface ScheduleConflict {
+  conflicting_course_id: string
+  conflicting_course_title: string
+  conflicting_role: string
+}
+
+export interface CourseSaveInput {
+  type_id: string
+  title: string
+  status: 'tentative' | 'confirmed' | 'completed' | 'cancelled'
+  start_date: string
+  additional_dates: string[]
+  num_participants: number
+  pool_booked: boolean
+  info: string | null
+  notes: string | null
+}
+
+export interface CourseDateInsert {
+  date: string
+  type: CourseDateType
+  has_theory: boolean
+  has_pool: boolean
+  has_lake: boolean
+  pool_location: PoolLocation | null
+  pool_reserved: boolean
+  theory_from: string | null
+  theory_to: string | null
+  pool_from: string | null
+  pool_to: string | null
+  lake_from: string | null
+  lake_to: string | null
+}
+
+/** Active course types (id, code, label) — used by CourseEditSheet dropdown. */
+export async function fetchCourseTypeOptions(): Promise<CourseTypeOption[]> {
+  const { data, error } = await supabase
+    .from('course_types')
+    .select('id, code, label')
+    .eq('active', true)
+    .order('code')
+  if (error) throw error
+  return (data ?? []) as CourseTypeOption[]
+}
+
+/** Single course row for the edit form. */
+export async function fetchCourseForEdit(courseId: string): Promise<CourseForEdit | null> {
+  const { data, error } = await supabase
+    .from('courses')
+    .select('type_id, title, status, start_date, additional_dates, num_participants, info, notes')
+    .eq('id', courseId)
+    .single()
+  if (error) throw error
+  return (data as CourseForEdit | null) ?? null
+}
+
+/** Per-date breakdown including time-ranges, used by the edit form. */
+export async function fetchCourseDatesForEdit(courseId: string): Promise<CourseDateForEdit[]> {
+  const { data, error } = await supabase
+    .from('course_dates')
+    .select(
+      'date, type, pool_location, pool_reserved, has_theory, has_pool, has_lake, ' +
+        'theory_from, theory_to, pool_from, pool_to, lake_from, lake_to',
+    )
+    .eq('course_id', courseId)
+    .order('date')
+  if (error) throw error
+  return (data ?? []) as unknown as CourseDateForEdit[]
+}
+
+/** Calls `conflict_check` RPC for a candidate instructor + date list. */
+export async function checkScheduleConflicts(
+  instructorId: string,
+  dates: string[],
+): Promise<ScheduleConflict[]> {
+  const { data, error } = await supabase.rpc('conflict_check', {
+    p_instructor_id: instructorId,
+    p_dates: dates,
+  })
+  if (error) throw error
+  return (data ?? []) as ScheduleConflict[]
+}
+
+/** Inserts a new course, returns its id. */
+export async function insertCourse(input: CourseSaveInput): Promise<string> {
+  const { data, error } = await supabase
+    .from('courses')
+    .insert(input)
+    .select('id')
+    .single()
+  if (error) throw error
+  return (data as { id: string }).id
+}
+
+/** Updates an existing course. */
+export async function updateCourseRow(courseId: string, input: CourseSaveInput): Promise<void> {
+  const { error } = await supabase.from('courses').update(input).eq('id', courseId)
+  if (error) throw error
+}
+
+/**
+ * Idempotent rebuild of `course_dates` for a course — deletes all existing
+ * rows then re-inserts the given list. The form treats course-dates as
+ * derived state from the in-memory editor.
+ */
+export async function replaceCourseDates(
+  courseId: string,
+  rows: CourseDateInsert[],
+): Promise<void> {
+  const { error: delErr } = await supabase.from('course_dates').delete().eq('course_id', courseId)
+  if (delErr) throw delErr
+  if (rows.length === 0) return
+  const { error: insErr } = await supabase
+    .from('course_dates')
+    .insert(rows.map((r) => ({ ...r, course_id: courseId })))
+  if (insErr) throw insErr
+}
+
+/** Inserts a single course_assignments row. */
+export async function insertCourseAssignment(
+  courseId: string,
+  instructorId: string,
+  role: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from('course_assignments')
+    .insert({ course_id: courseId, instructor_id: instructorId, role })
+  if (error) throw error
+}
+
+/**
+ * Deletes a course and its associated payment movements. Order matters:
+ * the `vergütung` movements reference assignments which would be cascaded
+ * away by the course delete — without this cleanup the movements become
+ * orphans pointing at a NULL ref_assignment_id.
+ */
+export async function deleteCourseWithCleanup(courseId: string): Promise<void> {
+  // 1. Find assignments belonging to this course.
+  const { data: assignments, error: aErr } = await supabase
+    .from('course_assignments')
+    .select('id')
+    .eq('course_id', courseId)
+  if (aErr) throw aErr
+  const assignmentIds = (assignments ?? []).map((a) => a.id)
+
+  // 2. Delete the corresponding `vergütung` movements first.
+  if (assignmentIds.length > 0) {
+    const { error: delMovErr } = await supabase
+      .from('account_movements')
+      .delete()
+      .eq('kind', 'vergütung')
+      .in('ref_assignment_id', assignmentIds)
+    if (delMovErr) throw delMovErr
+  }
+
+  // 3. Delete the course — assignments, dates, participants cascade.
+  const { error: delErr } = await supabase.from('courses').delete().eq('id', courseId)
+  if (delErr) throw delErr
+}
+
 // ──────────────────────── Excel Import (edge function) ────────────────────────
 
 export interface ImportPreview {

@@ -1,22 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { supabase } from '@/lib/supabase'
-import { listActiveInstructors } from '@/lib/contactQueries'
 import {
   POOL_LOCATIONS,
   type CourseDateType,
   type PoolLocation,
 } from '@/lib/queries'
-
-interface CourseType { id: string; code: string; label: string }
-interface Instructor { id: string; name: string; padi_level: string }
-interface Conflict {
-  conflicting_course_id: string
-  conflicting_course_title: string
-  conflicting_role: string
-}
+import { useActiveInstructors } from '@/hooks/useActiveInstructors'
+import {
+  useCourseTypeOptions,
+  useCourseForEdit,
+  useCourseDatesForEdit,
+  useScheduleConflicts,
+  useCreateCourse,
+  useUpdateCourse,
+  useDeleteCourse,
+} from '@/hooks/useCourseEdit'
 
 /** Local form-state row representing one date of the course */
 interface DateEntry {
@@ -80,8 +80,19 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
     { value: 'cancelled', label: t('course_edit.status_cancelled') },
   ]
 
-  const [types, setTypes] = useState<CourseType[]>([])
-  const [instructors, setInstructors] = useState<Instructor[]>([])
+  const { data: types = [] } = useCourseTypeOptions()
+  const { data: instructorRows = [] } = useActiveInstructors()
+  const instructors = useMemo(
+    () => instructorRows.map(({ id, name, padi_level }) => ({ id, name, padi_level })),
+    [instructorRows],
+  )
+  const { data: existingCourse } = useCourseForEdit(isEdit ? courseId : null)
+  const { data: existingDates = [] } = useCourseDatesForEdit(isEdit ? courseId : null)
+
+  const createCourse = useCreateCourse()
+  const updateCourse = useUpdateCourse()
+  const deleteCourseMutation = useDeleteCourse()
+  const saving = createCourse.isPending || updateCourse.isPending || deleteCourseMutation.isPending
 
   const [typeId, setTypeId] = useState('')
   const [title, setTitle] = useState('')
@@ -95,131 +106,98 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
 
   // Only used for "create" — assigns a Haupt-Instructor immediately
   const [haupt, setHaupt] = useState('')
-  const [conflicts, setConflicts] = useState<Conflict[]>([])
 
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Hydrate form state when entering edit-mode / opening sheet.
   useEffect(() => {
     if (!open) return
     setError(null)
 
-    supabase.from('course_types').select('id, code, label').eq('active', true).order('code')
-      .then(({ data }) => setTypes((data ?? []) as CourseType[]))
-
-    listActiveInstructors()
-      .then((rows) => setInstructors(rows.map(({ id, name, padi_level }) => ({ id, name, padi_level }))))
-      .catch((err) => console.error('[course-edit] load instructors failed', err))
-
-    if (courseId) {
-      Promise.all([
-        supabase
-          .from('courses')
-          .select('type_id, title, status, start_date, additional_dates, num_participants, info, notes')
-          .eq('id', courseId)
-          .single(),
-        supabase
-          .from('course_dates')
-          .select(
-            'date, type, pool_location, pool_reserved, has_theory, has_pool, has_lake, ' +
-              'theory_from, theory_to, pool_from, pool_to, lake_from, lake_to',
-          )
-          .eq('course_id', courseId)
-          .order('date'),
-      ]).then(([courseRes, datesRes]) => {
-        const c = courseRes.data
-        if (!c) return
-        setTypeId(c.type_id)
-        setTitle(c.title)
-        setStatus(c.status as typeof status)
-        setNumParticipants(c.num_participants)
-        setInfo(c.info ?? '')
-        setNotes(c.notes ?? '')
-
-        // Combine course_dates rows with start_date + additional_dates as fallback
-        interface CDMeta {
-          type: CourseDateType
-          pool: PoolLocation | null
-          reserved: boolean
-          theory: boolean
-          lake: boolean
-          poolFlag: boolean
-          theory_from: string
-          theory_to: string
-          pool_from: string
-          pool_to: string
-          lake_from: string
-          lake_to: string
-        }
-        const cdMap = new Map<string, CDMeta>()
-        for (const cd of (datesRes.data ?? []) as unknown as Array<Record<string, unknown>>) {
-          const x = cd as any
-          // Falls Booleans schon gesetzt sind (Migration durch), nimm sie. Sonst aus type ableiten.
-          const theory = x.has_theory != null ? !!x.has_theory : x.type === 'theorie'
-          const poolFlag = x.has_pool != null ? !!x.has_pool : x.type === 'pool'
-          const lake = x.has_lake != null ? !!x.has_lake : x.type === 'see'
-          cdMap.set(x.date, {
-            type: x.type as CourseDateType,
-            pool: x.pool_location as PoolLocation | null,
-            reserved: !!x.pool_reserved,
-            theory, poolFlag, lake,
-            theory_from: normalizeTime(x.theory_from),
-            theory_to:   normalizeTime(x.theory_to),
-            pool_from:   normalizeTime(x.pool_from),
-            pool_to:     normalizeTime(x.pool_to),
-            lake_from:   normalizeTime(x.lake_from),
-            lake_to:     normalizeTime(x.lake_to),
-          })
-        }
-
-        const allDateStrings = [c.start_date, ...((c.additional_dates as string[]) ?? [])].filter(Boolean)
-        const merged: DateEntry[] = allDateStrings.map((d) => {
-          const meta = cdMap.get(d)
-          return {
-            date: d,
-            type: meta?.type ?? 'theorie',
-            has_theory: meta?.theory ?? true,
-            has_pool: meta?.poolFlag ?? false,
-            has_lake: meta?.lake ?? false,
-            pool_location: meta?.pool ?? null,
-            pool_reserved: meta?.reserved ?? false,
-            theory_from: meta?.theory_from ?? '',
-            theory_to:   meta?.theory_to   ?? '',
-            pool_from:   meta?.pool_from   ?? '',
-            pool_to:     meta?.pool_to     ?? '',
-            lake_from:   meta?.lake_from   ?? '',
-            lake_to:     meta?.lake_to     ?? '',
-          }
-        })
-
-        setDates(merged.length > 0 ? merged : [
-          { date: c.start_date, type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false, theory_from: '', theory_to: '', pool_from: '', pool_to: '', lake_from: '', lake_to: '' },
-        ])
-      })
-    } else {
+    if (!courseId) {
       // Reset for create mode
       setTypeId(''); setTitle(''); setStatus('tentative')
       setDates([{ date: new Date().toISOString().slice(0, 10), type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false, theory_from: '', theory_to: '', pool_from: '', pool_to: '', lake_from: '', lake_to: '' }])
       setNumParticipants(0)
       setInfo(''); setNotes(''); setHaupt('')
+      return
     }
-  }, [open, courseId])
 
-  // Conflict check (only for create + when haupt selected)
-  useEffect(() => {
-    if (isEdit || !haupt) {
-      setConflicts([])
-      return
+    if (!existingCourse) return
+
+    setTypeId(existingCourse.type_id)
+    setTitle(existingCourse.title)
+    setStatus(existingCourse.status)
+    setNumParticipants(existingCourse.num_participants)
+    setInfo(existingCourse.info ?? '')
+    setNotes(existingCourse.notes ?? '')
+
+    // Combine course_dates rows with start_date + additional_dates as fallback.
+    interface CDMeta {
+      type: CourseDateType
+      pool: PoolLocation | null
+      reserved: boolean
+      theory: boolean
+      lake: boolean
+      poolFlag: boolean
+      theory_from: string
+      theory_to: string
+      pool_from: string
+      pool_to: string
+      lake_from: string
+      lake_to: string
     }
-    const allDates = dates.map((d) => d.date).filter(Boolean)
-    if (allDates.length === 0) {
-      setConflicts([])
-      return
+    const cdMap = new Map<string, CDMeta>()
+    for (const cd of existingDates) {
+      // Falls Booleans schon gesetzt sind (Migration durch), nimm sie. Sonst aus type ableiten.
+      const theory = cd.has_theory != null ? !!cd.has_theory : cd.type === 'theorie'
+      const poolFlag = cd.has_pool != null ? !!cd.has_pool : cd.type === 'pool'
+      const lake = cd.has_lake != null ? !!cd.has_lake : cd.type === 'see'
+      cdMap.set(cd.date, {
+        type: cd.type,
+        pool: cd.pool_location,
+        reserved: !!cd.pool_reserved,
+        theory, poolFlag, lake,
+        theory_from: normalizeTime(cd.theory_from),
+        theory_to:   normalizeTime(cd.theory_to),
+        pool_from:   normalizeTime(cd.pool_from),
+        pool_to:     normalizeTime(cd.pool_to),
+        lake_from:   normalizeTime(cd.lake_from),
+        lake_to:     normalizeTime(cd.lake_to),
+      })
     }
-    supabase
-      .rpc('conflict_check', { p_instructor_id: haupt, p_dates: allDates })
-      .then(({ data }) => setConflicts((data ?? []) as Conflict[]))
-  }, [haupt, dates, isEdit])
+
+    const allDateStrings = [existingCourse.start_date, ...(existingCourse.additional_dates ?? [])].filter(Boolean)
+    const merged: DateEntry[] = allDateStrings.map((d) => {
+      const meta = cdMap.get(d)
+      return {
+        date: d,
+        type: meta?.type ?? 'theorie',
+        has_theory: meta?.theory ?? true,
+        has_pool: meta?.poolFlag ?? false,
+        has_lake: meta?.lake ?? false,
+        pool_location: meta?.pool ?? null,
+        pool_reserved: meta?.reserved ?? false,
+        theory_from: meta?.theory_from ?? '',
+        theory_to:   meta?.theory_to   ?? '',
+        pool_from:   meta?.pool_from   ?? '',
+        pool_to:     meta?.pool_to     ?? '',
+        lake_from:   meta?.lake_from   ?? '',
+        lake_to:     meta?.lake_to     ?? '',
+      }
+    })
+
+    setDates(merged.length > 0 ? merged : [
+      { date: existingCourse.start_date, type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false, theory_from: '', theory_to: '', pool_from: '', pool_to: '', lake_from: '', lake_to: '' },
+    ])
+  }, [open, courseId, existingCourse, existingDates])
+
+  // Conflict check — live useQuery driven by haupt + dates, gated to create mode.
+  const conflictDates = useMemo(() => dates.map((d) => d.date).filter(Boolean), [dates])
+  const { data: conflicts = [] } = useScheduleConflicts(
+    !isEdit ? haupt || null : null,
+    conflictDates,
+  )
 
   function addDate() {
     setDates((prev) => [
@@ -250,49 +228,14 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
   async function deleteCourse() {
     if (!courseId) return
     if (!confirm(t('course_edit.confirm_delete'))) return
-
-    setSaving(true)
     setError(null)
-
     try {
-      // 1. Vergütungs-Bewegungen zu Assignments dieses Kurses löschen
-      //    (sonst bleiben sie als verwaiste Buchungen mit ref_assignment_id=NULL übrig)
-      const { data: assignments } = await supabase
-        .from('course_assignments')
-        .select('id')
-        .eq('course_id', courseId)
-      const assignmentIds = (assignments ?? []).map((a) => a.id)
-
-      if (assignmentIds.length > 0) {
-        const { error: delMovErr } = await supabase
-          .from('account_movements')
-          .delete()
-          .eq('kind', 'vergütung')
-          .in('ref_assignment_id', assignmentIds)
-        if (delMovErr) {
-          setError(t('course_edit.error_cleanup_payments') + delMovErr.message)
-          setSaving(false)
-          return
-        }
-      }
-
-      // 2. Kurs löschen — assignments, dates, participants kaskadieren automatisch
-      const { error: delErr } = await supabase
-        .from('courses')
-        .delete()
-        .eq('id', courseId)
-      if (delErr) {
-        setError(t('course_edit.error_delete') + delErr.message)
-        setSaving(false)
-        return
-      }
-
-      setSaving(false)
+      await deleteCourseMutation.mutateAsync(courseId)
       onSaved()
       onClose()
-    } catch (e: any) {
-      setError(e?.message || t('course_edit.error_unknown'))
-      setSaving(false)
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : t('course_edit.error_unknown')
+      setError(t('course_edit.error_delete') + msg)
     }
   }
 
@@ -303,101 +246,60 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
       setError(t('course_edit.error_at_least_one_date'))
       return
     }
-    // Sort chronologically
+    setError(null)
+
+    // Sort chronologically.
     const sorted = [...valid].sort((a, b) => a.date.localeCompare(b.date))
     const startDate = sorted[0].date
     const additional = sorted.slice(1).map((d) => d.date)
 
-    setSaving(true)
-    setError(null)
-
-    let savedCourseId = courseId
-
-    if (isEdit) {
-      const { error: updErr } = await supabase
-        .from('courses')
-        .update({
-          type_id: typeId,
-          title: title.trim(),
-          status,
-          start_date: startDate,
-          additional_dates: additional,
-          num_participants: numParticipants,
-          // pool_booked is implied by any date with type='pool' — kept for backward compat
-          pool_booked: sorted.some((d) => d.type === 'pool'),
-          info: info.trim() || null,
-          notes: notes.trim() || null,
-        })
-        .eq('id', courseId!)
-      if (updErr) {
-        setError(updErr.message); setSaving(false); return
-      }
-    } else {
-      const { data: course, error: insErr } = await supabase
-        .from('courses')
-        .insert({
-          type_id: typeId,
-          title: title.trim(),
-          status,
-          start_date: startDate,
-          additional_dates: additional,
-          num_participants: numParticipants,
-          pool_booked: sorted.some((d) => d.type === 'pool'),
-          info: info.trim() || null,
-          notes: notes.trim() || null,
-        })
-        .select('id')
-        .single()
-      if (insErr || !course) {
-        setError(insErr?.message ?? t('common.error')); setSaving(false); return
-      }
-      savedCourseId = course.id
-
-      if (haupt) {
-        await supabase.from('course_assignments').insert({
-          course_id: savedCourseId,
-          instructor_id: haupt,
-          role: 'haupt',
-        })
-      }
+    const courseInput = {
+      type_id: typeId,
+      title: title.trim(),
+      status,
+      start_date: startDate,
+      additional_dates: additional,
+      num_participants: numParticipants,
+      // pool_booked is implied by any date with type='pool' — kept for backward compat
+      pool_booked: sorted.some((d) => d.type === 'pool'),
+      info: info.trim() || null,
+      notes: notes.trim() || null,
     }
+    const dateRows = sorted.map((d) => ({
+      date: d.date,
+      type: derivePrimaryType(d),
+      has_theory: d.has_theory,
+      has_pool: d.has_pool,
+      has_lake: d.has_lake,
+      pool_location: d.has_pool ? d.pool_location : null,
+      pool_reserved: d.has_pool ? d.pool_reserved : false,
+      theory_from: d.has_theory ? (d.theory_from || null) : null,
+      theory_to:   d.has_theory ? (d.theory_to   || null) : null,
+      pool_from:   d.has_pool   ? (d.pool_from   || null) : null,
+      pool_to:     d.has_pool   ? (d.pool_to     || null) : null,
+      lake_from:   d.has_lake   ? (d.lake_from   || null) : null,
+      lake_to:     d.has_lake   ? (d.lake_to     || null) : null,
+    }))
 
-    // Sync course_dates: delete existing and re-insert (idempotent rebuild)
-    if (savedCourseId) {
-      await supabase.from('course_dates').delete().eq('course_id', savedCourseId)
-      const rows = sorted.map((d) => {
-        const primaryType = derivePrimaryType(d)
-        return {
-          course_id: savedCourseId,
-          date: d.date,
-          type: primaryType,
-          has_theory: d.has_theory,
-          has_pool: d.has_pool,
-          has_lake: d.has_lake,
-          pool_location: d.has_pool ? d.pool_location : null,
-          pool_reserved: d.has_pool ? d.pool_reserved : false,
-          // Per-Type-Zeiten — nur senden wenn Type aktiv, sonst NULL
-          theory_from: d.has_theory ? (d.theory_from || null) : null,
-          theory_to:   d.has_theory ? (d.theory_to   || null) : null,
-          pool_from:   d.has_pool   ? (d.pool_from   || null) : null,
-          pool_to:     d.has_pool   ? (d.pool_to     || null) : null,
-          lake_from:   d.has_lake   ? (d.lake_from   || null) : null,
-          lake_to:     d.has_lake   ? (d.lake_to     || null) : null,
-        }
-      })
-      if (rows.length > 0) {
-        const { error: cdErr } = await supabase.from('course_dates').insert(rows)
-        if (cdErr) {
-          setError(t('course_edit.error_save_dates') + cdErr.message)
-          setSaving(false)
-          return
-        }
+    try {
+      if (isEdit) {
+        await updateCourse.mutateAsync({
+          courseId: courseId!,
+          course: courseInput,
+          dateRows,
+        })
+      } else {
+        await createCourse.mutateAsync({
+          course: courseInput,
+          dateRows,
+          hauptInstructorId: haupt || null,
+        })
       }
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
     }
-
-    setSaving(false)
-    onSaved()
-    onClose()
   }
 
   const isMultiDay = dates.length > 1
