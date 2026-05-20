@@ -12,7 +12,7 @@
  *   ┌─ Pipeline ─┐ ┌─ Attention ─┐
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -30,54 +30,21 @@ import {
   chf,
   padiLevelColor,
 } from '@/foundation'
-import { supabase } from '@/lib/supabase'
+import { useCockpitData } from '@/hooks/useCockpitData'
+import type {
+  CockpitKpis as KPIs,
+  CockpitMonthlyPayment as MonthlyPayment,
+  CockpitTopInstructor as TopInstructor,
+  CockpitPipeline as Pipeline,
+  CockpitAttention as Attention,
+} from '@/lib/queries'
 import type { OutletCtx } from '@/layout/AppShell'
-
-interface KPIs {
-  payments_chf: number
-  payments_count: number
-  courses_in_period: number
-  active_instructors_in_period: number
-  total_active_instructors: number
-  active_students: number
-}
-
-interface MonthlyPayment { month: string; total: number }
-
-interface TopInstructor {
-  id: string
-  name: string
-  padi_level: string
-  color: string | null
-  initials: string | null
-  total_chf: number
-  course_count: number
-}
-
-interface Pipeline { today: number; this_week: number; next_30_days: number }
-
-interface Attention {
-  courses_without_haupt: number
-  long_tentative: number
-  idle_instructors_6w: number
-}
-
-interface CockpitData {
-  kpis: KPIs
-  monthly_payments: MonthlyPayment[]
-  top_instructors: TopInstructor[]
-  pipeline: Pipeline
-  attention: Attention
-}
 
 type PeriodKey = 'month' | 'quarter' | 'ytd'
 
 export function CockpitScreen() {
   const { t, i18n } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
-  const [data, setData] = useState<CockpitData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [period, setPeriod] = useState<PeriodKey>('month')
 
   const range = useMemo(
@@ -85,17 +52,7 @@ export function CockpitScreen() {
     [period, i18n.resolvedLanguage],
   )
 
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
-    supabase
-      .rpc('cockpit_data', { p_start: range.start, p_end: range.end })
-      .then(({ data, error }) => {
-        if (error) { setError(error.message); setLoading(false); return }
-        setData(data as CockpitData)
-        setLoading(false)
-      })
-  }, [range.start, range.end])
+  const { data, isLoading: loading, error } = useCockpitData(range.start, range.end)
 
   const accessAllowed =
     user.role === 'owner' || user.role === 'dispatcher' || user.role === 'cd'
@@ -136,7 +93,7 @@ export function CockpitScreen() {
         {loading && !data ? (
           <div className="atoll-cockpit__loading">{t('cockpit.loading')}</div>
         ) : error ? (
-          <div className="atoll-cockpit__error">{error}</div>
+          <div className="atoll-cockpit__error">{error.message}</div>
         ) : data ? (
           <>
             <KpiSection kpis={data.kpis} />

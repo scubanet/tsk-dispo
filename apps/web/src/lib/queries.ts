@@ -442,6 +442,64 @@ export async function fetchStudentCourses(studentId: string): Promise<CoursePart
   return sorted as unknown as CourseParticipant[]
 }
 
+// ──────────────────────── Cockpit ────────────────────────
+
+export interface CockpitKpis {
+  payments_chf: number
+  payments_count: number
+  courses_in_period: number
+  active_instructors_in_period: number
+  total_active_instructors: number
+  active_students: number
+}
+
+export interface CockpitMonthlyPayment {
+  month: string
+  total: number
+}
+
+export interface CockpitTopInstructor {
+  id: string
+  name: string
+  padi_level: string
+  color: string | null
+  initials: string | null
+  total_chf: number
+  course_count: number
+}
+
+export interface CockpitPipeline {
+  today: number
+  this_week: number
+  next_30_days: number
+}
+
+export interface CockpitAttention {
+  courses_without_haupt: number
+  long_tentative: number
+  idle_instructors_6w: number
+}
+
+export interface CockpitData {
+  kpis: CockpitKpis
+  monthly_payments: CockpitMonthlyPayment[]
+  top_instructors: CockpitTopInstructor[]
+  pipeline: CockpitPipeline
+  attention: CockpitAttention
+}
+
+/**
+ * Single-RPC dashboard payload. The server-side `cockpit_data` function
+ * computes everything (KPIs, monthly chart, top instructors, pipeline,
+ * attention list) inside one query plan, so the client gets one round-trip
+ * regardless of how many cards the dashboard renders.
+ */
+export async function fetchCockpitData(start: string, end: string): Promise<CockpitData> {
+  const { data, error } = await supabase.rpc('cockpit_data', { p_start: start, p_end: end })
+  if (error) throw error
+  return data as CockpitData
+}
+
 export interface SaldoDiffRow {
   instructor_id: string
   name: string
