@@ -2,11 +2,12 @@
  * RelationshipsTab — list + remove + add relationships for a contact.
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listRelationships } from '@/lib/contactQueries'
-import { supabase } from '@/lib/supabase'
+import { useQueryClient } from '@tanstack/react-query'
+import { removeRelationship } from '@/lib/contactQueries'
 import type { ContactRelationship, RelationshipKind } from '@/types/contacts'
+import { useContactRelationships } from '@/hooks/useContactTabs'
 import { AddRelationshipSheet } from '../AddRelationshipSheet'
 
 const KIND_LABEL_KEYS: Record<RelationshipKind, string> = {
@@ -29,22 +30,17 @@ interface Props {
 
 export function RelationshipsTab({ contactId }: Props) {
   const { t } = useTranslation()
-  const [relationships, setRelationships] = useState<ContactRelationship[]>([])
-  const [loading, setLoading] = useState(true)
+  const qc = useQueryClient()
+  const { data: relationships = [], isLoading: loading } = useContactRelationships(contactId)
   const [addOpen, setAddOpen] = useState(false)
 
-  const load = useCallback(() => {
-    setLoading(true)
-    listRelationships(contactId)
-      .then(setRelationships)
-      .finally(() => setLoading(false))
-  }, [contactId])
-
-  useEffect(() => { load() }, [load])
+  function refresh() {
+    qc.invalidateQueries({ queryKey: ['contact', 'relationships', contactId] })
+  }
 
   async function handleRemove(rel: ContactRelationship) {
-    await supabase.from('contact_relationships').delete().eq('id', rel.id)
-    load()
+    await removeRelationship(rel.id)
+    refresh()
   }
 
   if (loading) {
@@ -105,7 +101,7 @@ export function RelationshipsTab({ contactId }: Props) {
         onClose={() => setAddOpen(false)}
         onSaved={() => {
           setAddOpen(false)
-          load()
+          refresh()
         }}
       />
     </div>

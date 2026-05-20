@@ -548,3 +548,163 @@ export async function archiveContact(id: string): Promise<void> {
     .eq('id', id)
   if (error) throw error
 }
+
+// ────────────────────── Contact-Detail Tab queries ─────────────────────────
+
+export interface ContactAuditRow {
+  id: string
+  changed_at: string
+  table_name: string
+  operation: string
+  changed_fields?: Record<string, unknown> | null
+}
+
+/**
+ * Reads contact_audit_log rows for one contact. Caller controls the limit
+ * (Activity tab passes 100, Audit-History tab passes 200) — same query
+ * shape, different page size.
+ */
+export async function fetchContactAuditLog(
+  contactId: string,
+  limit: number = 100,
+): Promise<ContactAuditRow[]> {
+  const { data, error } = await supabase
+    .from('contact_audit_log')
+    .select('id, changed_at, table_name, operation, changed_fields')
+    .eq('contact_id', contactId)
+    .order('changed_at', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  return (data ?? []) as ContactAuditRow[]
+}
+
+export interface ContactCommunicationRow {
+  id: string
+  channel: string
+  direction: string
+  occurred_on: string
+  subject: string | null
+  body: string | null
+  duration_minutes: number | null
+  outcome: string | null
+  created_by_instructor: { id: string; name: string } | null
+}
+
+/** Communication entries scoped to one contact (Communications tab). */
+export async function fetchContactCommunications(contactId: string): Promise<ContactCommunicationRow[]> {
+  const { data, error } = await supabase
+    .from('communication_entries')
+    .select(
+      'id, channel, direction, occurred_on, subject, body, duration_minutes, outcome, created_by_instructor:instructors!created_by(id, name)',
+    )
+    .eq('contact_id', contactId)
+    .order('occurred_on', { ascending: false })
+    .limit(200)
+  if (error) throw error
+  return (data ?? []) as unknown as ContactCommunicationRow[]
+}
+
+export interface ContactSkillRow {
+  id: string
+  code: string
+  label: string
+  category: string | null
+}
+
+/** Instructor-skills via embed-join (Skills tab read-only). */
+export async function fetchContactSkills(contactId: string): Promise<ContactSkillRow[]> {
+  const { data, error } = await supabase
+    .from('instructor_skills')
+    .select('skill:skills(id, code, label, category)')
+    .eq('instructor_id', contactId)
+  if (error) throw error
+  return ((data ?? []) as unknown as { skill: ContactSkillRow | null }[])
+    .map((r) => r.skill)
+    .filter((s): s is ContactSkillRow => s !== null)
+    .sort((a, b) => {
+      const ca = a.category ?? ''
+      const cb = b.category ?? ''
+      if (ca !== cb) return ca.localeCompare(cb)
+      return a.label.localeCompare(b.label)
+    })
+}
+
+export interface ContactCourseAssignment {
+  id: string
+  role: string
+  courses: { id: string; title: string; start_date: string | null; status: string } | null
+}
+
+export interface ContactCourseParticipation {
+  id: string
+  courses: { id: string; title: string; start_date: string | null; status: string } | null
+}
+
+/** Courses where this contact is assigned as instructor. */
+export async function fetchInstructorCourses(contactId: string): Promise<ContactCourseAssignment[]> {
+  const { data, error } = await supabase
+    .from('course_assignments')
+    .select('id, role, courses(id, title, start_date, status)')
+    .eq('instructor_id', contactId)
+    .order('id', { ascending: false })
+    .limit(50)
+  if (error) throw error
+  return (data ?? []) as unknown as ContactCourseAssignment[]
+}
+
+/** Courses where this contact is enrolled as student/candidate. */
+export async function fetchStudentParticipations(contactId: string): Promise<ContactCourseParticipation[]> {
+  const { data, error } = await supabase
+    .from('course_participants')
+    .select('id, courses(id, title, start_date, status)')
+    .eq('student_id', contactId)
+    .order('id', { ascending: false })
+    .limit(50)
+  if (error) throw error
+  return (data ?? []) as unknown as ContactCourseParticipation[]
+}
+
+/** Count of `account_movements` rows for one contact (SaldoTab stub). */
+export async function fetchContactBookingCount(contactId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('account_movements')
+    .select('*', { count: 'exact', head: true })
+    .eq('contact_id', contactId)
+  if (error) throw error
+  return count ?? 0
+}
+
+export interface OrgMemberRow {
+  id: string
+  from_contact_id: string
+  role_at_org: string | null
+  from_contact: {
+    id: string
+    display_name: string
+    primary_email: string | null
+    roles: string[]
+  } | null
+}
+
+/** Members of an organization via `works_at` relationship. */
+export async function fetchOrgMembers(orgId: string): Promise<OrgMemberRow[]> {
+  const { data, error } = await supabase
+    .from('contact_relationships')
+    .select(
+      'id, from_contact_id, role_at_org, ' +
+      'from_contact:contacts!contact_relationships_from_contact_id_fkey(id, display_name, primary_email, roles)',
+    )
+    .eq('to_contact_id', orgId)
+    .eq('kind', 'works_at')
+  if (error) throw error
+  return (data ?? []) as unknown as OrgMemberRow[]
+}
+
+/** Removes one `contact_relationships` row by id (used by RelationshipsTab). */
+export async function removeRelationship(relationshipId: string): Promise<void> {
+  const { error } = await supabase
+    .from('contact_relationships')
+    .delete()
+    .eq('id', relationshipId)
+  if (error) throw error
+}

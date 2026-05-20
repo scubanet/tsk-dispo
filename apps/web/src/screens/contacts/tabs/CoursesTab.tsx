@@ -2,28 +2,9 @@
  * CoursesTab — courses as instructor and/or as participant.
  */
 
-import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { supabase } from '@/lib/supabase'
 import type { ContactRole } from '@/types/contacts'
-
-interface CourseRef {
-  id: string
-  title: string
-  start_date: string | null
-  status: string
-}
-
-interface AssignmentRow {
-  id: string
-  role: string
-  courses: CourseRef | null
-}
-
-interface ParticipantRow {
-  id: string
-  courses: CourseRef | null
-}
+import { useInstructorCourses, useStudentParticipations } from '@/hooks/useContactTabs'
 
 interface Props {
   contactId: string
@@ -35,32 +16,8 @@ export function CoursesTab({ contactId, roles }: Props) {
   const isInstructor = roles.includes('instructor')
   const isStudent = roles.includes('student') || roles.includes('candidate')
 
-  const [assignments, setAssignments] = useState<AssignmentRow[]>([])
-  const [participations, setParticipations] = useState<ParticipantRow[]>([])
-
-  useEffect(() => {
-    if (isInstructor) {
-      supabase
-        .from('course_assignments')
-        .select('id, role, courses(id, title, start_date, status)')
-        .eq('instructor_id', contactId)
-        .order('id', { ascending: false })
-        .limit(50)
-        .then(({ data }) => setAssignments((data ?? []) as unknown as AssignmentRow[]))
-    }
-  }, [contactId, isInstructor])
-
-  useEffect(() => {
-    if (isStudent) {
-      supabase
-        .from('course_participants')
-        .select('id, courses(id, title, start_date, status)')
-        .eq('student_id', contactId)
-        .order('id', { ascending: false })
-        .limit(50)
-        .then(({ data }) => setParticipations((data ?? []) as unknown as ParticipantRow[]))
-    }
-  }, [contactId, isStudent])
+  const { data: assignments = [] } = useInstructorCourses(contactId, isInstructor)
+  const { data: participations = [] } = useStudentParticipations(contactId, isStudent)
 
   return (
     <div className="contact-tab-body">

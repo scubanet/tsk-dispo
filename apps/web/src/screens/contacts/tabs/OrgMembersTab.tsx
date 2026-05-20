@@ -3,21 +3,8 @@
  * Visible only for organization contacts.
  */
 
-import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { supabase } from '@/lib/supabase'
-
-interface MemberRow {
-  id: string
-  from_contact_id: string
-  role_at_org: string | null
-  from_contact: {
-    id: string
-    display_name: string
-    primary_email: string | null
-    roles: string[]
-  } | null
-}
+import { useOrgMembers } from '@/hooks/useContactTabs'
 
 interface Props {
   orgId: string
@@ -26,30 +13,9 @@ interface Props {
 
 export function OrgMembersTab({ orgId, onSelectContact }: Props) {
   const { t } = useTranslation()
-  const [members, setMembers] = useState<MemberRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: members = [], isLoading } = useOrgMembers(orgId)
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    void (async () => {
-      const { data } = await supabase
-        .from('contact_relationships')
-        .select(
-          'id, from_contact_id, role_at_org, ' +
-          'from_contact:contacts!contact_relationships_from_contact_id_fkey(id, display_name, primary_email, roles)',
-        )
-        .eq('to_contact_id', orgId)
-        .eq('kind', 'works_at')
-      if (!cancelled) {
-        setMembers((data ?? []) as unknown as MemberRow[])
-        setLoading(false)
-      }
-    })()
-    return () => { cancelled = true }
-  }, [orgId])
-
-  if (loading) return <div className="contact-tab-body tab-stub">{t('contacts.loading_members')}</div>
+  if (isLoading) return <div className="contact-tab-body tab-stub">{t('contacts.loading_members')}</div>
 
   if (members.length === 0) {
     return <div className="contact-tab-body tab-stub">{t('contacts.no_members')}</div>

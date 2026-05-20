@@ -5,25 +5,14 @@
  * opens the existing CommunicationEditSheet so all CRUD lives in one place.
  */
 
-import { useEffect, useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useOutletContext } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { useQueryClient } from '@tanstack/react-query'
 import { Pill, Icon, dateTimeShort } from '@/foundation'
 import { CommunicationEditSheet, CHANNELS } from '../../cd/CommunicationEditSheet'
+import { useContactCommunications } from '@/hooks/useContactTabs'
 import type { OutletCtx } from '@/layout/AppShell'
-
-interface Entry {
-  id: string
-  channel: string
-  direction: string
-  occurred_on: string
-  subject: string | null
-  body: string | null
-  duration_minutes: number | null
-  outcome: string | null
-  created_by_instructor: { id: string; name: string } | null
-}
 
 interface Props {
   contactId: string
@@ -32,38 +21,18 @@ interface Props {
 export function CommunicationsTab({ contactId }: Props) {
   const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
-  const [rows, setRows] = useState<Entry[]>([])
-  const [loading, setLoading] = useState(true)
+  const qc = useQueryClient()
+  const { data: rows = [], isLoading: loading } = useContactCommunications(contactId)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
-  const [refreshTick, setRefreshTick] = useState(0)
 
-  const load = useCallback(() => {
-    let cancelled = false
-    setLoading(true)
-    supabase
-      .from('communication_entries')
-      .select(
-        'id, channel, direction, occurred_on, subject, body, duration_minutes, outcome, created_by_instructor:instructors!created_by(id, name)',
-      )
-      .eq('contact_id', contactId)
-      .order('occurred_on', { ascending: false })
-      .limit(200)
-      .then(({ data, error }) => {
-        if (cancelled) return
-        if (error) console.error('[contact-comms] load failed', error)
-        setRows((data ?? []) as unknown as Entry[])
-        setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [contactId])
-
-  useEffect(() => {
-    load()
-  }, [load, refreshTick])
+  function invalidate() {
+    // Invalidate the per-contact list *and* the global CommunicationHub list
+    // so both views stay consistent after a save.
+    qc.invalidateQueries({ queryKey: ['contact', 'communications', contactId] })
+    qc.invalidateQueries({ queryKey: ['communicationEntries'] })
+  }
 
   if (loading) {
     return (
@@ -149,7 +118,7 @@ export function CommunicationsTab({ contactId }: Props) {
       <CommunicationEditSheet
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        onSaved={() => setRefreshTick((tick) => tick + 1)}
+        onSaved={invalidate}
         entryId={editingId}
         createdById={user.instructorId}
       />
@@ -157,7 +126,7 @@ export function CommunicationsTab({ contactId }: Props) {
       <CommunicationEditSheet
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onSaved={() => setRefreshTick((tick) => tick + 1)}
+        onSaved={invalidate}
         createdById={user.instructorId}
         contactId={contactId}
       />

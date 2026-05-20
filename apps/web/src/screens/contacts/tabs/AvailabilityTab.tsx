@@ -7,14 +7,16 @@
  * nur bei contact.roles enthält 'instructor'.
  */
 
-import { useEffect, useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import { Icon } from '@/foundation'
 import {
   AvailabilityRow as AvailabilityRowView,
   AvailabilityAddSheet,
 } from '@/components/availability'
-import { fetchAvailability, type AvailabilityRow } from '@/lib/queries'
+import type { AvailabilityRow } from '@/lib/queries'
+import { useContactAvailability } from '@/hooks/useContactTabs'
 
 interface Props {
   contactId: string
@@ -45,23 +47,14 @@ function groupByStatus(rows: AvailabilityRow[]): Grouped {
 
 export function AvailabilityTab({ contactId }: Props) {
   const { t } = useTranslation()
-  const [rows, setRows] = useState<AvailabilityRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const qc = useQueryClient()
+  const { data: rows = [], isLoading: loading } = useContactAvailability(contactId)
   const [showAdd, setShowAdd] = useState(false)
   const [showPast, setShowPast] = useState(false)
 
-  function load() {
-    setLoading(true)
-    fetchAvailability(contactId)
-      .then((data) => setRows(data))
-      .catch((err) => console.error('[availability-tab] load failed', err))
-      .finally(() => setLoading(false))
+  function refresh() {
+    qc.invalidateQueries({ queryKey: ['contact', 'availability', contactId] })
   }
-
-  useEffect(() => {
-    load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contactId])
 
   const grouped = useMemo(() => groupByStatus(rows), [rows])
   const totalCount = grouped.current.length + grouped.future.length + grouped.past.length
@@ -102,7 +95,7 @@ export function AvailabilityTab({ contactId }: Props) {
               </h2>
               <div className="atoll-myprofile__avail-list">
                 {grouped.current.map((r) => (
-                  <AvailabilityRowView key={r.id} row={r} onDeleted={load} />
+                  <AvailabilityRowView key={r.id} row={r} onDeleted={refresh} />
                 ))}
               </div>
             </section>
@@ -115,7 +108,7 @@ export function AvailabilityTab({ contactId }: Props) {
               </h2>
               <div className="atoll-myprofile__avail-list">
                 {grouped.future.map((r) => (
-                  <AvailabilityRowView key={r.id} row={r} onDeleted={load} />
+                  <AvailabilityRowView key={r.id} row={r} onDeleted={refresh} />
                 ))}
               </div>
             </section>
@@ -147,7 +140,7 @@ export function AvailabilityTab({ contactId }: Props) {
               {showPast && (
                 <div className="atoll-myprofile__avail-list">
                   {grouped.past.map((r) => (
-                    <AvailabilityRowView key={r.id} row={r} onDeleted={load} />
+                    <AvailabilityRowView key={r.id} row={r} onDeleted={refresh} />
                   ))}
                 </div>
               )}
@@ -159,7 +152,7 @@ export function AvailabilityTab({ contactId }: Props) {
       <AvailabilityAddSheet
         open={showAdd}
         onClose={() => setShowAdd(false)}
-        onCreated={load}
+        onCreated={refresh}
         instructorId={contactId}
       />
     </div>
