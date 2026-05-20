@@ -80,7 +80,7 @@
 .atoll-drawer__body::-webkit-scrollbar-track { background: transparent; }
 .atoll-drawer__body::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.18);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 .atoll-drawer__body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.28);

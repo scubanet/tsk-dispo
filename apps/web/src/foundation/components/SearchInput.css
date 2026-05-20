@@ -65,7 +65,7 @@
   justify-content: center;
   width: 18px;
   height: 18px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   flex-shrink: 0;

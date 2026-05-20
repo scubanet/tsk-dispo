@@ -44,7 +44,7 @@
   min-width: 18px;
   padding: 0 5px;
   height: 16px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--bg-tertiary);
   color: var(--text-tertiary);
   font-size: var(--text-badge);

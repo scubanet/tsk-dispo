@@ -4,9 +4,16 @@
  * All tokens are CSS variables on :root. Components reference them via
  * `var(--token-name)`. Never hardcode pixel values or colors.
  *
- * Three-radii rule: 6px / 10px / 14px. Nothing else.
- * Two-weight rule: 400 / 500 only. Never 600/700.
- * Sentence-case rule: small-caps reserved for section dividers ("PRO · KANDIDAT").
+ * Three-radii rule: 6px / 10px / 14px for rounded rectangles.
+ *   `--radius-pill` (999px) is the documented exception for capsules
+ *   and circles only (Avatar, Pill, dots).
+ *
+ * Three-weight rule: 400 / 500 / 600.
+ *   `--weight-bold` (600) is reserved for big numerals (≥ 24px) and
+ *   decorative titles/wordmarks. Body text + labels stay 400/500.
+ *
+ * Sentence-case rule: small-caps reserved for section dividers
+ *   ("PRO · KANDIDAT", "STAMMDATEN", "KURSDATEN").
  */
 
 :root {
@@ -49,6 +56,13 @@
 
   --brand-sand: #FAF9F4;        /* Sidebar, page bg */
   --brand-sand-200: #F1EFE8;    /* Divider tint */
+
+  /* ─────────────── Platform-specific brand colors ──────────────────── */
+  /* WhatsApp green — for the WhatsApp integration buttons only. Documented
+   * as platform-specific so the rest of the palette stays ATOLL-clean. */
+  --brand-whatsapp:     #25D366;
+  --brand-whatsapp-50:  #E5F8EC;
+  --brand-whatsapp-800: #075E54;
 
   /* ───────────────────────── Semantic colors ────────────────────────── */
   --bg-page: var(--brand-sand-200);
@@ -96,11 +110,13 @@
 
   --weight-regular: 400;
   --weight-medium: 500;
+  --weight-bold: 600;     /* Reserved: big numerals (≥ 24px) and titles ≥ 20px */
 
   /* ───────────────────────────── Layout ─────────────────────────────── */
-  --radius-sm: 6px;       /* Badges, pills */
+  --radius-sm: 6px;       /* Badges, small chips */
   --radius-md: 10px;      /* KPI cards, list rows, default */
   --radius-lg: 14px;      /* Large cards, modals, browser frame */
+  --radius-pill: 999px;   /* Avatars, capsule pills, dots */
 
   /* Spacing — rem-based for predictability */
   --space-1: 0.25rem;     /* 4px */
@@ -389,7 +405,7 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
   padding: 2px var(--space-2);
-  border-radius: 999px;         /* pill shape */
+  border-radius: var(--radius-pill);
   color: #fff;
   cursor: default;
   line-height: 1.4;
@@ -866,7 +882,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 2px 6px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 

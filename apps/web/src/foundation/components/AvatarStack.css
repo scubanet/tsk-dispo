@@ -5,7 +5,7 @@
 
 .atoll-avatar-stack__item {
   display: inline-flex;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   box-shadow: 0 0 0 2px var(--bg-card);
 }
 

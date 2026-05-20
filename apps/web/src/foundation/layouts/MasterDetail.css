@@ -50,7 +50,7 @@
 .atoll-md__list-body::-webkit-scrollbar-track { background: transparent; }
 .atoll-md__list-body::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.18);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 .atoll-md__list-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.28);
@@ -81,7 +81,7 @@
 .atoll-md__detail-body::-webkit-scrollbar-track { background: transparent; }
 .atoll-md__detail-body::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.18);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 .atoll-md__detail-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.28);

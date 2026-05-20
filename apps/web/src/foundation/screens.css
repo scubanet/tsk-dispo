@@ -31,7 +31,7 @@
 .atoll-screen__body::-webkit-scrollbar-track { background: transparent; }
 .atoll-screen__body::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.18);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 .atoll-screen__body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.28);
@@ -392,14 +392,14 @@
 .atoll-cockpit__top-bar {
   height: 4px;
   background: var(--bg-tertiary);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   overflow: hidden;
 }
 
 .atoll-cockpit__top-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--brand-blue), var(--brand-teal));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   transition: width 240ms ease-out;
 }
 
@@ -453,7 +453,7 @@
 .atoll-cockpit__dot {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
 }
 .atoll-cockpit__dot--ok { background: var(--brand-teal); }
@@ -643,7 +643,7 @@
 .atoll-pool__chip {
   width: 10px;
   height: 10px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
 }
 .atoll-pool__chip--reserved {
   background: var(--brand-teal-50);
@@ -671,7 +671,7 @@
 .atoll-skillmatrix__scroll::-webkit-scrollbar-track { background: transparent; }
 .atoll-skillmatrix__scroll::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.18);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .atoll-skillmatrix__table {
@@ -865,7 +865,7 @@
 .atoll-settings__users-scroll::-webkit-scrollbar-track { background: transparent; }
 .atoll-settings__users-scroll::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.18);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 /* ──────────────────────── Calendar ──────────────────────── */
@@ -1021,7 +1021,7 @@
   display: block;
   width: 100%;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 2px 6px;
   font-family: var(--font-sans);
   font-size: var(--text-badge);
@@ -1065,7 +1065,7 @@
 .atoll-cal__legend-chip {
   width: 12px;
   height: 12px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 .atoll-cal__legend-chip--no-haupt {
   background: var(--brand-red-50);
@@ -1839,7 +1839,7 @@
 .atoll-prtab__bar {
   width: 100px;
   height: 6px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: var(--bg-tertiary);
   overflow: hidden;
   flex-shrink: 0;
@@ -1847,7 +1847,7 @@
 
 .atoll-prtab__bar-fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   transition: width 240ms ease-out;
 }
 
