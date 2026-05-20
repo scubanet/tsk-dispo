@@ -442,6 +442,74 @@ export async function fetchStudentCourses(studentId: string): Promise<CoursePart
   return sorted as unknown as CourseParticipant[]
 }
 
+// ──────────────────────── My Profile ────────────────────────
+
+export interface MyProfile {
+  name: string
+  padi_level: string
+  padi_nr: string | null
+  email: string | null
+  phone: string | null
+}
+
+interface PhoneEntry { label?: string; e164?: string; primary?: boolean }
+
+/**
+ * Reads contact + contact_instructor for the instructor view of MyProfile.
+ * Extracts primary phone from the `phones[]` JSONB array.
+ */
+export async function fetchMyProfile(instructorId: string): Promise<MyProfile | null> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select(
+      'display_name, primary_email, phones, ' +
+        'instructor:contact_instructor!inner(padi_level, padi_pro_number)',
+    )
+    .eq('id', instructorId)
+    .single()
+  if (error) throw error
+  if (!data) return null
+  const row = data as unknown as {
+    display_name: string | null
+    primary_email: string | null
+    phones: PhoneEntry[] | null
+    instructor: { padi_level: string | null; padi_pro_number: string | null } | null
+  }
+  const phonesArr = Array.isArray(row.phones) ? row.phones : []
+  const primaryPhone = phonesArr.find((p) => p?.primary)?.e164 ?? phonesArr[0]?.e164 ?? null
+  return {
+    name: row.display_name ?? '—',
+    padi_level: row.instructor?.padi_level ?? '',
+    padi_nr: row.instructor?.padi_pro_number ?? null,
+    email: row.primary_email,
+    phone: primaryPhone,
+  }
+}
+
+/** Reads only the `phones` JSONB column (used by ProfileEditSheet on open). */
+export async function fetchInstructorPhones(instructorId: string): Promise<PhoneEntry[]> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('phones')
+    .eq('id', instructorId)
+    .single()
+  if (error) throw error
+  const phonesArr = (data as { phones?: PhoneEntry[] } | null)?.phones
+  return Array.isArray(phonesArr) ? phonesArr : []
+}
+
+/** Replaces the `phones` JSONB array on a contact row. */
+export async function updateInstructorPhones(
+  instructorId: string,
+  phones: PhoneEntry[],
+): Promise<void> {
+  const { error } = await supabase
+    .from('contacts')
+    .update({ phones })
+    .eq('id', instructorId)
+  if (error) throw error
+}
+
 // ──────────────────────── Skills ────────────────────────
 
 export interface SkillRow {

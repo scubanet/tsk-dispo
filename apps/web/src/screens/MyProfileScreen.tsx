@@ -16,6 +16,7 @@
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   PageHeader,
   EmptyState,
@@ -26,25 +27,14 @@ import {
   BrevetsView,
 } from '@/foundation'
 import { Sheet } from '@/components/Sheet'
-import { supabase } from '@/lib/supabase'
 import {
-  fetchMySkills,
-  fetchAvailability,
-  fetchCertifications,
-  type MySkill,
-  type AvailabilityRow as AvailabilityRowData,
+  fetchInstructorPhones,
+  updateInstructorPhones,
 } from '@/lib/queries'
-import type { Certification } from '@/types/foundation'
+import { useMyProfile, useMySkills, useCertifications } from '@/hooks/useMyProfile'
+import { useContactAvailability } from '@/hooks/useContactTabs'
 import type { OutletCtx } from '@/layout/AppShell'
 import { AvailabilityRow, AvailabilityAddSheet } from '@/components/availability'
-
-interface Profile {
-  name: string
-  padi_level: string
-  padi_nr: string | null
-  email: string | null
-  phone: string | null
-}
 
 const sheetInputStyle = {
   padding: '8px 10px',
@@ -60,60 +50,20 @@ const sheetInputStyle = {
 export function MyProfileScreen() {
   const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [skills, setSkills] = useState<MySkill[]>([])
-  const [availability, setAvailability] = useState<AvailabilityRowData[]>([])
-  const [brevets, setBrevets] = useState<Certification[]>([])
+  const qc = useQueryClient()
+  const { data: profile = null } = useMyProfile(user.instructorId)
+  const { data: skills = [] } = useMySkills(user.instructorId)
+  const { data: availability = [] } = useContactAvailability(user.instructorId)
+  const { data: brevets = [] } = useCertifications(user.instructorId)
   const [showAddAvail, setShowAddAvail] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
 
   function refetchAvail() {
-    if (!user.instructorId) return
-    fetchAvailability(user.instructorId).then(setAvailability)
+    qc.invalidateQueries({ queryKey: ['contact', 'availability', user.instructorId] })
   }
   function refetchProfile() {
-    if (!user.instructorId) return
-    // Phase J — Etappe 2d: Profil aus contacts JOIN contact_instructor.
-    // phones ist JSONB-Array, primary-Eintrag oder erster wird verwendet.
-    supabase
-      .from('contacts')
-      .select(
-        'display_name, primary_email, phones, ' +
-          'instructor:contact_instructor!inner(padi_level, padi_pro_number)',
-      )
-      .eq('id', user.instructorId)
-      .single()
-      .then(({ data }) => {
-        if (!data) {
-          setProfile(null)
-          return
-        }
-        const row = data as unknown as {
-          display_name: string | null
-          primary_email: string | null
-          phones: Array<{ label?: string; e164?: string; primary?: boolean }> | null
-          instructor: { padi_level: string | null; padi_pro_number: string | null } | null
-        }
-        const phonesArr = Array.isArray(row.phones) ? row.phones : []
-        const primaryPhone =
-          phonesArr.find((p) => p?.primary)?.e164 ?? phonesArr[0]?.e164 ?? null
-        setProfile({
-          name: row.display_name ?? '—',
-          padi_level: row.instructor?.padi_level ?? '',
-          padi_nr: row.instructor?.padi_pro_number ?? null,
-          email: row.primary_email,
-          phone: primaryPhone,
-        })
-      })
+    qc.invalidateQueries({ queryKey: ['myProfile', user.instructorId] })
   }
-
-  useEffect(() => {
-    if (!user.instructorId) return
-    refetchProfile()
-    fetchMySkills(user.instructorId).then(setSkills)
-    refetchAvail()
-    fetchCertifications(user.instructorId).then(setBrevets)
-  }, [user.instructorId])
 
   if (!user.instructorId) {
     return (
@@ -262,18 +212,10 @@ function ProfileEditSheet({
     if (!open) return
     setError(null)
     // Phase J — Etappe 2d: Phone aus contacts.phones[] (JSONB Array).
-    supabase
-      .from('contacts')
-      .select('phones')
-      .eq('id', instructorId)
-      .single()
-      .then(({ data }) => {
-        const phonesArr = (data as { phones?: Array<{ e164?: string; primary?: boolean }> } | null)?.phones ?? []
-        const primary = Array.isArray(phonesArr)
-          ? phonesArr.find((p) => p?.primary)?.e164 ?? phonesArr[0]?.e164 ?? ''
-          : ''
-        setPhone(primary)
-      })
+    fetchInstructorPhones(instructorId).then((phonesArr) => {
+      const primary = phonesArr.find((p) => p?.primary)?.e164 ?? phonesArr[0]?.e164 ?? ''
+      setPhone(primary)
+    })
   }, [open, instructorId])
 
   async function save() {
@@ -284,14 +226,15 @@ function ProfileEditSheet({
     const phonesArr = trimmed
       ? [{ label: 'mobile', e164: trimmed, primary: true }]
       : []
-    const { error: updErr } = await supabase
-      .from('contacts')
-      .update({ phones: phonesArr })
-      .eq('id', instructorId)
-    setSaving(false)
-    if (updErr) { setError(updErr.message); return }
-    onSaved()
-    onClose()
+    try {
+      await updateInstructorPhones(instructorId, phonesArr)
+      setSaving(false)
+      onSaved()
+      onClose()
+    } catch (err) {
+      setSaving(false)
+      setError(err instanceof Error ? err.message : String(err))
+    }
   }
 
   return (
