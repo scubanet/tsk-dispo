@@ -555,6 +555,70 @@ export async function deleteAssignmentRow(id: string): Promise<void> {
   if (error) throw error
 }
 
+// ──────────────────────── Account-movement edit (CorrectionSheet) ────────
+
+export interface AccountMovementForEdit {
+  id: string
+  instructor_id: string
+  date: string
+  amount_chf: number
+  kind: string
+  description: string | null
+}
+
+export interface CorrectionInsertInput {
+  instructor_id: string
+  date: string
+  amount_chf: number
+  description: string
+}
+
+export interface CorrectionUpdateInput {
+  instructor_id: string
+  date: string
+  amount_chf: number
+  description: string
+}
+
+/** Read a single account_movements row (CorrectionSheet edit mode). */
+export async function fetchAccountMovement(
+  movementId: string,
+): Promise<AccountMovementForEdit | null> {
+  const { data, error } = await supabase
+    .from('account_movements')
+    .select('id, instructor_id, date, amount_chf, kind, description')
+    .eq('id', movementId)
+    .single()
+  if (error) throw error
+  return (data as AccountMovementForEdit | null) ?? null
+}
+
+/** Insert a new manual correction (`kind = 'korrektur'`). */
+export async function insertCorrection(input: CorrectionInsertInput): Promise<void> {
+  const { error } = await supabase
+    .from('account_movements')
+    .insert({ ...input, kind: 'korrektur' })
+  if (error) throw error
+}
+
+/** Update an existing correction/carryover movement. */
+export async function updateAccountMovement(
+  movementId: string,
+  input: CorrectionUpdateInput,
+): Promise<void> {
+  const { error } = await supabase
+    .from('account_movements')
+    .update(input)
+    .eq('id', movementId)
+  if (error) throw error
+}
+
+/** Delete an account_movements row. */
+export async function deleteAccountMovement(movementId: string): Promise<void> {
+  const { error } = await supabase.from('account_movements').delete().eq('id', movementId)
+  if (error) throw error
+}
+
 // ──────────────────────── Student certification edit ────────────────────────
 
 export interface StudentCertificationInput {

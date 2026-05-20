@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { supabase } from '@/lib/supabase'
-import { listActiveInstructors } from '@/lib/contactQueries'
+import { useActiveInstructors } from '@/hooks/useActiveInstructors'
+import {
+  useAccountMovement,
+  useInsertCorrection,
+  useUpdateAccountMovement,
+  useDeleteAccountMovement,
+} from '@/hooks/useCorrection'
 import { chf } from '@/lib/format'
-
-interface Instructor { id: string; name: string; padi_level: string }
 
 type Kind = 'korrektur' | 'übertrag'
 
@@ -34,27 +37,34 @@ const inputStyle = {
 export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, movementId }: Props) {
   const { t } = useTranslation()
   const isEdit = !!movementId
-  const [instructors, setInstructors] = useState<Instructor[]>([])
+
+  const { data: instructorRows = [] } = useActiveInstructors()
+  const instructors = useMemo(
+    () => instructorRows.map(({ id, name, padi_level }) => ({ id, name, padi_level })),
+    [instructorRows],
+  )
+  const { data: existingMovement, error: loadError } = useAccountMovement(
+    open && movementId ? movementId : null,
+  )
+  const insertMutation = useInsertCorrection()
+  const updateMutation = useUpdateAccountMovement()
+  const deleteMutation = useDeleteAccountMovement()
+  const saving = insertMutation.isPending || updateMutation.isPending
+  const deleting = deleteMutation.isPending
+
   const [instructorId, setInstructorId] = useState(defaultInstructorId ?? '')
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [kind, setKind] = useState<Kind>('korrektur')
-  const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) return
-    setError(null)
-
-    // Load instructors list (always)
-    listActiveInstructors()
-      .then((rows) => setInstructors(rows.map(({ id, name, padi_level }) => ({ id, name, padi_level }))))
-      .catch((err) => console.error('[correction] load instructors failed', err))
+    setError(loadError ? loadError.message : null)
 
     if (!movementId) {
-      // CREATE mode: reset to defaults
+      // CREATE mode: reset to defaults.
       setInstructorId(defaultInstructorId ?? '')
       setDate(new Date().toISOString().slice(0, 10))
       setAmount('')
@@ -63,98 +73,62 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
       return
     }
 
-    // EDIT mode: load movement
-    supabase
-      .from('account_movements')
-      .select('id, instructor_id, date, amount_chf, kind, description')
-      .eq('id', movementId)
-      .single()
-      .then(({ data, error: loadErr }) => {
-        if (loadErr || !data) {
-          setError(loadErr?.message ?? t('correction.movement_not_found'))
-          return
-        }
-        if (data.kind !== 'korrektur' && data.kind !== 'übertrag') {
-          setError(t('correction.only_corrections_editable'))
-          return
-        }
-        setInstructorId(data.instructor_id)
-        setDate(data.date)
-        setAmount(String(data.amount_chf))
-        setDescription(data.description ?? '')
-        setKind(data.kind as Kind)
-      })
-  }, [open, movementId, defaultInstructorId])
+    // EDIT mode: hydrate from cached movement.
+    if (!existingMovement) return
+    if (existingMovement.kind !== 'korrektur' && existingMovement.kind !== 'übertrag') {
+      setError(t('correction.only_corrections_editable'))
+      return
+    }
+    setInstructorId(existingMovement.instructor_id)
+    setDate(existingMovement.date)
+    setAmount(String(existingMovement.amount_chf))
+    setDescription(existingMovement.description ?? '')
+    setKind(existingMovement.kind as Kind)
+  }, [open, movementId, defaultInstructorId, existingMovement, loadError, t])
 
   async function save() {
-    setSaving(true)
     setError(null)
     const num = Number(amount.replace(',', '.'))
     if (isNaN(num) || num === 0) {
       setError(t('correction.error_amount_zero'))
-      setSaving(false)
       return
     }
     if (!description.trim()) {
       setError(t('correction.error_reason_required'))
-      setSaving(false)
       return
     }
 
-    if (isEdit) {
-      // UPDATE
-      const { error: updErr } = await supabase
-        .from('account_movements')
-        .update({
-          instructor_id: instructorId,
-          date,
-          amount_chf: num,
-          description: description.trim(),
-        })
-        .eq('id', movementId)
-      if (updErr) {
-        setError(updErr.message)
-        setSaving(false)
-        return
-      }
-    } else {
-      // INSERT
-      const { error: insErr } = await supabase.from('account_movements').insert({
-        instructor_id: instructorId,
-        date,
-        amount_chf: num,
-        kind: 'korrektur',
-        description: description.trim(),
-      })
-      if (insErr) {
-        setError(insErr.message)
-        setSaving(false)
-        return
-      }
+    const payload = {
+      instructor_id: instructorId,
+      date,
+      amount_chf: num,
+      description: description.trim(),
     }
 
-    setSaving(false)
-    onSaved()
-    onClose()
+    try {
+      if (movementId) {
+        await updateMutation.mutateAsync({ movementId, input: payload })
+      } else {
+        await insertMutation.mutateAsync(payload)
+      }
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
+    }
   }
 
   async function remove() {
     if (!movementId) return
     if (!confirm(t('correction.confirm_delete'))) return
-    setDeleting(true)
     setError(null)
-    const { error: delErr } = await supabase
-      .from('account_movements')
-      .delete()
-      .eq('id', movementId)
-    if (delErr) {
-      setError(delErr.message)
-      setDeleting(false)
-      return
+    try {
+      await deleteMutation.mutateAsync(movementId)
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
     }
-    setDeleting(false)
-    onSaved()
-    onClose()
   }
 
   const previewAmount = Number(amount.replace(',', '.'))
