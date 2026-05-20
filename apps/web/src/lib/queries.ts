@@ -555,6 +555,45 @@ export async function deleteAssignmentRow(id: string): Promise<void> {
   if (error) throw error
 }
 
+// ──────────────────────── Course-participant edit ────────────────────────
+
+export interface ParticipationInput {
+  course_id: string
+  student_id: string
+  status: 'enrolled' | 'certified' | 'dropped'
+  certificate_nr: string | null
+  notes: string | null
+  certified_by_instructor_id: string | null
+  certified_on: string | null
+}
+
+/** Insert a new `course_participants` row. */
+export async function insertParticipation(input: ParticipationInput): Promise<void> {
+  const { error } = await supabase.from('course_participants').insert(input)
+  if (error) throw error
+}
+
+/** Update a `course_participants` row. */
+export async function updateParticipation(
+  participationId: string,
+  input: ParticipationInput,
+): Promise<void> {
+  const { error } = await supabase
+    .from('course_participants')
+    .update(input)
+    .eq('id', participationId)
+  if (error) throw error
+}
+
+/** Delete a `course_participants` row. */
+export async function deleteParticipation(participationId: string): Promise<void> {
+  const { error } = await supabase
+    .from('course_participants')
+    .delete()
+    .eq('id', participationId)
+  if (error) throw error
+}
+
 // ──────────────────────── Course edit ────────────────────────
 
 export interface CourseTypeOption {

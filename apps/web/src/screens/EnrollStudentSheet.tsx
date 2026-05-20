@@ -2,9 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { supabase } from '@/lib/supabase'
-import { fetchStudents, type Student } from '@/lib/queries'
-import { listActiveInstructors, listCandidates } from '@/lib/contactQueries'
+import { type Student } from '@/lib/queries'
+import { useActiveInstructors } from '@/hooks/useActiveInstructors'
+import {
+  useStudents,
+  useCandidates,
+  useSaveParticipation,
+  useDeleteParticipation,
+} from '@/hooks/useEnrollStudent'
 
 type Status = 'enrolled' | 'certified' | 'dropped'
 
@@ -69,8 +74,24 @@ export function EnrollStudentSheet({
   ]
   const isEdit = !!existingParticipation
 
-  const [students, setStudents] = useState<Student[]>([])
-  const [instructors, setInstructors] = useState<InstructorOption[]>([])
+  const isProCourse = isInstructorLevelCourse(courseTypeCode)
+
+  // Picker source depends on course type: Pro courses pick from candidates,
+  // regular courses from students. Each is only loaded when its gate is true.
+  const { data: studentRows = [] } = useStudents(open && !isProCourse)
+  const { data: candidateRows = [] } = useCandidates(open && isProCourse)
+  const students: Student[] = isProCourse ? (candidateRows as Student[]) : studentRows
+
+  const { data: instructorRows = [] } = useActiveInstructors()
+  const instructors = useMemo<InstructorOption[]>(
+    () => instructorRows.map(({ id, name, active }) => ({ id, name, active })),
+    [instructorRows],
+  )
+
+  const saveMutation = useSaveParticipation()
+  const deleteMutation = useDeleteParticipation()
+  const saving = saveMutation.isPending || deleteMutation.isPending
+
   const [studentId, setStudentId] = useState('')
   const [status, setStatus] = useState<Status>('enrolled')
   const [certNr, setCertNr] = useState('')
@@ -78,24 +99,11 @@ export function EnrollStudentSheet({
   const [certifiedOn, setCertifiedOn] = useState('')
   const [notes, setNotes] = useState('')
   const [search, setSearch] = useState('')
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const isProCourse = isInstructorLevelCourse(courseTypeCode)
 
   useEffect(() => {
     if (!open) return
     setError(null)
-    // Pro-Kurse: Kandidaten-Liste (kein contact_student-Join nötig — Kandidaten
-    // können nur als Instructor existieren). Sonst: reguläre Schüler.
-    if (isProCourse) {
-      listCandidates().then((rows) => setStudents(rows as Student[]))
-    } else {
-      fetchStudents().then(setStudents)
-    }
-    listActiveInstructors()
-      .then((rows) => setInstructors(rows.map(({ id, name, active }) => ({ id, name, active }))))
-      .catch((err) => console.error('[enroll-student] load instructors failed', err))
     if (existingParticipation) {
       setStudentId(existingParticipation.student_id)
       setStatus(existingParticipation.status)
@@ -112,7 +120,7 @@ export function EnrollStudentSheet({
       setNotes('')
       setSearch('')
     }
-  }, [open, existingParticipation, isProCourse])
+  }, [open, existingParticipation])
 
   // Wenn Status auf 'certified' wechselt und kein Datum gesetzt → heute als Default
   useEffect(() => {
@@ -141,9 +149,8 @@ export function EnrollStudentSheet({
 
   async function save() {
     if (!studentId) return
-    setSaving(true)
     setError(null)
-    const payload = {
+    const input = {
       course_id: courseId,
       student_id: studentId,
       status,
@@ -154,35 +161,29 @@ export function EnrollStudentSheet({
       certified_by_instructor_id: status === 'certified' ? (certifiedById || null) : null,
       certified_on: status === 'certified' ? (certifiedOn || null) : null,
     }
-    if (isEdit) {
-      const { error: updErr } = await supabase
-        .from('course_participants')
-        .update(payload)
-        .eq('id', existingParticipation!.id)
-      if (updErr) { setError(updErr.message); setSaving(false); return }
-    } else {
-      const { error: insErr } = await supabase
-        .from('course_participants')
-        .insert(payload)
-      if (insErr) { setError(insErr.message); setSaving(false); return }
+    try {
+      await saveMutation.mutateAsync({
+        participationId: existingParticipation?.id ?? null,
+        input,
+      })
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
     }
-    setSaving(false)
-    onSaved()
-    onClose()
   }
 
   async function unenroll() {
-    if (!isEdit) return
+    if (!existingParticipation) return
     if (!confirm(t('enroll.confirm_unenroll'))) return
-    setSaving(true)
-    const { error: delErr } = await supabase
-      .from('course_participants')
-      .delete()
-      .eq('id', existingParticipation!.id)
-    setSaving(false)
-    if (delErr) { setError(delErr.message); return }
-    onSaved()
-    onClose()
+    setError(null)
+    try {
+      await deleteMutation.mutateAsync(existingParticipation.id)
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
+    }
   }
 
   const selectedStudent = students.find((s) => s.id === studentId)
