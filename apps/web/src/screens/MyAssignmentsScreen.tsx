@@ -164,7 +164,7 @@ export function MyAssignmentsScreen() {
                         </Pill>
                         {a.confirmed ? (
                           <Pill tone="success" size="sm">
-                            {t('my_assignments.confirmed')}
+                            ✓ {t('my_assignments.confirmed')}
                           </Pill>
                         ) : (
                           <Pill tone="warning" size="sm">

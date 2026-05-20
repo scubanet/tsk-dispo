@@ -51,6 +51,19 @@
   border-color: var(--border-secondary);
 }
 
+/* GL-004 M9: destructive secondary action (Löschen) needs visible weight
+ * distinction from neutral secondary (Abbrechen). Tinted background plus
+ * red border, not just red text. */
+.btn-danger {
+  background: var(--brand-red-50);
+  color: var(--brand-red-800);
+  border: 1px solid var(--brand-red);
+}
+.btn-danger:hover {
+  background: var(--brand-red-100);
+  border-color: var(--brand-red-800);
+}
+
 .btn-ghost {
   background: transparent;
   color: var(--brand-blue);

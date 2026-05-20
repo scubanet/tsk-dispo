@@ -6,18 +6,33 @@ import { StatusBar } from '@/components/StatusBar'
 import { Logo } from '@/components/Logo'
 import { CopyrightFooter } from '@/components/CopyrightFooter'
 
+// GL-004 M5: simple email shape check. We do NOT use the browser's native
+// `required` + type="email" validation because its tooltip is unbranded and
+// disconnected from the ATOLL palette. The error renders as a styled chip
+// below the input instead.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export function LoginScreen() {
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
+  const [validation, setValidation] = useState<string | null>(null)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setStatus('sending')
     setError(null)
+    setValidation(null)
+
+    const trimmed = email.trim()
+    if (!trimmed || !EMAIL_PATTERN.test(trimmed)) {
+      setValidation(t('auth.invalid_email'))
+      return
+    }
+
+    setStatus('sending')
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: trimmed,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     })
     if (error) {
@@ -59,17 +74,38 @@ export function LoginScreen() {
               {t('auth.link_sent')}
             </div>
           ) : (
-            <form onSubmit={handleSubmit}>
-              <div className="search" style={{ marginBottom: 14, height: 40 }}>
+            <form onSubmit={handleSubmit} noValidate>
+              <div
+                className="search"
+                style={{
+                  marginBottom: validation ? 6 : 14,
+                  height: 40,
+                  outline: validation ? '1px solid var(--brand-red)' : undefined,
+                }}
+              >
                 <input
                   type="email"
-                  required
                   placeholder={t('auth.email_placeholder')}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (validation) setValidation(null)
+                  }}
                   disabled={status === 'sending'}
+                  aria-invalid={validation ? true : undefined}
+                  aria-describedby={validation ? 'login-email-error' : undefined}
                 />
               </div>
+              {validation && (
+                <div
+                  id="login-email-error"
+                  role="alert"
+                  className="chip chip-red"
+                  style={{ marginBottom: 14 }}
+                >
+                  {validation}
+                </div>
+              )}
               <button
                 className="btn"
                 type="submit"
@@ -79,7 +115,7 @@ export function LoginScreen() {
                 {status === 'sending' ? t('common.sending') : t('auth.send_magic_link')}
               </button>
               {error && (
-                <div className="chip chip-red" style={{ marginTop: 12 }}>{error}</div>
+                <div role="alert" className="chip chip-red" style={{ marginTop: 12 }}>{error}</div>
               )}
             </form>
           )}

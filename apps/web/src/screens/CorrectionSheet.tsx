@@ -207,10 +207,9 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
           {isEdit && (
             <button
               type="button"
-              className="btn-secondary btn"
+              className="btn-danger btn"
               onClick={remove}
               disabled={saving || deleting}
-              style={{ color: '#FF3B30' }}
             >
               <Icon name="x" size={14} /> {deleting ? t('correction.deleting') : t('common.delete')}
             </button>

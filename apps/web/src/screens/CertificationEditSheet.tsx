@@ -184,10 +184,9 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
         <div style={{ display: 'flex', gap: 8 }}>
           {isEdit && (
             <button
-              className="btn-secondary btn"
+              className="btn-danger btn"
               onClick={deleteCert}
               disabled={saving}
-              style={{ color: '#FF3B30' }}
             >
               <Icon name="x" size={12} /> {t('common.delete')}
             </button>

@@ -538,10 +538,9 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           {isEdit && (
             <button
               type="button"
-              className="btn-secondary btn"
+              className="btn-danger btn"
               onClick={deleteCourse}
               disabled={saving}
-              style={{ color: '#FF3B30' }}
               title={t('course_edit.delete_tooltip')}
             >
               <Icon name="x" size={12} /> {t('common.delete')}

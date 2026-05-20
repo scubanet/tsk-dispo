@@ -523,7 +523,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                       </Pill>
                     )}
                     <Pill tone={a.confirmed ? 'success' : 'warning'} size="sm">
-                      {a.confirmed ? t('my_assignments.confirmed') : t('my_assignments.open')}
+                      {a.confirmed ? `✓ ${t('my_assignments.confirmed')}` : t('my_assignments.open')}
                     </Pill>
                   </div>
                   {isDispatcher && <FdIcon.ChevronRight size={16} className="atoll-orgs__chevron" aria-hidden />}

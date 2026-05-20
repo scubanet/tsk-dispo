@@ -64,7 +64,8 @@
     "email_placeholder": "you@email.com",
     "send_magic_link": "Send magic link",
     "link_sent": "✉️ Link sent — check your inbox",
-    "completing_login": "Completing login…"
+    "completing_login": "Completing login…",
+    "invalid_email": "Please enter a valid email address."
   },
   "people": {
     "total": "{{count}} total",

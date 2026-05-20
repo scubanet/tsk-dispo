@@ -19,6 +19,10 @@ import { MergeContactsSheet } from './MergeContactsSheet'
 interface Props {
   contact: ContactWithSidecars
   onChanged: () => void
+  /** GL-004 H5: jumps to the Activity panel (not in the tab strip). */
+  onShowActivity?: () => void
+  /** GL-004 H5: jumps to the Audit-History panel (not in the tab strip). */
+  onShowAudit?: () => void
   onClosed: () => void
 }
 
@@ -68,7 +72,7 @@ function downloadVCard(contact: ContactWithSidecars) {
 
 type Sheet = 'roles' | 'merge' | null
 
-export function ContactMoreMenu({ contact, onChanged, onClosed }: Props) {
+export function ContactMoreMenu({ contact, onChanged, onShowActivity, onShowAudit, onClosed }: Props) {
   const { t } = useTranslation()
   const [activeSheet, setActiveSheet] = useState<Sheet>(null)
   const [busy, setBusy] = useState(false)
@@ -141,6 +145,30 @@ export function ContactMoreMenu({ contact, onChanged, onClosed }: Props) {
               {t('contacts.action_export_vcard')}
             </button>
           </li>
+          {onShowActivity && (
+            <li>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={onShowActivity}
+                disabled={busy}
+              >
+                {t('contacts.tab_activity')}
+              </button>
+            </li>
+          )}
+          {onShowAudit && (
+            <li>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={onShowAudit}
+                disabled={busy}
+              >
+                {t('contacts.tab_audit')}
+              </button>
+            </li>
+          )}
           <li>
             <button
               type="button"

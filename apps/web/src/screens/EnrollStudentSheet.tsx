@@ -323,10 +323,9 @@ export function EnrollStudentSheet({
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
           {isEdit && (
             <button
-              className="btn-secondary btn"
+              className="btn-danger btn"
               onClick={unenroll}
               disabled={saving}
-              style={{ color: '#FF3B30' }}
             >
               <Icon name="x" size={12} /> {t('assignment_edit.remove')}
             </button>

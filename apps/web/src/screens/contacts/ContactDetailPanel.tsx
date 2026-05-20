@@ -68,6 +68,14 @@ const TAB_LABEL_KEYS: Record<TabKey, string> = {
 
 // ── Visibility logic ─────────────────────────────────────────────────────
 
+/**
+ * GL-004 H5: Aktivität + Audit-History stay in the TabKey union and in
+ * `computeVisibleTabs` (so safeTab fallback + deep-links + renderPanels()
+ * still work), but they're filtered out of the rendered strip via
+ * `HIDDEN_STRIP_TABS`. The More-menu surfaces them explicitly.
+ */
+const HIDDEN_STRIP_TABS: TabKey[] = ['activity', 'audit']
+
 function computeVisibleTabs(contact: ContactWithSidecars): TabKey[] {
   const tabs: TabKey[] = ['overview', 'relationships', 'communications', 'activity', 'notes']
   const roles = contact.roles
@@ -137,6 +145,8 @@ export function ContactDetailPanel({
   const visibleTabs: TabKey[] = contact ? computeVisibleTabs(contact) : ['overview']
   const safeTab = visibleTabs.includes(activeTab) ? activeTab : visibleTabs[0]
 
+  // Pass the full tab set to <Tabs> with `hiddenInStrip` so panels still
+  // render for activity/audit when activeTab is set to them via the More-menu.
   const tabDefs: TabDefinition<TabKey>[] = visibleTabs.map((key) => ({
     id: key,
     label: t(TAB_LABEL_KEYS[key]),
@@ -191,6 +201,8 @@ export function ContactDetailPanel({
               <ContactMoreMenu
                 contact={contact}
                 onChanged={load}
+                onShowActivity={() => { setActiveTab('activity'); setShowMore(false) }}
+                onShowAudit={() => { setActiveTab('audit'); setShowMore(false) }}
                 onClosed={() => setShowMore(false)}
               />
             )}
@@ -201,6 +213,7 @@ export function ContactDetailPanel({
             onChange={setActiveTab}
             ariaLabel={t('contacts.tabs_aria')}
             panels={renderPanels(contact)}
+            hiddenInStrip={HIDDEN_STRIP_TABS}
           />
         </div>
       )}

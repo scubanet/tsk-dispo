@@ -28,6 +28,13 @@ export interface TabsProps<T extends string = string> {
   ariaLabel: string
   /** Map of panel content keyed by tab id. */
   panels: Record<T, ReactNode>
+  /**
+   * Tab ids to omit from the strip but keep navigable (e.g. via a "..." menu
+   * or deep link). Their panel still renders when `active` matches. Used by
+   * ContactDetailPanel to keep Aktivität + Audit reachable without crowding
+   * the tab bar (GL-004 H5).
+   */
+  hiddenInStrip?: T[]
 }
 
 export function Tabs<T extends string>({
@@ -36,17 +43,21 @@ export function Tabs<T extends string>({
   onChange,
   ariaLabel,
   panels,
+  hiddenInStrip,
 }: TabsProps<T>) {
+  const stripTabs = hiddenInStrip
+    ? tabs.filter((t) => !hiddenInStrip.includes(t.id))
+    : tabs
   const baseId = useId()
   const refs = useRef<Map<T, HTMLButtonElement>>(new Map())
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>, id: T) {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
     e.preventDefault()
-    const idx = tabs.findIndex((t) => t.id === id)
+    const idx = stripTabs.findIndex((t) => t.id === id)
     if (idx < 0) return
-    const next = e.key === 'ArrowLeft' ? (idx - 1 + tabs.length) % tabs.length : (idx + 1) % tabs.length
-    const nextTab = tabs[next]
+    const next = e.key === 'ArrowLeft' ? (idx - 1 + stripTabs.length) % stripTabs.length : (idx + 1) % stripTabs.length
+    const nextTab = stripTabs[next]
     onChange(nextTab.id)
     refs.current.get(nextTab.id)?.focus()
   }
@@ -54,7 +65,7 @@ export function Tabs<T extends string>({
   return (
     <div className="atoll-tabs">
       <div role="tablist" aria-label={ariaLabel} className="atoll-tabs__strip">
-        {tabs.map((tab) => {
+        {stripTabs.map((tab) => {
           const tabId = `${baseId}-tab-${tab.id}`
           const panelId = `${baseId}-panel-${tab.id}`
           const isActive = tab.id === active

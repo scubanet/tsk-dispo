@@ -742,11 +742,16 @@
   margin-top: 2px;
 }
 
+/* GL-004 H7: matrix visual rework. Empty cells were dominating with their
+ * dot indicators visible at full text-disabled opacity. Now: empty cells
+ * are nearly invisible (very low opacity dot) and present-skill cells get
+ * a strong teal fill + check icon so the data signal is what your eye
+ * follows. Visual mass = data mass. */
 .atoll-skillmatrix__cell {
   text-align: center;
   padding: 6px;
   cursor: pointer;
-  color: var(--text-disabled);
+  color: transparent;
   border-top: 1px solid var(--border-tertiary);
   transition: background 120ms ease, color 120ms ease;
   user-select: none;
@@ -754,13 +759,14 @@
 }
 .atoll-skillmatrix__cell:hover {
   background: var(--bg-sand);
+  color: var(--text-disabled);
 }
 .atoll-skillmatrix__cell--has {
-  background: var(--brand-teal-50);
-  color: var(--brand-teal-800);
+  background: var(--brand-teal);
+  color: #fff;
 }
 .atoll-skillmatrix__cell--has:hover {
-  background: var(--brand-teal-100);
+  background: var(--brand-teal-800);
 }
 
 /* ──────────────────────── Settings ──────────────────────── */

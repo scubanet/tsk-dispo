@@ -64,7 +64,8 @@
     "email_placeholder": "deine@email.ch",
     "send_magic_link": "Magic-Link senden",
     "link_sent": "✉️ Link gesendet — schau in deine Inbox",
-    "completing_login": "Login wird abgeschlossen…"
+    "completing_login": "Login wird abgeschlossen…",
+    "invalid_email": "Bitte gib eine gültige Email-Adresse ein."
   },
   "people": {
     "total": "{{count}} insgesamt",

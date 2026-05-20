@@ -433,10 +433,9 @@ export function StudentEditSheet({
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
           {isEdit && (
             <button
-              className="btn-secondary btn"
+              className="btn-danger btn"
               onClick={deleteStudent}
               disabled={saving}
-              style={{ color: '#FF3B30' }}
             >
               <Icon name="x" size={12} /> {t('common.delete')}
             </button>
