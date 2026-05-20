@@ -1,25 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { format } from 'date-fns'
 import { de, enGB } from 'date-fns/locale'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import { useOutletContext } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { Avatar, Pill, Icon as FdIcon, dateLong, padiLevelColor } from '@/foundation'
 import { ContactDetailPanel } from './contacts/ContactDetailPanel'
 import type { TabKey } from './contacts/ContactDetailPanel'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { tplNewCourse, tplCancellation, waGroupShareUrl } from '@/lib/whatsapp'
 import {
-  fetchAllCourses,
-  fetchCourseAssignments,
-  fetchCourseParticipants,
-  fetchCourseDates,
   POOL_LOCATIONS,
-  type CourseDetail,
-  type AssignmentRow,
   type CourseParticipant,
-  type CourseDate,
 } from '@/lib/queries'
+import { useAllCourses } from '@/hooks/useAllCourses'
+import { useCourseAssignments } from '@/hooks/useCourseAssignments'
+import { useCourseParticipants } from '@/hooks/useCourseParticipants'
+import { useCourseDates } from '@/hooks/useCourseDates'
+import { usePrCatalog } from '@/hooks/usePrCatalog'
+import { useCoursePrRecords } from '@/hooks/useCoursePrRecords'
 import { CourseEditSheet } from './CourseEditSheet'
 import { AssignmentEditSheet } from './AssignmentEditSheet'
 import { EnrollStudentSheet } from './EnrollStudentSheet'
@@ -120,20 +120,20 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   ]
   const { user } = useOutletContext<OutletCtx>()
   const isDispatcher = user.role === 'dispatcher' || user.role === 'cd'
-  const [course, setCourse] = useState<CourseDetail | null>(null)
-  const [assignments, setAssignments] = useState<AssignmentRow[]>([])
-  const [participants, setParticipants] = useState<CourseParticipant[]>([])
-  const [courseDates, setCourseDates] = useState<CourseDate[]>([])
+  const qc = useQueryClient()
+  const { data: allCourses } = useAllCourses()
+  const course = allCourses?.find((c) => c.id === courseId) ?? null
+  const { data: assignments = [] } = useCourseAssignments(courseId)
+  const { data: participants = [] } = useCourseParticipants(courseId)
+  const { data: courseDates = [] } = useCourseDates(courseId)
   const [tab, setTab] = useState<Tab>('overview')
   const [editCourseOpen, setEditCourseOpen] = useState(false)
   const [editAssignmentOpen, setEditAssignmentOpen] = useState(false)
+  type AssignmentRow = (typeof assignments)[number]
   const [editingAssignment, setEditingAssignment] = useState<AssignmentRow | null>(null)
   const [enrollOpen, setEnrollOpen] = useState(false)
   const [editingParticipation, setEditingParticipation] = useState<CourseParticipant | null>(null)
   const [newStudentOpen, setNewStudentOpen] = useState(false)
-  const [refreshTick, setRefreshTick] = useState(0)
-  const [catalog, setCatalog] = useState<PrCatalog | null>(null)
-  const [prRecords, setPrRecords] = useState<PrRecord[]>([])
   const [intakeForCpId, setIntakeForCpId] = useState<string | null>(null)
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null)
   const [contactInitialTab, setContactInitialTab] = useState<TabKey>('overview')
@@ -261,17 +261,15 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   }
 
   function refresh() {
-    setRefreshTick((t) => t + 1)
+    // Invalidate every per-course namespace touched by the panel. The cross-
+    // course views (Calendar / Today / Cockpit) share these namespaces and
+    // refresh transparently.
+    qc.invalidateQueries({ queryKey: ['courses'] })
+    qc.invalidateQueries({ queryKey: ['assignments'] })
+    qc.invalidateQueries({ queryKey: ['participants'] })
+    qc.invalidateQueries({ queryKey: ['courseDates'] })
+    qc.invalidateQueries({ queryKey: ['prRecords'] })
   }
-
-  useEffect(() => {
-    fetchAllCourses().then((all) => setCourse(all.find((c) => c.id === courseId) ?? null))
-    fetchCourseAssignments(courseId).then(setAssignments)
-    fetchCourseParticipants(courseId)
-    .then(setParticipants)
-    .catch((err) => console.error('[course-detail] fetchCourseParticipants failed', err))
-    fetchCourseDates(courseId).then(setCourseDates)
-  }, [courseId, refreshTick])
 
   // CD: Catalog + PR-Records laden, sobald Course bekannt + Catalog identifiziert
   const courseTypeCode = course?.course_type?.code ?? null
@@ -279,22 +277,10 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
   const isCdCourse = !!catalogKind
   const isCD = user.role === 'cd'
 
-  useEffect(() => {
-    if (!isCD || !catalogKind) return
-    supabase
-      .from('pr_catalogs')
-      .select('course_type, language, version, data')
-      .eq('course_type', catalogKind)
-      .eq('language', 'de')
-      .eq('active', true)
-      .maybeSingle()
-      .then(({ data }) => setCatalog((data as unknown as PrCatalog | null) ?? null))
-    supabase
-      .from('performance_records')
-      .select('id, student_id, pr_code, status, score, pass, assessed_on, assessed_by_text, notes, with_assistant')
-      .eq('course_id', courseId)
-      .then(({ data }) => setPrRecords((data ?? []) as PrRecord[]))
-  }, [courseId, refreshTick, isCD, catalogKind])
+  const { data: catalogRow } = usePrCatalog(catalogKind, isCD)
+  const catalog = (catalogRow as unknown as PrCatalog | null) ?? null
+  const { data: prRecordsRaw = [] } = useCoursePrRecords(courseId, isCD && isCdCourse)
+  const prRecords = prRecordsRaw as PrRecord[]
 
   if (!course) return <div style={{ padding: 40 }} className="caption">{t('common.loading')}</div>
 

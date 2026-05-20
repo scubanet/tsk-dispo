@@ -442,6 +442,55 @@ export async function fetchStudentCourses(studentId: string): Promise<CoursePart
   return sorted as unknown as CourseParticipant[]
 }
 
+// ──────────────────────── PR (Performance Records) ────────────────────────
+
+export interface PrCatalogRow {
+  course_type: string
+  language: string
+  version: string
+  data: unknown
+}
+
+export interface PrRecordRow {
+  id: string
+  student_id: string
+  pr_code: string
+  status: string
+  score: number | null
+  pass: boolean | null
+  assessed_on: string | null
+  assessed_by_text: string | null
+  notes: string | null
+  with_assistant: boolean | null
+}
+
+/**
+ * Loads the active German PR catalog for a course-type kind (DM/IDC/EFRI/SPEI).
+ */
+export async function fetchPrCatalog(catalogKind: string): Promise<PrCatalogRow | null> {
+  const { data, error } = await supabase
+    .from('pr_catalogs')
+    .select('course_type, language, version, data')
+    .eq('course_type', catalogKind)
+    .eq('language', 'de')
+    .eq('active', true)
+    .maybeSingle()
+  if (error) throw error
+  return (data as unknown as PrCatalogRow | null) ?? null
+}
+
+/**
+ * Loads every performance record attached to a specific course.
+ */
+export async function fetchCoursePrRecords(courseId: string): Promise<PrRecordRow[]> {
+  const { data, error } = await supabase
+    .from('performance_records')
+    .select('id, student_id, pr_code, status, score, pass, assessed_on, assessed_by_text, notes, with_assistant')
+    .eq('course_id', courseId)
+  if (error) throw error
+  return (data ?? []) as PrRecordRow[]
+}
+
 // ──────────────────────── Cockpit ────────────────────────
 
 export interface CockpitKpis {
