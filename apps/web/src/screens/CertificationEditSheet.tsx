@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { supabase } from '@/lib/supabase'
 import type { StudentCertification } from '@/lib/queries'
+import { useSaveCertification, useDeleteCertification } from '@/hooks/useCertificationEdit'
 
 interface Props {
   open: boolean
@@ -48,12 +48,15 @@ const COMMON_AGENCIES = ['PADI', 'SSI', 'CMAS', 'NAUI', 'TDI', 'SDI', 'TSK ZRH']
 export function CertificationEditSheet({ open, onClose, onSaved, studentId, existing }: Props) {
   const { t } = useTranslation()
   const isEdit = !!existing
+  const saveMutation = useSaveCertification()
+  const deleteMutation = useDeleteCertification()
+  const saving = saveMutation.isPending || deleteMutation.isPending
+
   const [certification, setCertification] = useState('')
   const [issuedDate, setIssuedDate] = useState('')
   const [issuedBy, setIssuedBy] = useState('PADI')
   const [certificateNr, setCertificateNr] = useState('')
   const [notes, setNotes] = useState('')
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -76,9 +79,8 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
 
   async function save() {
     if (!certification.trim()) return
-    setSaving(true)
     setError(null)
-    const payload = {
+    const input = {
       student_id: studentId,
       certification: certification.trim(),
       issued_date: issuedDate || null,
@@ -86,35 +88,29 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
       certificate_nr: certificateNr.trim() || null,
       notes: notes.trim() || null,
     }
-    if (isEdit) {
-      const { error: updErr } = await supabase
-        .from('student_certifications')
-        .update(payload)
-        .eq('id', existing!.id)
-      if (updErr) { setError(updErr.message); setSaving(false); return }
-    } else {
-      const { error: insErr } = await supabase
-        .from('student_certifications')
-        .insert(payload)
-      if (insErr) { setError(insErr.message); setSaving(false); return }
+    try {
+      await saveMutation.mutateAsync({
+        certificationId: existing?.id ?? null,
+        input,
+      })
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
     }
-    setSaving(false)
-    onSaved()
-    onClose()
   }
 
   async function deleteCert() {
-    if (!isEdit) return
-    if (!confirm(t('cert_edit.confirm_delete', { name: existing!.certification }))) return
-    setSaving(true)
-    const { error: delErr } = await supabase
-      .from('student_certifications')
-      .delete()
-      .eq('id', existing!.id)
-    setSaving(false)
-    if (delErr) { setError(delErr.message); return }
-    onSaved()
-    onClose()
+    if (!existing) return
+    if (!confirm(t('cert_edit.confirm_delete', { name: existing.certification }))) return
+    setError(null)
+    try {
+      await deleteMutation.mutateAsync({ certificationId: existing.id, studentId })
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
+    }
   }
 
   return (

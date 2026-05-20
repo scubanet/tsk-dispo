@@ -555,6 +555,44 @@ export async function deleteAssignmentRow(id: string): Promise<void> {
   if (error) throw error
 }
 
+// ──────────────────────── Student certification edit ────────────────────────
+
+export interface StudentCertificationInput {
+  student_id: string
+  certification: string
+  issued_date: string | null
+  issued_by: string | null
+  certificate_nr: string | null
+  notes: string | null
+}
+
+/** Insert a `student_certifications` row. */
+export async function insertStudentCertification(input: StudentCertificationInput): Promise<void> {
+  const { error } = await supabase.from('student_certifications').insert(input)
+  if (error) throw error
+}
+
+/** Update a `student_certifications` row. */
+export async function updateStudentCertification(
+  certificationId: string,
+  input: StudentCertificationInput,
+): Promise<void> {
+  const { error } = await supabase
+    .from('student_certifications')
+    .update(input)
+    .eq('id', certificationId)
+  if (error) throw error
+}
+
+/** Delete a `student_certifications` row. */
+export async function deleteStudentCertification(certificationId: string): Promise<void> {
+  const { error } = await supabase
+    .from('student_certifications')
+    .delete()
+    .eq('id', certificationId)
+  if (error) throw error
+}
+
 // ──────────────────────── Course-participant edit ────────────────────────
 
 export interface ParticipationInput {
