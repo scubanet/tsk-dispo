@@ -184,7 +184,8 @@ export function AddressbookScreen() {
                   ariaLabel={t('contacts.search_aria')}
                   placeholder={t('contacts.search_placeholder')}
                 />
-                {/* Saved-view chips */}
+                {/* Saved-view chips. GL-004 M4: right-edge fade hints at
+                    horizontal scroll when more chips overflow the container. */}
                 <div
                   style={{
                     display: 'flex',
@@ -192,6 +193,8 @@ export function AddressbookScreen() {
                     overflowX: 'auto',
                     paddingBottom: 4,
                     scrollbarWidth: 'none',
+                    maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
+                    WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
                   }}
                 >
                   {SAVED_VIEWS.map((v) => (
@@ -203,7 +206,7 @@ export function AddressbookScreen() {
                       style={{
                         flexShrink: 0,
                         padding: '3px 10px',
-                        borderRadius: 20,
+                        borderRadius: 'var(--radius-pill)',
                         border: '1px solid var(--border-primary)',
                         background: v.id === viewId ? 'var(--brand-blue)' : 'transparent',
                         color: v.id === viewId ? '#fff' : 'var(--text-body)',

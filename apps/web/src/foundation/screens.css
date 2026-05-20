@@ -999,7 +999,12 @@
   border-top: 1px solid var(--border-tertiary);
 }
 .atoll-cal__month-cell:nth-child(7n) { border-right: none; }
-.atoll-cal__month-cell--out { opacity: 0.4; }
+/* GL-004 M6: off-month cells bumped 0.4 → 0.55 for legibility, plus subtle
+ * desaturation via bg-tertiary so the boundary with the current month is visible. */
+.atoll-cal__month-cell--out {
+  opacity: 0.55;
+  background: var(--bg-tertiary);
+}
 .atoll-cal__month-cell--today { background: var(--brand-blue-50); }
 
 .atoll-cal__month-day {

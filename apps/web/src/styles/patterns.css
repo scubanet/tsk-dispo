@@ -217,6 +217,16 @@
   color: #fff;
 }
 
+/* GL-004 L2: more-menu trigger sits at the right edge of the top row,
+   visually separated from the secondary action buttons below. */
+.contact-header__more-trigger {
+  align-self: flex-start;
+  margin-left: auto;
+  font-size: 18px;
+  line-height: 1;
+  padding: var(--space-2);
+}
+
 /* ─────────────────── Roles badge list ─────────────────────────────── */
 
 .roles-badge-list {

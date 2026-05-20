@@ -67,6 +67,20 @@ export function ContactHeader({
             )}
           </div>
         </div>
+        {/* GL-004 L2: More-menu trigger now lives top-right of the header,
+            so the secondary actions (archive, merge, role manager) are
+            discoverable instead of buried below the avatar. */}
+        {onMoreClick && (
+          <button
+            type="button"
+            className="contact-header__action-btn contact-header__more-trigger"
+            onClick={onMoreClick}
+            aria-label={t('contacts.action_more')}
+            title={t('contacts.action_more')}
+          >
+            ⋯
+          </button>
+        )}
       </div>
 
       <div className="contact-header__actions">
@@ -107,18 +121,6 @@ export function ContactHeader({
             onClick={onPrimaryAction.onClick}
           >
             {onPrimaryAction.label}
-          </button>
-        )}
-
-        {onMoreClick && (
-          <button
-            type="button"
-            className="contact-header__action-btn"
-            onClick={onMoreClick}
-            aria-label={t('contacts.action_more')}
-            title={t('contacts.action_more')}
-          >
-            ⋯
           </button>
         )}
       </div>

@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AppShell } from '@/layout/AppShell'
+import { Loader } from '@/foundation/components/Loader'
 
 // ─── Code-split screens ──────────────────────────────────────────────
 // Each screen lives in its own Vite chunk and is fetched on first navigation
@@ -31,26 +32,15 @@ const CDOrganizationsScreen = lazy(() => import('@/screens/cd/CDOrganizationsScr
 const CommunicationHubScreen = lazy(() => import('@/screens/cd/CommunicationHubScreen').then(m => ({ default: m.CommunicationHubScreen })))
 const AddressbookScreen     = lazy(() => import('@/screens/contacts/AddressbookScreen').then(m => ({ default: m.AddressbookScreen })))
 
-// Inline Suspense fallback — kept minimal so it can render before any
-// branded loader chunk has fetched. role="status" + aria-live for screen
-// readers; the visible label is German to match the app's primary locale.
+/**
+ * Suspense fallback for code-split routes. Wraps the shared `<Loader>`
+ * foundation component with a minimum height so the layout doesn't jump
+ * while the next chunk is being fetched.
+ */
 function RouteLoader() {
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      style={{
-        minHeight: '40vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#666',
-        fontSize: 14,
-        fontFamily:
-          'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      }}
-    >
-      Lade…
+    <div style={{ minHeight: '40vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Loader />
     </div>
   )
 }
@@ -70,7 +60,7 @@ function App() {
     return () => sub.subscription.unsubscribe()
   }, [])
 
-  if (loading) return <div style={{ padding: 40 }}>Lade…</div>
+  if (loading) return <Loader />
 
   return (
     <ErrorBoundary>

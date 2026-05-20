@@ -64,6 +64,8 @@
   background: var(--brand-blue-50);
   color: var(--brand-blue-800);
   font-weight: var(--weight-medium);
+  /* GL-004 M3: leading bar makes the active state legible at any contrast. */
+  box-shadow: inset 3px 0 0 var(--brand-blue);
 }
 
 .atoll-sidebar__item-icon {
