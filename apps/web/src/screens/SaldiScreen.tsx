@@ -14,7 +14,7 @@
  *   └─────────────────────────────────────────────────────────┘
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -27,47 +27,16 @@ import {
   Icon,
   chf,
 } from '@/foundation'
-import { supabase } from '@/lib/supabase'
-
-interface Row {
-  instructor_id: string
-  name: string
-  app_balance: number
-  excel_saldo: number
-  diff: number
-}
+import { useSaldoDiffs } from '@/hooks/useSaldoDiffs'
 
 type SortKey = 'name' | 'app_balance' | 'diff'
 
 export function SaldiScreen() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const [rows, setRows] = useState<Row[]>([])
+  const { data: rows = [] } = useSaldoDiffs()
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<SortKey>('diff')
-
-  useEffect(() => {
-    supabase
-      .from('v_saldo_diff')
-      .select('*')
-      .then(({ data }) => {
-        setRows(
-          ((data ?? []) as Array<{
-            instructor_id: string
-            name: string
-            app_balance: number | string | null
-            excel_saldo: number | string | null
-            diff: number | string | null
-          }>).map((d) => ({
-            instructor_id: d.instructor_id,
-            name: d.name,
-            app_balance: Number(d.app_balance ?? 0),
-            excel_saldo: Number(d.excel_saldo ?? 0),
-            diff: Number(d.diff ?? 0),
-          })),
-        )
-      })
-  }, [])
 
   const filtered = useMemo(() => {
     let arr = rows

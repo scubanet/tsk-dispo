@@ -442,6 +442,36 @@ export async function fetchStudentCourses(studentId: string): Promise<CoursePart
   return sorted as unknown as CourseParticipant[]
 }
 
+export interface SaldoDiffRow {
+  instructor_id: string
+  name: string
+  app_balance: number
+  excel_saldo: number
+  diff: number
+}
+
+/**
+ * Reads the `v_saldo_diff` view, coercing numeric strings (Supabase returns
+ * postgres `numeric` columns as strings) into JS numbers for the UI.
+ */
+export async function fetchSaldoDiffs(): Promise<SaldoDiffRow[]> {
+  const { data, error } = await supabase.from('v_saldo_diff').select('*')
+  if (error) throw error
+  return ((data ?? []) as Array<{
+    instructor_id: string
+    name: string
+    app_balance: number | string | null
+    excel_saldo: number | string | null
+    diff: number | string | null
+  }>).map((d) => ({
+    instructor_id: d.instructor_id,
+    name: d.name,
+    app_balance: Number(d.app_balance ?? 0),
+    excel_saldo: Number(d.excel_saldo ?? 0),
+    diff: Number(d.diff ?? 0),
+  }))
+}
+
 export async function fetchKpis(): Promise<Kpis> {
   const today = new Date().toISOString().slice(0, 10)
   const [totalRes, confirmedRes, instructorRes] = await Promise.all([

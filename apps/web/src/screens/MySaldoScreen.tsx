@@ -7,7 +7,7 @@
  *   ┌─ Movements list (expandable cards with breakdown table) ─────────────────┐
  */
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -18,19 +18,14 @@ import {
   chf,
   dateMedium,
 } from '@/foundation'
-import { fetchMyMovements, type MyMovement } from '@/lib/queries'
+import { useMyMovements } from '@/hooks/useMyMovements'
 import type { OutletCtx } from '@/layout/AppShell'
 
 export function MySaldoScreen() {
   const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
-  const [movements, setMovements] = useState<MyMovement[]>([])
+  const { data: movements = [] } = useMyMovements(user.instructorId)
   const [expandedId, setExpandedId] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!user.instructorId) return
-    fetchMyMovements(user.instructorId).then(setMovements)
-  }, [user.instructorId])
 
   if (!user.instructorId) {
     return (
