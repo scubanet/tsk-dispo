@@ -510,6 +510,73 @@ export async function updateInstructorPhones(
   if (error) throw error
 }
 
+// ──────────────────────── Excel Import (edge function) ────────────────────────
+
+export interface ImportPreview {
+  sheets_found: string[]
+  course_rows: number
+  instructors_in_summary: number
+  ambiguous_codes: string[]
+  ambiguous_names: string[]
+  raw: {
+    courses: unknown[]
+    instructors: { name: string }[]
+    skill_matrix: unknown[]
+  }
+}
+
+export interface ImportDryRunSummary {
+  instructors_count: number
+  courses_count: number
+  assignments_count: number
+  opening_balance_sum: number
+  ignored_rows: { row: number; reason: string }[]
+}
+
+/**
+ * Uploads an xlsx file to the `imports` storage bucket with a timestamp
+ * prefix and returns the resulting storage path.
+ */
+export async function uploadImportFile(file: File): Promise<string> {
+  const path = `${Date.now()}-${file.name}`
+  const { error } = await supabase.storage.from('imports').upload(path, file)
+  if (error) throw error
+  return path
+}
+
+/** Invokes the `excel-import` edge function in preview mode. */
+export async function importExcelPreview(storagePath: string): Promise<ImportPreview> {
+  const { data, error } = await supabase.functions.invoke('excel-import', {
+    body: { action: 'preview', storage_path: storagePath },
+  })
+  if (error) throw error
+  return data as ImportPreview
+}
+
+/** Invokes the `excel-import` edge function in dry-run mode. */
+export async function importExcelDryRun(
+  storagePath: string,
+  mappings: Record<string, string>,
+): Promise<ImportDryRunSummary> {
+  const { data, error } = await supabase.functions.invoke('excel-import', {
+    body: { action: 'dryrun', storage_path: storagePath, mappings },
+  })
+  if (error) throw error
+  return data as ImportDryRunSummary
+}
+
+/** Invokes the `excel-import` edge function in apply (write) mode. */
+export async function importExcelApply(
+  storagePath: string,
+  mappings: Record<string, string>,
+): Promise<unknown> {
+  const { data, error } = await supabase.functions.invoke('excel-import', {
+    body: { action: 'apply', storage_path: storagePath, mappings },
+  })
+  if (error) throw error
+  return data
+}
+
 // ──────────────────────── Settings ────────────────────────
 
 export interface CompRate {

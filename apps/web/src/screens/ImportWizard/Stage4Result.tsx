@@ -1,26 +1,13 @@
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useSaldoDiffs } from '@/hooks/useSaldoDiffs'
 
 interface Props {
   result: unknown
 }
 
-interface DiffRow {
-  instructor_id: string
-  name: string
-  app_balance: number | null
-  excel_saldo: number | null
-  diff: number | null
-}
-
 export function Stage4Result({ result }: Props) {
-  const [diff, setDiff] = useState<DiffRow[]>([])
-
-  useEffect(() => {
-    supabase.from('v_saldo_diff').select('*').then(({ data }) => {
-      setDiff((data as DiffRow[] | null) ?? [])
-    })
-  }, [])
+  // After import, the `v_saldo_diff` view has fresh numbers — useImportApply
+  // already invalidated `['saldi']`, so this hook refetches automatically.
+  const { data: diff = [] } = useSaldoDiffs()
 
   const within50 = diff.filter((d) => Math.abs(Number(d.diff ?? 0)) <= 50).length
   const total = diff.length || 1

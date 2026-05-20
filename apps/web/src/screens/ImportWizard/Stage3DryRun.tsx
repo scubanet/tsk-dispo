@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useImportDryRun, useImportApply } from '@/hooks/useImport'
 
 interface Props {
   storagePath: string
@@ -7,44 +6,20 @@ interface Props {
   onConfirmed: (result: unknown) => void
 }
 
-interface DryRunSummary {
-  instructors_count: number
-  courses_count: number
-  assignments_count: number
-  opening_balance_sum: number
-  ignored_rows: { row: number; reason: string }[]
-}
-
 export function Stage3DryRun({ storagePath, mappings, onConfirmed }: Props) {
-  const [summary, setSummary] = useState<DryRunSummary | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [applying, setApplying] = useState(false)
+  const dryRun = useImportDryRun(storagePath, mappings)
+  const apply = useImportApply()
+  const summary = dryRun.data
+  const error = dryRun.error ?? apply.error
 
-  useEffect(() => {
-    supabase.functions
-      .invoke('excel-import', {
-        body: { action: 'dryrun', storage_path: storagePath, mappings },
-      })
-      .then(({ data, error }) => {
-        if (error) setError(error.message)
-        else setSummary(data as DryRunSummary)
-      })
-  }, [storagePath, mappings])
-
-  async function handleApply() {
-    setApplying(true)
-    const { data, error } = await supabase.functions.invoke('excel-import', {
-      body: { action: 'apply', storage_path: storagePath, mappings },
-    })
-    if (error) {
-      setError(error.message)
-      setApplying(false)
-      return
-    }
-    onConfirmed(data)
+  function handleApply() {
+    apply.mutate(
+      { storagePath, mappings },
+      { onSuccess: (data) => onConfirmed(data) },
+    )
   }
 
-  if (error) return <div className="chip chip-red">{error}</div>
+  if (error) return <div className="chip chip-red">{error.message}</div>
   if (!summary) return <div className="caption">Plane Import…</div>
 
   return (
@@ -76,8 +51,8 @@ export function Stage3DryRun({ storagePath, mappings, onConfirmed }: Props) {
         </>
       )}
 
-      <button className="btn" onClick={handleApply} disabled={applying}>
-        {applying ? 'Importiere…' : 'Bestätigen — Import durchführen'}
+      <button className="btn" onClick={handleApply} disabled={apply.isPending}>
+        {apply.isPending ? 'Importiere…' : 'Bestätigen — Import durchführen'}
       </button>
     </div>
   )
