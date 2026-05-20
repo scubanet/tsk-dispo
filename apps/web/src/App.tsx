@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LoginScreen } from '@/screens/LoginScreen'
 import { AuthCallback } from '@/screens/AuthCallback'
 import { ImportWizard } from '@/screens/ImportWizard'
@@ -42,42 +43,44 @@ function App() {
   if (loading) return <div style={{ padding: 40 }}>Lade…</div>
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/login"
-          element={session ? <Navigate to="/heute" replace /> : <LoginScreen />}
-        />
-        <Route path="/auth/callback" element={<AuthCallback />} />
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/login"
+            element={session ? <Navigate to="/heute" replace /> : <LoginScreen />}
+          />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
-        {/* All authenticated routes wrapped in AppShell */}
-        <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
-          <Route path="/heute"                  element={<TodayScreen />} />
-          <Route path="/cockpit"                element={<CockpitScreen />} />
-          <Route path="/kalender"               element={<CalendarScreen />} />
-          <Route path="/kurse"                  element={<CoursesScreen />} />
-          <Route path="/kurse/:id"              element={<CoursesScreen />} />
-          <Route path="/tldm"                   element={<InstructorsScreen />} />
-          <Route path="/tldm/:id"               element={<InstructorsScreen />} />
-          <Route path="/schueler"               element={<StudentsScreen />} />
-          <Route path="/schueler/:id"           element={<StudentsScreen />} />
-          <Route path="/skills"                 element={<SkillMatrixScreen />} />
-          <Route path="/pool"                   element={<PoolScreen />} />
-          <Route path="/saldi"                  element={<SaldiScreen />} />
-          <Route path="/einstellungen"          element={<SettingsScreen />} />
-          <Route path="/einstellungen/import"   element={<ImportWizard />} />
-          <Route path="/einsaetze"              element={<MyAssignmentsScreen />} />
-          <Route path="/saldo"                  element={<MySaldoScreen />} />
-          <Route path="/profil"                 element={<MyProfileScreen />} />
-          {/* CD-Modul */}
-          <Route path="/cd/pipeline"            element={<CDPipelineScreen />} />
-          <Route path="/cd/organisationen"      element={<CDOrganizationsScreen />} />
-          <Route path="/communication"          element={<CommunicationHubScreen />} />
-          <Route path="/contacts"               element={<AddressbookScreen />} />
-          <Route path="*"                       element={<Navigate to="/heute" replace />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          {/* All authenticated routes wrapped in AppShell */}
+          <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
+            <Route path="/heute"                  element={<TodayScreen />} />
+            <Route path="/cockpit"                element={<CockpitScreen />} />
+            <Route path="/kalender"               element={<CalendarScreen />} />
+            <Route path="/kurse"                  element={<CoursesScreen />} />
+            <Route path="/kurse/:id"              element={<CoursesScreen />} />
+            <Route path="/tldm"                   element={<InstructorsScreen />} />
+            <Route path="/tldm/:id"               element={<InstructorsScreen />} />
+            <Route path="/schueler"               element={<StudentsScreen />} />
+            <Route path="/schueler/:id"           element={<StudentsScreen />} />
+            <Route path="/skills"                 element={<SkillMatrixScreen />} />
+            <Route path="/pool"                   element={<PoolScreen />} />
+            <Route path="/saldi"                  element={<SaldiScreen />} />
+            <Route path="/einstellungen"          element={<SettingsScreen />} />
+            <Route path="/einstellungen/import"   element={<ImportWizard />} />
+            <Route path="/einsaetze"              element={<MyAssignmentsScreen />} />
+            <Route path="/saldo"                  element={<MySaldoScreen />} />
+            <Route path="/profil"                 element={<MyProfileScreen />} />
+            {/* CD-Modul */}
+            <Route path="/cd/pipeline"            element={<CDPipelineScreen />} />
+            <Route path="/cd/organisationen"      element={<CDOrganizationsScreen />} />
+            <Route path="/communication"          element={<CommunicationHubScreen />} />
+            <Route path="/contacts"               element={<AddressbookScreen />} />
+            <Route path="*"                       element={<Navigate to="/heute" replace />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }
 

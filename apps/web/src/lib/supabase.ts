@@ -12,5 +12,9 @@ export const supabase = createClient(url, anon, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    // PKCE flow is the modern, recommended OAuth flow for SPAs.
+    // Replaces the older `implicit` flow which exposed tokens via URL fragment.
+    // Reference: https://supabase.com/docs/guides/auth/sessions/pkce-flow
+    flowType: 'pkce',
   },
 })
