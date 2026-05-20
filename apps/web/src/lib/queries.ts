@@ -442,6 +442,43 @@ export async function fetchStudentCourses(studentId: string): Promise<CoursePart
   return sorted as unknown as CourseParticipant[]
 }
 
+// ──────────────────────── Pool ────────────────────────
+
+export interface PoolDateRow {
+  id: string
+  course_id: string
+  date: string
+  pool_location: PoolLocation
+  pool_reserved: boolean
+  time_from: string | null
+  time_to: string | null
+  course: {
+    id: string
+    title: string
+    course_type: { code: string } | null
+  } | null
+}
+
+/**
+ * Reads every `course_dates` row of type `pool` (with a non-null location)
+ * within an ISO-date range — the input for the weekly pool grid.
+ */
+export async function fetchPoolDatesInRange(from: string, to: string): Promise<PoolDateRow[]> {
+  const { data, error } = await supabase
+    .from('course_dates')
+    .select(`
+      id, course_id, date, pool_location, pool_reserved, time_from, time_to,
+      course:courses(id, title, course_type:course_types(code))
+    `)
+    .eq('type', 'pool')
+    .not('pool_location', 'is', null)
+    .gte('date', from)
+    .lte('date', to)
+    .order('date')
+  if (error) throw error
+  return (data ?? []) as unknown as PoolDateRow[]
+}
+
 // ──────────────────────── PR (Performance Records) ────────────────────────
 
 export interface PrCatalogRow {

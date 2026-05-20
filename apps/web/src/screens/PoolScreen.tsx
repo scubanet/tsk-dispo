@@ -10,7 +10,7 @@
  *   ┌─ Legend + Summary ──────────────────────────────────────┐
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { addDays, startOfWeek, addWeeks, subWeeks } from 'date-fns'
 import { useTranslation } from 'react-i18next'
@@ -21,23 +21,8 @@ import {
   weekday,
   dateShort,
 } from '@/foundation'
-import { supabase } from '@/lib/supabase'
-import { POOL_LOCATIONS, type PoolLocation } from '@/lib/queries'
-
-interface PoolDateRow {
-  id: string
-  course_id: string
-  date: string
-  pool_location: PoolLocation
-  pool_reserved: boolean
-  time_from: string | null
-  time_to: string | null
-  course: {
-    id: string
-    title: string
-    course_type: { code: string } | null
-  } | null
-}
+import { POOL_LOCATIONS } from '@/lib/queries'
+import { usePoolDatesInRange } from '@/hooks/usePoolDatesInRange'
 
 export function PoolScreen() {
   const { t } = useTranslation()
@@ -45,29 +30,16 @@ export function PoolScreen() {
   const [weekStart, setWeekStart] = useState<Date>(() =>
     startOfWeek(new Date(), { weekStartsOn: 1 }),
   )
-  const [rows, setRows] = useState<PoolDateRow[]>([])
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
     [weekStart],
   )
 
-  useEffect(() => {
-    const from = toISODate(weekStart)
-    const to = toISODate(addDays(weekStart, 6))
-    supabase
-      .from('course_dates')
-      .select(`
-        id, course_id, date, pool_location, pool_reserved, time_from, time_to,
-        course:courses(id, title, course_type:course_types(code))
-      `)
-      .eq('type', 'pool')
-      .not('pool_location', 'is', null)
-      .gte('date', from)
-      .lte('date', to)
-      .order('date')
-      .then(({ data }) => setRows((data ?? []) as unknown as PoolDateRow[]))
-  }, [weekStart])
+  const { data: rows = [] } = usePoolDatesInRange(
+    toISODate(weekStart),
+    toISODate(addDays(weekStart, 6)),
+  )
 
   const reservedCount = rows.filter((r) => r.pool_reserved).length
   const openCount = rows.length - reservedCount
