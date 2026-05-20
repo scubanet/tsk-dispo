@@ -11,7 +11,7 @@
  *   └─────────────────────────────────────────────────────────┘
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   PageHeader,
@@ -20,51 +20,29 @@ import {
   EmptyState,
   Icon,
 } from '@/foundation'
-import { supabase } from '@/lib/supabase'
-import { listActiveInstructors } from '@/lib/contactQueries'
+import { useSkills } from '@/hooks/useSkills'
+import { useActiveInstructors } from '@/hooks/useActiveInstructors'
+import {
+  useInstructorSkillsMatrix,
+  useToggleInstructorSkill,
+} from '@/hooks/useInstructorSkillsMatrix'
 import { ContactDetailPanel } from './contacts/ContactDetailPanel'
-
-interface Skill {
-  id: string
-  code: string
-  label: string
-  category: string | null
-}
-
-interface Inst {
-  id: string
-  name: string
-  padi_level: string
-}
 
 export function SkillMatrixScreen() {
   const { t } = useTranslation()
-  const [skills, setSkills] = useState<Skill[]>([])
-  const [instructors, setInstructors] = useState<Inst[]>([])
-  const [matrix, setMatrix] = useState<Set<string>>(new Set())
+  const { data: skills = [] } = useSkills()
+  const { data: instructorRows = [] } = useActiveInstructors()
+  const { matrix } = useInstructorSkillsMatrix()
+  const toggleSkill = useToggleInstructorSkill()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<string>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  useEffect(() => {
-    Promise.all([
-      supabase.from('skills').select('id, code, label, category').order('label'),
-      listActiveInstructors(),
-      supabase.from('instructor_skills').select('instructor_id, skill_id'),
-    ]).then(([s, instRows, m]) => {
-      setSkills((s.data ?? []) as Skill[])
-      setInstructors(
-        instRows.map(({ id, name, padi_level }) => ({ id, name, padi_level })),
-      )
-      setMatrix(
-        new Set(
-          ((m.data ?? []) as { instructor_id: string; skill_id: string }[]).map(
-            (r) => `${r.instructor_id}|${r.skill_id}`,
-          ),
-        ),
-      )
-    })
-  }, [])
+  // Drop the `active` flag — the matrix already filters by active=true.
+  const instructors = useMemo(
+    () => instructorRows.map(({ id, name, padi_level }) => ({ id, name, padi_level })),
+    [instructorRows],
+  )
 
   const categories = useMemo(() => {
     const set = new Set<string>()
@@ -85,24 +63,9 @@ export function SkillMatrixScreen() {
     )
   }, [instructors, search])
 
-  async function toggle(instId: string, skillId: string) {
-    const key = `${instId}|${skillId}`
-    if (matrix.has(key)) {
-      await supabase
-        .from('instructor_skills')
-        .delete()
-        .match({ instructor_id: instId, skill_id: skillId })
-      const next = new Set(matrix)
-      next.delete(key)
-      setMatrix(next)
-    } else {
-      await supabase
-        .from('instructor_skills')
-        .insert({ instructor_id: instId, skill_id: skillId })
-      const next = new Set(matrix)
-      next.add(key)
-      setMatrix(next)
-    }
+  function toggle(instId: string, skillId: string) {
+    const currentlyHas = matrix.has(`${instId}|${skillId}`)
+    toggleSkill.mutate({ instructorId: instId, skillId, currentlyHas })
   }
 
   const categoryOptions = categories.map((c) => ({

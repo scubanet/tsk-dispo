@@ -442,6 +442,56 @@ export async function fetchStudentCourses(studentId: string): Promise<CoursePart
   return sorted as unknown as CourseParticipant[]
 }
 
+// ──────────────────────── Skills ────────────────────────
+
+export interface SkillRow {
+  id: string
+  code: string
+  label: string
+  category: string | null
+}
+
+/** Read the skill catalog (`skills` table). */
+export async function fetchSkills(): Promise<SkillRow[]> {
+  const { data, error } = await supabase
+    .from('skills')
+    .select('id, code, label, category')
+    .order('label')
+  if (error) throw error
+  return (data ?? []) as SkillRow[]
+}
+
+/**
+ * Read the instructor-skills join. Returned as plain rows; the caller can
+ * fold into a `Set<"instructorId|skillId">` for fast `has()` lookups.
+ */
+export async function fetchInstructorSkillsMatrix(): Promise<
+  { instructor_id: string; skill_id: string }[]
+> {
+  const { data, error } = await supabase
+    .from('instructor_skills')
+    .select('instructor_id, skill_id')
+  if (error) throw error
+  return (data ?? []) as { instructor_id: string; skill_id: string }[]
+}
+
+/** Adds one row to `instructor_skills`. */
+export async function addInstructorSkill(instructorId: string, skillId: string): Promise<void> {
+  const { error } = await supabase
+    .from('instructor_skills')
+    .insert({ instructor_id: instructorId, skill_id: skillId })
+  if (error) throw error
+}
+
+/** Removes one row from `instructor_skills`. */
+export async function removeInstructorSkill(instructorId: string, skillId: string): Promise<void> {
+  const { error } = await supabase
+    .from('instructor_skills')
+    .delete()
+    .match({ instructor_id: instructorId, skill_id: skillId })
+  if (error) throw error
+}
+
 // ──────────────────────── Pool ────────────────────────
 
 export interface PoolDateRow {
