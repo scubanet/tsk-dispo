@@ -555,6 +555,94 @@ export async function deleteAssignmentRow(id: string): Promise<void> {
   if (error) throw error
 }
 
+// ──────────────────────── Intake checklist (IntakeChecklistSheet) ────────
+
+/**
+ * `intake_checklists` is keyed by either `course_participant_id` (preferred,
+ * per-course) or `student_id` (legacy, per-student). Caller passes whichever
+ * scope is active.
+ */
+export interface IntakeChecklistKey {
+  courseParticipantId?: string | null
+  studentId?: string | null
+}
+
+export interface IntakeChecklistRow {
+  course_participant_id?: string | null
+  student_id?: string | null
+  instructor_status: string | null
+  min_age_confirmed: boolean | null
+  medical_received: boolean | null
+  medical_signed: boolean | null
+  medical_signed_on: string | null
+  medical_doctor_required: boolean | null
+  medical_doctor_signed: boolean | null
+  medical_notes: string | null
+  certified_diver_since: string | null
+  efr_kind: string | null
+  efr_completed_on: string | null
+  non_padi_certs_seen: boolean | null
+  non_padi_certs_notes: string | null
+  logbook_seen: boolean | null
+  logbook_dives_count: number | null
+  id_seen: boolean | null
+  id_kind: string | null
+  insurance_proof: boolean | null
+  insurance_provider: string | null
+  insurance_valid_to: string | null
+  liability_signed: boolean | null
+  safe_diving_signed: boolean | null
+  notes: string | null
+  checked_by_id: string | null
+  checked_on: string | null
+}
+
+/** Returns the intake_checklists row for one key (or null if not yet created). */
+export async function fetchIntakeChecklist(
+  key: IntakeChecklistKey,
+): Promise<IntakeChecklistRow | null> {
+  let q = supabase.from('intake_checklists').select('*')
+  if (key.courseParticipantId) {
+    q = q.eq('course_participant_id', key.courseParticipantId)
+  } else if (key.studentId) {
+    q = q.eq('student_id', key.studentId).is('course_participant_id', null)
+  }
+  const { data, error } = await q.maybeSingle()
+  if (error) throw error
+  return (data as IntakeChecklistRow | null) ?? null
+}
+
+/**
+ * Inserts or updates the intake_checklists row for the given key. Update is
+ * keyed on the same conditional pair as `fetchIntakeChecklist`. Caller is
+ * expected to provide the `hasRow` flag (which it already knows from the
+ * read).
+ */
+export async function saveIntakeChecklist(
+  key: IntakeChecklistKey,
+  payload: Omit<IntakeChecklistRow, 'course_participant_id' | 'student_id'>,
+  hasRow: boolean,
+): Promise<void> {
+  const fullPayload = {
+    ...payload,
+    course_participant_id: key.courseParticipantId ?? null,
+    student_id: key.courseParticipantId ? null : key.studentId ?? null,
+  }
+  if (!hasRow) {
+    const { error } = await supabase.from('intake_checklists').insert(fullPayload)
+    if (error) throw error
+    return
+  }
+  let updateQ = supabase.from('intake_checklists').update(fullPayload)
+  if (key.courseParticipantId) {
+    updateQ = updateQ.eq('course_participant_id', key.courseParticipantId)
+  } else {
+    updateQ = updateQ.eq('student_id', key.studentId as string).is('course_participant_id', null)
+  }
+  const { error } = await updateQ
+  if (error) throw error
+}
+
 // ──────────────────────── Account-movement edit (CorrectionSheet) ────────
 
 export interface AccountMovementForEdit {

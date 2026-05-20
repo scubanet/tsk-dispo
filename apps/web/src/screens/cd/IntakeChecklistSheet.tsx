@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { supabase } from '@/lib/supabase'
+import { useIntakeChecklist, useSaveIntakeChecklist } from '@/hooks/useIntakeChecklist'
 
 interface Form {
   // 1. Instructor-Status
@@ -102,70 +102,64 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
     ...EFR_KIND_CODES.map((code) => ({ code, label: t(`intake.efr_kind_${code}`) })),
   ]
   const useCourseParticipant = !!courseParticipantId
+  const checklistKey = useMemo(
+    () => ({
+      courseParticipantId: useCourseParticipant ? courseParticipantId : null,
+      studentId: useCourseParticipant ? null : studentId ?? null,
+    }),
+    [useCourseParticipant, courseParticipantId, studentId],
+  )
+  const { data: existing } = useIntakeChecklist(checklistKey, open)
+  const saveMutation = useSaveIntakeChecklist()
+  const saving = saveMutation.isPending
+
   const [form, setForm] = useState<Form>(EMPTY)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [hasRow, setHasRow] = useState(false)
+  const hasRow = !!existing
 
   useEffect(() => {
     if (!open) return
     setError(null)
-    let q = supabase.from('intake_checklists').select('*')
-    if (useCourseParticipant) {
-      q = q.eq('course_participant_id', courseParticipantId!)
-    } else if (studentId) {
-      q = q.eq('student_id', studentId).is('course_participant_id', null)
-    }
-    q.maybeSingle()
-      .then(({ data }) => {
-        if (data) {
-          const d = data as any
-          setHasRow(true)
-          setForm({
-            instructor_status: d.instructor_status ?? '',
-            min_age_confirmed: !!d.min_age_confirmed,
-            medical_received: !!d.medical_received,
-            medical_signed: !!d.medical_signed,
-            medical_signed_on: d.medical_signed_on ?? '',
-            medical_doctor_required: !!d.medical_doctor_required,
-            medical_doctor_signed: !!d.medical_doctor_signed,
-            medical_notes: d.medical_notes ?? '',
-            certified_diver_since: d.certified_diver_since ?? '',
-            efr_kind: d.efr_kind ?? '',
-            efr_completed_on: d.efr_completed_on ?? '',
-            non_padi_certs_seen: !!d.non_padi_certs_seen,
-            non_padi_certs_notes: d.non_padi_certs_notes ?? '',
-            logbook_seen: !!d.logbook_seen,
-            logbook_dives_count: d.logbook_dives_count != null ? String(d.logbook_dives_count) : '',
-            id_seen: !!d.id_seen,
-            id_kind: d.id_kind ?? '',
-            insurance_proof: !!d.insurance_proof,
-            insurance_provider: d.insurance_provider ?? '',
-            insurance_valid_to: d.insurance_valid_to ?? '',
-            liability_signed: !!d.liability_signed,
-            safe_diving_signed: !!d.safe_diving_signed,
-            notes: d.notes ?? '',
-            checked_on: d.checked_on ?? '',
-          })
-        } else {
-          setHasRow(false)
-          setForm({ ...EMPTY, checked_on: new Date().toISOString().slice(0, 10) })
-        }
+    if (existing) {
+      setForm({
+        instructor_status: existing.instructor_status ?? '',
+        min_age_confirmed: !!existing.min_age_confirmed,
+        medical_received: !!existing.medical_received,
+        medical_signed: !!existing.medical_signed,
+        medical_signed_on: existing.medical_signed_on ?? '',
+        medical_doctor_required: !!existing.medical_doctor_required,
+        medical_doctor_signed: !!existing.medical_doctor_signed,
+        medical_notes: existing.medical_notes ?? '',
+        certified_diver_since: existing.certified_diver_since ?? '',
+        efr_kind: existing.efr_kind ?? '',
+        efr_completed_on: existing.efr_completed_on ?? '',
+        non_padi_certs_seen: !!existing.non_padi_certs_seen,
+        non_padi_certs_notes: existing.non_padi_certs_notes ?? '',
+        logbook_seen: !!existing.logbook_seen,
+        logbook_dives_count:
+          existing.logbook_dives_count != null ? String(existing.logbook_dives_count) : '',
+        id_seen: !!existing.id_seen,
+        id_kind: existing.id_kind ?? '',
+        insurance_proof: !!existing.insurance_proof,
+        insurance_provider: existing.insurance_provider ?? '',
+        insurance_valid_to: existing.insurance_valid_to ?? '',
+        liability_signed: !!existing.liability_signed,
+        safe_diving_signed: !!existing.safe_diving_signed,
+        notes: existing.notes ?? '',
+        checked_on: existing.checked_on ?? '',
       })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, studentId, courseParticipantId])
+    } else {
+      setForm({ ...EMPTY, checked_on: new Date().toISOString().slice(0, 10) })
+    }
+  }, [open, existing])
 
   function set<K extends keyof Form>(k: K, v: Form[K]) {
     setForm((prev) => ({ ...prev, [k]: v }))
   }
 
   async function save() {
-    setSaving(true)
     setError(null)
-    const payload: Record<string, unknown> = {
-      // Entweder course_participant_id (preferred) oder student_id (Legacy)
-      course_participant_id: useCourseParticipant ? courseParticipantId : null,
-      student_id: useCourseParticipant ? null : studentId,
+    const payload = {
       instructor_status: form.instructor_status || null,
       min_age_confirmed: form.min_age_confirmed,
       medical_received: form.medical_received,
@@ -192,19 +186,13 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
       checked_by_id: checkedById ?? null,
       checked_on: form.checked_on || null,
     }
-    let updateQ = supabase.from('intake_checklists').update(payload)
-    if (useCourseParticipant) {
-      updateQ = updateQ.eq('course_participant_id', courseParticipantId!)
-    } else {
-      updateQ = updateQ.eq('student_id', studentId!).is('course_participant_id', null)
+    try {
+      await saveMutation.mutateAsync({ key: checklistKey, payload, hasRow })
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
     }
-    const { error: e } = hasRow
-      ? await updateQ
-      : await supabase.from('intake_checklists').insert(payload)
-    if (e) { setError(e.message); setSaving(false); return }
-    setSaving(false)
-    onSaved()
-    onClose()
   }
 
   return (
