@@ -510,6 +510,51 @@ export async function updateInstructorPhones(
   if (error) throw error
 }
 
+// ──────────────────────── Assignment edit ────────────────────────
+
+export type AssignmentRoleValue = 'haupt' | 'assist' | 'opfer'
+
+export interface AssignmentSaveInput {
+  course_id: string
+  instructor_id: string
+  role: AssignmentRoleValue
+  confirmed: boolean
+  /** Empty array = "all dates of the course". */
+  assigned_for_dates: string[]
+}
+
+/** Reads just the `course_types.code` for one course (Opfer-Rolle gate). */
+export async function fetchCourseTypeCode(courseId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('courses')
+    .select('course_types(code)')
+    .eq('id', courseId)
+    .single()
+  if (error) throw error
+  return ((data as unknown as { course_types: { code: string } | null })?.course_types?.code) ?? null
+}
+
+/** Inserts a fully-specified course_assignments row. */
+export async function insertAssignmentRow(input: AssignmentSaveInput): Promise<void> {
+  const { error } = await supabase.from('course_assignments').insert(input)
+  if (error) throw error
+}
+
+/** Updates an existing course_assignments row by id. */
+export async function updateAssignmentRow(
+  id: string,
+  patch: Omit<AssignmentSaveInput, 'course_id'>,
+): Promise<void> {
+  const { error } = await supabase.from('course_assignments').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+/** Deletes a course_assignments row by id. */
+export async function deleteAssignmentRow(id: string): Promise<void> {
+  const { error } = await supabase.from('course_assignments').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ──────────────────────── Course edit ────────────────────────
 
 export interface CourseTypeOption {
