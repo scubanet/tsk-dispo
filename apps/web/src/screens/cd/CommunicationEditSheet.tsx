@@ -1,9 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { supabase } from '@/lib/supabase'
-import { listActiveInstructors } from '@/lib/contactQueries'
+import { useActiveInstructors } from '@/hooks/useActiveInstructors'
+import {
+  useContactPickerList,
+  useContactBasics,
+  useCommunicationEntry,
+  useSaveCommunicationEntry,
+  useDeleteCommunicationEntry,
+} from '@/hooks/useCommunicationEdit'
 import { waDirectUrl } from '@/lib/whatsapp'
 import i18n from '@/i18n'
 
@@ -68,15 +74,6 @@ const inputStyle = {
   width: '100%',
 }
 
-interface PersonOption {
-  id: string
-  name: string
-  email?: string | null
-  phone?: string | null
-  is_student?: boolean
-  is_candidate?: boolean
-}
-
 interface Props {
   open: boolean
   onClose: () => void
@@ -92,95 +89,51 @@ interface Props {
 export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entryId, createdById }: Props) {
   const { t } = useTranslation()
   const showPicker = !contactId
-  const [pickedContactId, setPickedContactId] = useState<string>('')
-  const [people, setPeople] = useState<PersonOption[]>([])
-  const [pickerSearch, setPickerSearch] = useState('')
-  const [instructors, setInstructors] = useState<InstructorOption[]>([])
-  const [contactInfo, setContactInfo] = useState<PersonOption | null>(null)
   const isEdit = !!entryId
+  const [pickedContactId, setPickedContactId] = useState<string>('')
+  const [pickerSearch, setPickerSearch] = useState('')
   const [form, setForm] = useState<Form>(EMPTY)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Effect 1 — runs only when the sheet opens or the entry/contact identity changes.
-  // Loads people-list, instructors-list, and the entry data. Importantly: NOT
-  // re-run when pickedContactId changes (otherwise clicking a row would reset the form).
+  // Data via hooks.
+  const { data: people = [] } = useContactPickerList(showPicker && open)
+  const { data: instructorRows = [] } = useActiveInstructors()
+  const instructors = useMemo<InstructorOption[]>(
+    () => instructorRows.map(({ id, name, active }) => ({ id, name, active })),
+    [instructorRows],
+  )
+  const activeContactId = contactId ?? pickedContactId
+  const { data: contactInfo = null } = useContactBasics(activeContactId || null)
+  const { data: existingEntry } = useCommunicationEntry(open ? entryId : null)
+  const saveMutation = useSaveCommunicationEntry()
+  const deleteMutation = useDeleteCommunicationEntry()
+  const saving = saveMutation.isPending || deleteMutation.isPending
+
+  // Hydrate the form when entering edit-mode / opening sheet. Separate from
+  // contact-picker selection so picking a person never resets the form.
   useEffect(() => {
     if (!open) return
     setError(null)
     setPickedContactId('')
-    if (showPicker) {
-      // Pick from unified contacts table (instructors + students + orgs).
-      // Map to legacy PersonOption shape so existing render code works.
-      supabase
-        .from('contacts')
-        .select('id, display_name, primary_email, phones, roles')
-        .is('archived_at', null)
-        .order('display_name')
-        .then(({ data }) => {
-          const mapped: PersonOption[] = (data ?? []).map((c: any) => ({
-            id: c.id,
-            name: c.display_name ?? '',
-            email: c.primary_email ?? null,
-            phone: (Array.isArray(c.phones) && c.phones[0]?.e164) || null,
-            is_student: Array.isArray(c.roles) && c.roles.includes('student'),
-            is_candidate: Array.isArray(c.roles) && c.roles.includes('candidate'),
-          }))
-          setPeople(mapped)
-        })
-    }
-    listActiveInstructors()
-      .then((rows) => setInstructors(rows.map(({ id, name, active }) => ({ id, name, active }))))
-      .catch((err) => console.error('[comm-edit] load instructors failed', err))
-    if (entryId) {
-      supabase
-        .from('communication_entries')
-        .select('channel, direction, occurred_on, subject, body, duration_minutes, outcome, contact_id, created_by')
-        .eq('id', entryId)
-        .single()
-        .then(({ data }) => {
-          if (!data) return
-          const d = data as any
-          if (showPicker && d.contact_id) setPickedContactId(d.contact_id)
-          setForm({
-            channel: d.channel ?? 'note',
-            direction: d.direction ?? 'outbound',
-            occurred_on: d.occurred_on ? toLocal(d.occurred_on) : '',
-            subject: d.subject ?? '',
-            body: d.body ?? '',
-            duration_minutes: d.duration_minutes != null ? String(d.duration_minutes) : '',
-            outcome: d.outcome ?? '',
-            created_by: d.created_by ?? '',
-          })
-        })
-    } else {
+    if (!entryId) {
       setForm({ ...EMPTY, occurred_on: nowLocal(), created_by: createdById ?? '' })
+      return
     }
+    if (!existingEntry) return
+    if (showPicker && existingEntry.contact_id) setPickedContactId(existingEntry.contact_id)
+    setForm({
+      channel: existingEntry.channel ?? 'note',
+      direction: existingEntry.direction ?? 'outbound',
+      occurred_on: existingEntry.occurred_on ? toLocal(existingEntry.occurred_on) : '',
+      subject: existingEntry.subject ?? '',
+      body: existingEntry.body ?? '',
+      duration_minutes:
+        existingEntry.duration_minutes != null ? String(existingEntry.duration_minutes) : '',
+      outcome: existingEntry.outcome ?? '',
+      created_by: existingEntry.created_by ?? '',
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, entryId, contactId])
-
-  // Effect 2 — fetch contactInfo for send-buttons whenever the chosen contact changes.
-  // Separated from Effect 1 so that selecting a person doesn't trigger a form reset.
-  useEffect(() => {
-    if (!open) return
-    const cid = contactId ?? pickedContactId
-    if (!cid) { setContactInfo(null); return }
-    supabase
-      .from('contacts')
-      .select('id, display_name, primary_email, phones')
-      .eq('id', cid)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!data) { setContactInfo(null); return }
-        const c: any = data
-        setContactInfo({
-          id: c.id,
-          name: c.display_name ?? '',
-          email: c.primary_email ?? null,
-          phone: (Array.isArray(c.phones) && c.phones[0]?.e164) || null,
-        })
-      })
-  }, [open, contactId, pickedContactId])
+  }, [open, entryId, contactId, existingEntry])
 
   function set<K extends keyof Form>(k: K, v: Form[K]) {
     setForm((prev) => ({ ...prev, [k]: v }))
@@ -192,7 +145,6 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
       setError(t('comm_edit.error_pick_person'))
       return
     }
-    setSaving(true)
     setError(null)
     const payload = {
       contact_id: finalContactId,
@@ -205,27 +157,28 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
       outcome: form.outcome.trim() || null,
       created_by: form.created_by || createdById || null,
     }
-    if (isEdit) {
-      const { error: e } = await supabase.from('communication_entries').update(payload).eq('id', entryId!)
-      if (e) { setError(e.message); setSaving(false); return }
-    } else {
-      const { error: e } = await supabase.from('communication_entries').insert(payload)
-      if (e) { setError(e.message); setSaving(false); return }
+    try {
+      await saveMutation.mutateAsync({ entryId: entryId ?? null, input: payload })
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
     }
-    setSaving(false)
-    onSaved()
-    onClose()
   }
 
   async function deleteEntry() {
-    if (!isEdit) return
+    if (!entryId) return
+    const finalContactId = contactId ?? pickedContactId
+    if (!finalContactId) return
     if (!confirm(t('comm_edit.confirm_delete'))) return
-    setSaving(true)
-    const { error: e } = await supabase.from('communication_entries').delete().eq('id', entryId!)
-    setSaving(false)
-    if (e) { setError(e.message); return }
-    onSaved()
-    onClose()
+    setError(null)
+    try {
+      await deleteMutation.mutateAsync({ entryId, contactId: finalContactId })
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
+    }
   }
 
   const showDuration = form.channel === 'phone' || form.channel === 'meeting'

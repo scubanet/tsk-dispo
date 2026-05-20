@@ -708,3 +708,124 @@ export async function removeRelationship(relationshipId: string): Promise<void> 
     .eq('id', relationshipId)
   if (error) throw error
 }
+
+// ────────────────────── Communication edit support ─────────────────────────
+
+export interface ContactPickerOption {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+  is_student: boolean
+  is_candidate: boolean
+}
+
+export interface ContactBasics {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+}
+
+export interface CommunicationEntryForEdit {
+  channel: string
+  direction: string
+  occurred_on: string
+  subject: string | null
+  body: string | null
+  duration_minutes: number | null
+  outcome: string | null
+  contact_id: string
+  created_by: string | null
+}
+
+export interface CommunicationEntryInput {
+  contact_id: string
+  channel: string
+  direction: string
+  occurred_on: string  // ISO
+  subject: string | null
+  body: string | null
+  duration_minutes: number | null
+  outcome: string | null
+  created_by: string | null
+}
+
+/**
+ * Reads all non-archived contacts as a picker list for CommunicationEditSheet.
+ * Flat structure: id + display name + best-effort email/phone + role flags.
+ */
+export async function fetchContactPickerList(): Promise<ContactPickerOption[]> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('id, display_name, primary_email, phones, roles')
+    .is('archived_at', null)
+    .order('display_name')
+  if (error) throw error
+  return ((data ?? []) as Array<{
+    id: string
+    display_name: string | null
+    primary_email: string | null
+    phones: Array<{ e164?: string }> | null
+    roles: string[] | null
+  }>).map((c) => ({
+    id: c.id,
+    name: c.display_name ?? '',
+    email: c.primary_email ?? null,
+    phone: (Array.isArray(c.phones) && c.phones[0]?.e164) || null,
+    is_student: Array.isArray(c.roles) && c.roles.includes('student'),
+    is_candidate: Array.isArray(c.roles) && c.roles.includes('candidate'),
+  }))
+}
+
+/** Reads just name + email + first-phone for the send-buttons row. */
+export async function fetchContactBasics(contactId: string): Promise<ContactBasics | null> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('id, display_name, primary_email, phones')
+    .eq('id', contactId)
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  const c = data as {
+    id: string
+    display_name: string | null
+    primary_email: string | null
+    phones: Array<{ e164?: string }> | null
+  }
+  return {
+    id: c.id,
+    name: c.display_name ?? '',
+    email: c.primary_email ?? null,
+    phone: (Array.isArray(c.phones) && c.phones[0]?.e164) || null,
+  }
+}
+
+/** Reads a single communication_entries row for the edit form. */
+export async function fetchCommunicationEntry(entryId: string): Promise<CommunicationEntryForEdit | null> {
+  const { data, error } = await supabase
+    .from('communication_entries')
+    .select('channel, direction, occurred_on, subject, body, duration_minutes, outcome, contact_id, created_by')
+    .eq('id', entryId)
+    .single()
+  if (error) throw error
+  return (data as CommunicationEntryForEdit | null) ?? null
+}
+
+/** Inserts a new communication entry. */
+export async function insertCommunicationEntry(input: CommunicationEntryInput): Promise<void> {
+  const { error } = await supabase.from('communication_entries').insert(input)
+  if (error) throw error
+}
+
+/** Updates an existing communication entry. */
+export async function updateCommunicationEntry(entryId: string, input: CommunicationEntryInput): Promise<void> {
+  const { error } = await supabase.from('communication_entries').update(input).eq('id', entryId)
+  if (error) throw error
+}
+
+/** Deletes a communication entry. */
+export async function deleteCommunicationEntry(entryId: string): Promise<void> {
+  const { error } = await supabase.from('communication_entries').delete().eq('id', entryId)
+  if (error) throw error
+}
