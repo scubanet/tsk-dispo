@@ -128,7 +128,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
   const labelStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
-    gap: 4,
+    gap: 'var(--space-1)',
     fontSize: 13,
     fontWeight: 500,
     color: 'var(--text-body)',
@@ -141,7 +141,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
       title={t('contacts.create_title')}
       width={Math.round(window.innerWidth * 0.4)}
       footer={
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
           <button
             type="button"
             className="atoll-btn"
@@ -163,7 +163,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '4px 0' }}>
         {/* Kind selector */}
-        <div style={{ display: 'flex', gap: 16 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-4)' }}>
           {(['person', 'organization'] as ContactKind[]).map((k) => (
             <label
               key={k}
@@ -252,7 +252,7 @@ export function CreateContactSheet({ open, onClose, onCreated }: Props) {
 
         {/* Roles */}
         <div>
-          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-body)', marginBottom: 8 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-body)', marginBottom: 'var(--space-2)' }}>
             {t('contacts.field_roles')}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>

@@ -177,7 +177,7 @@ export function AddressbookScreen() {
           {/* ── Master / List pane ────────────────────────────── */}
           <ListPane
             toolbar={
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 12px 0' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', padding: '8px 12px 0' }}>
                 <SearchInput
                   value={search}
                   onChange={setSearch}
@@ -191,7 +191,7 @@ export function AddressbookScreen() {
                     display: 'flex',
                     gap: 6,
                     overflowX: 'auto',
-                    paddingBottom: 4,
+                    paddingBottom: 'var(--space-1)',
                     scrollbarWidth: 'none',
                     maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
                     WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
@@ -224,7 +224,7 @@ export function AddressbookScreen() {
             }
           >
             {loading ? (
-              <div style={{ padding: 24, color: 'var(--text-tertiary)', fontSize: 13 }}>{t('contacts.loading')}</div>
+              <div style={{ padding: 'var(--space-6)', color: 'var(--text-tertiary)', fontSize: 13 }}>{t('contacts.loading')}</div>
             ) : rows.length === 0 ? (
               <EmptyState
                 icon={<Icon.Users size={20} />}

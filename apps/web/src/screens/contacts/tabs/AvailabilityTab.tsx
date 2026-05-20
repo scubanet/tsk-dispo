@@ -70,7 +70,7 @@ export function AvailabilityTab({ contactId }: Props) {
         style={{
           display: 'flex',
           justifyContent: 'flex-end',
-          marginBottom: 12,
+          marginBottom: 'var(--space-3)',
         }}
       >
         <button

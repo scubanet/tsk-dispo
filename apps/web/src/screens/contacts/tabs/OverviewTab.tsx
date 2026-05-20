@@ -5,11 +5,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ContactWithSidecars } from '@/types/contacts'
-import { InlineTextField } from '@/foundation/compounds/InlineTextField'
-import { InlineDateField } from '@/foundation/compounds/InlineDateField'
-import { EmailList } from '@/foundation/compounds/EmailList'
-import { PhoneList } from '@/foundation/compounds/PhoneList'
-import { AddressList } from '@/foundation/compounds/AddressList'
+import { InlineTextField } from '@/foundation/patterns/InlineTextField'
+import { InlineDateField } from '@/foundation/patterns/InlineDateField'
+import { EmailList } from '@/foundation/patterns/EmailList'
+import { PhoneList } from '@/foundation/patterns/PhoneList'
+import { AddressList } from '@/foundation/patterns/AddressList'
 import {
   updateContactField,
 } from '@/lib/contactQueries'

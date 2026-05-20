@@ -18,7 +18,7 @@
 
 import type { Certification, CertCategory } from '@/types/foundation'
 import { dateMedium } from '../lib/dates'
-import { Pill } from '../components/Pill'
+import { Pill } from '../primitives/Pill'
 import './BrevetsView.css'
 
 export interface BrevetsViewProps {

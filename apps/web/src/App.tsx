@@ -4,7 +4,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AppShell } from '@/layout/AppShell'
-import { Loader } from '@/foundation/components/Loader'
+import { Loader } from '@/foundation/primitives/Loader'
 
 // ─── Code-split screens ──────────────────────────────────────────────
 // Each screen lives in its own Vite chunk and is fetched on first navigation

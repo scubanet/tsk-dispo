@@ -119,7 +119,7 @@ export function InlineField({
           {displayExtra && (
             <span
               className="inline-field__extra"
-              style={{ marginLeft: 8, color: 'var(--text-tertiary)', fontSize: 'var(--text-meta)' }}
+              style={{ marginLeft: 'var(--space-2)', color: 'var(--text-tertiary)', fontSize: 'var(--text-meta)' }}
             >
               {displayExtra}
             </span>

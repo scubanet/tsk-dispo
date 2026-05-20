@@ -9,7 +9,7 @@
 
 import { useTranslation } from 'react-i18next'
 import type { ContactWithSidecars, ContactRole } from '@/types/contacts'
-import { Avatar } from '../components/Avatar'
+import { Avatar } from '../primitives/Avatar'
 import { RolesBadgeList } from './RolesBadgeList'
 
 export interface PrimaryAction {

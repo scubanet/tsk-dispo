@@ -8,8 +8,8 @@
 
 import { useTranslation } from 'react-i18next'
 import type { ContactWithSidecars } from '@/types/contacts'
-import { InlineTextField } from '@/foundation/compounds/InlineTextField'
-import { InlineSelectField } from '@/foundation/compounds/InlineSelectField'
+import { InlineTextField } from '@/foundation/patterns/InlineTextField'
+import { InlineSelectField } from '@/foundation/patterns/InlineSelectField'
 import { updateInstructorField } from '@/lib/contactQueries'
 
 interface Props {

@@ -1,28 +1,38 @@
 /**
  * ATOLL Foundation — public API.
  *
- * Components, lib functions and providers re-exported under stable paths.
  * Import from `@/foundation` rather than reaching into subfolders.
+ *
+ * Layout (GL-004 Phase 5a):
+ *   - `primitives/` — pure UI atoms + molecules with no domain knowledge
+ *     (Avatar, Pill, Banner, KpiCard, EmptyState, …). Reusable in any app.
+ *   - `patterns/`   — domain compositions (CourseRow, TouchpointCard,
+ *     BrevetsView, ContactHeader, inline-field family). Aware of ATOLL
+ *     domain concepts.
+ *   - `layouts/`    — page/shell scaffolding (AppShell, Sidebar, Drawer,
+ *     PageHeader, MasterDetail, Tabs).
+ *
+ * The split is conceptual: primitives evolve with the design language,
+ * patterns evolve with the product.
  */
 
-// ─────────── Atoms ───────────
-export { Avatar, type AvatarProps, type AvatarSize } from './components/Avatar'
-export { AvatarStack, type AvatarStackProps, type AvatarStackPerson } from './components/AvatarStack'
-export { Pill, type PillProps, type PillTone, type PillSize } from './components/Pill'
-export { SearchInput, type SearchInputProps, type SearchInputSize } from './components/SearchInput'
+// ─────────── Primitives — atoms ───────────
+export { Avatar, type AvatarProps, type AvatarSize } from './primitives/Avatar'
+export { AvatarStack, type AvatarStackProps, type AvatarStackPerson } from './primitives/AvatarStack'
+export { Pill, type PillProps, type PillTone, type PillSize } from './primitives/Pill'
+export { SearchInput, type SearchInputProps, type SearchInputSize } from './primitives/SearchInput'
 
-// ─────────── Molecules ───────────
-export { KpiCard, type KpiCardProps, type KpiVariant } from './components/KpiCard'
-export { KpiGrid, type KpiGridProps } from './components/KpiGrid'
-export { FilterTabBar, type FilterTabBarProps, type FilterTab } from './components/FilterTabBar'
-export { SortDropdown, type SortDropdownProps, type SortOption } from './components/SortDropdown'
-export { ChecklistItem, type ChecklistItemProps, type ChecklistState } from './components/ChecklistItem'
-export { TouchpointCard, type TouchpointCardProps, type TouchpointChannel, type TouchpointDirection } from './components/TouchpointCard'
-export { CourseRow, type CourseRowProps } from './components/CourseRow'
-export { PromptCard, type PromptCardProps, type PromptTone } from './components/PromptCard'
-export { EmptyState, type EmptyStateProps } from './components/EmptyState'
-export { Banner, type BannerProps, type BannerTone } from './components/Banner'
-export { ToastProvider, useToast, type ToastInput, type ToastTone } from './components/Toast'
+// ─────────── Primitives — molecules ───────────
+export { KpiCard, type KpiCardProps, type KpiVariant } from './primitives/KpiCard'
+export { KpiGrid, type KpiGridProps } from './primitives/KpiGrid'
+export { FilterTabBar, type FilterTabBarProps, type FilterTab } from './primitives/FilterTabBar'
+export { SortDropdown, type SortDropdownProps, type SortOption } from './primitives/SortDropdown'
+export { ChecklistItem, type ChecklistItemProps, type ChecklistState } from './primitives/ChecklistItem'
+export { PromptCard, type PromptCardProps, type PromptTone } from './primitives/PromptCard'
+export { EmptyState, type EmptyStateProps } from './primitives/EmptyState'
+export { Banner, type BannerProps, type BannerTone } from './primitives/Banner'
+export { ToastProvider, useToast, type ToastInput, type ToastTone } from './primitives/Toast'
+export { Loader, type LoaderProps } from './primitives/Loader'
 
 // ─────────── Layouts ───────────
 export { AppShell, type AppShellProps } from './layouts/AppShell'
@@ -32,8 +42,10 @@ export { MasterDetail, ListPane, DetailPane, type ListPaneProps, type DetailPane
 export { Tabs, type TabsProps, type TabDefinition } from './layouts/Tabs'
 export { Drawer, type DrawerProps, type DrawerSide } from './layouts/Drawer'
 
-// ─────────── Compounds ───────────
-export { BrevetsView, type BrevetsViewProps } from './compounds/BrevetsView'
+// ─────────── Patterns — domain compositions ───────────
+export { CourseRow, type CourseRowProps } from './patterns/CourseRow'
+export { TouchpointCard, type TouchpointCardProps, type TouchpointChannel, type TouchpointDirection } from './patterns/TouchpointCard'
+export { BrevetsView, type BrevetsViewProps } from './patterns/BrevetsView'
 
 // ─────────── Providers ───────────
 export { ThemeProvider, useTheme, type ThemeProviderProps } from './providers/ThemeProvider'

@@ -10,7 +10,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Drawer } from '@/foundation/layouts/Drawer'
 import { Tabs } from '@/foundation/layouts/Tabs'
 import type { TabDefinition } from '@/foundation/layouts/Tabs'
-import { ContactHeader } from '@/foundation/compounds/ContactHeader'
+import { ContactHeader } from '@/foundation/patterns/ContactHeader'
 import { useContactWithSidecars } from '@/hooks/useContactWithSidecars'
 import type { ContactWithSidecars } from '@/types/contacts'
 import {
