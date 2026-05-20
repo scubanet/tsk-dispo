@@ -2,8 +2,13 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { supabase } from '@/lib/supabase'
-import { getContactWithSidecars, listRelationships } from '@/lib/contactQueries'
+import { useContactWithSidecars } from '@/hooks/useContactWithSidecars'
+import { useContactRelationships } from '@/hooks/useContactTabs'
+import {
+  useOrganizations,
+  useUpsertStudent,
+  useDeleteContact,
+} from '@/hooks/useStudentEdit'
 
 interface Form {
   // Stamm
@@ -59,8 +64,6 @@ const LANGUAGES = [
   { code: 'sp',  label: 'Sp' },
   { code: 'tag', label: 'Tag' },
 ]
-
-interface Org { id: string; name: string }
 
 interface Props {
   open: boolean
@@ -125,81 +128,73 @@ export function StudentEditSheet({
   const isEdit = !!studentId
   const STAGES = STAGE_CODES.map((code) => ({ code, label: t(`student_edit.stage_${code}`) }))
   const [form, setForm] = useState<Form>(EMPTY)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [orgs, setOrgs] = useState<Org[]>([])
 
+  const { data: orgs = [] } = useOrganizations(showCdFields && open)
+  const { data: cws } = useContactWithSidecars(open && studentId ? studentId : null)
+  const { data: relationships = [] } = useContactRelationships(
+    showCdFields && open && studentId ? studentId : null,
+  )
+  const upsertMutation = useUpsertStudent()
+  const deleteMutation = useDeleteContact()
+  const saving = upsertMutation.isPending || deleteMutation.isPending
+
+  // Form hydration: re-runs whenever open/studentId or the loaded contact change.
   useEffect(() => {
     if (!open) return
     setError(null)
-    if (showCdFields) {
-      supabase
-        .from('contacts')
-        .select('id, display_name, legal_name, trading_name')
-        .eq('kind', 'organization')
-        .is('archived_at', null)
-        .order('display_name')
-        .then(({ data }) => {
-          const rows = (data ?? []).map((o: { id: string; display_name: string | null; legal_name: string | null; trading_name: string | null }) => ({
-            id: o.id,
-            name: o.display_name ?? o.trading_name ?? o.legal_name ?? '(unnamed)',
-          }))
-          setOrgs(rows)
-        })
-    }
-    if (studentId) {
-      void (async () => {
-        const cws = await getContactWithSidecars(studentId)
-        if (!cws) return
-        const phones = (cws.phones as Array<{ e164?: string; primary?: boolean }> | null) ?? []
-        const primaryPhone = phones.find((p) => p.primary)?.e164 ?? phones[0]?.e164 ?? ''
-        const addresses = (cws.addresses as Array<{
-          street?: string; postal_code?: string; city?: string; country?: string; primary?: boolean
-        }> | null) ?? []
-        const primaryAddr = addresses.find((a) => a.primary) ?? addresses[0]
 
-        let orgId = ''
-        if (showCdFields) {
-          const rels = await listRelationships(studentId)
-          const worksAt = rels.find(
-            (r) => r.kind === 'works_at' && r.from_contact_id === studentId,
-          )
-          orgId = worksAt?.to_contact_id ?? ''
-        }
-
-        setForm({
-          first_name: cws.first_name ?? '',
-          last_name:  cws.last_name === '-' ? '' : (cws.last_name ?? ''),
-          email:      cws.primary_email ?? '',
-          phone:      primaryPhone,
-          birthday:   cws.birth_date ?? '',
-          level:      cws.student?.level ?? 'Anfänger',
-          notes:      cws.notes ?? '',
-
-          address:     primaryAddr?.street      ?? '',
-          postal_code: primaryAddr?.postal_code ?? '',
-          city:        primaryAddr?.city        ?? '',
-          country:     primaryAddr?.country     ?? '',
-          photo_url:   cws.student?.photo_url   ?? '',
-
-          pipeline_stage:    cws.student?.pipeline_stage    ?? 'none',
-          lead_source:       cws.student?.lead_source       ?? '',
-          tags:              (cws.tags ?? []).join(', '),
-          languages:         cws.languages ?? [],
-          organization_id:   orgId,
-          organization_role: cws.student?.organization_role ?? '',
-          is_student:        (cws.roles ?? []).includes('student'),
-          is_candidate:      cws.student?.is_candidate ?? false,
-        })
-      })()
-    } else {
+    if (!studentId) {
       setForm({
         ...EMPTY,
         is_candidate: defaultIsCandidate,
         pipeline_stage: defaultPipelineStage ?? EMPTY.pipeline_stage,
       })
+      return
     }
-  }, [open, studentId, showCdFields, defaultIsCandidate, defaultPipelineStage])
+
+    if (!cws) return
+
+    const phones = (cws.phones as Array<{ e164?: string; primary?: boolean }> | null) ?? []
+    const primaryPhone = phones.find((p) => p.primary)?.e164 ?? phones[0]?.e164 ?? ''
+    const addresses = (cws.addresses as Array<{
+      street?: string; postal_code?: string; city?: string; country?: string; primary?: boolean
+    }> | null) ?? []
+    const primaryAddr = addresses.find((a) => a.primary) ?? addresses[0]
+
+    let orgId = ''
+    if (showCdFields) {
+      const worksAt = relationships.find(
+        (r) => r.kind === 'works_at' && r.from_contact_id === studentId,
+      )
+      orgId = worksAt?.to_contact_id ?? ''
+    }
+
+    setForm({
+      first_name: cws.first_name ?? '',
+      last_name:  cws.last_name === '-' ? '' : (cws.last_name ?? ''),
+      email:      cws.primary_email ?? '',
+      phone:      primaryPhone,
+      birthday:   cws.birth_date ?? '',
+      level:      cws.student?.level ?? 'Anfänger',
+      notes:      cws.notes ?? '',
+
+      address:     primaryAddr?.street      ?? '',
+      postal_code: primaryAddr?.postal_code ?? '',
+      city:        primaryAddr?.city        ?? '',
+      country:     primaryAddr?.country     ?? '',
+      photo_url:   cws.student?.photo_url   ?? '',
+
+      pipeline_stage:    cws.student?.pipeline_stage    ?? 'none',
+      lead_source:       cws.student?.lead_source       ?? '',
+      tags:              (cws.tags ?? []).join(', '),
+      languages:         cws.languages ?? [],
+      organization_id:   orgId,
+      organization_role: cws.student?.organization_role ?? '',
+      is_student:        (cws.roles ?? []).includes('student'),
+      is_candidate:      cws.student?.is_candidate ?? false,
+    })
+  }, [open, studentId, showCdFields, defaultIsCandidate, defaultPipelineStage, cws, relationships])
 
   function set<K extends keyof Form>(k: K, v: Form[K]) {
     setForm((prev) => ({ ...prev, [k]: v }))
@@ -211,10 +206,9 @@ export function StudentEditSheet({
 
   async function save() {
     if (!form.first_name.trim()) return
-    setSaving(true)
     setError(null)
 
-    const contactPayload: Record<string, unknown> = {
+    const contact: Parameters<typeof upsertMutation.mutateAsync>[0]['contact'] = {
       first_name: form.first_name.trim(),
       last_name:  form.last_name.trim() || null,
       primary_email: form.email.trim() || null,
@@ -226,17 +220,17 @@ export function StudentEditSheet({
     }
 
     if (showCdFields) {
-      contactPayload.address = {
+      contact.address = {
         street:      form.address.trim(),
         postal_code: form.postal_code.trim(),
         city:        form.city.trim(),
         country:     form.country.trim(),
       }
-      contactPayload.tags = csvToArray(form.tags)
-      contactPayload.languages = form.languages
+      contact.tags = csvToArray(form.tags)
+      contact.languages = form.languages
     }
 
-    const studentPayload: Record<string, unknown> = {
+    const student = {
       pipeline_stage:    showCdFields ? form.pipeline_stage : 'none',
       lead_source:       showCdFields ? form.lead_source.trim() : '',
       is_candidate:      showCdFields ? form.is_candidate : false,
@@ -245,30 +239,31 @@ export function StudentEditSheet({
       organization_role: showCdFields ? (form.organization_role.trim() || null) : null,
     }
 
-    const { data, error: rpcErr } = await supabase.rpc('student_upsert', {
-      p_contact_id: studentId ?? null,
-      p_contact:    contactPayload,
-      p_student:    studentPayload,
-      p_org_id:     showCdFields && form.organization_id ? form.organization_id : null,
-    })
-
-    if (rpcErr) { setError(rpcErr.message); setSaving(false); return }
-    setSaving(false)
-    onSaved(data as string)
-    onClose()
+    try {
+      const newId = await upsertMutation.mutateAsync({
+        contactId: studentId ?? null,
+        contact,
+        student,
+        orgId: showCdFields && form.organization_id ? form.organization_id : null,
+      })
+      onSaved(newId)
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
+    }
   }
 
   async function deleteStudent() {
-    if (!isEdit) return
+    if (!studentId) return
     if (!confirm(t('student_edit.confirm_delete'))) return
-    setSaving(true)
-    // CASCADE auf contacts.id räumt contact_student + contact_relationships
-    // automatisch auf (definiert in 0079).
-    const { error: delErr } = await supabase.from('contacts').delete().eq('id', studentId!)
-    setSaving(false)
-    if (delErr) { setError(delErr.message); return }
-    onSaved()
-    onClose()
+    setError(null)
+    try {
+      await deleteMutation.mutateAsync(studentId)
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
+    }
   }
 
   return (

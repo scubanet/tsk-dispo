@@ -829,3 +829,88 @@ export async function deleteCommunicationEntry(entryId: string): Promise<void> {
   const { error } = await supabase.from('communication_entries').delete().eq('id', entryId)
   if (error) throw error
 }
+
+// ────────────────────── Student / Contact upsert support ───────────────────
+
+export interface OrganizationOption {
+  id: string
+  name: string
+}
+
+/** Active organizations (for the StudentEditSheet org-picker). */
+export async function fetchOrganizations(): Promise<OrganizationOption[]> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('id, display_name, legal_name, trading_name')
+    .eq('kind', 'organization')
+    .is('archived_at', null)
+    .order('display_name')
+  if (error) throw error
+  return ((data ?? []) as Array<{
+    id: string
+    display_name: string | null
+    legal_name: string | null
+    trading_name: string | null
+  }>).map((o) => ({
+    id: o.id,
+    name: o.display_name ?? o.trading_name ?? o.legal_name ?? '(unnamed)',
+  }))
+}
+
+export interface StudentUpsertContact {
+  first_name: string
+  last_name: string | null
+  primary_email: string | null
+  phone: string | null
+  birthday: string | null
+  notes: string | null
+  is_student: boolean
+  is_candidate: boolean
+  address?: {
+    street: string
+    postal_code: string
+    city: string
+    country: string
+  }
+  tags?: string[]
+  languages?: string[]
+}
+
+export interface StudentUpsertStudent {
+  pipeline_stage: string
+  lead_source: string
+  is_candidate: boolean
+  level: string
+  photo_url: string | null
+  organization_role: string | null
+}
+
+/**
+ * Wraps the `student_upsert` RPC that atomically creates/updates a contact
+ * row + contact_student sidecar + optional works_at relationship.
+ */
+export async function upsertStudent(params: {
+  contactId: string | null
+  contact: StudentUpsertContact
+  student: StudentUpsertStudent
+  orgId: string | null
+}): Promise<string> {
+  const { data, error } = await supabase.rpc('student_upsert', {
+    p_contact_id: params.contactId,
+    p_contact: params.contact,
+    p_student: params.student,
+    p_org_id: params.orgId,
+  })
+  if (error) throw error
+  return data as string
+}
+
+/**
+ * Deletes a contact row by id. The `contacts` cascade rules (defined in
+ * migration 0079) automatically remove the contact_student, contact_instructor,
+ * and contact_relationships sidecars.
+ */
+export async function deleteContact(contactId: string): Promise<void> {
+  const { error } = await supabase.from('contacts').delete().eq('id', contactId)
+  if (error) throw error
+}
