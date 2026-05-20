@@ -1327,6 +1327,31 @@ export async function fetchCoursePrRecords(courseId: string): Promise<PrRecordRo
   return (data ?? []) as PrRecordRow[]
 }
 
+export interface PerformanceRecordUpsert {
+  student_id: string
+  course_id: string
+  pr_code: string
+  status: string
+  score: number | null
+  pass: boolean | null
+  assessed_on: string | null
+  assessed_by_text: string | null
+  notes: string | null
+  with_assistant: boolean | null
+}
+
+/**
+ * Bulk-upsert performance records keyed by (student_id, course_id, pr_code).
+ * Migration 0051 declared the UNIQUE index that backs this onConflict spec.
+ */
+export async function upsertPerformanceRecords(rows: PerformanceRecordUpsert[]): Promise<void> {
+  if (rows.length === 0) return
+  const { error } = await supabase
+    .from('performance_records')
+    .upsert(rows, { onConflict: 'student_id,course_id,pr_code' })
+  if (error) throw error
+}
+
 // ──────────────────────── Cockpit ────────────────────────
 
 export interface CockpitKpis {

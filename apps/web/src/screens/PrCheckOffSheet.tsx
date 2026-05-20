@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
-import { supabase } from '@/lib/supabase'
+import { useCoursePrRecords } from '@/hooks/useCoursePrRecords'
+import { useUpsertPerformanceRecords } from '@/hooks/usePrCheckOff'
 import type { CourseParticipant } from '@/lib/queries'
 
 export type ScoreSchema = 'score1to5' | 'score1to5_decimal' | 'percent' | 'passFail' | 'rubric' | 'done'
@@ -73,42 +74,46 @@ export function PrCheckOffSheet({
     label: t(`pr_checkoff.status_${s.code}`),
   }))
   const [rows, setRows] = useState<Record<string, RowState>>({})
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const cands = participants
-    .filter((p) => p.status !== 'dropped')
-    .filter((p) => !!p.student)
+  const upsertMutation = useUpsertPerformanceRecords()
+  const saving = upsertMutation.isPending
 
+  const cands = useMemo(
+    () => participants.filter((p) => p.status !== 'dropped').filter((p) => !!p.student),
+    [participants],
+  )
+
+  // Reuse the per-course PR cache — opening this sheet from inside the
+  // PR tab of CourseDetailPanel is then a cache hit. Skill-level filter
+  // happens client-side.
+  const { data: allRecords = [] } = useCoursePrRecords(open ? courseId : null, open)
+  const existingForSkill = useMemo<ExistingRecord[]>(
+    () => (skill ? (allRecords.filter((r) => r.pr_code === skill.code) as ExistingRecord[]) : []),
+    [allRecords, skill],
+  )
+
+  // Initialise row state once we have both the skill and the records.
   useEffect(() => {
     if (!open || !skill) return
     setError(null)
-    // Bestehende Records dieses Skills für alle Kandidaten dieses Kurses laden
-    supabase
-      .from('performance_records')
-      .select('id, student_id, pr_code, status, score, pass, assessed_on, assessed_by_text, notes, with_assistant')
-      .eq('course_id', courseId)
-      .eq('pr_code', skill.code)
-      .then(({ data }) => {
-        const initial: Record<string, RowState> = {}
-        const existing = (data ?? []) as ExistingRecord[]
-        for (const c of cands) {
-          const r = existing.find((e) => e.student_id === c.student!.id)
-          initial[c.student!.id] = {
-            status: r?.status ?? 'not_started',
-            score: r?.score != null ? String(r.score) : '',
-            pass: r?.pass === true ? 'yes' : r?.pass === false ? 'no' : '',
-            notes: r?.notes ?? '',
-            assessed_on: r?.assessed_on ?? defaultDate ?? new Date().toISOString().slice(0, 10),
-            with_assistant: r?.with_assistant ?? false,
-            recordId: r?.id,
-            dirty: false,
-          }
-        }
-        setRows(initial)
-      })
+    const initial: Record<string, RowState> = {}
+    for (const c of cands) {
+      const r = existingForSkill.find((e) => e.student_id === c.student!.id)
+      initial[c.student!.id] = {
+        status: r?.status ?? 'not_started',
+        score: r?.score != null ? String(r.score) : '',
+        pass: r?.pass === true ? 'yes' : r?.pass === false ? 'no' : '',
+        notes: r?.notes ?? '',
+        assessed_on: r?.assessed_on ?? defaultDate ?? new Date().toISOString().slice(0, 10),
+        with_assistant: r?.with_assistant ?? false,
+        recordId: r?.id,
+        dirty: false,
+      }
+    }
+    setRows(initial)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, skill?.code, courseId])
+  }, [open, skill?.code, existingForSkill, cands])
 
   function update(studentId: string, patch: Partial<RowState>) {
     setRows((prev) => ({
@@ -163,11 +168,9 @@ export function PrCheckOffSheet({
 
   async function save() {
     if (!skill) return
-    setSaving(true)
     setError(null)
     const dirty = Object.entries(rows).filter(([, r]) => r.dirty)
     if (dirty.length === 0) {
-      setSaving(false)
       onClose()
       return
     }
@@ -183,18 +186,13 @@ export function PrCheckOffSheet({
       notes: r.notes.trim() || null,
       with_assistant: skill.showAssistantToggle ? r.with_assistant : null,
     }))
-    // upsert auf UNIQUE(student_id, course_id, pr_code) — siehe Migration 0051
-    const { error: upErr } = await supabase
-      .from('performance_records')
-      .upsert(payload, { onConflict: 'student_id,course_id,pr_code' })
-    if (upErr) {
-      setError(upErr.message)
-      setSaving(false)
-      return
+    try {
+      await upsertMutation.mutateAsync(payload)
+      onSaved()
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('common.error'))
     }
-    setSaving(false)
-    onSaved()
-    onClose()
   }
 
   if (!skill) return null
