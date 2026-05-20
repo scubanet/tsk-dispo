@@ -4,13 +4,14 @@
  * Tabs show/hide based on contact.roles and contact.kind.
  */
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import { Drawer } from '@/foundation/layouts/Drawer'
 import { Tabs } from '@/foundation/layouts/Tabs'
 import type { TabDefinition } from '@/foundation/layouts/Tabs'
 import { ContactHeader } from '@/foundation/compounds/ContactHeader'
-import { getContactWithSidecars } from '@/lib/contactQueries'
+import { useContactWithSidecars } from '@/hooks/useContactWithSidecars'
 import type { ContactWithSidecars } from '@/types/contacts'
 import {
   OverviewTab,
@@ -111,9 +112,12 @@ export function ContactDetailPanel({
   onSelectContact,
 }: Props) {
   const { t } = useTranslation()
-  const [contact, setContact] = useState<ContactWithSidecars | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const qc = useQueryClient()
+  const { data: contact = null, isLoading: loading, error } = useContactWithSidecars(
+    contactId,
+    open,
+  )
+  const loadError = error instanceof Error ? error.message : null
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab ?? 'overview')
   const [showMore, setShowMore] = useState(false)
 
@@ -122,17 +126,13 @@ export function ContactDetailPanel({
     setActiveTab(initialTab ?? 'overview')
   }, [contactId, initialTab])
 
-  const load = useCallback(() => {
-    if (!contactId || !open) return
-    setLoading(true)
-    setLoadError(null)
-    getContactWithSidecars(contactId)
-      .then(setContact)
-      .catch((err) => setLoadError(err instanceof Error ? err.message : t('common.error')))
-      .finally(() => setLoading(false))
-  }, [contactId, open])
-
-  useEffect(() => { load() }, [load])
+  // Tabs receive `load` as their refresh callback. We invalidate just this
+  // contact's sidecar query so the panel refetches, while leaving every
+  // other cached contact alone.
+  function load() {
+    if (!contactId) return
+    qc.invalidateQueries({ queryKey: ['contact', 'withSidecars', contactId] })
+  }
 
   const visibleTabs: TabKey[] = contact ? computeVisibleTabs(contact) : ['overview']
   const safeTab = visibleTabs.includes(activeTab) ? activeTab : visibleTabs[0]
