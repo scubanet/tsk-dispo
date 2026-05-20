@@ -11,7 +11,7 @@
  *   └─────────────────────────────────────────────────────────┘
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { isAfter, isBefore, startOfDay } from 'date-fns'
 import { useTranslation } from 'react-i18next'
@@ -26,7 +26,7 @@ import {
   dateLong,
 } from '@/foundation'
 import type { CourseType } from '@/types/foundation'
-import { fetchMyAssignments, type MyAssignment } from '@/lib/queries'
+import { useMyAssignments } from '@/hooks/useMyAssignments'
 import type { OutletCtx } from '@/layout/AppShell'
 
 type Filter = 'upcoming' | 'past' | 'all'
@@ -42,14 +42,9 @@ export function MyAssignmentsScreen() {
   const { t } = useTranslation()
   const { user } = useOutletContext<OutletCtx>()
   const navigate = useNavigate()
-  const [rows, setRows] = useState<MyAssignment[]>([])
+  const { data: rows = [] } = useMyAssignments(user.instructorId)
   const [filter, setFilter] = useState<Filter>('upcoming')
   const [search, setSearch] = useState('')
-
-  useEffect(() => {
-    if (!user.instructorId) return
-    fetchMyAssignments(user.instructorId).then(setRows)
-  }, [user.instructorId])
 
   const counts = useMemo(() => {
     const today = startOfDay(new Date())
