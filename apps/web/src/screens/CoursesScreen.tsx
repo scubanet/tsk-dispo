@@ -13,7 +13,7 @@
  * Default filter: 'open' = everything except 'completed' (matches legacy).
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -31,7 +31,8 @@ import {
 } from '@/foundation'
 import type { OutletCtx } from '@/layout/AppShell'
 import type { CourseType } from '@/types/foundation'
-import { fetchAllCourses, type CourseDetail } from '@/lib/queries'
+import { type CourseDetail } from '@/lib/queries'
+import { useAllCourses } from '@/hooks/useAllCourses'
 import { CourseDetailPanel } from './CourseDetailPanel'
 import { CourseEditSheet } from './CourseEditSheet'
 
@@ -57,21 +58,13 @@ export function CoursesScreen() {
   const navigate = useNavigate()
   const { user } = useOutletContext<OutletCtx>()
 
-  const [courses, setCourses] = useState<CourseDetail[]>([])
+  const { data: courses = [], refetch } = useAllCourses()
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<Filter>('open')
   // Always default to "all courses". CD users can toggle the filter manually
   // when they want to focus on Pro-Level courses only.
   const [cdOnly, setCdOnly] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
-
-  function refetch() {
-    fetchAllCourses().then(setCourses)
-  }
-
-  useEffect(() => {
-    refetch()
-  }, [])
 
   const counts = useMemo(() => {
     const c = { confirmed: 0, tentative: 0, completed: 0, cancelled: 0, open: 0 }
@@ -208,7 +201,7 @@ export function CoursesScreen() {
       <CourseEditSheet
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        onSaved={refetch}
+        onSaved={() => { refetch() }}
         courseId={null}
       />
     </div>
