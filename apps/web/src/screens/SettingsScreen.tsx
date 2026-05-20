@@ -278,7 +278,7 @@ export function SettingsScreen() {
               </tbody>
             </table>
           </div>
-          <div className="atoll-cockpit__card-sub" style={{ marginTop: 12, marginBottom: 0 }}>
+          <div className="atoll-cockpit__card-sub" style={{ marginTop: 'var(--space-3)', marginBottom: 0 }}>
             {t('settings.course_pay.footnote')}
           </div>
         </section>

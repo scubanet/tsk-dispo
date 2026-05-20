@@ -181,7 +181,7 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
             style={{ ...inputStyle, fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace' }}
           />
           {!isNaN(previewAmount) && previewAmount !== 0 && (
-            <div className="caption-2" style={{ marginTop: 4 }}>
+            <div className="caption-2" style={{ marginTop: 'var(--space-1)' }}>
               {t('correction.preview')}: <strong style={{ color: previewAmount < 0 ? '#FF3B30' : 'inherit' }}>{chf(previewAmount)}</strong>
             </div>
           )}
@@ -198,12 +198,12 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
         </div>
 
         {error && (
-          <div className="chip-orange" style={{ padding: 12, borderRadius: 12, display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 13 }}>
+          <div className="chip-orange" style={{ padding: 'var(--space-3)', borderRadius: 12, display: 'flex', gap: 'var(--space-2)', alignItems: 'flex-start', fontSize: 13 }}>
             <Icon name="bell" size={16} /> {error}
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           {isEdit && (
             <button
               type="button"
@@ -230,5 +230,5 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
 }
 
 function Label({ children }: { children: string }) {
-  return <div className="caption-2" style={{ marginBottom: 4 }}>{children.toUpperCase()}</div>
+  return <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{children.toUpperCase()}</div>
 }

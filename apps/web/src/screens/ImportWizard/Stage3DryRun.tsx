@@ -23,10 +23,10 @@ export function Stage3DryRun({ storagePath, mappings, onConfirmed }: Props) {
   if (!summary) return <div className="caption">Plane Import…</div>
 
   return (
-    <div className="glass card" style={{ padding: 24 }}>
-      <div className="title-3" style={{ marginBottom: 16 }}>Schritt 3 — Vorschau</div>
+    <div className="glass card" style={{ padding: 'var(--space-6)' }}>
+      <div className="title-3" style={{ marginBottom: 'var(--space-4)' }}>Schritt 3 — Vorschau</div>
 
-      <div style={{ display: 'grid', gap: 8, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gap: 'var(--space-2)', marginBottom: 20 }}>
         <Row label="Instructors" value={summary.instructors_count} />
         <Row label="Kurse" value={summary.courses_count} />
         <Row label="Zuweisungen (Haupt + Assistenten)" value={summary.assignments_count} />
@@ -41,7 +41,7 @@ export function Stage3DryRun({ storagePath, mappings, onConfirmed }: Props) {
           <div className="caption" style={{ marginBottom: 6 }}>
             ⚠ {summary.ignored_rows.length} Zeilen werden übersprungen:
           </div>
-          <div style={{ maxHeight: 160, overflow: 'auto', marginBottom: 16 }}>
+          <div style={{ maxHeight: 160, overflow: 'auto', marginBottom: 'var(--space-4)' }}>
             {summary.ignored_rows.map((r) => (
               <div key={r.row} className="caption-2">
                 Zeile {r.row}: {r.reason}

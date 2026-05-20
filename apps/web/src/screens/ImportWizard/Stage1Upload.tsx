@@ -31,19 +31,19 @@ export function Stage1Upload({ onPreviewReady }: Props) {
       : 'Hochladen & Vorprüfen'
 
   return (
-    <form onSubmit={handleSubmit} className="glass card" style={{ padding: 24 }}>
-      <div className="title-3" style={{ marginBottom: 12 }}>Schritt 1 — Datei hochladen</div>
+    <form onSubmit={handleSubmit} className="glass card" style={{ padding: 'var(--space-6)' }}>
+      <div className="title-3" style={{ marginBottom: 'var(--space-3)' }}>Schritt 1 — Datei hochladen</div>
       <input
         type="file"
         accept=".xlsx"
         onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-        style={{ marginBottom: 16, display: 'block' }}
+        style={{ marginBottom: 'var(--space-4)', display: 'block' }}
       />
       <button className="btn" type="submit" disabled={!file || busy}>
         {label}
       </button>
       {preview.error && (
-        <div className="chip chip-red" style={{ marginTop: 12 }}>{preview.error.message}</div>
+        <div className="chip chip-red" style={{ marginTop: 'var(--space-3)' }}>{preview.error.message}</div>
       )}
     </form>
   )

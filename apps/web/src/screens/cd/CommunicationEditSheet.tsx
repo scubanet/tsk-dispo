@@ -220,7 +220,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
               placeholder={t('comm_edit.search_name')}
               style={inputStyle}
             />
-            <div style={{ marginTop: 6, maxHeight: 180, overflow: 'auto', display: 'grid', gap: 4 }}>
+            <div style={{ marginTop: 6, maxHeight: 180, overflow: 'auto', display: 'grid', gap: 'var(--space-1)' }}>
               {people
                 .filter((p) => !pickerSearch || p.name.toLowerCase().includes(pickerSearch.toLowerCase()))
                 .slice(0, 30)
@@ -242,15 +242,15 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
                     }}
                   >
                     {p.name}
-                    {p.is_candidate && <span style={{ marginLeft: 8, opacity: 0.6, fontSize: 11 }}>· {t('student_edit.stage_candidate')}</span>}
-                    {p.is_student && !p.is_candidate && <span style={{ marginLeft: 8, opacity: 0.6, fontSize: 11 }}>· {t('comm_hub.student_badge')}</span>}
+                    {p.is_candidate && <span style={{ marginLeft: 'var(--space-2)', opacity: 0.6, fontSize: 11 }}>· {t('student_edit.stage_candidate')}</span>}
+                    {p.is_student && !p.is_candidate && <span style={{ marginLeft: 'var(--space-2)', opacity: 0.6, fontSize: 11 }}>· {t('comm_hub.student_badge')}</span>}
                   </button>
                 ))}
             </div>
           </Field>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
           <Field label={t('comm_edit.label_channel')}>
             <select value={form.channel} onChange={(e) => set('channel', e.target.value)} style={inputStyle}>
               {CHANNELS.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
@@ -263,7 +263,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
           </Field>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
           <Field label={t('comm_edit.label_datetime')}>
             <input
               type="datetime-local"
@@ -322,8 +322,8 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
 
         {/* Direkt-Senden über Mail / WhatsApp / iMessage */}
         {contactInfo && (contactInfo.email || contactInfo.phone) && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', padding: '8px 10px', borderRadius: 10, background: 'rgba(0,122,255,.08)' }}>
-            <span className="caption-2" style={{ marginRight: 4 }}>{t('comm_edit.send_label')}:</span>
+          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', alignItems: 'center', padding: '8px 10px', borderRadius: 10, background: 'rgba(0,122,255,.08)' }}>
+            <span className="caption-2" style={{ marginRight: 'var(--space-1)' }}>{t('comm_edit.send_label')}:</span>
             {contactInfo.email && (
               <button
                 type="button"
@@ -362,7 +362,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
 
         {error && <div className="chip chip-red">{error}</div>}
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
           {isEdit && (
             <button
               className="btn-danger btn"
@@ -385,7 +385,7 @@ export function CommunicationEditSheet({ open, onClose, onSaved, contactId, entr
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="caption-2" style={{ marginBottom: 4 }}>{label.toUpperCase()}</div>
+      <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{label.toUpperCase()}</div>
       {children}
     </div>
   )

@@ -202,12 +202,12 @@ export function PrCheckOffSheet({
   return (
     <Sheet open={open} onClose={onClose} title={t('pr_checkoff.title')} width={640}>
       <div style={{ display: 'grid', gap: 14 }}>
-        <div className="glass-thin" style={{ padding: 12, borderRadius: 12 }}>
-          <div className="caption-2" style={{ opacity: 0.6, marginBottom: 4 }}>
+        <div className="glass-thin" style={{ padding: 'var(--space-3)', borderRadius: 12 }}>
+          <div className="caption-2" style={{ opacity: 0.6, marginBottom: 'var(--space-1)' }}>
             <span className="mono">{skill.code}</span>
           </div>
           <div style={{ fontWeight: 700, fontSize: 15 }}>{skill.title}</div>
-          <div className="caption" style={{ marginTop: 4 }}>
+          <div className="caption" style={{ marginTop: 'var(--space-1)' }}>
             {t('pr_checkoff.schema')}: {labelFor(skill.scoreSchema, t)}
             {skill.scoreSchema === 'score1to5' && skill.passThreshold ? ` · ${t('pr_tab.pass_threshold_5', { value: skill.passThreshold })}` : ''}
             {skill.scoreSchema === 'score1to5_decimal' && skill.passThreshold ? ` · ${t('pr_tab.pass_threshold_5', { value: skill.passThreshold.toFixed(2) })}` : ''}
@@ -228,7 +228,7 @@ export function PrCheckOffSheet({
                 <div
                   key={c.id}
                   className="glass-thin"
-                  style={{ padding: 12, borderRadius: 12, display: 'grid', gap: 10 }}
+                  style={{ padding: 'var(--space-3)', borderRadius: 12, display: 'grid', gap: 10 }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div className="avatar avatar-sm" style={{ background: 'linear-gradient(135deg,#34c759,#00c2a8)' }}>
@@ -243,7 +243,7 @@ export function PrCheckOffSheet({
                   {/* Score-/Pass-Eingabe direkt — Status leitet sich automatisch ab */}
                   {skill.scoreSchema === 'score1to5' && (
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <div style={{ display: 'flex', gap: 4 }}>
+                      <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
                         {[1, 2, 3, 4, 5].map((n) => {
                           const passes = n >= (skill.passThreshold ?? 3)
                           const selected = row.score === String(n)
@@ -443,7 +443,7 @@ export function PrCheckOffSheet({
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: 8,
+                        gap: 'var(--space-2)',
                         padding: '6px 10px',
                         borderRadius: 8,
                         border: '0.5px solid var(--hairline)',
@@ -464,7 +464,7 @@ export function PrCheckOffSheet({
                     </label>
                   )}
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 'var(--space-2)' }}>
                     <input
                       type="date"
                       value={row.assessed_on}
@@ -501,7 +501,7 @@ export function PrCheckOffSheet({
 
         {error && <div className="chip chip-red">{error}</div>}
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 4, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-1)', alignItems: 'center' }}>
           <span className="caption">
             {t('pr_checkoff.assessor')}: <strong>{defaultAssessor}</strong> · {t('pr_checkoff.changes_count', { count: dirtyCount })}
           </span>

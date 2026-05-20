@@ -45,7 +45,7 @@ export function ImportWizard() {
           zIndex: 1,
         }}
       >
-        <div className="title-1" style={{ marginBottom: 4 }}>Excel-Import</div>
+        <div className="title-1" style={{ marginBottom: 'var(--space-1)' }}>Excel-Import</div>
         <div className="caption" style={{ marginBottom: 28 }}>Schritt {stage} von 4</div>
 
         {stage === 1 && (

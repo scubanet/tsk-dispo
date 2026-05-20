@@ -14,13 +14,13 @@ export function Stage4Result({ result }: Props) {
   const ratio = ((within50 / total) * 100).toFixed(0)
 
   return (
-    <div className="glass card" style={{ padding: 24 }}>
-      <div className="title-3" style={{ marginBottom: 12 }}>✅ Import abgeschlossen</div>
+    <div className="glass card" style={{ padding: 'var(--space-6)' }}>
+      <div className="title-3" style={{ marginBottom: 'var(--space-3)' }}>✅ Import abgeschlossen</div>
 
       <pre
         style={{
           background: 'rgba(0,0,0,.05)',
-          padding: 12,
+          padding: 'var(--space-3)',
           borderRadius: 8,
           fontSize: 12,
           overflow: 'auto',
@@ -29,10 +29,10 @@ export function Stage4Result({ result }: Props) {
         {JSON.stringify(result, null, 2)}
       </pre>
 
-      <div className="title-3" style={{ marginTop: 24, marginBottom: 8 }}>
+      <div className="title-3" style={{ marginTop: 'var(--space-6)', marginBottom: 'var(--space-2)' }}>
         Saldo-Vergleich App ↔ Excel
       </div>
-      <div className="caption" style={{ marginBottom: 12 }}>
+      <div className="caption" style={{ marginBottom: 'var(--space-3)' }}>
         {within50} von {total} Personen innerhalb ±CHF 50 ({ratio}%) — Ziel ≥ 90%
       </div>
 

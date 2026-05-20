@@ -134,7 +134,7 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
           </datalist>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
           <div>
             <Label>{t('cert_edit.label_issued_date')}</Label>
             <input
@@ -181,7 +181,7 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
 
         {error && <div className="chip chip-red">{error}</div>}
 
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           {isEdit && (
             <button
               className="btn-danger btn"
@@ -207,5 +207,5 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
 }
 
 function Label({ children }: { children: string }) {
-  return <div className="caption-2" style={{ marginBottom: 4 }}>{children.toUpperCase()}</div>
+  return <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{children.toUpperCase()}</div>
 }

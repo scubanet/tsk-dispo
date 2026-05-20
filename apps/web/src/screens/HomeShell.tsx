@@ -34,12 +34,12 @@ export function HomeShell() {
       >
         <div className="glass card" style={{ width: 480, padding: 28 }}>
           <div className="title-1" style={{ marginBottom: 6 }}>Willkommen ✓</div>
-          <div className="caption" style={{ marginBottom: 24 }}>
+          <div className="caption" style={{ marginBottom: 'var(--space-6)' }}>
             Plan 1 Foundation läuft. Volle UI in Plan 2.
           </div>
 
           {user && (
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 24 }}>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
               <Avatar
                 initials={user.name.slice(0, 2).toUpperCase()}
                 color="#0A84FF"
@@ -57,7 +57,7 @@ export function HomeShell() {
             <button
               className="btn btn-secondary"
               onClick={() => navigate('/einstellungen/import')}
-              style={{ marginRight: 8 }}
+              style={{ marginRight: 'var(--space-2)' }}
             >
               Excel-Import öffnen
             </button>

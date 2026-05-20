@@ -194,7 +194,7 @@ export function EnrollStudentSheet({
         {!isEdit && (
           <>
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-1)' }}>
                 <Label>{t('enroll.search_student')}</Label>
                 {onNewStudent && (
                   <button type="button" className="btn-ghost btn" onClick={onNewStudent} style={{ height: 24, padding: '0 8px' }}>
@@ -210,7 +210,7 @@ export function EnrollStudentSheet({
               />
             </div>
 
-            <div style={{ display: 'grid', gap: 4, maxHeight: 240, overflow: 'auto' }}>
+            <div style={{ display: 'grid', gap: 'var(--space-1)', maxHeight: 240, overflow: 'auto' }}>
               {filteredStudents.length === 0 ? (
                 <div className="caption">{t('courses.no_matches')}.</div>
               ) : (
@@ -242,7 +242,7 @@ export function EnrollStudentSheet({
         )}
 
         {isEdit && selectedStudent && (
-          <div className="glass-thin" style={{ padding: 12, borderRadius: 12 }}>
+          <div className="glass-thin" style={{ padding: 'var(--space-3)', borderRadius: 12 }}>
             <div style={{ fontWeight: 500 }}>{selectedStudent.name}</div>
             <div className="caption">
               {[selectedStudent.email, selectedStudent.phone].filter(Boolean).join(' · ') || '—'}
@@ -278,7 +278,7 @@ export function EnrollStudentSheet({
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: 'var(--space-3)' }}>
               <div>
                 <Label>{t('enroll.label_certifying_instructor')}</Label>
                 <select
@@ -320,7 +320,7 @@ export function EnrollStudentSheet({
 
         {error && <div className="chip chip-red">{error}</div>}
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
           {isEdit && (
             <button
               className="btn-danger btn"
@@ -346,5 +346,5 @@ export function EnrollStudentSheet({
 }
 
 function Label({ children }: { children: string }) {
-  return <div className="caption-2" style={{ marginBottom: 4 }}>{children.toUpperCase()}</div>
+  return <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{children.toUpperCase()}</div>
 }

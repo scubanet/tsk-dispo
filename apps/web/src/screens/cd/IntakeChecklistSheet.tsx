@@ -197,7 +197,7 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
 
   return (
     <Sheet open={open} onClose={onClose} title={t('intake.title')} width={620}>
-      <div style={{ display: 'grid', gap: 16 }}>
+      <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
         <Section title={t('intake.section_1_instructor_status')}>
           <Field label={t('intake.field_status')}>
             <select value={form.instructor_status} onChange={(e) => set('instructor_status', e.target.value)} style={inputStyle}>
@@ -215,7 +215,7 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
         </Section>
 
         <Section title={t('intake.section_3_medical')}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
             <Toggle label={t('intake.toggle_medical_received')} checked={form.medical_received} onChange={(v) => set('medical_received', v)} />
             <Toggle label={t('intake.toggle_medical_doctor_signed')} checked={form.medical_doctor_signed} onChange={(v) => set('medical_doctor_signed', v)} />
           </div>
@@ -231,7 +231,7 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
           <Field label={t('intake.field_first_cert')}>
             <input type="date" value={form.certified_diver_since} onChange={(e) => set('certified_diver_since', e.target.value)} style={inputStyle} />
           </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 'var(--space-3)' }}>
             <Toggle label={t('intake.toggle_logbook_seen')} checked={form.logbook_seen} onChange={(v) => set('logbook_seen', v)} />
             <Field label={t('intake.field_dive_count')}>
               <input type="number" min={0} value={form.logbook_dives_count} onChange={(e) => set('logbook_dives_count', e.target.value)} style={inputStyle} placeholder={t('intake.dive_count_placeholder')} />
@@ -277,7 +277,7 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
 
         {error && <div className="chip chip-red">{error}</div>}
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
           <button className="btn-secondary btn" onClick={onClose}>{t('common.cancel')}</button>
           <button className="btn" onClick={save} disabled={saving} style={{ flex: 1 }}>
             {saving ? t('common.saving') : <><Icon name="check" size={12} /> {t('common.save')}</>}
@@ -302,7 +302,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="caption-2" style={{ marginBottom: 4 }}>{label.toUpperCase()}</div>
+      <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{label.toUpperCase()}</div>
       {children}
     </div>
   )
@@ -314,7 +314,7 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 8,
+        gap: 'var(--space-2)',
         padding: '6px 10px',
         borderRadius: 8,
         border: '0.5px solid var(--hairline)',

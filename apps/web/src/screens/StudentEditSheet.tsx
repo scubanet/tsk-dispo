@@ -270,7 +270,7 @@ export function StudentEditSheet({
     <Sheet open={open} onClose={onClose} title={isEdit ? t('student_edit.title_edit') : t('student_edit.title_new')} width={showCdFields ? 600 : 520}>
       <div style={{ display: 'grid', gap: 14 }}>
         <Section title={t('student_edit.section_master')}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
             <Field label={t('student_edit.label_first_name')}>
               <input value={form.first_name} onChange={(e) => set('first_name', e.target.value)} style={inputStyle} />
             </Field>
@@ -279,7 +279,7 @@ export function StudentEditSheet({
             </Field>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
             <Field label={t('student_edit.label_email')}>
               <input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="name@example.ch" style={inputStyle} />
             </Field>
@@ -296,7 +296,7 @@ export function StudentEditSheet({
             <select value={form.level} onChange={(e) => set('level', e.target.value)} style={inputStyle}>
               {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
-            <div className="caption-2" style={{ marginTop: 4 }}>
+            <div className="caption-2" style={{ marginTop: 'var(--space-1)' }}>
               {t('student_edit.level_hint')}
             </div>
           </Field>
@@ -318,7 +318,7 @@ export function StudentEditSheet({
               <Field label={t('student_edit.label_street')}>
                 <input value={form.address} onChange={(e) => set('address', e.target.value)} style={inputStyle} />
               </Field>
-              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 'var(--space-3)' }}>
                 <Field label={t('student_edit.label_zip')}>
                   <input value={form.postal_code} onChange={(e) => set('postal_code', e.target.value)} style={inputStyle} />
                 </Field>
@@ -335,7 +335,7 @@ export function StudentEditSheet({
             </Section>
 
             <Section title={t('student_edit.section_crm')}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
                 <Field label={t('student_edit.label_pipeline_stage')}>
                   <select value={form.pipeline_stage} onChange={(e) => set('pipeline_stage', e.target.value)} style={inputStyle}>
                     {STAGES.map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
@@ -389,7 +389,7 @@ export function StudentEditSheet({
                 </div>
               </Field>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
                 <Field label={t('student_edit.label_organization')}>
                   <select value={form.organization_id} onChange={(e) => set('organization_id', e.target.value)} style={inputStyle}>
                     <option value="">— {t('student_edit.org_none')} —</option>
@@ -401,7 +401,7 @@ export function StudentEditSheet({
                 </Field>
               </div>
 
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: form.is_student ? 'rgba(0,122,255,.12)' : 'transparent', border: '0.5px solid var(--hairline)' }}>
+              <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: form.is_student ? 'rgba(0,122,255,.12)' : 'transparent', border: '0.5px solid var(--hairline)' }}>
                 <input
                   id="is_student"
                   type="checkbox"
@@ -412,7 +412,7 @@ export function StudentEditSheet({
                 <span className="caption" style={{ marginLeft: 'auto' }}>{t('student_edit.is_student_hint')}</span>
               </div>
 
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: form.is_candidate ? 'rgba(52,199,89,.12)' : 'transparent', border: '0.5px solid var(--hairline)' }}>
+              <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: form.is_candidate ? 'rgba(52,199,89,.12)' : 'transparent', border: '0.5px solid var(--hairline)' }}>
                 <input
                   id="is_candidate"
                   type="checkbox"
@@ -430,7 +430,7 @@ export function StudentEditSheet({
 
         {error && <div className="chip chip-red">{error}</div>}
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
           {isEdit && (
             <button
               className="btn-danger btn"
@@ -457,8 +457,8 @@ export function StudentEditSheet({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'grid', gap: 12 }}>
-      <div className="caption-2" style={{ marginTop: 4, fontSize: 11, opacity: 0.6, letterSpacing: '.08em' }}>
+    <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
+      <div className="caption-2" style={{ marginTop: 'var(--space-1)', fontSize: 11, opacity: 0.6, letterSpacing: '.08em' }}>
         {title.toUpperCase()}
       </div>
       {children}
@@ -476,5 +476,5 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function Label({ children }: { children: string }) {
-  return <div className="caption-2" style={{ marginBottom: 4 }}>{children.toUpperCase()}</div>
+  return <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{children.toUpperCase()}</div>
 }

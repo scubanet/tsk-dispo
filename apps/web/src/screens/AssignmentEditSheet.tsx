@@ -209,7 +209,7 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
               {t('assignment_edit.all_days')}
             </button>
           </div>
-          <div className="caption-2" style={{ marginBottom: 8 }}>
+          <div className="caption-2" style={{ marginBottom: 'var(--space-2)' }}>
             {t('assignment_edit.days_hint')}
           </div>
           <div style={{ display: 'grid', gap: 6 }}>
@@ -252,7 +252,7 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
           <input
             id="confirmed"
             type="checkbox"
@@ -265,7 +265,7 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
         {conflicts.length > 0 && (
           <div
             className="chip-orange"
-            style={{ padding: 12, borderRadius: 12, display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13 }}
+            style={{ padding: 'var(--space-3)', borderRadius: 12, display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13 }}
           >
             <Icon name="bell" size={16} />
             <div>
@@ -273,7 +273,7 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
                 title: conflicts[0].conflicting_course_title,
                 role: conflicts[0].conflicting_role,
               })}
-              <div className="caption-2" style={{ marginTop: 4 }}>
+              <div className="caption-2" style={{ marginTop: 'var(--space-1)' }}>
                 {t('assignment_edit.conflict_hint')}
               </div>
             </div>
@@ -282,7 +282,7 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
 
         {error && <div className="chip chip-red">{error}</div>}
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
           {isEdit && (
             <button
               className="btn-danger btn"
@@ -308,5 +308,5 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
 }
 
 function Label({ children }: { children: string }) {
-  return <div className="caption-2" style={{ marginBottom: 4 }}>{children.toUpperCase()}</div>
+  return <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{children.toUpperCase()}</div>
 }

@@ -60,7 +60,7 @@ export function LoginScreen() {
         }}
       >
         <div className="glass card" style={{ width: 380, padding: 28 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
             <Logo size={120} />
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '.08em', lineHeight: 1 }}>ATOLL</div>
@@ -70,7 +70,7 @@ export function LoginScreen() {
           <div className="caption" style={{ marginBottom: 18 }}>{t('auth.magic_link_prompt')}</div>
 
           {status === 'sent' ? (
-            <div className="chip chip-green" style={{ marginBottom: 8 }}>
+            <div className="chip chip-green" style={{ marginBottom: 'var(--space-2)' }}>
               {t('auth.link_sent')}
             </div>
           ) : (
@@ -115,7 +115,7 @@ export function LoginScreen() {
                 {status === 'sending' ? t('common.sending') : t('auth.send_magic_link')}
               </button>
               {error && (
-                <div role="alert" className="chip chip-red" style={{ marginTop: 12 }}>{error}</div>
+                <div role="alert" className="chip chip-red" style={{ marginTop: 'var(--space-3)' }}>{error}</div>
               )}
             </form>
           )}

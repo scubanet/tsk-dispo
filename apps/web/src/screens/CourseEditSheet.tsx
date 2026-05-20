@@ -349,13 +349,13 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
         </div>
 
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-1)' }}>
             <Label>{t('course_edit.label_dates')}</Label>
             <button type="button" className="btn-ghost btn" onClick={addDate} style={{ padding: '0 8px', height: 24 }}>
               <Icon name="plus" size={12} /> {t('course_edit.add_day')}
             </button>
           </div>
-          <div className="caption-2" style={{ marginBottom: 8 }}>
+          <div className="caption-2" style={{ marginBottom: 'var(--space-2)' }}>
             {isMultiDay ? t('course_edit.days_count', { count: dates.length }) : t('course_edit.single_day')} · {t('course_edit.dates_hint')}
           </div>
 
@@ -387,7 +387,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                   </button>
                 </div>
                 {(d.has_theory || d.has_pool || d.has_lake) && (
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 12 }}>
+                  <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', fontSize: 12 }}>
                     {d.has_theory && (
                       <TimeRange
                         emoji="📚"
@@ -440,7 +440,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: 4,
+                        gap: 'var(--space-1)',
                         padding: '4px 8px',
                         borderRadius: 6,
                         border: '0.5px solid var(--hairline)',
@@ -507,7 +507,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                   <option key={i.id} value={i.id}>{i.name} ({i.padi_level})</option>
                 ))}
               </select>
-              <div className="caption-2" style={{ marginTop: 4 }}>
+              <div className="caption-2" style={{ marginTop: 'var(--space-1)' }}>
                 {t('course_edit.haupt_hint')}
               </div>
             </div>
@@ -515,7 +515,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
             {conflicts.length > 0 && (
               <div
                 className="chip-orange"
-                style={{ padding: 12, borderRadius: 12, display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13 }}
+                style={{ padding: 'var(--space-3)', borderRadius: 12, display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13 }}
               >
                 <Icon name="bell" size={16} />
                 <div>
@@ -523,7 +523,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                     title: conflicts[0].conflicting_course_title,
                     role: conflicts[0].conflicting_role,
                   })}
-                  <div className="caption-2" style={{ marginTop: 4 }}>
+                  <div className="caption-2" style={{ marginTop: 'var(--space-1)' }}>
                     {t('course_edit.conflict_hint')}
                   </div>
                 </div>
@@ -534,7 +534,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
 
         {error && <div className="chip chip-red">{error}</div>}
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
           {isEdit && (
             <button
               type="button"
@@ -562,7 +562,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
 }
 
 function Label({ children }: { children: string }) {
-  return <div className="caption-2" style={{ marginBottom: 4 }}>{children.toUpperCase()}</div>
+  return <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{children.toUpperCase()}</div>
 }
 
 function TimeRange({
@@ -585,7 +585,7 @@ function TimeRange({
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 4,
+        gap: 'var(--space-1)',
         padding: '4px 8px',
         borderRadius: 6,
         border: '0.5px solid var(--hairline)',
@@ -617,7 +617,7 @@ function TypeToggle({ label, checked, onChange }: { label: string; checked: bool
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 4,
+        gap: 'var(--space-1)',
         padding: '6px 10px',
         borderRadius: 8,
         border: '0.5px solid var(--hairline)',

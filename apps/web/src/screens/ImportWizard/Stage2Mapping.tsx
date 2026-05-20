@@ -23,15 +23,15 @@ export function Stage2Mapping({ preview, onMappingsConfirmed }: Props) {
     preview.ambiguous_codes.length === 0 && preview.ambiguous_names.length === 0
 
   return (
-    <div className="glass card" style={{ padding: 24 }}>
-      <div className="title-3" style={{ marginBottom: 12 }}>Schritt 2 — Mehrdeutigkeiten</div>
+    <div className="glass card" style={{ padding: 'var(--space-6)' }}>
+      <div className="title-3" style={{ marginBottom: 'var(--space-3)' }}>Schritt 2 — Mehrdeutigkeiten</div>
 
-      <div className="caption" style={{ marginBottom: 16 }}>
+      <div className="caption" style={{ marginBottom: 'var(--space-4)' }}>
         {preview.course_rows} Kurszeilen · {preview.instructors_in_summary} Instructors gefunden
       </div>
 
       {noAmbiguities && (
-        <div className="chip chip-green" style={{ marginBottom: 16 }}>
+        <div className="chip chip-green" style={{ marginBottom: 'var(--space-4)' }}>
           ✓ Keine Mehrdeutigkeiten — kann direkt weiter
         </div>
       )}
@@ -42,7 +42,7 @@ export function Stage2Mapping({ preview, onMappingsConfirmed }: Props) {
           {preview.ambiguous_codes.map((code) => (
             <div
               key={code}
-              style={{ display: 'flex', gap: 12, marginBottom: 8, alignItems: 'center' }}
+              style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-2)', alignItems: 'center' }}
             >
               <span className="mono" style={{ width: 160 }}>{code}</span>
               <input
@@ -69,7 +69,7 @@ export function Stage2Mapping({ preview, onMappingsConfirmed }: Props) {
           {preview.ambiguous_names.map((name) => (
             <div
               key={name}
-              style={{ display: 'flex', gap: 12, marginBottom: 8, alignItems: 'center' }}
+              style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-2)', alignItems: 'center' }}
             >
               <span className="mono" style={{ width: 200 }}>{name}</span>
               <select

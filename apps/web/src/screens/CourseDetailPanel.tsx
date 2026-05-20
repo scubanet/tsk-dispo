@@ -449,7 +449,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
                 setEditingAssignment(null)
                 setEditAssignmentOpen(true)
               }}
-              style={{ alignSelf: 'flex-start', marginBottom: 4 }}
+              style={{ alignSelf: 'flex-start', marginBottom: 'var(--space-1)' }}
             >
               <FdIcon.Plus size={14} /> {t('course_detail.assign_tldm')}
             </button>
@@ -537,7 +537,7 @@ export function CourseDetailPanel({ courseId }: { courseId: string }) {
       {tab === 'participants' && (
         <div className="atoll-detail__list" style={{ paddingTop: 0 }}>
           {isDispatcher && (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+            <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', marginBottom: 'var(--space-1)' }}>
               <button
                 type="button"
                 className="atoll-btn atoll-btn--primary"
@@ -866,7 +866,7 @@ function PrTab({
       {/* Kandidaten-Coverage */}
       {cands.length > 0 && (
         <section>
-          <h2 className="atoll-cockpit__card-title" style={{ marginBottom: 8 }}>
+          <h2 className="atoll-cockpit__card-title" style={{ marginBottom: 'var(--space-2)' }}>
             {t('pr_tab.candidates_count', { count: cands.length })}
           </h2>
           <div className="atoll-detail__list" style={{ paddingTop: 0 }}>
@@ -1001,7 +1001,7 @@ function PrTab({
                 )}
               </button>
 
-              <div style={{ display: 'grid', gap: 4 }}>
+              <div style={{ display: 'grid', gap: 'var(--space-1)' }}>
                 {slot.skills.map((sk) => {
                   // Aggregate über alle Kandidaten
                   const completeCount = cands.filter((c) => {

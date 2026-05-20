@@ -170,7 +170,7 @@ function CellPopover({
       </div>
 
       {skill.hasDate && (
-        <label style={{ display: 'grid', gap: 4 }}>
+        <label style={{ display: 'grid', gap: 'var(--space-1)' }}>
           <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
             {t('padi_skill_check.label_date')}
           </span>
@@ -184,7 +184,7 @@ function CellPopover({
       )}
 
       {skill.hasTgNumber && (
-        <label style={{ display: 'grid', gap: 4 }}>
+        <label style={{ display: 'grid', gap: 'var(--space-1)' }}>
           <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
             {t('padi_skill_check.label_tg_number')}
           </span>
@@ -214,7 +214,7 @@ function CellPopover({
       )}
 
       {(skill.hasQuiz || skill.hasVideo) && (
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
           {skill.hasQuiz && (
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
               <input
@@ -239,7 +239,7 @@ function CellPopover({
       )}
 
       {instructors.length > 0 && (
-        <label style={{ display: 'grid', gap: 4 }}>
+        <label style={{ display: 'grid', gap: 'var(--space-1)' }}>
           <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
             {t('padi_skill_check.label_instructor')}
           </span>
@@ -456,7 +456,7 @@ export function SkillCheckTab({
   return (
     <div style={{ display: 'grid', gap: 0 }}>
       {/* Filter chips */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-3)', alignItems: 'center' }}>
         <button
           type="button"
           className={filter === 'all' ? 'atoll-btn atoll-btn--primary' : 'atoll-btn'}

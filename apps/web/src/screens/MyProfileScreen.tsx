@@ -243,24 +243,24 @@ function ProfileEditSheet({
         <div className="caption">{t('my_profile.edit_hint')}</div>
 
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_email_fix')}</div>
+          <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{t('my_profile.label_email_fix')}</div>
           <input value={currentEmail ?? ''} disabled style={{ ...sheetInputStyle, opacity: 0.5 }} />
         </div>
 
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_phone')}</div>
+          <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{t('my_profile.label_phone')}</div>
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+41 79 123 45 67"
             style={sheetInputStyle}
           />
-          <div className="caption-2" style={{ marginTop: 4 }}>{t('my_profile.phone_hint')}</div>
+          <div className="caption-2" style={{ marginTop: 'var(--space-1)' }}>{t('my_profile.phone_hint')}</div>
         </div>
 
         {error && <div className="chip chip-red">{error}</div>}
 
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           <button className="atoll-btn" onClick={onClose}>{t('common.cancel')}</button>
           <button
             className="atoll-btn atoll-btn--primary"
