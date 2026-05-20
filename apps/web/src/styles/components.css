@@ -1,7 +1,13 @@
-/* TYPOGRAPHY */
-.title-1 { font-size: 28px; font-weight: 700; letter-spacing: -0.022em; }
-.title-2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-.title-3 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+/* TYPOGRAPHY
+ *
+ * Legacy `.title-*` classes used in HomeShell, ImportWizard, EmptyState, Topbar.
+ * Migrated to the three-weight rule:
+ *   - title-1 + title-2 use --weight-bold (≥ 20px qualifies per token rule)
+ *   - title-3 stays --weight-medium (17px is below the 20px bold threshold)
+ * Font-sizes intentionally retained to preserve existing layout in legacy screens. */
+.title-1 { font-size: 28px; font-weight: var(--weight-bold); letter-spacing: -0.022em; }
+.title-2 { font-size: 22px; font-weight: var(--weight-bold); letter-spacing: -0.02em; }
+.title-3 { font-size: 17px; font-weight: var(--weight-medium); letter-spacing: -0.01em; }
 .body { font-size: 14px; }
 .caption { font-size: 12px; color: var(--ink-3); }
 .caption-2 { font-size: 11px; color: var(--ink-3); letter-spacing: 0.02em; }
@@ -41,23 +47,23 @@
   border-radius: 50%;
 }
 
-/* CHIPS */
+/* CHIPS — tinted message badges (error states, status chips).
+ * Migrated from iOS system colors (#138d3d, #c66700, #c4302a, #8e3ad9) to
+ * the ATOLL brand palette via tokens. */
 .chip {
   display: inline-flex; align-items: center; gap: 4px;
   height: 22px; padding: 0 9px;
   border-radius: var(--radius-pill);
   background: rgba(0,0,0,.06);
   color: var(--ink-2);
-  font-size: 11.5px; font-weight: 500;
+  font-size: 11.5px; font-weight: var(--weight-medium);
 }
 .dark .chip { background: rgba(255,255,255,.08); }
 .chip-accent { background: var(--accent-soft); color: var(--accent); }
-.chip-green  { background: rgba(52,199,89,.12); color: #138d3d; }
-.dark .chip-green  { color: #34c759; }
-.chip-orange { background: rgba(255,149,0,.14); color: #c66700; }
-.dark .chip-orange { color: #ff9f0a; }
-.chip-red    { background: rgba(255,59,48,.12); color: #c4302a; }
-.dark .chip-red    { color: #ff453a; }
+.chip-green  { background: var(--brand-teal-50);   color: var(--brand-teal-800); }
+.chip-orange { background: var(--brand-amber-50);  color: var(--brand-amber-800); }
+.chip-red    { background: var(--brand-red-50);    color: var(--brand-red-800); }
+.chip-purple { background: var(--brand-purple-50); color: var(--brand-purple-800); }
 
 /* CARDS */
 .card { border-radius: var(--radius-lg); padding: 18px 20px; }
@@ -78,9 +84,9 @@
 
 /* AVATAR */
 .avatar {
-  width: 36px; height: 36px; border-radius: 50%;
+  width: 36px; height: 36px; border-radius: var(--radius-pill);
   display: grid; place-items: center;
-  font-weight: 600; font-size: 13px; color: white;
+  font-weight: var(--weight-bold); font-size: 13px; color: white;
   flex-shrink: 0;
   letter-spacing: -0.02em;
   box-shadow: 0 1px 2px rgba(0,0,0,.1), inset 0 0 0 0.5px rgba(255,255,255,.2);
@@ -92,7 +98,7 @@
 .statusbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 6px 24px 0;
-  font-size: 14px; font-weight: 600;
+  font-size: 14px; font-weight: var(--weight-bold);
   color: var(--ink);
   letter-spacing: -0.01em;
   height: 28px;
@@ -142,7 +148,7 @@
 }
 .sb-row.active .sb-icon { color: var(--accent); }
 .sb-section {
-  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  font-size: 11px; font-weight: var(--weight-medium); letter-spacing: 0.04em;
   color: var(--ink-4);
   text-transform: uppercase;
   padding: 14px 12px 4px;
@@ -269,14 +275,14 @@
   padding: 8px 0;
 }
 .tweak-section {
-  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  font-size: 11px; font-weight: var(--weight-medium); letter-spacing: 0.04em;
   color: var(--ink-4); text-transform: uppercase;
   padding: 14px 0 4px;
 }
 
 /* HERO TILE */
 .tile-now {
-  background: linear-gradient(135deg, var(--accent), color-mix(in oklab, var(--accent) 70%, #30B0C7));
+  background: linear-gradient(135deg, var(--accent), var(--brand-teal));
   color: white;
   border-radius: var(--radius-lg);
   padding: 18px 20px;
@@ -289,11 +295,12 @@
   pointer-events: none;
 }
 
-/* STAT CARD */
+/* STAT CARD — legacy. Foundation `<KpiCard>` is the modern equivalent;
+ * these rules survive in case any unfound consumer still references them. */
 .stat-card { padding: 16px 18px; border-radius: var(--radius-lg); }
-.stat-card .stat-num   { font-size: 30px; font-weight: 700; letter-spacing: -0.025em; }
-.stat-card .stat-label { font-size: 12px; color: var(--ink-3); margin-top: 4px; font-weight: 500; }
-.stat-card .stat-trend { font-size: 11px; margin-top: 8px; color: #34C759; font-weight: 600; }
+.stat-card .stat-num   { font-size: 30px; font-weight: var(--weight-bold); letter-spacing: -0.025em; }
+.stat-card .stat-label { font-size: var(--text-label); color: var(--ink-3); margin-top: 4px; font-weight: var(--weight-medium); }
+.stat-card .stat-trend { font-size: var(--text-meta); margin-top: 8px; color: var(--brand-teal); font-weight: var(--weight-medium); }
 
 /* TIMELINE */
 .timeline {
@@ -317,6 +324,4 @@
   backdrop-filter: blur(16px);
 }
 
-/* CHIP PURPLE missing */
-.chip-purple { background: rgba(175,82,222,.12); color: #8e3ad9; }
-.dark .chip-purple { color: #bf5af2; }
+/* Note: .chip-purple is defined in the main CHIPS block above (line ~55). */

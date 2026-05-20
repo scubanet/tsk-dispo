@@ -2,6 +2,8 @@
 @import './tokens.css';
 @import './glass.css';
 @import './components.css';
+/* Domain pattern classes (formerly Phase D block in tokens.css). */
+@import './patterns.css';
 /* Foundation utilities — used by Tag-4 cutover screens. */
 @import '../foundation/screens.css';
 /* Legacy-class overrides (.btn, .chip, .seg, .glass-thin, …) — must come
