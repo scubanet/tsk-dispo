@@ -6,6 +6,9 @@
 @import './patterns.css';
 /* Foundation utilities — used by Tag-4 cutover screens. */
 @import '../foundation/screens.css';
+/* Screen-specific styling — `.atoll-<screen>__*` rules split from
+   foundation/screens.css in GL-004 Phase 5c. */
+@import './screens-domain.css';
 /* Legacy-class overrides (.btn, .chip, .seg, .glass-thin, …) — must come
    AFTER components.css to win specificity, before any per-component CSS. */
 @import '../foundation/legacy-overrides.css';

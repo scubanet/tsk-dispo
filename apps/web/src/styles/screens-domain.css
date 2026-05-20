@@ -1,0 +1,1666 @@
+/**
+ * Screen-specific patterns (GL-004 Phase 5c — extracted from
+ * foundation/screens.css to keep the foundation layer clean).
+ *
+ * Each block here is scoped to one screen via its `.atoll-<screen>__*` prefix.
+ * If a pattern proves reusable, promote it back to foundation/screens.css
+ * or to a Foundation primitive.
+ *
+ * Naming convention:
+ *   .atoll-cockpit__*   → CockpitScreen
+ *   .atoll-cal__*       → CalendarScreen
+ *   .atoll-today__*     → TodayScreen
+ *   .atoll-saldi__*     → SaldiScreen
+ *   .atoll-mysaldo__*   → MySaldoScreen
+ *   .atoll-courses__*   → CoursesScreen
+ *   .atoll-coursedetail__* → CourseDetailPanel
+ *   .atoll-people__*    → AddressbookScreen
+ *   .atoll-instructors__* → InstructorsScreen (legacy)
+ *   .atoll-pool__*      → PoolScreen
+ *   .atoll-skillmatrix__* → SkillMatrixScreen
+ *   .atoll-myasn__*     → MyAssignmentsScreen
+ *   .atoll-myprofile__* → MyProfileScreen
+ *   .atoll-settings__*  → SettingsScreen
+ *   .atoll-pipeline__*  → CDPipelineScreen
+ *   .atoll-prtab__*     → CourseDetailPanel PR tab
+ *   .atoll-comm__*      → CommunicationHubScreen
+ *   .atoll-orgs__*      → ContactDetailPanel chevrons (and legacy)
+ *   .atoll-coursedetail__* → CourseDetailPanel
+ */
+
+
+.atoll-today__columns {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 960px) {
+  .atoll-today__columns { grid-template-columns: 1fr; }
+}
+
+.atoll-today__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  min-width: 0;
+}
+
+.atoll-today__col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.atoll-today__col-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.atoll-today__list {
+  display: flex;
+  flex-direction: column;
+  /* Removes the bottom border of the last CourseRow inside the card. */
+}
+
+.atoll-today__list > .atoll-courserow:last-child {
+  border-bottom: none;
+}
+
+.atoll-people-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.atoll-people-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-tertiary);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.atoll-people-row:hover {
+  background: var(--bg-sand);
+}
+
+.atoll-people-row--active {
+  background: var(--brand-blue-50);
+}
+.atoll-people-row--active .atoll-people-row__name {
+  color: var(--brand-blue-800);
+}
+
+.atoll-people-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.atoll-people-row__name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-people-row__sub {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-instructors-row__inactive {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 5px;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: var(--text-badge);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-sm);
+  vertical-align: middle;
+}
+
+.atoll-instructors-row__balance {
+  font-size: var(--text-meta);
+  font-feature-settings: "tnum" 1;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.atoll-instructors-row__balance--neg {
+  color: var(--brand-red);
+}
+
+.atoll-courses__toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.atoll-courses__list {
+  display: flex;
+  flex-direction: column;
+}
+.atoll-courses__list > .atoll-courserow:last-child {
+  border-bottom: none;
+}
+
+.atoll-cockpit__loading,
+.atoll-cockpit__error {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--text-meta);
+}
+.atoll-cockpit__error {
+  background: var(--brand-red-50);
+  color: var(--brand-red-800);
+  border: 1px solid var(--brand-red-100);
+  border-radius: var(--radius-md);
+}
+
+.atoll-cockpit__card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.atoll-cockpit__card-title {
+  margin: 0;
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+.atoll-cockpit__card-sub {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+/* Top instructors list */
+.atoll-cockpit__top-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.atoll-cockpit__top-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.atoll-cockpit__top-rank {
+  width: 18px;
+  text-align: right;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+  flex-shrink: 0;
+}
+
+.atoll-cockpit__top-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.atoll-cockpit__top-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.atoll-cockpit__top-name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-cockpit__top-amount {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  font-feature-settings: "tnum" 1;
+  flex-shrink: 0;
+}
+
+.atoll-cockpit__top-bar {
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.atoll-cockpit__top-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand-blue), var(--brand-teal));
+  border-radius: var(--radius-pill);
+  transition: width 240ms ease-out;
+}
+
+.atoll-cockpit__top-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+/* Bottom grid */
+.atoll-cockpit__bottom {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.atoll-cockpit__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-tertiary);
+}
+.atoll-cockpit__row:last-child {
+  border-bottom: none;
+}
+
+.atoll-cockpit__row-label {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.atoll-cockpit__row-value {
+  font-size: 18px;
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  font-feature-settings: "tnum" 1;
+}
+.atoll-cockpit__row-value--info { color: var(--brand-blue); }
+.atoll-cockpit__row-value--warning { color: var(--brand-amber-800); }
+.atoll-cockpit__row-value--danger { color: var(--brand-red); }
+
+.atoll-cockpit__row-attention {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.atoll-cockpit__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+.atoll-cockpit__dot--ok { background: var(--brand-teal); }
+.atoll-cockpit__dot--info { background: var(--brand-blue); }
+.atoll-cockpit__dot--warning { background: var(--brand-amber); }
+.atoll-cockpit__dot--danger { background: var(--brand-red); }
+
+.atoll-saldi__toolbar {
+  margin-bottom: var(--space-3);
+}
+
+.atoll-saldi__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+}
+
+.atoll-saldi__table thead th {
+  padding: 6px 4px;
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-tertiary);
+  text-align: left;
+}
+.atoll-saldi__table thead th[align="right"] { text-align: right; }
+
+.atoll-saldi__table td {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border-tertiary);
+}
+
+.atoll-saldi__row {
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.atoll-saldi__row:hover {
+  background: var(--bg-sand);
+}
+.atoll-saldi__row:last-child td { border-bottom: none; }
+
+.atoll-saldi__excel {
+  color: var(--text-tertiary);
+}
+
+.atoll-saldi__diff {
+  color: var(--text-tertiary);
+}
+.atoll-saldi__diff--off {
+  color: var(--brand-red);
+  font-weight: var(--weight-medium);
+}
+
+.atoll-pool__nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.atoll-pool__card {
+  padding: 0;
+}
+
+.atoll-pool__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+}
+
+.atoll-pool__table thead th {
+  padding: var(--space-3) var(--space-2);
+  font-weight: var(--weight-medium);
+  border-bottom: 1px solid var(--border-tertiary);
+  text-align: center;
+}
+.atoll-pool__table thead th:first-child {
+  width: 110px;
+  text-align: left;
+}
+
+.atoll-pool__day-name {
+  font-size: var(--text-label);
+  color: var(--text-primary);
+}
+.atoll-pool__day-date {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-pool__loc {
+  padding: var(--space-3) var(--space-4);
+  vertical-align: top;
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  border-top: 1px solid var(--border-tertiary);
+}
+
+.atoll-pool__cell {
+  padding: 6px;
+  vertical-align: top;
+  min-width: 110px;
+  border-top: 1px solid var(--border-tertiary);
+}
+
+.atoll-pool__slots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.atoll-pool__empty {
+  display: inline-block;
+  color: var(--text-disabled);
+  font-size: var(--text-meta);
+  padding: 4px 6px;
+}
+
+.atoll-pool__slot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  text-align: left;
+  cursor: pointer;
+  transition: filter 120ms ease;
+}
+.atoll-pool__slot:hover { filter: brightness(0.95); }
+
+.atoll-pool__slot--reserved {
+  background: var(--brand-teal-50);
+  color: var(--brand-teal-800);
+  border: 1px solid var(--brand-teal-100);
+}
+
+.atoll-pool__slot--open {
+  background: var(--brand-amber-50);
+  color: var(--brand-amber-800);
+  border: 1px dashed var(--brand-amber-100);
+}
+
+.atoll-pool__slot-code {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-meta);
+}
+.atoll-pool__slot-title {
+  font-size: var(--text-badge);
+  font-weight: var(--weight-regular);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-pool__legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 4px;
+  flex-wrap: wrap;
+}
+
+.atoll-pool__summary {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-pool__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+}
+
+.atoll-pool__chip {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-sm);
+}
+.atoll-pool__chip--reserved {
+  background: var(--brand-teal-50);
+  border: 1px solid var(--brand-teal-100);
+}
+.atoll-pool__chip--open {
+  background: var(--brand-amber-50);
+  border: 1px dashed var(--brand-amber-100);
+}
+
+.atoll-skillmatrix__card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.atoll-skillmatrix__scroll {
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+  max-height: calc(100vh - 220px);
+}
+.atoll-skillmatrix__scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.atoll-skillmatrix__scroll::-webkit-scrollbar-track { background: transparent; }
+.atoll-skillmatrix__scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: var(--radius-sm);
+}
+
+.atoll-skillmatrix__table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+}
+
+.atoll-skillmatrix__corner {
+  position: sticky;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  background: var(--bg-card);
+  text-align: left;
+  padding: var(--space-3);
+  min-width: 200px;
+  border-bottom: 1px solid var(--border-tertiary);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  color: var(--text-tertiary);
+}
+
+.atoll-skillmatrix__skill-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-card);
+  padding: var(--space-2) 4px;
+  border-bottom: 1px solid var(--border-tertiary);
+  height: 140px;
+  vertical-align: bottom;
+  font-weight: var(--weight-medium);
+  font-size: var(--text-badge);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.atoll-skillmatrix__skill-head span {
+  display: inline-block;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--text-secondary);
+}
+
+.atoll-skillmatrix__name {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--bg-card);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border-tertiary);
+  border-right: 1px solid var(--border-tertiary);
+  min-width: 200px;
+}
+
+.atoll-skillmatrix__name-text {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+.atoll-skillmatrix__name-sub {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* GL-004 H7: matrix visual rework. Empty cells were dominating with their
+ * dot indicators visible at full text-disabled opacity. Now: empty cells
+ * are nearly invisible (very low opacity dot) and present-skill cells get
+ * a strong teal fill + check icon so the data signal is what your eye
+ * follows. Visual mass = data mass. */
+.atoll-skillmatrix__cell {
+  text-align: center;
+  padding: 6px;
+  cursor: pointer;
+  color: transparent;
+  border-top: 1px solid var(--border-tertiary);
+  transition: background 120ms ease, color 120ms ease;
+  user-select: none;
+  min-width: 28px;
+}
+.atoll-skillmatrix__cell:hover {
+  background: var(--bg-sand);
+  color: var(--text-disabled);
+}
+.atoll-skillmatrix__cell--has {
+  background: var(--brand-teal);
+  color: #fff;
+}
+.atoll-skillmatrix__cell--has:hover {
+  background: var(--brand-teal-800);
+}
+
+.atoll-settings__banner-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.atoll-settings__banner-row > span {
+  flex: 1;
+  min-width: 200px;
+}
+
+.atoll-settings__lang-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.atoll-settings__lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.atoll-settings__lang:hover { border-color: var(--border-secondary); }
+.atoll-settings__lang--active {
+  background: var(--brand-blue-50);
+  border-color: var(--brand-blue-100);
+  color: var(--brand-blue-800);
+  font-weight: var(--weight-medium);
+}
+.atoll-settings__lang-flag { font-size: 16px; }
+
+.atoll-settings__numcell {
+  display: inline-block;
+  padding: 2px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  color: inherit;
+  cursor: pointer;
+  font-feature-settings: "tnum" 1;
+}
+.atoll-settings__numcell:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-tertiary);
+}
+
+.atoll-settings__numinput {
+  width: 80px;
+  padding: 2px 6px;
+  text-align: right;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--brand-blue);
+  background: var(--bg-card);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  font-feature-settings: "tnum" 1;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--brand-blue-50);
+}
+
+.atoll-settings__table-scroll {
+  overflow-x: auto;
+}
+
+.atoll-settings__pay-table {
+  min-width: 560px;
+}
+
+.atoll-settings__col-divider {
+  border-left: 1px solid var(--border-tertiary);
+}
+
+.atoll-settings__total {
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.atoll-settings__users-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+}
+.atoll-settings__users-scroll::-webkit-scrollbar { width: 8px; }
+.atoll-settings__users-scroll::-webkit-scrollbar-track { background: transparent; }
+.atoll-settings__users-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: var(--radius-sm);
+}
+
+.atoll-cal__card {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Week view */
+.atoll-cal__week {
+  display: flex;
+  flex-direction: column;
+}
+
+.atoll-cal__week-head {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--border-tertiary);
+}
+
+.atoll-cal__day-head {
+  padding: var(--space-3);
+  text-align: center;
+  border-right: 1px solid var(--border-tertiary);
+  font-family: var(--font-sans);
+}
+.atoll-cal__day-head:last-child { border-right: none; }
+.atoll-cal__day-head--today { background: var(--brand-blue-50); }
+
+.atoll-cal__day-name {
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+.atoll-cal__day-date {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-cal__week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  min-height: 400px;
+}
+
+.atoll-cal__week-cell {
+  padding: 8px;
+  border-right: 1px solid var(--border-tertiary);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 200px;
+}
+.atoll-cal__week-cell:last-child { border-right: none; }
+
+.atoll-cal__slot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+  text-align: left;
+  cursor: pointer;
+  transition: filter 120ms ease;
+}
+.atoll-cal__slot:hover { filter: brightness(0.97); }
+
+.atoll-cal__slot-title {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-meta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-cal__slot-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.atoll-cal__slot-pill {
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-badge);
+}
+
+.atoll-cal__slot-multiday {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+}
+
+.atoll-cal__slot--cancelled {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* Month view */
+.atoll-cal__month-head {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--border-tertiary);
+}
+
+.atoll-cal__weekday {
+  padding: var(--space-2) 8px;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-label);
+  color: var(--text-secondary);
+}
+
+.atoll-cal__month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.atoll-cal__month-cell {
+  padding: 8px;
+  min-height: 110px;
+  border-right: 1px solid var(--border-tertiary);
+  border-top: 1px solid var(--border-tertiary);
+}
+.atoll-cal__month-cell:nth-child(7n) { border-right: none; }
+/* GL-004 M6: off-month cells bumped 0.4 → 0.55 for legibility, plus subtle
+ * desaturation via bg-tertiary so the boundary with the current month is visible. */
+.atoll-cal__month-cell--out {
+  opacity: 0.55;
+  background: var(--bg-tertiary);
+}
+.atoll-cal__month-cell--today { background: var(--brand-blue-50); }
+
+.atoll-cal__month-day {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-label);
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-cal__month-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.atoll-cal__month-slot {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-family: var(--font-sans);
+  font-size: var(--text-badge);
+  font-weight: var(--weight-medium);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: filter 120ms ease;
+}
+.atoll-cal__month-slot:hover { filter: brightness(0.95); }
+
+.atoll-cal__more {
+  font-family: var(--font-sans);
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+}
+
+/* Legend */
+.atoll-cal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: 0 4px;
+  font-family: var(--font-sans);
+}
+
+.atoll-cal__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+}
+.atoll-cal__legend-item--cancelled {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.atoll-cal__legend-chip {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-sm);
+}
+.atoll-cal__legend-chip--no-haupt {
+  background: var(--brand-red-50);
+  border-left: 2px solid var(--brand-red);
+}
+.atoll-cal__legend-chip--tentative {
+  background: var(--brand-amber-50);
+  border-left: 2px dashed var(--brand-amber);
+}
+.atoll-cal__legend-chip--cancelled {
+  background: var(--bg-tertiary);
+}
+.atoll-cal__legend-chip--today {
+  background: var(--brand-blue-50);
+}
+
+.atoll-comm__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.atoll-comm__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.atoll-comm__entry {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+.atoll-comm__entry:hover {
+  border-color: var(--border-secondary);
+}
+
+.atoll-comm__entry-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.atoll-comm__entry-name {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
+}
+
+.atoll-comm__entry-time {
+  margin-left: auto;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.atoll-comm__entry-subject {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
+}
+
+.atoll-comm__entry-body {
+  font-size: var(--text-meta);
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.atoll-comm__entry-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-comm__entry-outcome {
+  font-style: italic;
+}
+
+.atoll-pipeline__cols {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-3);
+}
+
+@media (max-width: 1100px) {
+  .atoll-pipeline__cols { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .atoll-pipeline__cols { grid-template-columns: 1fr; }
+}
+
+.atoll-pipeline__col {
+  min-height: 240px;
+  padding: var(--space-3);
+  gap: var(--space-2);
+}
+
+.atoll-pipeline__col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.atoll-pipeline__count {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-pipeline__items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.atoll-pipeline__empty {
+  font-size: var(--text-meta);
+  color: var(--text-disabled);
+  padding: 4px;
+  text-align: center;
+}
+
+.atoll-pipeline__person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-sand);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.atoll-pipeline__person:hover {
+  border-color: var(--border-secondary);
+  background: var(--bg-card);
+}
+
+.atoll-pipeline__person-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: var(--weight-medium);
+}
+
+.atoll-orgs__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.atoll-orgs__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+.atoll-orgs__row:hover { border-color: var(--border-secondary); }
+.atoll-orgs__row--inactive { opacity: 0.55; }
+
+.atoll-orgs__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.atoll-orgs__name {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
+}
+
+.atoll-orgs__meta {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-orgs__chevron {
+  color: var(--text-disabled);
+  flex-shrink: 0;
+}
+
+.atoll-myasn__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.atoll-myasn__card {
+  display: flex;
+  width: 100%;
+  padding: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 120ms ease;
+}
+.atoll-myasn__card:hover { border-color: var(--border-secondary); }
+
+.atoll-myasn__card--cancelled { opacity: 0.6; }
+.atoll-myasn__card--cancelled .atoll-myasn__title {
+  text-decoration: line-through;
+}
+
+.atoll-myasn__accent {
+  width: 4px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.atoll-myasn__main {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.atoll-myasn__head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.atoll-myasn__title {
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.atoll-myasn__sub {
+  margin-top: 2px;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-myasn__pills {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.atoll-myasn__meta {
+  font-size: var(--text-meta);
+  color: var(--text-secondary);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-myasn__info {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.atoll-mysaldo__hero {
+  background: var(--brand-deep);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  color: #fff;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.atoll-mysaldo__hero-label {
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.atoll-mysaldo__hero-value {
+  font-size: 38px;
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-mysaldo__hero-substats {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.atoll-mysaldo__substat-value {
+  font-size: 18px;
+  font-weight: var(--weight-medium);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-mysaldo__substat-label {
+  font-size: var(--text-badge);
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.atoll-mysaldo__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.atoll-mysaldo__row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+.atoll-mysaldo__row:hover { border-color: var(--border-secondary); }
+
+.atoll-mysaldo__row-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.atoll-mysaldo__row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.atoll-mysaldo__row-desc {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-mysaldo__row-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-mysaldo__row-amount {
+  font-weight: var(--weight-medium);
+  font-feature-settings: "tnum" 1;
+}
+.atoll-mysaldo__row-amount--neg {
+  color: var(--brand-red);
+}
+
+.atoll-mysaldo__breakdown {
+  padding: 12px;
+  background: var(--bg-sand);
+  border-radius: var(--radius-sm);
+}
+
+.atoll-mysaldo__breakdown-title {
+  font-size: var(--text-badge);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+
+.atoll-mysaldo__breakdown-table {
+  width: 100%;
+  font-size: var(--text-meta);
+}
+.atoll-mysaldo__breakdown-table td {
+  padding: 2px 0;
+  color: var(--text-secondary);
+}
+
+.atoll-myprofile__head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.atoll-myprofile__head-main {
+  flex: 1;
+  min-width: 200px;
+}
+
+.atoll-myprofile__name {
+  font-size: var(--text-h2);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.atoll-myprofile__head-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.atoll-myprofile__padi-nr {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-myprofile__contact {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.atoll-myprofile__count {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  font-weight: var(--weight-regular);
+}
+
+.atoll-myprofile__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.atoll-myprofile__avail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.atoll-myprofile__avail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.atoll-myprofile__avail-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-sand);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.atoll-myprofile__avail-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.atoll-myprofile__avail-date {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.atoll-myprofile__avail-note {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.atoll-coursedetail__date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  background: var(--bg-sand);
+  border: 1px solid var(--border-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.atoll-coursedetail__date {
+  min-width: 110px;
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-coursedetail__notes {
+  margin-top: 8px;
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.atoll-prtab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.atoll-prtab__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.atoll-prtab__hint {
+  margin-top: 8px;
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+}
+
+.atoll-prtab__prereqs {
+  display: grid;
+  gap: 4px;
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+
+.atoll-prtab__bar {
+  width: 100px;
+  height: 6px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.atoll-prtab__bar-fill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  transition: width 240ms ease-out;
+}
+
+/* Slot card with passed / partial / open background tint */
+.atoll-prtab__slot {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-tertiary);
+}
+
+.atoll-prtab__slot--passed {
+  background: linear-gradient(180deg, var(--brand-teal-50), transparent 70%);
+  border-color: var(--brand-teal-100);
+}
+
+.atoll-prtab__slot--partial {
+  background: linear-gradient(180deg, var(--brand-amber-50), transparent 70%);
+  border-color: var(--brand-amber-100);
+}
+
+.atoll-prtab__slot-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 10px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.atoll-prtab__slot-head:disabled { cursor: default; }
+
+.atoll-prtab__slot-title {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.atoll-prtab__slot-meta {
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+/* Skill row */
+.atoll-prtab__skill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-sand);
+  border: 1px solid var(--border-tertiary);
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.atoll-prtab__skill:hover:not(:disabled) {
+  background: var(--bg-card);
+}
+.atoll-prtab__skill:disabled { cursor: default; }
+
+.atoll-prtab__skill-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.atoll-prtab__skill-code {
+  font-family: var(--font-mono);
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-prtab__skill-title {
+  font-size: var(--text-meta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atoll-prtab__skill-tag {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* Pair averages */
+.atoll-prtab__pairs {
+  margin-top: 6px;
+  display: grid;
+  gap: 4px;
+}
+
+.atoll-prtab__pair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-meta);
+  background: var(--bg-sand);
+  border: 1px dashed var(--border-secondary);
+}
+
+.atoll-prtab__pair--passed {
+  background: var(--brand-teal-50);
+  border-style: solid;
+  border-color: var(--brand-teal-100);
+}
+
+.atoll-prtab__pair-label {
+  font-weight: var(--weight-medium);
+}
+
+.atoll-prtab__pair-avg {
+  color: var(--text-tertiary);
+  font-feature-settings: "tnum" 1;
+}
+
+.atoll-prtab__pair-status {
+  margin-left: auto;
+  font-weight: var(--weight-medium);
+}
+
+.atoll-prtab__tip {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  padding: 8px 0;
+}
