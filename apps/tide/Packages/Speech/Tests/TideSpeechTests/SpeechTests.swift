@@ -1,5 +1,5 @@
 import XCTest
-@testable import Speech
+@testable import TideSpeech
 
 final class SpeechTests: XCTestCase {
   func testProtocolShapeIsStable() {

@@ -19,7 +19,7 @@ packages:
     path: Packages/Core
   LLM:
     path: Packages/LLM
-  Speech:
+  TideSpeech:
     path: Packages/Speech
   Selection:
     path: Packages/Selection
@@ -43,7 +43,7 @@ targets:
     dependencies:
       - package: Core
       - package: LLM
-      - package: Speech
+      - package: TideSpeech
       - package: Selection
       - package: Hotkeys
       - package: KeyboardShortcuts
