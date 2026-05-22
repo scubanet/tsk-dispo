@@ -15,7 +15,15 @@ public final class ElevenLabsSynthesizer: NSObject, Synthesizer, @unchecked Send
   private let client: ElevenLabsClient
   private let lock = NSLock()
   private var voiceID: String
+  // Ordered playback queue — audio clips ready to play, in original speak() order.
   private var audioQueue: [Data] = []
+  // Out-of-order arrivals: synthesis Tasks run in parallel for speed, but
+  // their responses can come back in any order. Each speak() gets a
+  // monotonically-increasing sequence number; arrivals land here keyed by
+  // their sequence until they can be flushed into `audioQueue` contiguously.
+  private var pendingAudio: [Int: Data] = [:]
+  private var nextSequence: Int = 0
+  private var nextToEnqueue: Int = 0
   private var currentPlayer: AVAudioPlayer?
 
   public init(client: ElevenLabsClient, defaultVoiceID: String) {
@@ -26,7 +34,7 @@ public final class ElevenLabsSynthesizer: NSObject, Synthesizer, @unchecked Send
 
   public var isSpeaking: Bool {
     lock.lock(); defer { lock.unlock() }
-    return currentPlayer?.isPlaying == true || !audioQueue.isEmpty
+    return currentPlayer?.isPlaying == true || !audioQueue.isEmpty || !pendingAudio.isEmpty
   }
 
   public func setVoice(identifier: String) {
@@ -38,14 +46,19 @@ public final class ElevenLabsSynthesizer: NSObject, Synthesizer, @unchecked Send
     guard !text.isEmpty else { return }
     lock.lock()
     let id = voiceID
+    let seq = nextSequence
+    nextSequence += 1
     lock.unlock()
-    log.debug("requesting TTS for \(text.count, privacy: .public) chars")
+    log.debug("requesting TTS seq=\(seq, privacy: .public) (\(text.count, privacy: .public) chars)")
     Task { [client] in
       do {
         let data = try await client.synthesize(text: text, voiceID: id)
-        await MainActor.run { self.enqueue(data) }
+        log.debug("TTS arrived seq=\(seq, privacy: .public) (\(data.count, privacy: .public) bytes)")
+        await MainActor.run { self.deliver(seq: seq, data: data) }
       } catch {
-        log.error("TTS failed: \(error.localizedDescription, privacy: .public)")
+        log.error("TTS seq=\(seq, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+        // Mark this slot as a no-op so subsequent ones still flush.
+        await MainActor.run { self.skip(seq: seq) }
       }
     }
   }
@@ -53,21 +66,45 @@ public final class ElevenLabsSynthesizer: NSObject, Synthesizer, @unchecked Send
   public func stop() {
     lock.lock()
     audioQueue.removeAll()
+    pendingAudio.removeAll()
+    // Reset sequence numbers so the next response cycle starts at 0.
+    nextSequence = 0
+    nextToEnqueue = 0
     currentPlayer?.stop()
     currentPlayer = nil
     lock.unlock()
   }
 
-  // MARK: - Queue
+  // MARK: - Reorder buffer
 
   @MainActor
-  private func enqueue(_ data: Data) {
+  private func deliver(seq: Int, data: Data) {
     lock.lock()
-    audioQueue.append(data)
-    let shouldStart = currentPlayer == nil
+    pendingAudio[seq] = data
+    // Drain any contiguous prefix into the playback queue.
+    while let ready = pendingAudio.removeValue(forKey: nextToEnqueue) {
+      audioQueue.append(ready)
+      nextToEnqueue += 1
+    }
+    let shouldStart = currentPlayer == nil && !audioQueue.isEmpty
     lock.unlock()
     if shouldStart { playNext() }
   }
+
+  @MainActor
+  private func skip(seq: Int) {
+    lock.lock()
+    pendingAudio[seq] = Data()  // empty marker
+    while let ready = pendingAudio.removeValue(forKey: nextToEnqueue) {
+      if !ready.isEmpty { audioQueue.append(ready) }
+      nextToEnqueue += 1
+    }
+    let shouldStart = currentPlayer == nil && !audioQueue.isEmpty
+    lock.unlock()
+    if shouldStart { playNext() }
+  }
+
+  // MARK: - Playback
 
   @MainActor
   private func playNext() {
