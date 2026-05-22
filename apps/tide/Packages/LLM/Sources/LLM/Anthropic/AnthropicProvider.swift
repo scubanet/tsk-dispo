@@ -40,12 +40,20 @@ public final class AnthropicProvider: LLMProvider {
             throw LLMError.serverError(code: http.statusCode, message: "")
           }
 
-          var buffer = ""
-          for try await line in bytes.lines {
-            buffer += line + "\n"
-            if line.isEmpty {
-              let events = SSEParser.parse(buffer)
-              buffer = ""
+          // SSE-framing note: we cannot use `bytes.lines` here because
+          // `URLSession.AsyncBytes.lines` silently drops empty lines (Swift
+          // forum bug). Empty lines are exactly how SSE separates events,
+          // so we read raw bytes and scan for the `\n\n` terminator ourselves.
+          var buffer = Data()
+          let separator = Data([0x0a, 0x0a])
+          for try await byte in bytes {
+            buffer.append(byte)
+            while let range = buffer.range(of: separator) {
+              let blockData = buffer.subdata(in: 0..<range.lowerBound)
+              buffer.removeSubrange(0..<range.upperBound)
+              guard let blockStr = String(data: blockData, encoding: .utf8) else { continue }
+              // Re-append the terminator so SSEParser sees a complete block.
+              let events = SSEParser.parse(blockStr + "\n\n")
               for event in events {
                 if let chunk = decodeChunk(event: event) {
                   continuation.yield(chunk)
@@ -53,14 +61,8 @@ public final class AnthropicProvider: LLMProvider {
               }
             }
           }
-          if !buffer.isEmpty {
-            let events = SSEParser.parse(buffer + "\n")
-            for event in events {
-              if let chunk = decodeChunk(event: event) {
-                continuation.yield(chunk)
-              }
-            }
-          }
+          // Any bytes left in `buffer` are an incomplete trailing event;
+          // intentionally drop them — the connection ended mid-event.
           continuation.finish()
         } catch {
           continuation.finish(throwing: error)
