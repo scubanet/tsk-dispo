@@ -17,19 +17,18 @@ public struct SSEEvent: Equatable, Sendable {
 /// joined with `\n`. Blocks without an `event:` field are dropped — we
 /// only care about typed events.
 ///
-/// **Completeness rule:** the last block is always dropped because we
-/// can't tell whether it was followed by `\n\n` in the wire format or
-/// arrived mid-event. The streaming caller is expected to append a
-/// closing `\n\n` to any final flush. This keeps the parser side-effect
-/// free and prevents emitting half-parsed JSON.
+/// **Permissive by design.** The parser does NOT try to detect truncated
+/// events at the boundary. If a block has an `event:` line and any
+/// `data:` lines, it emits an SSEEvent — even if the `data` field
+/// contains malformed JSON. That validation belongs at the decode step.
+/// This keeps the parser usable both by the strict byte-streaming loop
+/// (which only ever feeds `\n\n`-terminated blocks) and by tests that
+/// use Swift multiline-string literals (which silently drop the trailing
+/// `\n` of a blank line before `"""`).
 public enum SSEParser {
   public static func parse(_ chunk: String) -> [SSEEvent] {
     var events: [SSEEvent] = []
-    // `components(separatedBy: "\n\n")` returns one more element than there
-    // are "\n\n" separators. The last element is either an empty string
-    // (input ended with "\n\n", clean) or a potentially-incomplete tail
-    // (input was cut mid-event). Either way it's unsafe — drop it.
-    let blocks = chunk.components(separatedBy: "\n\n").dropLast()
+    let blocks = chunk.components(separatedBy: "\n\n")
     for block in blocks where !block.isEmpty {
       var eventName = ""
       var data = ""

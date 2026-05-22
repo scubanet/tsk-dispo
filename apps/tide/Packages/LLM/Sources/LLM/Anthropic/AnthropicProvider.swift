@@ -52,8 +52,7 @@ public final class AnthropicProvider: LLMProvider {
               let blockData = buffer.subdata(in: 0..<range.lowerBound)
               buffer.removeSubrange(0..<range.upperBound)
               guard let blockStr = String(data: blockData, encoding: .utf8) else { continue }
-              // Re-append the terminator so SSEParser sees a complete block.
-              let events = SSEParser.parse(blockStr + "\n\n")
+              let events = SSEParser.parse(blockStr)
               for event in events {
                 if let chunk = decodeChunk(event: event) {
                   continuation.yield(chunk)
@@ -61,8 +60,18 @@ public final class AnthropicProvider: LLMProvider {
               }
             }
           }
-          // Any bytes left in `buffer` are an incomplete trailing event;
-          // intentionally drop them — the connection ended mid-event.
+          // End-of-stream flush: if anything is left in `buffer`, treat it
+          // as a final event. Anthropic doesn't always emit a trailing
+          // `\n\n` after `message_stop`, and Swift multiline-string test
+          // bodies drop the trailing blank line entirely.
+          if !buffer.isEmpty, let tail = String(data: buffer, encoding: .utf8) {
+            let events = SSEParser.parse(tail)
+            for event in events {
+              if let chunk = decodeChunk(event: event) {
+                continuation.yield(chunk)
+              }
+            }
+          }
           continuation.finish()
         } catch {
           continuation.finish(throwing: error)

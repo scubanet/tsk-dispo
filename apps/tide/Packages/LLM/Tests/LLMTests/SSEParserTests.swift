@@ -22,10 +22,18 @@ final class SSEParserTests: XCTestCase {
     XCTAssertEqual(events[2].event, "message_stop")
   }
 
-  func testHandlesIncompleteChunk() {
+  func testEmptyInputProducesNoEvents() {
+    XCTAssertEqual(SSEParser.parse("").count, 0)
+  }
+
+  func testIncompleteJsonStillEmitsEvent() {
+    // Permissive contract: the parser extracts what it can. Truncated
+    // JSON in the data field is the decoder's problem, not the parser's.
     let raw = "event: content_block_delta\ndata: {\"partial\":\"true\""
     let events = SSEParser.parse(raw)
-    XCTAssertEqual(events.count, 0)
+    XCTAssertEqual(events.count, 1)
+    XCTAssertEqual(events[0].event, "content_block_delta")
+    XCTAssertTrue(events[0].data.hasPrefix("{\"partial\""))
   }
 
   func testHandlesMultilineDataField() {
