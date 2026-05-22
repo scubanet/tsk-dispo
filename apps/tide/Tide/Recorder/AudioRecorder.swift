@@ -1,6 +1,9 @@
 import Foundation
 import AVFoundation
 import TideSpeech
+import OSLog
+
+private let log = Logger(subsystem: "swiss.weckherlin.tide", category: "audio")
 
 /// Captures microphone audio via `AVAudioEngine` and forwards each PCM
 /// buffer to an injected `SpeechRecognizer`. The recognizer drives the
@@ -31,20 +34,29 @@ final class AudioRecorder {
 
   func start() async throws {
     guard !isRunning else { return }
+    log.debug("AudioRecorder.start: begin")
     try await recognizer.start()
+    log.debug("AudioRecorder.start: recognizer ready")
+
     let input = engine.inputNode
     let format = input.outputFormat(forBus: 0)
-    // Capture the recognizer reference directly into the tap closure.
-    // The tap fires on the AVAudioEngine render thread, NOT MainActor —
-    // going through `self.recognizer` would assert isolation and crash
-    // (libdispatch `_dispatch_assert_queue_fail`). The recognizer itself
-    // is `Sendable`, and its `feed(_:)` is safe to call from any thread.
+    log.debug("AudioRecorder.start: input format sampleRate=\(format.sampleRate) channels=\(format.channelCount)")
+    guard format.sampleRate > 0, format.channelCount > 0 else {
+      log.error("AudioRecorder.start: invalid input format — aborting")
+      throw NSError(domain: "Tide.AudioRecorder", code: -1,
+        userInfo: [NSLocalizedDescriptionKey: "Audio input not available (0 sample rate). Check mic permission."])
+    }
+
     let capturedRecognizer = recognizer
     input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
       capturedRecognizer.feed(buffer)
     }
+    log.debug("AudioRecorder.start: tap installed")
+
     engine.prepare()
+    log.debug("AudioRecorder.start: engine prepared")
     try engine.start()
+    log.debug("AudioRecorder.start: engine running")
     isRunning = true
   }
 

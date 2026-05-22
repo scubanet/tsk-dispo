@@ -1,6 +1,9 @@
 import Foundation
 import Speech
 import AVFoundation
+import OSLog
+
+private let log = Logger(subsystem: "swiss.weckherlin.tide", category: "speech")
 
 /// `SpeechRecognizer` backed by `SFSpeechRecognizer`. Prefers on-device
 /// recognition when supported (no audio leaves the Mac). Locale defaults
@@ -24,23 +27,34 @@ public final class AppleSpeechRecognizer: SpeechRecognizer, @unchecked Sendable 
   }
 
   public func start() async throws {
+    log.debug("requesting speech authorization")
     let status = await Self.requestAuthorization()
+    log.debug("speech authorization status: \(status.rawValue)")
     guard status == .authorized else { throw SpeechRecognizerError.unauthorized }
+    guard recognizer.isAvailable else {
+      log.error("SFSpeechRecognizer not available")
+      throw SpeechRecognizerError.unavailable
+    }
 
     let req = SFSpeechAudioBufferRecognitionRequest()
     req.shouldReportPartialResults = true
-    if recognizer.supportsOnDeviceRecognition {
-      req.requiresOnDeviceRecognition = true
-    }
+    // Do NOT force on-device — forcing it can hang while the model loads
+    // and silently fails on machines where the de-DE on-device model isn't
+    // installed. Let Apple pick the best path (cloud-fallback or on-device).
     self.request = req
     self.lastFinalTranscript = ""
 
-    self.task = recognizer.recognitionTask(with: req) { [weak self] result, _ in
+    log.debug("creating recognitionTask")
+    self.task = recognizer.recognitionTask(with: req) { [weak self] result, error in
+      if let error {
+        log.error("recognitionTask error: \(error.localizedDescription)")
+      }
       guard let self = self, let result = result else { return }
       let text = result.bestTranscription.formattedString
       self.lastFinalTranscript = text
       self.partialContinuation.yield(text)
     }
+    log.debug("speech recognizer ready")
   }
 
   public func feed(_ buffer: AVAudioPCMBuffer) {
