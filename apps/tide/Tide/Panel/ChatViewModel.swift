@@ -3,6 +3,7 @@ import Observation
 import Core
 import LLM
 import TideSpeech
+import Selection
 
 @Observable
 @MainActor
@@ -17,6 +18,10 @@ final class ChatViewModel {
 
   var isRecording = false
   var liveTranscript = ""
+
+  /// Selection captured from another app, waiting to be included in the
+  /// next outgoing user message. Cleared after send() or startNew().
+  var pendingSelection: SelectedText? = nil
 
   private var recorder: AudioRecorder?
   private var partialTask: Task<Void, Never>?
@@ -52,7 +57,31 @@ final class ChatViewModel {
       }
     }
 
-    let userMsg = Message(role: .user, content: trimmed)
+    // Compose the actual prompt. If we have a selection, include it.
+    let promptText: String
+    if let sel = pendingSelection {
+      promptText = """
+      Selektierter Text aus \(sel.sourceAppName):
+      \"\"\"
+      \(sel.text)
+      \"\"\"
+
+      \(trimmed)
+      """
+    } else {
+      promptText = trimmed
+    }
+
+    let userMsg = Message(role: .user, content: promptText)
+    // Persist selection-context JSON on the message for UI redisplay.
+    if let sel = pendingSelection,
+       let data = try? JSONEncoder().encode(sel),
+       let json = String(data: data, encoding: .utf8) {
+      userMsg.selectionContextJSON = json
+    }
+    // Clear pendingSelection after composing — single-shot semantic.
+    pendingSelection = nil
+
     try? conversationStore.append(userMsg, to: conv)
     messages.append(userMsg)
 
@@ -110,6 +139,7 @@ final class ChatViewModel {
     synthesizer.stop()
     _ = try? conversationStore.startNew()
     messages = []
+    pendingSelection = nil
   }
 
   func startRecording() async {

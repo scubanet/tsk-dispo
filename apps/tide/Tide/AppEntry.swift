@@ -26,6 +26,10 @@ final class TideAppDelegate: NSObject, NSApplicationDelegate {
         self.pushToTalk = PushToTalkHandler(
           onPress: { [weak controller] in
             guard let controller else { return }
+            // Capture selection BEFORE bringing Tide to the front —
+            // otherwise the prior app loses focus and AX can't read its
+            // selection any more.
+            controller.capturePendingSelection()
             controller.openPanel()
             Task { @MainActor in
               await controller.chatViewModel.startRecording()

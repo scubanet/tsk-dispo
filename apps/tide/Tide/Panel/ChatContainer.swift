@@ -7,6 +7,12 @@ struct ChatContainer: View {
   var body: some View {
     VStack(spacing: 0) {
       MessageList(messages: viewModel.messages)
+      if let selection = viewModel.pendingSelection {
+        SelectionContextBadge(
+          selection: selection,
+          onDismiss: { viewModel.pendingSelection = nil }
+        )
+      }
       Divider()
       HStack(spacing: 8) {
         if viewModel.isRecording {
