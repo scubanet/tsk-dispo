@@ -10,6 +10,7 @@ final class MenubarController {
   private let panel: PanelWindow
   private let conversationStore: ConversationStore
   let chatViewModel: ChatViewModel
+  private var settingsWindow: NSWindow?
 
   init(conversationStore: ConversationStore) {
     self.conversationStore = conversationStore
@@ -34,9 +35,32 @@ final class MenubarController {
     }
     let view = PanelView(
       conversationStore: conversationStore,
-      chatViewModel: chatViewModel
+      chatViewModel: chatViewModel,
+      onOpenSettings: { [weak self] in self?.openSettings() }
     )
     panel.contentViewController = NSHostingController(rootView: view)
+  }
+
+  /// Open (or focus) the Settings window. Wired from the panel's gear button.
+  @objc func openSettings() {
+    if let existing = settingsWindow {
+      existing.makeKeyAndOrderFront(nil)
+      NSApp.activate(ignoringOtherApps: true)
+      return
+    }
+    let window = NSWindow(
+      contentRect: NSRect(x: 0, y: 0, width: 520, height: 380),
+      styleMask: [.titled, .closable, .miniaturizable],
+      backing: .buffered,
+      defer: false
+    )
+    window.title = "Tide Settings"
+    window.contentViewController = NSHostingController(rootView: SettingsWindow())
+    window.center()
+    window.isReleasedWhenClosed = false
+    window.makeKeyAndOrderFront(nil)
+    NSApp.activate(ignoringOtherApps: true)
+    settingsWindow = window
   }
 
   @objc private func togglePanel() {

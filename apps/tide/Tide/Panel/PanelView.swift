@@ -5,13 +5,15 @@ import LLM
 struct PanelView: View {
   let conversationStore: ConversationStore
   let chatViewModel: ChatViewModel
+  var onOpenSettings: () -> Void = {}
   @State private var hasKey: Bool = KeychainHelper.get(key: "anthropic.api_key") != nil
 
   var body: some View {
     VStack(spacing: 0) {
-      TopBar(onNew: {
-        chatViewModel.startNew()
-      })
+      TopBar(
+        onNew: { chatViewModel.startNew() },
+        onOpenSettings: onOpenSettings
+      )
       Divider()
       if hasKey {
         ChatContainer(viewModel: chatViewModel)
@@ -25,6 +27,7 @@ struct PanelView: View {
 
 private struct TopBar: View {
   let onNew: () -> Void
+  let onOpenSettings: () -> Void
 
   var body: some View {
     HStack {
@@ -34,9 +37,7 @@ private struct TopBar: View {
       .buttonStyle(.borderless)
       .keyboardShortcut("n", modifiers: .command)
       Spacer()
-      Button {
-        // Settings window: Phase 7
-      } label: {
+      Button(action: onOpenSettings) {
         Image(systemName: "gear")
       }
       .buttonStyle(.borderless)

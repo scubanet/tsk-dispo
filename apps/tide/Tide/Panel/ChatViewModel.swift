@@ -23,6 +23,16 @@ final class ChatViewModel {
   /// next outgoing user message. Cleared after send() or startNew().
   var pendingSelection: SelectedText? = nil
 
+  /// Slug of the armed QuickAction. When non-nil, its systemPrompt replaces
+  /// the default for the next outgoing message. Reset after send() and on
+  /// startNew() — single-shot semantics.
+  var selectedActionSlug: String? = nil
+
+  private let quickActionLibrary = QuickActionLibrary()
+
+  /// Quick actions available to the panel UI.
+  var availableActions: [QuickAction] { quickActionLibrary.all() }
+
   private var recorder: AudioRecorder?
   private var partialTask: Task<Void, Never>?
   private let synthesizer: any Synthesizer = AppleSynthesizer()
@@ -103,7 +113,7 @@ final class ChatViewModel {
         messages: Array(llmMessages),
         tools: [],
         model: settings.selectedModel,
-        systemPrompt: defaultSystemPrompt
+        systemPrompt: effectiveSystemPrompt()
       )
       for try await chunk in stream {
         if case let .text(t) = chunk {
@@ -133,6 +143,8 @@ final class ChatViewModel {
       messages = messages.map { $0 }
       pendingForTTS = ""
     }
+    // Single-shot: clear the armed action so the next message uses the default.
+    selectedActionSlug = nil
   }
 
   func startNew() {
@@ -140,6 +152,7 @@ final class ChatViewModel {
     _ = try? conversationStore.startNew()
     messages = []
     pendingSelection = nil
+    selectedActionSlug = nil
   }
 
   func startRecording() async {
@@ -191,4 +204,12 @@ final class ChatViewModel {
   Du bist ein präziser Assistent für einen deutschsprachigen Nutzer.
   Antworte direkt und ohne Floskeln.
   """
+
+  private func effectiveSystemPrompt() -> String {
+    if let slug = selectedActionSlug,
+       let action = availableActions.first(where: { $0.slug == slug }) {
+      return action.systemPrompt
+    }
+    return defaultSystemPrompt
+  }
 }
