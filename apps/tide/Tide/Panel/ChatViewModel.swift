@@ -20,6 +20,8 @@ final class ChatViewModel {
 
   private var recorder: AudioRecorder?
   private var partialTask: Task<Void, Never>?
+  private let synthesizer: any Synthesizer = AppleSynthesizer()
+  private var pendingForTTS: String = ""
 
   init(conversationStore: ConversationStore, provider: any LLMProvider, settings: AppSettings) {
     self.conversationStore = conversationStore
@@ -79,22 +81,40 @@ final class ChatViewModel {
           assistantMsg.content += t
           // Force SwiftUI re-render by re-emitting the array
           messages = messages.map { $0 }
+          if settings.voiceEnabled {
+            pendingForTTS += t
+            while let range = pendingForTTS.range(
+              of: #"[\.!\?][\s\n]"#, options: .regularExpression
+            ) {
+              let sentence = String(pendingForTTS[..<range.upperBound])
+              synthesizer.speak(sentence)
+              pendingForTTS.removeSubrange(..<range.upperBound)
+            }
+          }
         }
       }
+      // Flush any leftover partial sentence after the stream ends.
+      if settings.voiceEnabled, !pendingForTTS.isEmpty {
+        synthesizer.speak(pendingForTTS)
+      }
+      pendingForTTS = ""
       try? conversationStore.append(assistantMsg, to: conv)
     } catch {
       assistantMsg.content += "\n\n[Fehler: \(error.localizedDescription)]"
       messages = messages.map { $0 }
+      pendingForTTS = ""
     }
   }
 
   func startNew() {
+    synthesizer.stop()
     _ = try? conversationStore.startNew()
     messages = []
   }
 
   func startRecording() async {
     guard !isRecording else { return }
+    synthesizer.stop()
     let recognizer = AppleSpeechRecognizer()
     let recorder = AudioRecorder(recognizer: recognizer)
     self.recorder = recorder
