@@ -48,9 +48,17 @@ final class AudioRecorder {
     }
 
     let capturedRecognizer = recognizer
-    input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
+    // The tap closure MUST be explicitly `@Sendable` to break the MainActor
+    // inheritance from this method's enclosing context. Without it Swift
+    // treats the closure as MainActor-isolated, and the audio render thread
+    // (which is NOT a Swift task / cooperative-thread) fails the runtime
+    // executor check with `_dispatch_assert_queue_fail` the first time a
+    // buffer arrives. The closure body itself only touches a `Sendable`
+    // recognizer reference, so it's safe to run anywhere.
+    let block: @Sendable (AVAudioPCMBuffer, AVAudioTime) -> Void = { [capturedRecognizer] buffer, _ in
       capturedRecognizer.feed(buffer)
     }
+    input.installTap(onBus: 0, bufferSize: 1024, format: format, block: block)
     log.debug("AudioRecorder.start: tap installed")
 
     engine.prepare()
