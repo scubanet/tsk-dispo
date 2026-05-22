@@ -33,6 +33,18 @@ final class ChatViewModel {
   /// Quick actions available to the panel UI.
   var availableActions: [QuickAction] { quickActionLibrary.all() }
 
+  /// Whether the Send button should be enabled. The user can send when
+  /// any of these is true:
+  ///   • they've typed something
+  ///   • a selection context is attached (the user just wants Tide to
+  ///     act on the selection, no extra text needed)
+  /// AND we're not already streaming or recording.
+  var canSend: Bool {
+    let hasContent = !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      || pendingSelection != nil
+    return hasContent && !isStreaming && !isRecording
+  }
+
   private var recorder: AudioRecorder?
   private var partialTask: Task<Void, Never>?
   private let synthesizer: any Synthesizer = AppleSynthesizer()
@@ -53,7 +65,9 @@ final class ChatViewModel {
 
   func send() async {
     let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !trimmed.isEmpty, !isStreaming else { return }
+    // Allow send when there's text OR a pending selection (the user just
+    // wants Tide to act on the selection without typing anything).
+    guard (!trimmed.isEmpty || pendingSelection != nil), !isStreaming else { return }
     input = ""
 
     let conv: Conversation

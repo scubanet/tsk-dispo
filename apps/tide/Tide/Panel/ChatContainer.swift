@@ -58,7 +58,7 @@ struct ChatContainer: View {
         } label: {
           Image(systemName: "paperplane.fill")
         }
-        .disabled(viewModel.input.isEmpty || viewModel.isStreaming || viewModel.isRecording)
+        .disabled(!viewModel.canSend)
       }
       .padding(10)
     }
