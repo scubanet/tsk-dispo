@@ -140,6 +140,8 @@ final class ChatViewModel {
               of: #"[\.!\?][\s\n]"#, options: .regularExpression
             ) {
               let sentence = String(pendingForTTS[..<range.upperBound])
+              // Pick up the latest user-chosen voice on every sentence.
+              synthesizer.setVoice(identifier: settings.voiceIdentifier)
               synthesizer.speak(sentence)
               pendingForTTS.removeSubrange(..<range.upperBound)
             }
@@ -148,6 +150,7 @@ final class ChatViewModel {
       }
       // Flush any leftover partial sentence after the stream ends.
       if settings.voiceEnabled, !pendingForTTS.isEmpty {
+        synthesizer.setVoice(identifier: settings.voiceIdentifier)
         synthesizer.speak(pendingForTTS)
       }
       pendingForTTS = ""

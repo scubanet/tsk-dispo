@@ -12,6 +12,11 @@ public protocol Synthesizer: Sendable {
   /// Cancel any queued or in-flight utterances.
   func stop()
 
+  /// Update which voice subsequent `speak(_:)` calls should use.
+  /// Already-queued utterances keep their original voice. Safe to call
+  /// from any thread; implementations serialise internally.
+  func setVoice(identifier: String)
+
   /// Whether playback is currently active. Useful for UI toggles.
   var isSpeaking: Bool { get }
 }
