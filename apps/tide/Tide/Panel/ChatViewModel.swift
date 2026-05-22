@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import Core
 import LLM
+import TideSpeech
 
 @Observable
 @MainActor
@@ -13,6 +14,12 @@ final class ChatViewModel {
   var messages: [Message] = []
   var input: String = ""
   var isStreaming = false
+
+  var isRecording = false
+  var liveTranscript = ""
+
+  private var recorder: AudioRecorder?
+  private var partialTask: Task<Void, Never>?
 
   init(conversationStore: ConversationStore, provider: any LLMProvider, settings: AppSettings) {
     self.conversationStore = conversationStore
@@ -84,6 +91,50 @@ final class ChatViewModel {
   func startNew() {
     _ = try? conversationStore.startNew()
     messages = []
+  }
+
+  func startRecording() async {
+    guard !isRecording else { return }
+    let recognizer = AppleSpeechRecognizer()
+    let recorder = AudioRecorder(recognizer: recognizer)
+    self.recorder = recorder
+    liveTranscript = ""
+    isRecording = true
+
+    // Subscribe to partial transcripts so the UI can show the live text.
+    partialTask = Task { [weak self] in
+      for await partial in recorder.partialTranscript {
+        await MainActor.run {
+          self?.liveTranscript = partial
+        }
+      }
+    }
+
+    do {
+      try await recorder.start()
+    } catch {
+      isRecording = false
+      self.recorder = nil
+      partialTask?.cancel()
+    }
+  }
+
+  func stopRecording() async {
+    guard isRecording, let recorder else { return }
+    isRecording = false
+    do {
+      let finalText = try await recorder.stop()
+      let trimmed = finalText.trimmingCharacters(in: .whitespacesAndNewlines)
+      if !trimmed.isEmpty {
+        input = trimmed
+        await send()
+      }
+    } catch {
+      // Swallow — UI will just show no result.
+    }
+    self.recorder = nil
+    partialTask?.cancel()
+    liveTranscript = ""
   }
 
   private let defaultSystemPrompt = """
