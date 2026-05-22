@@ -16,8 +16,9 @@ final class ConversationTests: XCTestCase {
     try ctx.save()
 
     XCTAssertEqual(conv.messages.count, 2)
-    XCTAssertEqual(conv.messages[0].role, .user)
-    XCTAssertEqual(conv.messages[1].content, "Hallo zurück!")
+    let ordered = conv.orderedMessages
+    XCTAssertEqual(ordered[0].role, .user)
+    XCTAssertEqual(ordered[1].content, "Hallo zurück!")
   }
 
   func testAppendUpdatesTimestamp() throws {

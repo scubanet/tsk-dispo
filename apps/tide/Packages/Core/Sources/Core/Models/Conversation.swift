@@ -25,4 +25,12 @@ public final class Conversation {
     messages.append(message)
     updatedAt = Date()
   }
+
+  /// Messages in chronological order. The `messages` array itself is
+  /// stored Set-style by SwiftData under the hood — its ordering is
+  /// undefined after a fetch round-trip. Always read through this
+  /// computed property when you need a stable order.
+  public var orderedMessages: [Message] {
+    messages.sorted { $0.createdAt < $1.createdAt }
+  }
 }
