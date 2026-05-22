@@ -7,8 +7,11 @@ let package = Package(
   products: [
     .library(name: "Hotkeys", targets: ["Hotkeys"]),
   ],
+  dependencies: [
+    .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.0.0"),
+  ],
   targets: [
-    .target(name: "Hotkeys"),
+    .target(name: "Hotkeys", dependencies: ["KeyboardShortcuts"]),
     .testTarget(name: "HotkeysTests", dependencies: ["Hotkeys"]),
   ]
 )

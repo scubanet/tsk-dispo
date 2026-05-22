@@ -1,15 +1,25 @@
 import AppKit
 import SwiftUI
 import Core
+import LLM
 
 @MainActor
 final class MenubarController {
   private let statusItem: NSStatusItem
   private let panel: PanelWindow
   private let conversationStore: ConversationStore
+  let chatViewModel: ChatViewModel
 
   init(conversationStore: ConversationStore) {
     self.conversationStore = conversationStore
+    let apiKey = KeychainHelper.get(key: "anthropic.api_key") ?? ""
+    let provider = AnthropicProvider(apiKey: apiKey)
+    let settings = AppSettings()
+    self.chatViewModel = ChatViewModel(
+      conversationStore: conversationStore,
+      provider: provider,
+      settings: settings
+    )
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     panel = PanelWindow()
     if let button = statusItem.button {
@@ -21,7 +31,10 @@ final class MenubarController {
       button.target = self
       button.action = #selector(togglePanel)
     }
-    let view = PanelView(conversationStore: conversationStore)
+    let view = PanelView(
+      conversationStore: conversationStore,
+      chatViewModel: chatViewModel
+    )
     panel.contentViewController = NSHostingController(rootView: view)
   }
 
@@ -29,6 +42,15 @@ final class MenubarController {
     if panel.isVisible {
       panel.orderOut(nil)
     } else {
+      positionPanelBelowStatusItem()
+      panel.makeKeyAndOrderFront(nil)
+      NSApp.activate(ignoringOtherApps: true)
+    }
+  }
+
+  /// Open the panel if hidden. Called from the hotkey handler.
+  func openPanel() {
+    if !panel.isVisible {
       positionPanelBelowStatusItem()
       panel.makeKeyAndOrderFront(nil)
       NSApp.activate(ignoringOtherApps: true)

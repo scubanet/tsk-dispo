@@ -2,7 +2,9 @@ import XCTest
 @testable import Hotkeys
 
 final class HotkeysTests: XCTestCase {
-  func testPackageImports() {
-    _ = Hotkeys()
+  @MainActor
+  func testHandlerCompiles() {
+    // Compile-only smoke. Real PTT testing requires user interaction.
+    _ = PushToTalkHandler(onPress: {}, onRelease: {})
   }
 }

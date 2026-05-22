@@ -4,46 +4,22 @@ import LLM
 
 struct PanelView: View {
   let conversationStore: ConversationStore
+  let chatViewModel: ChatViewModel
   @State private var hasKey: Bool = KeychainHelper.get(key: "anthropic.api_key") != nil
-  @State private var chatViewModel: ChatViewModel?
 
   var body: some View {
     VStack(spacing: 0) {
       TopBar(onNew: {
-        chatViewModel?.startNew()
+        chatViewModel.startNew()
       })
       Divider()
-      if hasKey, let vm = chatViewModel {
-        ChatContainer(viewModel: vm)
-      } else if hasKey {
-        ProgressView()
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      if hasKey {
+        ChatContainer(viewModel: chatViewModel)
       } else {
         ApiKeyPromptView(hasKey: $hasKey)
       }
     }
     .frame(width: 400, height: 560)
-    .onAppear {
-      if chatViewModel == nil && hasKey {
-        chatViewModel = makeViewModel()
-      }
-    }
-    .onChange(of: hasKey) { _, newValue in
-      if newValue && chatViewModel == nil {
-        chatViewModel = makeViewModel()
-      }
-    }
-  }
-
-  private func makeViewModel() -> ChatViewModel {
-    let apiKey = KeychainHelper.get(key: "anthropic.api_key") ?? ""
-    let provider = AnthropicProvider(apiKey: apiKey)
-    let settings = AppSettings()
-    return ChatViewModel(
-      conversationStore: conversationStore,
-      provider: provider,
-      settings: settings
-    )
   }
 }
 

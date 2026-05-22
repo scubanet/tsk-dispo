@@ -1,5 +1,6 @@
 import SwiftUI
 import Core
+import Hotkeys
 
 @main
 struct TideApp: App {
@@ -13,13 +14,30 @@ struct TideApp: App {
 final class TideAppDelegate: NSObject, NSApplicationDelegate {
   @MainActor private var menubarController: MenubarController?
   @MainActor private var conversationStore: ConversationStore?
+  @MainActor private var pushToTalk: PushToTalkHandler?
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     Task { @MainActor in
       do {
         let store = try ConversationStore()
         self.conversationStore = store
-        self.menubarController = MenubarController(conversationStore: store)
+        let controller = MenubarController(conversationStore: store)
+        self.menubarController = controller
+        self.pushToTalk = PushToTalkHandler(
+          onPress: { [weak controller] in
+            guard let controller else { return }
+            controller.openPanel()
+            Task { @MainActor in
+              await controller.chatViewModel.startRecording()
+            }
+          },
+          onRelease: { [weak controller] in
+            guard let controller else { return }
+            Task { @MainActor in
+              await controller.chatViewModel.stopRecording()
+            }
+          }
+        )
       } catch {
         NSLog("Tide: failed to init store: \(error)")
       }
