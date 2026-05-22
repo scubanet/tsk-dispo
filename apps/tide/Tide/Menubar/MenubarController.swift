@@ -1,13 +1,17 @@
 import AppKit
+import SwiftUI
+import Core
 
-/// Owns the menubar `NSStatusItem` and (in later phases) drives the panel
-/// open/close lifecycle. Phase 0 version: shows the icon and logs clicks.
 @MainActor
 final class MenubarController {
   private let statusItem: NSStatusItem
+  private let panel: PanelWindow
+  private let conversationStore: ConversationStore
 
-  init() {
+  init(conversationStore: ConversationStore) {
+    self.conversationStore = conversationStore
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    panel = PanelWindow()
     if let button = statusItem.button {
       button.image = NSImage(
         systemSymbolName: "wave.3.right.circle",
@@ -15,11 +19,28 @@ final class MenubarController {
       )
       button.image?.isTemplate = true
       button.target = self
-      button.action = #selector(handleClick)
+      button.action = #selector(togglePanel)
+    }
+    let view = PanelView(conversationStore: conversationStore)
+    panel.contentViewController = NSHostingController(rootView: view)
+  }
+
+  @objc private func togglePanel() {
+    if panel.isVisible {
+      panel.orderOut(nil)
+    } else {
+      positionPanelBelowStatusItem()
+      panel.makeKeyAndOrderFront(nil)
+      NSApp.activate(ignoringOtherApps: true)
     }
   }
 
-  @objc private func handleClick() {
-    NSLog("Tide: status item clicked")
+  private func positionPanelBelowStatusItem() {
+    guard let button = statusItem.button,
+          let buttonWindow = button.window else { return }
+    let buttonFrameOnScreen = buttonWindow.convertToScreen(button.frame)
+    let x = buttonFrameOnScreen.midX - panel.frame.width / 2
+    let y = buttonFrameOnScreen.minY - panel.frame.height - 4
+    panel.setFrameOrigin(NSPoint(x: x, y: y))
   }
 }
