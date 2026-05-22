@@ -21,6 +21,8 @@ public final class AppSettings {
     static let voiceEnabled = "tide.voiceEnabled"
     static let voiceIdentifier = "tide.voiceIdentifier"
     static let replaceSelectionByDefault = "tide.replaceSelectionByDefault"
+    static let ttsProvider = "tide.ttsProvider"
+    static let elevenLabsVoiceID = "tide.elevenLabsVoiceID"
   }
 
   public var selectedModel: String {
@@ -43,5 +45,15 @@ public final class AppSettings {
   public var replaceSelectionByDefault: Bool {
     get { defaults.bool(forKey: Key.replaceSelectionByDefault) }
     set { defaults.set(newValue, forKey: Key.replaceSelectionByDefault) }
+  }
+
+  public var ttsProvider: String {
+    get { defaults.string(forKey: Key.ttsProvider) ?? "apple" }
+    set { defaults.set(newValue, forKey: Key.ttsProvider) }
+  }
+
+  public var elevenLabsVoiceID: String {
+    get { defaults.string(forKey: Key.elevenLabsVoiceID) ?? "21m00Tcm4TlvDq8ikWAM" }  // Rachel
+    set { defaults.set(newValue, forKey: Key.elevenLabsVoiceID) }
   }
 }

@@ -47,13 +47,33 @@ final class ChatViewModel {
 
   private var recorder: AudioRecorder?
   private var partialTask: Task<Void, Never>?
-  private let synthesizer: any Synthesizer = AppleSynthesizer()
+  private let synthesizer: CompositeSynthesizer
   private var pendingForTTS: String = ""
 
   init(conversationStore: ConversationStore, provider: any LLMProvider, settings: AppSettings) {
     self.conversationStore = conversationStore
     self.provider = provider
     self.settings = settings
+
+    let apple = AppleSynthesizer()
+    let elevenLabsKey = KeychainHelper.get(key: "elevenlabs.api_key")
+    let elevenLabs: ElevenLabsSynthesizer?
+    if let key = elevenLabsKey, !key.isEmpty {
+      elevenLabs = ElevenLabsSynthesizer(
+        client: ElevenLabsClient(apiKey: key),
+        defaultVoiceID: settings.elevenLabsVoiceID
+      )
+    } else {
+      elevenLabs = nil
+    }
+    let ttsProvider: CompositeSynthesizer.Provider =
+      (settings.ttsProvider == "elevenLabs") ? .elevenLabs : .apple
+    self.synthesizer = CompositeSynthesizer(
+      apple: apple,
+      elevenLabs: elevenLabs,
+      provider: ttsProvider
+    )
+
     loadActiveConversation()
   }
 
@@ -140,8 +160,14 @@ final class ChatViewModel {
               of: #"[\.!\?][\s\n]"#, options: .regularExpression
             ) {
               let sentence = String(pendingForTTS[..<range.upperBound])
-              // Pick up the latest user-chosen voice on every sentence.
-              synthesizer.setVoice(identifier: settings.voiceIdentifier)
+              // Pick up the latest user-chosen provider + voice each sentence.
+              let prov: CompositeSynthesizer.Provider =
+                (settings.ttsProvider == "elevenLabs") ? .elevenLabs : .apple
+              synthesizer.setProvider(prov)
+              let voiceID = (prov == .elevenLabs)
+                ? settings.elevenLabsVoiceID
+                : settings.voiceIdentifier
+              synthesizer.setVoice(identifier: voiceID)
               synthesizer.speak(sentence)
               pendingForTTS.removeSubrange(..<range.upperBound)
             }
@@ -150,7 +176,13 @@ final class ChatViewModel {
       }
       // Flush any leftover partial sentence after the stream ends.
       if settings.voiceEnabled, !pendingForTTS.isEmpty {
-        synthesizer.setVoice(identifier: settings.voiceIdentifier)
+        let prov: CompositeSynthesizer.Provider =
+          (settings.ttsProvider == "elevenLabs") ? .elevenLabs : .apple
+        synthesizer.setProvider(prov)
+        let voiceID = (prov == .elevenLabs)
+          ? settings.elevenLabsVoiceID
+          : settings.voiceIdentifier
+        synthesizer.setVoice(identifier: voiceID)
         synthesizer.speak(pendingForTTS)
       }
       pendingForTTS = ""
