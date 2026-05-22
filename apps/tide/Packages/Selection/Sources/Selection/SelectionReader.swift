@@ -57,10 +57,16 @@ public enum SelectionReader {
   /// Prompt macOS to ask the user for Accessibility permission. Safe to
   /// call repeatedly — no dialog appears if permission is already
   /// granted or already explicitly denied.
+  ///
+  /// We hard-code the option key as a string literal instead of
+  /// referencing `kAXTrustedCheckOptionPrompt`. Under Swift 6 strict
+  /// concurrency that CFString constant is flagged as shared mutable
+  /// state and won't compile. The constant's documented value never
+  /// changes — `"AXTrustedCheckOptionPrompt"`.
   public static func requestAccessibilityPermission() {
     let opts: NSDictionary = [
-      kAXTrustedCheckOptionPrompt.takeUnretainedValue() as NSString: true
+      "AXTrustedCheckOptionPrompt" as NSString: true
     ]
-    _ = AXIsProcessTrustedWithOptions(opts)
+    _ = AXIsProcessTrustedWithOptions(opts as CFDictionary)
   }
 }
