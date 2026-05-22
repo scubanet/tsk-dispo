@@ -34,8 +34,14 @@ final class AudioRecorder {
     try await recognizer.start()
     let input = engine.inputNode
     let format = input.outputFormat(forBus: 0)
-    input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
-      self?.recognizer.feed(buffer)
+    // Capture the recognizer reference directly into the tap closure.
+    // The tap fires on the AVAudioEngine render thread, NOT MainActor —
+    // going through `self.recognizer` would assert isolation and crash
+    // (libdispatch `_dispatch_assert_queue_fail`). The recognizer itself
+    // is `Sendable`, and its `feed(_:)` is safe to call from any thread.
+    let capturedRecognizer = recognizer
+    input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
+      capturedRecognizer.feed(buffer)
     }
     engine.prepare()
     try engine.start()
