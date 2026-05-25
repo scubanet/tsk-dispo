@@ -15,6 +15,12 @@
  *   WALLET_TEAM_ID
  */
 import { createClient } from '@supabase/supabase-js'
+import { buildPassJson } from './build-pass.ts'
+import { loadPassCert, loadWwdrCert } from './certs.ts'
+import { buildManifest } from './manifest.ts'
+import { signManifest }  from './sign.ts'
+import { buildZip }      from './zip.ts'
+import { loadAssets }    from './assets.ts'
 
 interface RequestBody { card_id?: string }
 
@@ -97,7 +103,54 @@ Deno.serve(async (req: Request): Promise<Response> => {
     primary_phone: primaryPhone,
   }
 
-  // 4. TODO Phase C: build pass, manifest, signature, zip
-  return jsonError(501, 'not_implemented',
-    `Loaded card "${card.title}" for "${contact.display_name}" — signing comes next`)
+  // 4. Build pass.json
+  const passJson = buildPassJson(card, contact, {
+    passTypeId: Deno.env.get('WALLET_PASS_TYPE_ID') ?? 'pass.swiss.atoll.card.persona',
+    teamId:     Deno.env.get('WALLET_TEAM_ID')      ?? 'XK8V89P2QV',
+  })
+
+  // 5. Load assets
+  const assets = await loadAssets()
+
+  // 6. Bundle files (excluding signature + manifest — those come next)
+  const passJsonBytes = new TextEncoder().encode(JSON.stringify(passJson))
+  const filesForManifest: Record<string, Uint8Array> = {
+    'pass.json': passJsonBytes,
+    ...assets,
+  }
+
+  // 7. Manifest
+  const manifest = await buildManifest(filesForManifest)
+  const manifestBytes = new TextEncoder().encode(JSON.stringify(manifest))
+
+  // 8. Sign
+  let signature: Uint8Array
+  try {
+    const passCert = loadPassCert(
+      Deno.env.get('WALLET_PASS_CERT_BASE64')!,
+      Deno.env.get('WALLET_PASS_CERT_PASSWORD')!,
+    )
+    const wwdr = loadWwdrCert(Deno.env.get('WALLET_WWDR_CERT_BASE64')!)
+    signature = signManifest(manifestBytes, passCert, wwdr)
+  } catch (e) {
+    console.error('signing_failed:', e)
+    return jsonError(500, 'signing_failed', (e as Error).message)
+  }
+
+  // 9. Zip the full bundle
+  const pkpass = await buildZip({
+    ...filesForManifest,
+    'manifest.json': manifestBytes,
+    'signature':     signature,
+  })
+
+  // 10. Respond
+  return new Response(pkpass, {
+    status: 200,
+    headers: {
+      'Content-Type':        'application/vnd.apple.pkpass',
+      'Content-Disposition': `attachment; filename="${card.slug}.pkpass"`,
+      'Cache-Control':       'no-store',
+    },
+  })
 })
