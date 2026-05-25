@@ -7,6 +7,7 @@
  */
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query'
 import {
+  deleteLead,
   importCardLeadRpc,
   updateLeadStatus,
 } from '@/lib/cardLeadQueries'
@@ -48,6 +49,17 @@ export function useImportCardLead() {
       qc.invalidateQueries({ queryKey: ['card-leads'] })
       qc.invalidateQueries({ queryKey: ['card-leads-unread'] })
       qc.invalidateQueries({ queryKey: ['contacts'] })
+    },
+  })
+}
+
+export function useDeleteLead() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (leadId: string) => deleteLead(leadId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['card-leads'] })
+      qc.invalidateQueries({ queryKey: ['card-leads-unread'] })
     },
   })
 }

@@ -1,9 +1,11 @@
+import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar, Icon } from '@/foundation'
 import { CardLeadStatusPill } from '@/components/CardLeadStatusPill'
 import {
   useUpdateLeadStatus,
   useImportCardLead,
+  useDeleteLead,
 } from '@/hooks/useCardLeadActions'
 import type { CardLeadRow } from '@/types/cardLeads'
 
@@ -15,7 +17,33 @@ interface Props {
 export function CardInboxDetailPanel({ lead, onClose }: Props) {
   const updateStatus = useUpdateLeadStatus()
   const importLead   = useImportCardLead()
+  const deleteLead   = useDeleteLead()
   const navigate     = useNavigate()
+  const menuRef      = useRef<HTMLDetailsElement>(null)
+
+  function closeMenu() {
+    if (menuRef.current) menuRef.current.open = false
+  }
+
+  async function onDelete() {
+    closeMenu()
+    const ok = window.confirm(
+      'Lead unwiderruflich löschen? Wenn du nur ausblenden willst, nimm "Archivieren".'
+    )
+    if (!ok) return
+    try {
+      await deleteLead.mutateAsync(lead.id)
+      window.alert('Lead gelöscht') // TODO: replace with toast in a follow-up
+      onClose()
+    } catch (e) {
+      window.alert(`Löschen fehlgeschlagen: ${(e as Error).message}`)
+    }
+  }
+
+  function onResetToNew() {
+    closeMenu()
+    updateStatus.mutate({ id: lead.id, status: 'new' })
+  }
 
   const displayName = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || '(ohne Namen)'
 
@@ -69,6 +97,66 @@ export function CardInboxDetailPanel({ lead, onClose }: Props) {
             <CardLeadStatusPill status={lead.status} />
           </div>
         </div>
+        <details
+          ref={menuRef}
+          style={{ position: 'relative' }}
+          onBlur={(e) => {
+            // Close menu when focus leaves the whole <details> subtree
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+              if (menuRef.current) menuRef.current.open = false
+            }
+          }}
+        >
+          <summary
+            aria-label="Weitere Aktionen"
+            style={{
+              listStyle: 'none', cursor: 'pointer', background: 'transparent',
+              border: 'none', padding: '4px 8px', fontSize: 18, lineHeight: 1,
+              color: 'var(--text-secondary)', userSelect: 'none',
+            }}
+          >
+            ⋯
+          </summary>
+          <div
+            role="menu"
+            style={{
+              position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 10,
+              minWidth: 220, padding: 4, background: 'var(--surface-elevated)',
+              border: '1px solid var(--border-subtle)', borderRadius: 8,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+            }}
+          >
+            <button
+              type="button"
+              role="menuitem"
+              onClick={onResetToNew}
+              disabled={lead.status === 'new'}
+              style={{
+                display: 'block', width: '100%', textAlign: 'left',
+                padding: '8px 12px', background: 'transparent', border: 'none',
+                cursor: lead.status === 'new' ? 'not-allowed' : 'pointer',
+                color: lead.status === 'new' ? 'var(--text-tertiary)' : 'inherit',
+                fontSize: 14, borderRadius: 4,
+              }}
+            >
+              Status zurück auf neu
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={onDelete}
+              disabled={deleteLead.isPending}
+              style={{
+                display: 'block', width: '100%', textAlign: 'left',
+                padding: '8px 12px', background: 'transparent', border: 'none',
+                cursor: 'pointer', color: 'var(--danger, #c0392b)',
+                fontSize: 14, fontWeight: 500, borderRadius: 4,
+              }}
+            >
+              {deleteLead.isPending ? 'Lösche…' : 'Löschen'}
+            </button>
+          </div>
+        </details>
         <button type="button" onClick={onClose} aria-label="Schliessen"
                 style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
           <Icon.Close size={16} />

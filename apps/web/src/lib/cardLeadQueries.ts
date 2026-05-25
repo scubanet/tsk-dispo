@@ -129,3 +129,18 @@ export async function importCardLeadRpc(
 
   return row as ImportCardLeadResult
 }
+
+/**
+ * Hard-delete a card-lead. RLS (card_leads_owner from migration 0097)
+ * ensures only the card-owner can delete. If the lead was already
+ * imported to the address book, the bridge column imported_contact_id
+ * is cleared via ON DELETE SET NULL — the contact itself remains.
+ */
+export async function deleteLead(leadId: string): Promise<void> {
+  const { error } = await supabase
+    .from('card_leads')
+    .delete()
+    .eq('id', leadId)
+
+  if (error) throw new Error(error.message)
+}
