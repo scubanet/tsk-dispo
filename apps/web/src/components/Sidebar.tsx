@@ -5,6 +5,7 @@ import { Icon, type IconName } from './Icon'
 import { Logo } from './Logo'
 import { CopyrightFooter } from './CopyrightFooter'
 import type { Role } from '@/lib/auth'
+import { useCardLeadsUnreadCount } from '@/hooks/useCardLeadsUnreadCount'
 
 /**
  * Active-Matcher der zusätzlich zum Pfad den `view`-Query-Parameter prüft.
@@ -52,8 +53,9 @@ const ITEMS: NavItem[] = [
 
 // ADRESSEN section: dispatcher / owner / cd
 const ADRESSEN_ITEMS: NavItem[] = [
-  { to: '/contacts',       icon: 'tag',   i18nKey: 'addressbook',       roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/communication',  icon: 'chart', i18nKey: 'communication_hub', roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/contacts',             icon: 'tag',   i18nKey: 'addressbook',       roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/contacts/card-inbox',  icon: 'tag',   i18nKey: 'card_inbox',        roles: ['owner', 'cd'] },
+  { to: '/communication',        icon: 'chart', i18nKey: 'communication_hub', roles: ['dispatcher', 'owner', 'cd'] },
 ]
 
 // TEAM section: dispatcher / owner / cd
@@ -76,10 +78,12 @@ function SidebarLink({
   item,
   active,
   label,
+  badge,
 }: {
   item: NavItem
   active: boolean
   label: string
+  badge?: number
 }) {
   return (
     <Link
@@ -91,6 +95,19 @@ function SidebarLink({
         <Icon name={item.icon} size={17} />
       </span>
       <span>{label}</span>
+      {badge != null && badge > 0 && (
+        <span style={{
+          marginLeft: 'auto',
+          background: 'var(--brand-red)',
+          color: 'white',
+          fontSize: 10,
+          fontWeight: 700,
+          padding: '1px 6px',
+          borderRadius: 10,
+          minWidth: 16,
+          textAlign: 'center',
+        }}>{badge}</span>
+      )}
     </Link>
   )
 }
@@ -98,6 +115,7 @@ function SidebarLink({
 export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
   const { t } = useTranslation()
   const isActive = useIsItemActive()
+  const { data: unread = 0 } = useCardLeadsUnreadCount()
   const main = ITEMS.filter((i) => i.roles.includes(role))
   const adressen = ADRESSEN_ITEMS.filter((i) => i.roles.includes(role))
   const team = TEAM_ITEMS.filter((i) => i.roles.includes(role))
@@ -106,7 +124,7 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
 
   return (
     <aside className="sidebar glass-thin">
-      <div style={{ padding: '8px 12px 18px', display: 'flex', gap: 12, alignItems: 'center' }}>
+      <div style={{ padding: '8px 12px 18px', display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
         <Logo size={48} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1, letterSpacing: '.06em' }}>
@@ -136,6 +154,7 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
               item={item}
               active={isActive(item.to)}
               label={t(`nav.${item.i18nKey}`)}
+              badge={item.to === '/contacts/card-inbox' ? unread : undefined}
             />
           ))}
         </>
@@ -200,7 +219,7 @@ export function Sidebar({ role, userName, userEmail, onLogout }: SidebarProps) {
           type="button"
           onClick={onLogout}
           className="sb-row"
-          style={{ marginTop: 12, background: 'transparent', border: 'none', font: 'inherit', textAlign: 'left', cursor: 'pointer', color: 'var(--ink)' }}
+          style={{ marginTop: 'var(--space-3)', background: 'transparent', border: 'none', font: 'inherit', textAlign: 'left', cursor: 'pointer', color: 'var(--ink)' }}
         >
           <span className="sb-icon">
             <Icon name="logout" size={17} />

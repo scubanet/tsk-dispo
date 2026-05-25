@@ -31,6 +31,8 @@ const CDPipelineScreen      = lazy(() => import('@/screens/cd/CDPipelineScreen')
 const CDOrganizationsScreen = lazy(() => import('@/screens/cd/CDOrganizationsScreen').then(m => ({ default: m.CDOrganizationsScreen })))
 const CommunicationHubScreen = lazy(() => import('@/screens/cd/CommunicationHubScreen').then(m => ({ default: m.CommunicationHubScreen })))
 const AddressbookScreen     = lazy(() => import('@/screens/contacts/AddressbookScreen').then(m => ({ default: m.AddressbookScreen })))
+const CardInboxScreen       = lazy(() => import('@/screens/contacts/CardInboxScreen').then(m => ({ default: m.CardInboxScreen })))
+const PublicCardScreen      = lazy(() => import('@/screens/PublicCardScreen').then(m => ({ default: m.PublicCardScreen })))
 
 /**
  * Suspense fallback for code-split routes. Wraps the shared `<Loader>`
@@ -73,6 +75,9 @@ function App() {
             />
             <Route path="/auth/callback" element={<AuthCallback />} />
 
+            {/* AtollCard public card page — the QR-target route. No auth gate. */}
+            <Route path="/c/:slug" element={<PublicCardScreen />} />
+
             {/* All authenticated routes wrapped in AppShell */}
             <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
               <Route path="/heute"                  element={<TodayScreen />} />
@@ -97,6 +102,7 @@ function App() {
               <Route path="/cd/organisationen"      element={<CDOrganizationsScreen />} />
               <Route path="/communication"          element={<CommunicationHubScreen />} />
               <Route path="/contacts"               element={<AddressbookScreen />} />
+              <Route path="/contacts/card-inbox"    element={<CardInboxScreen />} />
               <Route path="*"                       element={<Navigate to="/heute" replace />} />
             </Route>
           </Routes>
