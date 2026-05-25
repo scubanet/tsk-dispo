@@ -61,6 +61,43 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const { data: userResult, error: userErr } = await supabase.auth.getUser(jwt)
   if (userErr || !userResult?.user) return jsonError(401, 'invalid_token', 'JWT invalid')
 
-  // 3. TODO Phase B: load card + contact, build pass, sign, zip
-  return jsonError(501, 'not_implemented', 'Pass building comes in Phase B')
+  // 3. Load card + contact (RLS via the user's JWT scopes to owner)
+  const { data: cardRow, error: cardErr } = await supabase
+    .from('cards')
+    .select(`
+      id, slug, title, subtitle, badge, theme, dive_profile, updated_at, is_active,
+      person:contacts ( display_name, primary_email, phones )
+    `)
+    .eq('id', cardId)
+    .eq('is_active', true)
+    .maybeSingle()
+
+  if (cardErr) return jsonError(500, 'unknown_error', cardErr.message)
+  if (!cardRow) return jsonError(404, 'card_not_found', 'Karte nicht gefunden oder kein Zugriff')
+
+  // Pick primary phone from phones[] JSONB
+  const phones = (cardRow.person as { phones?: { e164: string; primary?: boolean }[] })?.phones ?? []
+  const primaryPhone = phones.find(p => p.primary)?.e164 ?? phones[0]?.e164 ?? null
+
+  // Compose CardData + ContactData (types from pass-types.ts)
+  const card: import('./pass-types.ts').CardData = {
+    id:           cardRow.id,
+    slug:         cardRow.slug,
+    title:        cardRow.title,
+    subtitle:     cardRow.subtitle,
+    badge:        cardRow.badge,
+    theme:        cardRow.theme,
+    dive_profile: cardRow.dive_profile,
+    updated_at:   cardRow.updated_at,
+    public_url:   `https://atoll-os.com/c/${cardRow.slug}`,
+  }
+  const contact: import('./pass-types.ts').ContactData = {
+    display_name:  (cardRow.person as { display_name: string }).display_name,
+    primary_email: (cardRow.person as { primary_email?: string }).primary_email ?? null,
+    primary_phone: primaryPhone,
+  }
+
+  // 4. TODO Phase C: build pass, manifest, signature, zip
+  return jsonError(501, 'not_implemented',
+    `Loaded card "${card.title}" for "${contact.display_name}" — signing comes next`)
 })
