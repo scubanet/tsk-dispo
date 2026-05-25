@@ -2,6 +2,7 @@ import Foundation
 import PassKit
 import UIKit
 import OSLog
+import Supabase
 import AtollCore
 
 /// Adds a card to Apple Wallet as a generic pass.
