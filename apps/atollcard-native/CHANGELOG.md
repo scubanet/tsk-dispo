@@ -1,5 +1,27 @@
 # AtollCard — Changelog
 
+## 0.10.0 — Wallet-Pass-Signing (Larry, 25.05.2026)
+
+`PKAddPassesViewController` zeigt jetzt einen echten signierten Pass —
+nicht mehr den Info-Alert-Stub. Edge Function `atollcard-wallet-pass`
+baut, signiert (PKCS#7 via forge), zipped und liefert den `.pkpass`-File.
+
+### Architektur-Entscheidung: Edge Function statt Web-Server
+
+Pass-Cert lebt in Supabase Secrets, signing in Deno. Vorteil:
+- Cert nie im iPhone-Binary (würde sonst leaken)
+- Keine extra Web-Service zu deployen
+- forge + zip-js + supabase-js — alles via npm:/jsr: für Deno
+
+Cold-Start steigt um ~200ms wegen forge-Import — akzeptabel für einen
+Endpoint der vermutlich <10× pro Tag gefeuert wird.
+
+### Bewusst nicht enthalten
+
+- **Pass-Updates via APNs** (Welle-D-Folge wenn Bedarf da ist)
+- **"Save to Wallet"-Button auf der Public Card Page** (separate Spec, anonyme Auth)
+- **Pass-Cert auto-Renewal** (Renewal-Reminder im Captain's Log)
+
 ## 0.9.0 — Web-Inbox + Adressbuch-Import (Larry, 25.05.2026)
 
 iOS-CTA umetikettiert von "In Adressbuch importieren" auf "In Atoll Web öffnen"
