@@ -16,24 +16,20 @@ iOS und Edge Function adressieren `atollcard_device_tokens` (prefixed). Migratio
 
 ## Schritte
 
-### 1. Migrations anwenden (Dashboard SQL Editor)
+### 1. Migration 0108 anwenden (Dashboard SQL Editor)
 
-Reihenfolge: **0108 zuerst** (deckt den Bug-Fix-Pfad ab, auch wenn 0099 nie lief), **dann 0100** (Push-Trigger).
+**Nur 0108 jetzt** — der Push-Trigger 0100 kommt erst in Schritt 7, nachdem pg_net, GUCs, Secrets und Edge Function alle da sind. Wenn 0100 zu früh läuft, feuert jeder neue Lead einen fehlschlagenden HTTP-Call (Trigger fängt's ab, INSERT funktioniert weiter, aber `net._http_response` füllt sich mit Errors).
 
 - Im Supabase Dashboard → SQL Editor:
   - Inhalt von `supabase/migrations/0108_atollcard_device_tokens_setup.sql` einfügen → Run
-  - Inhalt von `supabase/migrations/0100_atollcard_lead_push_trigger.sql` einfügen → Run
 
-Beide sollten "Success" und Notice-Logs zeigen.
+Sollte "Success" und ein Notice-Log zeigen (entweder "renamed device_tokens" oder "created atollcard_device_tokens fresh").
 
 **Smoke-Check im selben SQL Editor:**
 ```sql
 SELECT table_name FROM information_schema.tables
 WHERE table_schema='public' AND table_name LIKE '%device_tokens%';
 -- Soll genau eine Zeile liefern: atollcard_device_tokens
-
-SELECT proname FROM pg_proc WHERE proname='notify_lead_push';
--- Soll eine Zeile liefern
 ```
 
 ### 2. APNs Auth Key generieren
@@ -106,7 +102,23 @@ supabase functions deploy atollcard-lead-push --no-verify-jwt
 
 Erwartetes Output: "Deployed Function atollcard-lead-push" mit URL.
 
-### 7. Test auf echtem iPhone
+### 7. Migration 0100 anwenden (Trigger scharf schalten)
+
+**Jetzt** ist alles bereit (pg_net aktiv, GUCs gesetzt, Edge Function deployed, Secrets da). Erst jetzt darf der Trigger ans Werk.
+
+- Dashboard SQL Editor:
+  - Inhalt von `supabase/migrations/0100_atollcard_lead_push_trigger.sql` einfügen → Run
+
+**Smoke-Check:**
+```sql
+SELECT proname FROM pg_proc WHERE proname='notify_lead_push';
+-- Soll eine Zeile liefern
+
+SELECT tgname FROM pg_trigger WHERE tgname='on_card_lead_inserted';
+-- Soll eine Zeile liefern
+```
+
+### 8. Test auf echtem iPhone
 
 **Wichtig:** Push-Notifications funktionieren **nicht im iOS-Simulator** (Apple-Limitation). Brauchst ein echtes iPhone.
 
@@ -117,7 +129,7 @@ Erwartetes Output: "Deployed Function atollcard-lead-push" mit URL.
 5. **Auf iPhone-Lockscreen** sollte innert 2-3 Sekunden eine Push-Notification erscheinen mit dem Lead-Namen
 6. **Tap auf Notification** öffnet die iOS-App im Leads-Tab
 
-### 8. Production-Switch (später, vor App-Store-Release)
+### 9. Production-Switch (später, vor App-Store-Release)
 
 Heute steht in `AtollCard/AtollCard.entitlements`:
 ```xml
