@@ -1,6 +1,6 @@
 # AtollCard — Changelog
 
-## 0.5.0 — Web-Inbox + Adressbuch-Import (Larry, 25.05.2026)
+## 0.9.0 — Web-Inbox + Adressbuch-Import (Larry, 25.05.2026)
 
 iOS-CTA umetikettiert von "In Adressbuch importieren" auf "In Atoll Web öffnen"
 (Universal-Link / Web-Browser-Fallback). Adressbuch-Import passiert ab jetzt
