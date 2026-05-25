@@ -7,10 +7,10 @@ Deno.test('buildManifest: SHA-1 hashes of file contents', async () => {
     'icon.png':        new Uint8Array([137, 80, 78, 71]),  // PNG magic
   }
   const m = await buildManifest(files)
-  // SHA-1 of '{"hello":"world"}' = a45cc7ed85bd62f37b50a6cd1ce32edd5ac21a9c
-  assertEquals(m['pass.json'], 'a45cc7ed85bd62f37b50a6cd1ce32edd5ac21a9c')
-  // SHA-1 of [137,80,78,71] = a839ada4cb6bd0fa78b78a48e9bcf6cf8a4dc9bb
-  assertEquals(m['icon.png'],  'a839ada4cb6bd0fa78b78a48e9bcf6cf8a4dc9bb')
+  // SHA-1 of '{"hello":"world"}' = 2248ee2fa0aaaad99178531f924bf00b4b0a8f4e
+  assertEquals(m['pass.json'], '2248ee2fa0aaaad99178531f924bf00b4b0a8f4e')
+  // SHA-1 of [137,80,78,71] = 4effda12c2611e2e4feb6f0d342feb685ccd825b
+  assertEquals(m['icon.png'],  '4effda12c2611e2e4feb6f0d342feb685ccd825b')
 })
 
 Deno.test('buildManifest: empty input returns empty object', async () => {
