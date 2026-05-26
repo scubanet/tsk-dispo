@@ -26,6 +26,17 @@ struct AtollCardApp: App {
   @State private var analyticsStore: AnalyticsStore
   @State private var toastCenter: ToastCenter
 
+  // Offline-queue infrastructure (Welle D — Phase D wiring). The cache is
+  // constructed once per app launch in `init()` so the same instance is shared
+  // by the drainer and (Task 12) the Cached* repository decorators — SwiftData
+  // expects exactly one `ModelContainer` per schema/URL across the process.
+  // `try?` because container-init throws on schema mismatch; if it ever does
+  // we degrade gracefully to direct-to-Supabase (no cache, no queue) rather
+  // than crashing.
+  @State private var cacheStore: CacheStore?
+  @State private var reach: ReachabilityMonitor
+  @State private var drainer: MutationDrainer?
+
   private static let logger = Logger(subsystem: "swiss.atoll.card", category: "app")
 
   /// Same trick as AtollCalApp — register the shared Supabase config before
@@ -40,16 +51,73 @@ struct AtollCardApp: App {
     _ = Self.bootstrap
     let mockMode = Config.useMockData
     _auth = State(initialValue: AuthState())
-    _cardStore = State(initialValue: CardStore(
-      repository: mockMode ? MockCardRepository() : SupabaseCardRepository()
-    ))
-    _leadStore = State(initialValue: LeadStore(
-      repository: mockMode ? MockLeadRepository() : SupabaseLeadRepository()
-    ))
-    _analyticsStore = State(initialValue: AnalyticsStore(
-      repository: mockMode ? MockAnalyticsRepository() : SupabaseAnalyticsRepository()
-    ))
     _toastCenter = State(initialValue: ToastCenter())
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Offline-queue plumbing (Welle D / Task 12)
+    //
+    // Build everything in a fixed order so each consumer gets the same
+    // instance:
+    //   1. cache   — single SwiftData container for the process
+    //   2. reach   — single NWPathMonitor wrapper
+    //   3. *Remote — raw Supabase / Mock repositories
+    //   4. drainer — wires the queue → leadRemote (BYPASSES the decorator
+    //                on purpose — the drainer IS what flushes the queue,
+    //                routing it back through Cached* would loop)
+    //   5. *Repo   — what the stores see; in mock-mode this is the bare
+    //                Mock repo (spec §10.3: mock-mode bypasses cache so
+    //                UI iteration sees deterministic seed data without
+    //                a stale on-disk container masking changes)
+    // ─────────────────────────────────────────────────────────────────────
+
+    let cache = try? CacheStore()
+    let reach = ReachabilityMonitor()
+
+    let cardRemote: CardRepository = mockMode
+      ? MockCardRepository()
+      : SupabaseCardRepository()
+    let leadRemote: LeadRepository = mockMode
+      ? MockLeadRepository()
+      : SupabaseLeadRepository()
+    let analyticsRemote: AnalyticsRepository = mockMode
+      ? MockAnalyticsRepository()
+      : SupabaseAnalyticsRepository()
+
+    // Resolve the store-facing repos. Mock-mode bypasses the cache entirely
+    // (spec §10.3); live-mode wraps in Cached* IFF the cache came up. The
+    // last `else` covers the cache-init-failed degraded path.
+    let cardRepo: CardRepository
+    let leadRepo: LeadRepository
+    let analyticsRepo: AnalyticsRepository
+    if mockMode {
+      cardRepo      = cardRemote
+      leadRepo      = leadRemote
+      analyticsRepo = analyticsRemote
+    } else if let cache {
+      cardRepo      = CachedCardRepository(remote: cardRemote, cache: cache, reach: reach)
+      analyticsRepo = CachedAnalyticsRepository(remote: analyticsRemote, cache: cache, reach: reach)
+      // CachedLeadRepository needs the drainer to kick a flush after each
+      // optimistic write. We build the drainer below; defer to a forward
+      // declaration so we can capture it by reference.
+      let preDrainer = MutationDrainer(cache: cache, remote: leadRemote)
+      leadRepo = CachedLeadRepository(
+        remote: leadRemote, cache: cache,
+        drainer: preDrainer, reach: reach
+      )
+      _drainer = State(initialValue: preDrainer)
+    } else {
+      // Cache failed to init — fall back to bare remotes, no queue.
+      cardRepo      = cardRemote
+      leadRepo      = leadRemote
+      analyticsRepo = analyticsRemote
+    }
+
+    _cacheStore = State(initialValue: cache)
+    _reach      = State(initialValue: reach)
+
+    _cardStore      = State(initialValue: CardStore(repository: cardRepo))
+    _leadStore      = State(initialValue: LeadStore(repository: leadRepo))
+    _analyticsStore = State(initialValue: AnalyticsStore(repository: analyticsRepo))
   }
 
   var body: some Scene {
@@ -60,7 +128,20 @@ struct AtollCardApp: App {
         .environment(leadStore)
         .environment(analyticsStore)
         .environment(toastCenter)
+        .environment(reach)
+        .environment(cacheStore)
+        .environment(drainer)
         .toastBanner(from: toastCenter)
+        .task {
+          // Spin up reachability once per app session. NWPathMonitor delivers
+          // the current path immediately on `start()`, so `reach.isConnected`
+          // becomes accurate without any further nudging.
+          reach.start()
+        }
+        .onChange(of: reach.isConnected) { _, isOnline in
+          // Rising-edge: we just came back online → flush the mutation queue.
+          if isOnline { Task { await drainer?.drain() } }
+        }
         .task {
           await cardStore.refresh()
           await leadStore.refresh()
@@ -95,6 +176,7 @@ struct AtollCardApp: App {
           if newPhase == .active {
             Task {
               await leadStore.refresh()  // fresh leads when foregrounding
+              await drainer?.drain()      // and flush any queued mutations
             }
           }
         }

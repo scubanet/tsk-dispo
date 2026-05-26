@@ -1,5 +1,25 @@
 # AtollCard — Changelog
 
+## 0.12.0 — Offline-Queue (Larry, 26.05.2026)
+
+SwiftData-Cache vor die 3 Repos, Mutation-Queue für offline Status-Changes,
+NWPathMonitor-getriggerter FIFO-Drainer.
+
+### Architektur-Entscheid: Decorator-Pattern um existing Repository-Protocols
+
+Statt die existing Stores umzubauen, bekommen sie `Cached*Repository`-
+Implementierungen injiziert die das gleiche Protocol konformieren. Reads
+gehen immer aus dem SwiftData-Cache; Writes (nur `updateLeadStatus`)
+optimistic in den Cache + Queue. Conflict-Strategie: Last-Write-Wins
+clientseitig.
+
+### Out-of-Scope (bewusst nicht enthalten)
+
+- Card-Edit-Queueing — Cards sind offline read-only
+- `importLead` und `deleteLead` offline — Server-Side-Logik kann nicht clientseitig vorab
+- Multi-Device LWW-by-Timestamp
+- BGTaskScheduler Background-Sync
+
 ## 0.11.0 — Lock-Screen-Widget (Larry, 26.05.2026)
 
 Neues Widget Extension Target `AtollCardWidget` mit einem rectangular
