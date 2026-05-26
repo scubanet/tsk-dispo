@@ -130,6 +130,7 @@ struct AtollCardApp: App {
         .environment(toastCenter)
         .environment(reach)
         .environment(cacheStore)
+        .environment(drainer)
         .toastBanner(from: toastCenter)
         .task {
           // Spin up reachability once per app session. NWPathMonitor delivers
