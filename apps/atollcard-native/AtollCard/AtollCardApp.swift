@@ -126,6 +126,32 @@ struct AtollCardApp: App {
   @MainActor
   private func handleDeepLink(_ url: URL) async {
     Self.logger.debug("deep link: \(url.absoluteString, privacy: .public)")
+
+    // Widget-Deep-Link: atollcard://card/<slug>/qr → Fullscreen-QR
+    //
+    // `url.pathComponents` for `atollcard://card/dominik-cd/qr` is
+    // `["/", "dominik-cd", "qr"]` (Apple-Quirk: first element is "/"). The
+    // host carries the "card" segment; we only need to read slug + trailing
+    // "qr" off the path. Defensive count-check before indexing.
+    if url.scheme == "atollcard",
+       url.host == "card",
+       url.pathComponents.count >= 3,
+       url.pathComponents.last == "qr" {
+      let slug = url.pathComponents[1]   // skip the leading "/"
+      // Wait briefly for CardStore to load if it's still hydrating —
+      // a tap on the Lock-Screen widget while the app is cold-launching
+      // can hit `cards == []` for a beat before `refresh()` completes.
+      for _ in 0..<10 {
+        if let card = cardStore.cards.first(where: { $0.slug == slug }) {
+          cardStore.presentingFullscreenQR = card
+          return
+        }
+        try? await Task.sleep(nanoseconds: 200_000_000)  // 200ms
+      }
+      Self.logger.debug("widget deep link: no card found for slug \(slug, privacy: .public)")
+      return
+    }
+
     guard url.host == "auth" else { return }
 
     // Supabase 2.x switched the magic-link callback to PKCE flow — the URL
