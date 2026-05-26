@@ -26,6 +26,17 @@ struct AtollCardApp: App {
   @State private var analyticsStore: AnalyticsStore
   @State private var toastCenter: ToastCenter
 
+  // Offline-queue infrastructure (Welle D — Phase D wiring). The cache is
+  // constructed once per app launch in `init()` so the same instance is shared
+  // by the drainer and (Task 12) the Cached* repository decorators — SwiftData
+  // expects exactly one `ModelContainer` per schema/URL across the process.
+  // `try?` because container-init throws on schema mismatch; if it ever does
+  // we degrade gracefully to direct-to-Supabase (no cache, no queue) rather
+  // than crashing.
+  @State private var cacheStore: CacheStore?
+  @State private var reach = ReachabilityMonitor()
+  @State private var drainer: MutationDrainer?
+
   private static let logger = Logger(subsystem: "swiss.atoll.card", category: "app")
 
   /// Same trick as AtollCalApp — register the shared Supabase config before
@@ -40,16 +51,34 @@ struct AtollCardApp: App {
     _ = Self.bootstrap
     let mockMode = Config.useMockData
     _auth = State(initialValue: AuthState())
+
+    // Construct the lead remote once. Task 11 keeps it as a local so the
+    // MutationDrainer below can reuse the *same instance* the store will
+    // talk to; Task 12 will swap the store-facing repo to `Cached*` while
+    // keeping `leadRemote` as the drainer's outbound channel (the drainer
+    // must bypass the decorator — it IS the thing that flushes the queue).
+    let leadRemote: LeadRepository = mockMode
+      ? MockLeadRepository()
+      : SupabaseLeadRepository()
+
     _cardStore = State(initialValue: CardStore(
       repository: mockMode ? MockCardRepository() : SupabaseCardRepository()
     ))
-    _leadStore = State(initialValue: LeadStore(
-      repository: mockMode ? MockLeadRepository() : SupabaseLeadRepository()
-    ))
+    _leadStore = State(initialValue: LeadStore(repository: leadRemote))
     _analyticsStore = State(initialValue: AnalyticsStore(
       repository: mockMode ? MockAnalyticsRepository() : SupabaseAnalyticsRepository()
     ))
     _toastCenter = State(initialValue: ToastCenter())
+
+    // Build the single shared CacheStore + Drainer here so both peers see the
+    // *same* container instance. Skipped if container-init throws — without
+    // a queue store there's nothing to drain and the rest of the app keeps
+    // running against the remote directly.
+    let cache = try? CacheStore()
+    _cacheStore = State(initialValue: cache)
+    if let cache {
+      _drainer = State(initialValue: MutationDrainer(cache: cache, remote: leadRemote))
+    }
   }
 
   var body: some Scene {
@@ -60,7 +89,19 @@ struct AtollCardApp: App {
         .environment(leadStore)
         .environment(analyticsStore)
         .environment(toastCenter)
+        .environment(reach)
+        .environment(cacheStore)
         .toastBanner(from: toastCenter)
+        .task {
+          // Spin up reachability once per app session. NWPathMonitor delivers
+          // the current path immediately on `start()`, so `reach.isConnected`
+          // becomes accurate without any further nudging.
+          reach.start()
+        }
+        .onChange(of: reach.isConnected) { _, isOnline in
+          // Rising-edge: we just came back online → flush the mutation queue.
+          if isOnline { Task { await drainer?.drain() } }
+        }
         .task {
           await cardStore.refresh()
           await leadStore.refresh()
@@ -95,6 +136,7 @@ struct AtollCardApp: App {
           if newPhase == .active {
             Task {
               await leadStore.refresh()  // fresh leads when foregrounding
+              await drainer?.drain()      // and flush any queued mutations
             }
           }
         }
