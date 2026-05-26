@@ -19,6 +19,11 @@ enum Config {
     string: "\(supabaseURL.absoluteString)/functions/v1/atollcard-wallet-pass"
   )!
 
+  /// Shared App Group container — both the main app (`swiss.atoll.card`)
+  /// and the widget extension (`swiss.atoll.card.widget`) must have this
+  /// entitlement.
+  static let appGroupID = "group.swiss.atoll.card"
+
   // MARK: – Auth
   static let authRedirectURL = URL(string: "atollcard://auth/callback")!
 
