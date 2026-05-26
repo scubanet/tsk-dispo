@@ -16,9 +16,10 @@ struct PersonaDetailCard: View {
   @State private var showNFC         = false
   @State private var showEditor      = false
 
-  // Wallet-pass flow: `addingPassFor` triggers the async fetch via .task(id:);
-  // result is parked in `presentingPassVC` (Identifiable wrapper) for sheet.
-  @State private var addingPassFor:    Card?
+  // Wallet-pass flow: button tap fires an explicit Task (NOT .task(id:),
+  // which gets cancelled by SwiftUI when state mutates inside it — that
+  // surfaces as `CancellationError` aka "Abgebrochen" toast). Result parked
+  // in `presentingPassVC` (Identifiable wrapper) for sheet.
   @State private var presentingPassVC: WalletPassPresentation?
 
   var body: some View {
@@ -50,18 +51,26 @@ struct PersonaDetailCard: View {
     .sheet(item: $presentingPassVC) { wrap in
       PKAddPassesViewControllerRepresentable(viewController: wrap.viewController)
     }
-    .task(id: addingPassFor?.id) {
-      guard let card = addingPassFor else { return }
-      addingPassFor = nil
-      do {
-        let vc = try await WalletPassService().passViewController(for: card)
-        presentingPassVC = WalletPassPresentation(viewController: vc)
-      } catch {
-        toast.show("Wallet: \(error.localizedDescription)", kind: .error)
-      }
-    }
     .sheet(isPresented: $showEditor) {
       CardEditorSheet(card: card)
+    }
+  }
+
+  /// Fetch a signed .pkpass from the server and park the resulting
+  /// PKAddPassesViewController for the sheet presenter.
+  /// Runs in a detached `Task` so SwiftUI state mutations don't cancel it.
+  private func fetchWalletPass() {
+    Task {
+      do {
+        let vc = try await WalletPassService().passViewController(for: card)
+        await MainActor.run {
+          presentingPassVC = WalletPassPresentation(viewController: vc)
+        }
+      } catch {
+        await MainActor.run {
+          toast.show("Wallet: \(error.localizedDescription)", kind: .error)
+        }
+      }
     }
   }
 
@@ -150,7 +159,7 @@ struct PersonaDetailCard: View {
               }
             }),
       .init(icon: "creditcard",             label: "Wallet",
-            action: { addingPassFor = card })
+            action: { fetchWalletPass() })
     ])
   }
 }
