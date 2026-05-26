@@ -1,5 +1,37 @@
 # AtollCard — Changelog
 
+## 0.11.0 — Lock-Screen-Widget (Larry, 26.05.2026)
+
+Neues Widget Extension Target `AtollCardWidget` mit einem rectangular
+Lock-Screen-Widget. Zeigt Title + Badge der Default-Karte, Tap öffnet
+die App direkt im Fullscreen-QR-Screen.
+
+### Architektur-Entscheid: App-Group-File statt direkter Repository-Call
+
+Widget-Extensions haben harte Timeout-Limits (~30s) und keine
+Auth-State-Garantie. Statt der Widget einen eigenen Supabase-Call
+machen zu lassen, schreibt die Haupt-App ein kleines JSON
+(`default-card.json`) in den shared App-Group-Container immer wenn
+die Default-Karte sich ändert. Widget liest aus dem File — sub-
+Millisekunden, kein Netz, immer last-known-good.
+
+Reload-Trigger: `WidgetCenter.shared.reloadAllTimelines()` nach jedem
+Write. Apple drosselt das, aber für seltene Default-Wechsel ist die
+Latenz von 2-3 Sekunden akzeptabel.
+
+### Tap-Target
+
+`Link(destination: "atollcard://card/<slug>/qr")` — wenn das iPhone
+gerade gelockt ist, fragt iOS einmal nach FaceID, dann landet der
+User direkt im FullscreenQRView mit Brightness-Boost.
+
+### Out-of-Scope (für spätere Sub-Projekte)
+
+- Home-Screen Widget (separater Form-Faktor + Layout)
+- Configuration-Intent für Multi-Card-Auswahl pro Widget-Instanz
+- StandBy-Mode-Widget
+- Push-getriggertes Widget-Refresh (z.B. Live-Lead-Count)
+
 ## 0.10.0 — Wallet-Pass-Signing (Larry, 25.05.2026)
 
 `PKAddPassesViewController` zeigt jetzt einen echten signierten Pass —
