@@ -89,12 +89,12 @@ public enum WalletPassError: LocalizedError {
 
   public var errorDescription: String? {
     switch self {
-    case .unavailable:        "Apple Wallet ist auf diesem Gerät nicht verfügbar."
-    case .mockMode:           "Wallet im Mock-Modus nicht verfügbar — bitte useMockData=false setzen und neu starten."
-    case .notAuthenticated:   "Kein gültiges Login — bitte erneut einloggen."
-    case .serverError(let s): "Server-Fehler beim Erstellen des Wallet-Passes (Status \(s))."
-    case .emptyResponse:      "Server hat keinen Pass geliefert."
-    case .passInvalid:        "Pass-Datei ist beschädigt."
+    case .unavailable:        String(localized: "Apple Wallet ist auf diesem Gerät nicht verfügbar.")
+    case .mockMode:           String(localized: "Wallet im Mock-Modus nicht verfügbar — bitte useMockData=false setzen und neu starten.")
+    case .notAuthenticated:   String(localized: "Kein gültiges Login — bitte erneut einloggen.")
+    case .serverError(let s): String(localized: "Server-Fehler beim Erstellen des Wallet-Passes (Status \(s)).")
+    case .emptyResponse:      String(localized: "Server hat keinen Pass geliefert.")
+    case .passInvalid:        String(localized: "Pass-Datei ist beschädigt.")
     }
   }
 }

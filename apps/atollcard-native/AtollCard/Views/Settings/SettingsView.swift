@@ -16,6 +16,10 @@ struct SettingsView: View {
   @State private var existingAvatarUrl: URL?
   @State private var uploading = false
 
+  // App-level language override — empty string means "use the system locale".
+  // Persisted via @AppStorage so the picker keeps state across launches.
+  @AppStorage("preferredLanguage") private var preferredLanguage: String = ""
+
   var body: some View {
     NavigationStack {
       Form {
@@ -25,6 +29,7 @@ struct SettingsView: View {
         defaultPersonaSection
         notificationsSection
         themeSection
+        languageSection
         SyncStatusSection()
         aboutSection
       }
@@ -34,7 +39,7 @@ struct SettingsView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
-          Button("Fertig") { dismiss() }
+          Button(String(localized: "Fertig")) { dismiss() }
         }
       }
     }
@@ -127,7 +132,7 @@ struct SettingsView: View {
           Task {
             do {
               let url = try await AvatarUploadService.shared.upload(image: img)
-              toast.show("Profilfoto gespeichert", kind: .success)
+              toast.show(String(localized: "Profilfoto gespeichert"), kind: .success)
               // Promote the preview to the persisted slot so the user sees
               // their photo stay in place (instead of snapping back to the
               // initials placeholder).
@@ -135,7 +140,7 @@ struct SettingsView: View {
               previewImage = nil
               pickedItem   = nil
             } catch {
-              toast.show("Upload fehlgeschlagen: \(error.localizedDescription)", kind: .error)
+              toast.show(String(localized: "Upload fehlgeschlagen: \(error.localizedDescription)"), kind: .error)
             }
             uploading = false
           }
@@ -201,7 +206,7 @@ struct SettingsView: View {
         Button {
           Task {
             await cardStore.setDefault(id: card.id)
-            toast.show("Default-Karte: \(card.title)", kind: .info)
+            toast.show(String(localized: "Default-Karte: \(card.title)"), kind: .info)
           }
         } label: {
           HStack {
@@ -231,6 +236,36 @@ struct SettingsView: View {
         Text("Hell").tag("light")
         Text("Dunkel").tag("dark")
       }
+    }
+  }
+
+  /// User-controllable language override. Writes the picked code into
+  /// `AppleLanguages` so iOS reads it on next launch (Apple's official
+  /// per-app override mechanism). Empty selection clears the override and
+  /// falls back to the device's system locale.
+  private var languageSection: some View {
+    Section(String(localized: "Sprache")) {
+      Picker(String(localized: "Sprache"), selection: $preferredLanguage) {
+        Text(String(localized: "System")).tag("")
+        Text("Deutsch").tag("de")
+        Text("English").tag("en")
+        Text("Français").tag("fr")
+      }
+      .onChange(of: preferredLanguage) { _, newValue in
+        if newValue.isEmpty {
+          UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+        } else {
+          UserDefaults.standard.set([newValue], forKey: "AppleLanguages")
+        }
+        UserDefaults.standard.synchronize()
+        // Apple recommendation: require restart for full effect. For
+        // instant-effect, you'd need to rebuild the View tree, which is
+        // overkill for a setting users touch once.
+      }
+
+      Text(String(localized: "Sprache-Wechsel wird beim nächsten App-Start aktiv."))
+        .font(.system(size: 11))
+        .foregroundStyle(.secondary)
     }
   }
 

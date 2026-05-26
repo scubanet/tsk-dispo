@@ -1,5 +1,28 @@
 # AtollCard — Changelog
 
+## 0.13.0 — Localization DE/EN/FR (Larry, 26.05.2026)
+
+iOS-App + Widget + Web Public-Card-Page sprechen jetzt DE/EN/FR.
+
+### iOS
+
+- `Localizable.xcstrings` String Catalog im AtollCard-Target
+- `Localizable.xcstrings` String Catalog im Widget-Target
+- Settings → Sprache Picker (System / DE / EN / FR)
+- Hybrid-Workflow: Xcode Auto-Translate + Polish-Pass für Tauch-Vokabular
+
+### Web
+
+- `PublicCardScreen.i18n.ts` Translations-Map mit ~20 Keys
+- `resolveLanguage()` mit `?lang=`-Param-Override + Browser-Accept-Language-Fallback
+- LanguageSwitcher Dropdown auf der Public-Page
+
+### Out-of-Scope
+
+- Web-Inbox + Adressbuch bleiben DE only (User-Basis ist Dominik)
+- Card-Daten (Titel, Specialties) bleiben einsprachig — nur UI-Chrome ist lokalisiert
+- APNs-Push-Body-Text nicht lokalisiert (Server-side, separates Sub-Projekt)
+
 ## 0.12.0 — Offline-Queue (Larry, 26.05.2026)
 
 SwiftData-Cache vor die 3 Repos, Mutation-Queue für offline Status-Changes,

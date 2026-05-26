@@ -32,7 +32,7 @@ struct LockScreenCardView: View {
           .font(.system(size: 13, weight: .semibold))
           .lineLimit(1)
           .truncationMode(.tail)
-        Text("Tippen → QR")
+        Text(String(localized: "Tippen → QR"))
           .font(.system(size: 11))
           .foregroundStyle(.secondary)
       }
@@ -57,9 +57,9 @@ struct LockScreenCardView: View {
         .widgetAccentable()
 
       VStack(alignment: .leading, spacing: 2) {
-        Text("AtollCard")
+        Text(String(localized: "AtollCard"))
           .font(.system(size: 13, weight: .semibold))
-        Text("Karte einrichten")
+        Text(String(localized: "Karte einrichten"))
           .font(.system(size: 11))
           .foregroundStyle(.secondary)
       }
