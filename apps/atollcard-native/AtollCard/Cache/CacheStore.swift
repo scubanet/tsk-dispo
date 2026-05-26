@@ -9,6 +9,7 @@ import SwiftData
 /// `MainActor`-bound because `ModelContext.save()` and `FetchDescriptor`
 /// fetches need to run on the same actor as the container's main context.
 @MainActor
+@Observable
 final class CacheStore {
   let container: ModelContainer
   private var context: ModelContext { container.mainContext }
