@@ -74,3 +74,22 @@ struct LockScreenCardView: View {
     URL(string: "atollcard://card/\(snapshot.slug)/qr")!
   }
 }
+
+#Preview("Have card", as: .accessoryRectangular) {
+  LockScreenCardWidget()
+} timeline: {
+  CardSnapshotEntry(date: .now, snapshot: SharedCardSnapshot(
+    slug: "dominik-cd",
+    title: "PADI Course Director",
+    badge: "PADI CD",
+    personInitials: "DW",
+    publicURL: URL(string: "https://atoll-os.com/c/dominik-cd")!,
+    updatedAt: .now
+  ))
+}
+
+#Preview("No card", as: .accessoryRectangular) {
+  LockScreenCardWidget()
+} timeline: {
+  CardSnapshotEntry(date: .now, snapshot: nil)
+}
