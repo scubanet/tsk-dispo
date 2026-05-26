@@ -10,8 +10,8 @@ struct LockScreenCardWidget: Widget {
     StaticConfiguration(kind: kind, provider: CardSnapshotProvider()) { entry in
       LockScreenCardView(entry: entry)
     }
-    .configurationDisplayName("AtollCard Quick-QR")
-    .description("Default-Karte mit One-Tap zum Vollbild-QR.")
+    .configurationDisplayName(String(localized: "AtollCard Quick-QR"))
+    .description(String(localized: "Default-Karte mit One-Tap zum Vollbild-QR."))
     .supportedFamilies([.accessoryRectangular])
   }
 }
