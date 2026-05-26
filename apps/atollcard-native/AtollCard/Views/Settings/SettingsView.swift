@@ -34,7 +34,7 @@ struct SettingsView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
-          Button("Fertig") { dismiss() }
+          Button(String(localized: "Fertig")) { dismiss() }
         }
       }
     }
@@ -127,7 +127,7 @@ struct SettingsView: View {
           Task {
             do {
               let url = try await AvatarUploadService.shared.upload(image: img)
-              toast.show("Profilfoto gespeichert", kind: .success)
+              toast.show(String(localized: "Profilfoto gespeichert"), kind: .success)
               // Promote the preview to the persisted slot so the user sees
               // their photo stay in place (instead of snapping back to the
               // initials placeholder).
@@ -135,7 +135,7 @@ struct SettingsView: View {
               previewImage = nil
               pickedItem   = nil
             } catch {
-              toast.show("Upload fehlgeschlagen: \(error.localizedDescription)", kind: .error)
+              toast.show(String(localized: "Upload fehlgeschlagen: \(error.localizedDescription)"), kind: .error)
             }
             uploading = false
           }
@@ -201,7 +201,7 @@ struct SettingsView: View {
         Button {
           Task {
             await cardStore.setDefault(id: card.id)
-            toast.show("Default-Karte: \(card.title)", kind: .info)
+            toast.show(String(localized: "Default-Karte: \(card.title)"), kind: .info)
           }
         } label: {
           HStack {

@@ -68,7 +68,7 @@ struct PersonaDetailCard: View {
         }
       } catch {
         await MainActor.run {
-          toast.show("Wallet: \(error.localizedDescription)", kind: .error)
+          toast.show(String(localized: "Wallet: \(error.localizedDescription)"), kind: .error)
         }
       }
     }
@@ -155,7 +155,7 @@ struct PersonaDetailCard: View {
               if NFCWriterController.isAvailable {
                 showNFC = true
               } else {
-                toast.show("NFC nicht verfügbar (Simulator?)", kind: .error)
+                toast.show(String(localized: "NFC nicht verfügbar (Simulator?)"), kind: .error)
               }
             }),
       .init(icon: "creditcard",             label: "Wallet",

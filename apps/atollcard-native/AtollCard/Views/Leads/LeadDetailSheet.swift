@@ -32,7 +32,7 @@ struct LeadDetailSheet: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
-          Button("Fertig") { dismiss() }
+          Button(String(localized: "Fertig")) { dismiss() }
         }
       }
     }
@@ -121,9 +121,9 @@ struct LeadDetailSheet: View {
       .buttonStyle(.plain)
 
       HStack {
-        statusButton("Geöffnet",   target: .opened)
-        statusButton("Kontaktiert", target: .contacted)
-        statusButton("Archiviert", target: .archived)
+        statusButton(String(localized: "Geöffnet"),   target: .opened)
+        statusButton(String(localized: "Kontaktiert"), target: .contacted)
+        statusButton(String(localized: "Archiviert"), target: .archived)
       }
     }
   }
@@ -132,7 +132,7 @@ struct LeadDetailSheet: View {
     Button {
       Task {
         await leadStore.updateStatus(id: lead.id, status: target)
-        toast.show("Status: \(label)", kind: .info)
+        toast.show(String(localized: "Status: \(label)"), kind: .info)
       }
     } label: {
       Text(label)
