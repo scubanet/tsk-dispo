@@ -37,7 +37,7 @@ final class CachedCardRepository: CardRepository {
     if online {
       Task.detached { [weak self] in
         guard let self else { return }
-        if let fresh = try? await self.remote.fetch(id: id), let card = fresh {
+        if let card = try? await self.remote.fetch(id: id) {
           await MainActor.run { self.cache.upsertCard(card) }
         }
       }

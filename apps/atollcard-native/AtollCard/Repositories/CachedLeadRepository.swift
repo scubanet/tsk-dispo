@@ -52,7 +52,7 @@ final class CachedLeadRepository: LeadRepository {
     if online {
       Task.detached { [weak self] in
         guard let self else { return }
-        if let fresh = try? await self.remote.fetch(id: id), let lead = fresh {
+        if let lead = try? await self.remote.fetch(id: id) {
           await MainActor.run { self.cache.upsertLead(lead) }
         }
       }
