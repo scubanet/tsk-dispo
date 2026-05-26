@@ -13,6 +13,7 @@ struct RootView: View {
   @Environment(CardStore.self)        private var cardStore
   @Environment(LeadStore.self)        private var leadStore
   @Environment(AnalyticsStore.self)   private var analyticsStore
+  @Environment(ReachabilityMonitor.self) private var reach
 
   @State private var route: Route = .cards
   @State private var showSettings = false
@@ -42,6 +43,11 @@ struct RootView: View {
         case .signedOut:  SignedOutView()
         case .signedIn:   signedInBody
         }
+      }
+    }
+    .safeAreaInset(edge: .top, spacing: 0) {
+      if !reach.isConnected {
+        OfflineBanner()
       }
     }
     .sheet(isPresented: $showSettings) {
@@ -181,4 +187,5 @@ private struct SignedOutView: View {
     .environment(LeadStore(repository: MockLeadRepository()))
     .environment(AnalyticsStore(repository: MockAnalyticsRepository()))
     .environment(ToastCenter())
+    .environment(ReachabilityMonitor())
 }
