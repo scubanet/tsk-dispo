@@ -13,6 +13,12 @@ public final class CardStore {
   public private(set) var lastError: Error?
   public var selectedID: UUID?
 
+  /// Set non-nil to trigger `RootView` to present `FullscreenQRView` for this
+  /// card. Cleared by the sheet's binding when the user dismisses. The
+  /// Lock-Screen widget's deep-link handler in `AtollCardApp.handleDeepLink`
+  /// sets this after resolving the slug.
+  public var presentingFullscreenQR: Card?
+
   private let repository: CardRepository
   private static let logger = Logger(subsystem: "swiss.atoll.card", category: "cards")
 
