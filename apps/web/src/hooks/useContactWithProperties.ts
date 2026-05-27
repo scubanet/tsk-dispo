@@ -1,8 +1,8 @@
 // apps/web/src/hooks/useContactWithProperties.ts
 //
-// Phase G Phase 3 — Lädt Contact + Sidecars (instructor/student/organization)
+// Phase G Phase 3 — Lädt Contact + Tags + Sidecars (instructor/student/organization)
 // + Saldo aus v_contact_balance in einem React-Query.
-// Tags + Org-Memberships kommen in späteren Phase-3-Tasks.
+// Org-Memberships werden separat via contact_relationships geladen.
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import type {
@@ -27,6 +27,7 @@ interface RawContactWithRelations {
   created_at: string
   updated_at: string
   owner_id: string | null
+  tags: string[] | null
   instructor: InstructorSidecar | null
   student: StudentSidecar | null
   organization: OrgSidecar | null
@@ -42,7 +43,7 @@ export function useContactWithProperties(contactId: string) {
         .select(`
           id, kind, display_name, first_name, last_name, birth_date,
           primary_email, primary_phone, primary_language, source,
-          created_at, updated_at, owner_id,
+          created_at, updated_at, owner_id, tags,
           instructor:contact_instructor(padi_level, padi_pro_number, member_status, active),
           student:contact_student(pipeline_stage, intake_status, current_level),
           organization:contact_organization(legal_name, trading_name, category),
@@ -79,6 +80,7 @@ function normalize(raw: RawContactWithRelations): ContactWithProperties {
     created_at: raw.created_at,
     updated_at: raw.updated_at,
     owner_id: raw.owner_id,
+    tags: raw.tags ?? [],
     instructor: raw.instructor,
     student: raw.student,
     organization: raw.organization,

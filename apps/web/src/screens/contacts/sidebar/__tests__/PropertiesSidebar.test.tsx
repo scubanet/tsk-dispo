@@ -42,7 +42,7 @@ describe('PropertiesSidebar', () => {
     expect(screen.getByText('Kontakt')).toBeTruthy()
     expect(screen.getByText('Rollen & Status')).toBeTruthy()
     expect(screen.getByText('Organisationen')).toBeTruthy()
-    expect(screen.getByTestId('section-stub-tags')).toBeTruthy()
+    expect(screen.getByText('Tags')).toBeTruthy()
     expect(screen.getByTestId('section-stub-keydates')).toBeTruthy()
     expect(screen.getByTestId('section-stub-padi')).toBeTruthy()  // role-gated: instructor sidecar present
     expect(screen.getByTestId('section-stub-audit')).toBeTruthy()

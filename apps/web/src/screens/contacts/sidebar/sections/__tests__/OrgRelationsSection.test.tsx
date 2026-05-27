@@ -24,6 +24,7 @@ const baseContact: ContactWithProperties = {
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-05-27T00:00:00Z',
   owner_id: null,
+  tags: [],
   instructor: null, student: null, organization: null,
   balance_chf: null, last_movement_date: null,
   roles: [],

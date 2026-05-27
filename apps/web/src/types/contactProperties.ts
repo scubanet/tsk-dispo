@@ -1,9 +1,8 @@
 // apps/web/src/types/contactProperties.ts
 //
 // Phase G Phase 3 — Vollwertiges Contact-Profile-Modell für PropertiesSidebar.
-// Enthält Contact-Base + 3 Sidecars + abgeleitete Roles + Saldo.
-// Tags + Org-Memberships kommen in späteren Phase-3-Tasks (Tabelle fehlt
-// bzw. via contact_relationships separat geladen).
+// Enthält Contact-Base + 3 Sidecars + Tags + abgeleitete Roles + Saldo.
+// Org-Memberships werden via contact_relationships separat geladen.
 
 export interface InstructorSidecar {
   padi_level: string | null
@@ -41,6 +40,7 @@ export interface ContactWithProperties {
   created_at: string
   updated_at: string
   owner_id: string | null
+  tags: string[]
   // Sidecars (nullable wenn der Contact diese Rolle nicht hat)
   instructor: InstructorSidecar | null
   student: StudentSidecar | null
