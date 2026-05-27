@@ -1,14 +1,14 @@
 // apps/web/src/screens/contacts/ContactDetailPanelV2.tsx
 //
-// Phase G Phase 2 — neue 3-Pane Detail-Panel-Variante hinter crm_v2-Flag.
-// Sidebar ist Placeholder bis Phase 3 fertig ist. Layout:
-//   [ Liste in Parent ] [ Header ............................. ] [ Sidebar slot ]
-//                       [ TimelineFeed (composer + filter + cards) ]
-//
+// Phase G Phase 2/3 — 3-Pane Detail-Panel-Variante hinter crm_v2-Flag.
+// Layout: [ Liste in Parent ] [ Header + TimelineFeed ] [ PropertiesSidebar ]
+// Phase 3 Task 14: Sidebar collapse/expand-Toggle (localStorage-persistiert).
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { ContactDetailHeader } from './ContactDetailHeader'
 import { TimelineFeed } from './timeline/TimelineFeed'
+import { PropertiesSidebar } from './sidebar/PropertiesSidebar'
+import { useSidebarToggle } from '@/hooks/useSidebarToggle'
 import type { ContactRole } from '@/types/contacts'
 
 interface Props {
@@ -21,6 +21,8 @@ interface ContactSummary {
   display_name: string
   roles: ContactRole[]
 }
+
+const SIDEBAR_KEY = 'contactDetail.sidebarOpen'
 
 export function ContactDetailPanelV2({ contactId, onClose }: Props) {
   // Minimal contact-summary fetch — Phase 3 ersetzt das durch eine
@@ -40,6 +42,8 @@ export function ContactDetailPanelV2({ contactId, onClose }: Props) {
     enabled: !!contactId,
   })
 
+  const [sidebarOpen, toggleSidebar] = useSidebarToggle(SIDEBAR_KEY, true)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
@@ -56,19 +60,52 @@ export function ContactDetailPanelV2({ contactId, onClose }: Props) {
             <TimelineFeed contactId={contactId} />
           </div>
         </div>
-        {/* Sidebar slot — Phase 3 füllt das mit Properties */}
+        {/* Properties-Sidebar (Phase 3) — collapsible via Toggle */}
         <aside
-          data-testid="properties-sidebar-placeholder"
+          data-testid="properties-sidebar"
+          data-open={sidebarOpen}
           style={{
-            width: 280, flexShrink: 0,
+            width: sidebarOpen ? 280 : 32,
+            flexShrink: 0,
             borderLeft: '1px solid var(--border-subtle, #eee)',
             background: 'var(--surface-tertiary, #fafafa)',
-            padding: 16,
-            color: 'var(--text-tertiary, #888)',
-            fontSize: 13,
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+            transition: 'width 0.15s ease',
+            overflow: 'hidden',
           }}
         >
-          Properties-Sidebar (Phase 3)
+          <button
+            type="button"
+            data-testid="sidebar-toggle"
+            onClick={toggleSidebar}
+            aria-label={sidebarOpen ? 'Sidebar einklappen' : 'Sidebar ausklappen'}
+            aria-expanded={sidebarOpen}
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 6,
+              zIndex: 2,
+              width: 22,
+              height: 22,
+              padding: 0,
+              border: '1px solid var(--border-subtle, #eee)',
+              borderRadius: 4,
+              background: 'var(--surface-primary, white)',
+              cursor: 'pointer',
+              fontSize: 12,
+              lineHeight: 1,
+              color: 'var(--text-secondary, #555)',
+            }}
+          >
+            {sidebarOpen ? '⟶' : '⟵'}
+          </button>
+          {sidebarOpen && (
+            <div style={{ flex: 1, minHeight: 0, paddingTop: 28 }}>
+              <PropertiesSidebar contactId={contactId} />
+            </div>
+          )}
         </aside>
       </div>
     </div>
