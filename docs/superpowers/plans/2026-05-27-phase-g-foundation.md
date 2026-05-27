@@ -428,6 +428,9 @@ CREATE POLICY pipeline_stage_changes_owner ON public.pipeline_stage_changes
 -- Trigger: schreibt eine Zeile pro Stage-Wechsel an contact_student.
 -- Behält Side-Effect der bestehenden tg_contact_student_stage_changed
 -- aus 0091 nicht — die feuert weiterhin separat und updated stage_changed_on.
+-- Note: der WHEN-Clause am Trigger (siehe unten) filtert schon auf
+-- IS DISTINCT FROM — daher kein inneres IF nötig, die Function wird
+-- nur bei tatsächlichem Stage-Wechsel überhaupt aufgerufen.
 CREATE OR REPLACE FUNCTION public.log_pipeline_stage_change()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -435,13 +438,11 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF OLD.pipeline_stage IS DISTINCT FROM NEW.pipeline_stage THEN
-    INSERT INTO public.pipeline_stage_changes (
-      contact_id, from_stage, to_stage, changed_by
-    ) VALUES (
-      NEW.contact_id, OLD.pipeline_stage, NEW.pipeline_stage, auth.uid()
-    );
-  END IF;
+  INSERT INTO public.pipeline_stage_changes (
+    contact_id, from_stage, to_stage, changed_by
+  ) VALUES (
+    NEW.contact_id, OLD.pipeline_stage, NEW.pipeline_stage, auth.uid()
+  );
   RETURN NEW;
 END;
 $$;
