@@ -52,4 +52,16 @@ describe('ContactDetailHeader', () => {
     fireEvent.click(screen.getByRole('button', { name: /Schliessen/i }))
     expect(onClose).toHaveBeenCalledOnce()
   })
+
+  it('rendert Avatar mit displayName als aria-label', () => {
+    render(<ContactDetailHeader
+      contactId="c1"
+      displayName="Hugo Eugster"
+      roles={[]}
+      onEdit={vi.fn()}
+      onClose={vi.fn()}
+    />)
+    // Avatar uses role="img" with aria-label = name
+    expect(screen.getByRole('img', { name: 'Hugo Eugster' })).toBeTruthy()
+  })
 })

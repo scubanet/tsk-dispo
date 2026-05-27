@@ -7,6 +7,7 @@
 // (oder unterhalb des Headers wenn Sidebar collapsed). In Phase 2 nur die
 // minimalen Header-Controls. EventComposer in TimelineFeed deckt das Erfassen.
 import type { ContactRole } from '@/types/contacts'
+import { Avatar } from '@/foundation/primitives/Avatar'
 
 interface Props {
   contactId: string
@@ -16,7 +17,7 @@ interface Props {
   onClose: () => void
 }
 
-export function ContactDetailHeader({ contactId: _contactId, displayName, roles, onEdit, onClose }: Props) {
+export function ContactDetailHeader({ contactId, displayName, roles, onEdit, onClose }: Props) {
   return (
     <header style={{
       display: 'flex', alignItems: 'center', gap: 12,
@@ -24,6 +25,7 @@ export function ContactDetailHeader({ contactId: _contactId, displayName, roles,
       borderBottom: '1px solid var(--border-subtle, #eee)',
       background: 'var(--surface-primary, white)',
     }}>
+      <Avatar id={contactId} name={displayName} size="md" />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 17, fontWeight: 500 }}>{displayName}</div>
         {roles.length > 0 && (
