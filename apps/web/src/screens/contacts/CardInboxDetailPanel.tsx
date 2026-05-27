@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar, Icon } from '@/foundation'
 import { CardLeadStatusPill } from '@/components/CardLeadStatusPill'
@@ -24,6 +24,22 @@ export function CardInboxDetailPanel({ lead, onClose }: Props) {
   function closeMenu() {
     if (menuRef.current) menuRef.current.open = false
   }
+
+  // Close the ⋯ menu when the user clicks outside it.
+  // We previously used <details onBlur={...}> with a relatedTarget contains-
+  // check, but Safari/Firefox on macOS don't focus <button> on mousedown —
+  // relatedTarget was null, the check failed, and the menu closed mid-click
+  // so neither "Status zurück" nor "Löschen" ever fired their onClick.
+  // mousedown outside is focus-independent and survives the Safari quirk.
+  useEffect(() => {
+    function onDocMouseDown(e: MouseEvent) {
+      const el = menuRef.current
+      if (!el || !el.open) return
+      if (!el.contains(e.target as Node)) el.open = false
+    }
+    document.addEventListener('mousedown', onDocMouseDown)
+    return () => document.removeEventListener('mousedown', onDocMouseDown)
+  }, [])
 
   async function onDelete() {
     closeMenu()
@@ -100,12 +116,6 @@ export function CardInboxDetailPanel({ lead, onClose }: Props) {
         <details
           ref={menuRef}
           style={{ position: 'relative' }}
-          onBlur={(e) => {
-            // Close menu when focus leaves the whole <details> subtree
-            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-              if (menuRef.current) menuRef.current.open = false
-            }
-          }}
         >
           <summary
             aria-label="Weitere Aktionen"
