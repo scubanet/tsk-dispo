@@ -1,0 +1,63 @@
+// apps/web/src/screens/contacts/ContactDetailHeader.tsx
+//
+// Phase G Phase 2 Header für ContactDetailPanelV2. Layout:
+// [Avatar · Name + Role-Pills] [spacer] [Edit-Button] [⋯-Menü] [✕-Close]
+//
+// Quick-Actions (Mail/Call/Note/...) leben PHASE 3 in der Properties-Sidebar
+// (oder unterhalb des Headers wenn Sidebar collapsed). In Phase 2 nur die
+// minimalen Header-Controls. EventComposer in TimelineFeed deckt das Erfassen.
+import type { ContactRole } from '@/types/contacts'
+
+interface Props {
+  contactId: string
+  displayName: string
+  roles: ContactRole[]
+  onEdit: () => void
+  onClose: () => void
+}
+
+export function ContactDetailHeader({ contactId: _contactId, displayName, roles, onEdit, onClose }: Props) {
+  return (
+    <header style={{
+      display: 'flex', alignItems: 'center', gap: 12,
+      padding: '10px 14px',
+      borderBottom: '1px solid var(--border-subtle, #eee)',
+      background: 'var(--surface-primary, white)',
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 17, fontWeight: 500 }}>{displayName}</div>
+        {roles.length > 0 && (
+          <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
+            {roles.map(r => (
+              <span
+                key={r}
+                style={{
+                  padding: '2px 8px', borderRadius: 999,
+                  background: 'var(--surface-secondary, #f3f3f3)',
+                  fontSize: 11, color: 'var(--text-secondary, #555)',
+                }}
+              >
+                {r}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onEdit}
+        style={{ padding: '6px 12px' }}
+      >
+        Bearbeiten
+      </button>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Schliessen"
+        style={{ padding: '6px 10px', background: 'transparent', border: 'none', cursor: 'pointer' }}
+      >
+        ✕
+      </button>
+    </header>
+  )
+}
