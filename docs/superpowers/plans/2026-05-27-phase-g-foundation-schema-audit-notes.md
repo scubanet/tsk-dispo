@@ -237,3 +237,22 @@ Drei Probes auf Production gelaufen, alle **0 orphans**:
 | `certifications.issued_by_person_id → contacts(id)` | in 0086 retargeted | **0** |
 
 **Implication:** Actor-UUIDs sind komplett konsistent über alle Source-Tabellen die `v_contact_timeline.actor_contact_id` befüllen. `EventCard` kann den `actor_contact_id` UUID direkt mit `contacts`-Lookup auflösen — **kein „Unbekannt"-Orphan-Fallback** im UI nötig. Phase F1 hat die UUID-Identität echt durchgezogen.
+
+---
+
+## Phase 3 Sidecar + Storage-Audit (Pre-Phase-3, 2026-05-27)
+
+Vor PropertiesSidebar-Implementation gegen Production geprüft:
+
+| Probe | Tabelle/View | Status |
+|---|---|---|
+| 1 | `v_contact_balance` | ✓ existiert, liefert Saldo-Zahlen für aktive Instructors korrekt |
+| 2 | `contact_instructor` Spalten | ✓ existiert (Phase F1) — Schema wird in Task 1 Hook genutzt |
+| 2 | `contact_student` Spalten | ✓ existiert (Phase F1) |
+| 2 | `contact_organization` Spalten | ✓ existiert (Phase F1) |
+| 3 | Org-Membership-Pattern | ✓ via `contact_relationships` mit `kind='works_at'` |
+| 4 | `contact_tags` | ✗ **existiert NICHT** — Migration in Phase 3 anlegen |
+
+**`contact_relationships.kind`** hat aktuell 3 Werte: `works_at` (Employment/Org-Membership), `parent_of`, `partner_of`. Phase 3 OrgRelationsSection nutzt `works_at`. Familien (`parent_of`, `partner_of`) sind out-of-scope Phase 3, könnten in eine zukünftige RelationshipsSection landen.
+
+**Tag-Storage:** keine `tag`-Spalte irgendwo + keine `contact_tags`-Tabelle. Phase 3 bringt eine neue Migration `0117_contact_tags.sql` mit (siehe Plan Task 9-pre).
