@@ -44,9 +44,10 @@ describe('TimelineFeed', () => {
     expect(screen.getByText(/Lade Timeline/i)).toBeTruthy()
   })
 
-  it('renders composer stub and filter bar', async () => {
+  it('renders composer and filter bar', async () => {
     render(<TimelineFeed contactId="c1" />, { wrapper })
-    expect(screen.getByTestId('event-composer-stub')).toBeTruthy()
+    // EventComposer segmented control button + TimelineFilterBar both expose 'Notiz' buttons
+    expect(screen.getAllByRole('button', { name: 'Notiz' }).length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Alle')).toBeTruthy()
   })
 })
