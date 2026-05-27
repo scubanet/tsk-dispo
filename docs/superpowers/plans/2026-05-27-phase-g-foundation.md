@@ -1157,17 +1157,33 @@ describe('contactEventQueries', () => {
   })
 
   describe('updateContactEvent', () => {
-    it('updates summary + body by id', async () => {
+    it('updates summary + body by id and returns id', async () => {
       const single = vi.fn().mockResolvedValue({ data: { id: 'ev-1' }, error: null })
       const select = vi.fn().mockReturnValue({ single })
       const eq = vi.fn().mockReturnValue({ select })
       const update = vi.fn().mockReturnValue({ eq })
       vi.mocked(supabase.from).mockReturnValue({ update } as never)
 
-      await updateContactEvent('ev-1', { summary: 'updated' })
+      const result = await updateContactEvent('ev-1', { summary: 'updated' })
 
       expect(update).toHaveBeenCalledWith({ summary: 'updated' })
       expect(eq).toHaveBeenCalledWith('id', 'ev-1')
+      expect(result).toEqual({ id: 'ev-1' })
+    })
+
+    it('throws on supabase error', async () => {
+      const single = vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'event not found' },
+      })
+      const select = vi.fn().mockReturnValue({ single })
+      const eq = vi.fn().mockReturnValue({ select })
+      const update = vi.fn().mockReturnValue({ eq })
+      vi.mocked(supabase.from).mockReturnValue({ update } as never)
+
+      await expect(
+        updateContactEvent('ev-missing', { summary: 'x' })
+      ).rejects.toThrow('event not found')
     })
   })
 
@@ -1181,6 +1197,14 @@ describe('contactEventQueries', () => {
 
       expect(del).toHaveBeenCalled()
       expect(eq).toHaveBeenCalledWith('id', 'ev-1')
+    })
+
+    it('throws on supabase error', async () => {
+      const eq = vi.fn().mockResolvedValue({ error: { message: 'RLS denied' } })
+      const del = vi.fn().mockReturnValue({ eq })
+      vi.mocked(supabase.from).mockReturnValue({ delete: del } as never)
+
+      await expect(deleteContactEvent('ev-1')).rejects.toThrow('RLS denied')
     })
   })
 })
