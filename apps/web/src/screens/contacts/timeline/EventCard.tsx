@@ -1,15 +1,15 @@
 // apps/web/src/screens/contacts/timeline/EventCard.tsx
 import type { TimelineEvent, EventType } from '@/types/contactEvents'
+import { Icon, type IconName } from '@/foundation/primitives/Icon'
 
 interface Props {
   event: TimelineEvent
 }
 
-// Icon-Mapping (Tabler-Icons via Foundation). 'note' → ti-note etc.
-// Subagents schreiben hier `data-icon` attribute statt SVG-rendering —
-// das eigentliche Icon-Mounting machen wir in Phase 3 wenn Foundation-Icon
-// auf alle 15 Typen erweitert ist. Phase 2 zeigt das Label.
-const ICON_FOR: Record<EventType, string> = {
+// Icon-Mapping (Tabler-Icons via Foundation). Phase 3 (Task 17) ersetzt den
+// Text-Placeholder durch echte Inline-SVGs aus Foundation/primitives/Icon.
+// Wir behalten das `data-icon` attr am Outer-Span für bestehende Tests.
+const ICON_FOR: Record<EventType, IconName> = {
   note:                'note',
   call:                'phone',
   email_external:      'mail',
@@ -28,23 +28,23 @@ const ICON_FOR: Record<EventType, string> = {
 }
 
 export function EventCard({ event }: Props) {
+  const iconName: IconName = ICON_FOR[event.event_type] ?? 'point'
   return (
     <article style={{
       display: 'flex', gap: 10, padding: '10px 12px',
       borderBottom: '1px solid var(--border-subtle, #eee)',
     }}>
       <span
-        data-icon={ICON_FOR[event.event_type] ?? 'point'}
+        data-icon={iconName}
         aria-hidden="true"
         style={{
           width: 24, height: 24, flexShrink: 0,
           borderRadius: 4, background: 'var(--surface-secondary, #f3f3f3)',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 11, color: 'var(--text-secondary, #555)',
+          color: 'var(--text-secondary, #555)',
         }}
       >
-        {/* Placeholder bis Foundation-Icon erweitert ist; data-icon attr für test */}
-        {ICON_FOR[event.event_type]?.slice(0, 3) ?? '·'}
+        <Icon name={iconName} size={14} />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 500 }}>{event.summary}</div>

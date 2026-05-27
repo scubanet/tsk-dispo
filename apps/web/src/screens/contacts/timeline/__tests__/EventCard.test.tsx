@@ -34,6 +34,11 @@ describe('EventCard', () => {
     expect(container.querySelector('[data-icon="phone"]')).toBeTruthy()
   })
 
+  it('rendert ein inline-SVG für das Icon', () => {
+    const { container } = render(<EventCard event={baseEvent} />)
+    expect(container.querySelector('svg')).toBeTruthy()
+  })
+
   it('shows audit_edit summary with field-list', () => {
     render(<EventCard event={{
       ...baseEvent,
