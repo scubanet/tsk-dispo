@@ -14,15 +14,18 @@
 
 ## File Structure
 
-**SQL-Migrationen** (numerisch, nach existierenden 0109):
+**SQL-Migrationen** (numerisch, nach existierenden 0109; **erweitert nach Schema-Audit von Task 0**):
 - `supabase/migrations/0110_contact_events.sql` — Tabelle + Indexe + RLS
-- `supabase/migrations/0111_is_contact_owner.sql` — Helper-Function (oder bestehende konsolidieren)
-- `supabase/migrations/0112_v_contact_timeline.sql` — UNION-View
-- `supabase/migrations/0113_contact_saved_views.sql` — Saved-Views-Tabelle + RLS
+- `supabase/migrations/0111_is_contact_owner.sql` — Helper-Function + RLS-Policy
+- `supabase/migrations/0112_pipeline_stage_changes.sql` — **NEU** History-Tabelle + Trigger + Backfill aus `contact_audit_log`
+- `supabase/migrations/0113_v_contact_balance.sql` — **NEU** Saldo-View für unified Contacts (Sibling zu `v_instructor_balance`)
+- `supabase/migrations/0114_v_contact_timeline.sql` — UNION-View (war 0112; nach neuen Migrationen umnummeriert)
+- `supabase/migrations/0115_contact_saved_views.sql` — Saved-Views-Tabelle + RLS (war 0113)
 
 **PgTAP-Tests:**
-- `supabase/tests/pgtap/04_contact_events_rls.sql` — RLS-Isolation
-- `supabase/tests/pgtap/05_v_contact_timeline.sql` — View-Korrektheit
+- `supabase/tests/pgtap/04_contact_events_rls.sql` — RLS-Isolation auf `contact_events`
+- `supabase/tests/pgtap/05_pipeline_stage_changes.sql` — Trigger fires + RLS-Visibility
+- `supabase/tests/pgtap/06_v_contact_timeline.sql` — View-Korrektheit
 
 **Web-App (TypeScript):**
 - `apps/web/src/types/contactEvents.ts` — TypeScript-Types für Events
@@ -77,7 +80,7 @@ grep -n "CREATE.*VIEW.*balance" supabase/migrations/*.sql
 grep -n "instructor_balance" supabase/migrations/*.sql | head -5
 ```
 
-Expected: `instructor_balance` aus `0014_view_instructor_balance.sql`. Notieren ob nach Phase F1 bereits `contact_balance` existiert (parallel definiert) — falls nein, baue ihn in Task 6 als zusätzliche Migration ein.
+Expected: `instructor_balance` aus `0014_view_instructor_balance.sql`. Notieren ob nach Phase F1 bereits `contact_balance` existiert (parallel definiert) — falls nein, wird er in Task 5 (Migration 0113) gebaut.
 
 - [ ] **Step 4: Intake-Checklist-Detail-Tabelle**
 
@@ -87,7 +90,7 @@ grep -n "CREATE TABLE.*intake" supabase/migrations/*.sql
 grep -nA 30 "CREATE TABLE.*intake_checklists" supabase/migrations/0050_cd_elearning_and_intake.sql | head -40
 ```
 
-Expected: `intake_checklists` plus ggf. eine Sub-Tabelle für Einzel-Checkpoints. Notieren: ob Checkpoints als Zeilen oder JSONB-Array gespeichert sind. Bestimmt UNION-SELECT-Struktur in Task 4.
+Expected: `intake_checklists` plus ggf. eine Sub-Tabelle für Einzel-Checkpoints. Notieren: ob Checkpoints als Zeilen oder JSONB-Array gespeichert sind. Bestimmt UNION-SELECT-Struktur in Task 6 (View-Migration 0114).
 
 - [ ] **Step 5: Audit-Log-Schema**
 
@@ -117,7 +120,7 @@ Schreibe `docs/superpowers/plans/2026-05-27-phase-g-foundation-schema-audit-note
 ```bash
 cd ~/Desktop/Developer/Dispo
 git add docs/superpowers/plans/2026-05-27-phase-g-foundation-schema-audit-notes.md
-git commit -m 'docs(phase-g): schema audit notes — basis für migrations 0110-0113'
+git commit -m 'docs(phase-g): schema audit notes — basis für migrations 0110-0115'
 ```
 
 ---
@@ -135,7 +138,7 @@ git commit -m 'docs(phase-g): schema audit notes — basis für migrations 0110-
 -- Phase G Foundation: dedizierte Tabelle für user-logged Events
 -- (Notiz, Anruf, Mail-Zusammenfassung, Meeting, Task, WhatsApp-Log).
 -- System-Events bleiben in ihren Source-Tables; die View
--- v_contact_timeline (Migration 0112) unioniert beides.
+-- v_contact_timeline (Migration 0114) unioniert beides.
 -- Spec: docs/superpowers/specs/2026-05-27-contacts-crm-redesign.md §8.1
 -- ─────────────────────────────────────────────────────────────────
 
@@ -366,18 +369,283 @@ git commit -m 'test(db): pgtap RLS isolation for contact_events'
 
 ---
 
-### Task 4: Migration 0112 — `v_contact_timeline` View (incremental)
+### Task 4: Migration 0112 — `pipeline_stage_changes` Tabelle + Trigger + Backfill
+
+Per Audit (§2): es gibt keine History-Tabelle für Pipeline-Stage-Wechsel. Der alte Trigger (gedroppt in 0092) und der neue Ersatz (0091) updaten nur `stage_changed_on`. Diese Migration baut eine eigene History-Tabelle, hängt einen Trigger an `contact_student` an, und backfillt aus `contact_audit_log`.
+
+**Files:**
+- Create: `supabase/migrations/0112_pipeline_stage_changes.sql`
+- Create: `supabase/tests/pgtap/05_pipeline_stage_changes.sql`
+
+- [ ] **Step 1: Migration schreiben**
+
+```sql
+-- 0112_pipeline_stage_changes.sql
+-- ─────────────────────────────────────────────────────────────────
+-- Phase G Foundation: History-Tabelle für Pipeline-Stage-Wechsel.
+-- Bisher wurden Stage-Changes nur in contact_audit_log gespiegelt
+-- (JSON-Diff in changed_fields). Diese Tabelle macht sie explizit
+-- abfragbar — wichtig für die v_contact_timeline View (Migration 0114).
+-- Spec: §13 Q2, Audit-Doc §2.
+-- ─────────────────────────────────────────────────────────────────
+
+CREATE TABLE public.pipeline_stage_changes (
+  id           BIGSERIAL PRIMARY KEY,
+  contact_id   UUID NOT NULL REFERENCES public.contacts(id) ON DELETE CASCADE,
+  from_stage   TEXT,
+  to_stage     TEXT,
+  changed_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  changed_by   UUID  -- nullable, no FK (audit pattern, contact_audit_log gleicher Stil)
+);
+
+CREATE INDEX idx_pipeline_stage_changes_contact_changed
+  ON public.pipeline_stage_changes(contact_id, changed_at DESC);
+
+ALTER TABLE public.pipeline_stage_changes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY pipeline_stage_changes_owner ON public.pipeline_stage_changes
+  FOR SELECT TO authenticated
+  USING (public.is_contact_owner(contact_id));
+
+-- Trigger: schreibt eine Zeile pro Stage-Wechsel an contact_student.
+-- Behält Side-Effect der bestehenden tg_contact_student_stage_changed
+-- aus 0091 nicht — die feuert weiterhin separat und updated stage_changed_on.
+CREATE OR REPLACE FUNCTION public.log_pipeline_stage_change()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF OLD.pipeline_stage IS DISTINCT FROM NEW.pipeline_stage THEN
+    INSERT INTO public.pipeline_stage_changes (
+      contact_id, from_stage, to_stage, changed_by
+    ) VALUES (
+      NEW.contact_id, OLD.pipeline_stage, NEW.pipeline_stage, auth.uid()
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER tg_log_pipeline_stage_change
+  AFTER UPDATE OF pipeline_stage ON public.contact_student
+  FOR EACH ROW
+  WHEN (OLD.pipeline_stage IS DISTINCT FROM NEW.pipeline_stage)
+  EXECUTE FUNCTION public.log_pipeline_stage_change();
+
+-- Backfill aus contact_audit_log: alle bisherigen Stage-Changes.
+-- Pattern: table_name='contact_student', operation='UPDATE',
+-- changed_fields ? 'pipeline_stage'.
+INSERT INTO public.pipeline_stage_changes (contact_id, from_stage, to_stage, changed_at, changed_by)
+SELECT
+  cal.contact_id,
+  cal.changed_fields->'pipeline_stage'->>'old' AS from_stage,
+  cal.changed_fields->'pipeline_stage'->>'new' AS to_stage,
+  cal.changed_at,
+  cal.changed_by
+FROM public.contact_audit_log cal
+WHERE cal.table_name = 'contact_student'
+  AND cal.operation  = 'UPDATE'
+  AND cal.changed_fields ? 'pipeline_stage';
+```
+
+- [ ] **Step 2: Anwenden**
+
+Run:
+```bash
+supabase migration up
+```
+
+Expected: Migration läuft ohne Fehler. Backfill-Zahl loggt automatisch (Postgres logged `INSERT 0 N`).
+
+- [ ] **Step 3: Smoke-Test**
+
+Im Supabase-Studio:
+```sql
+-- Wie viele historische Stage-Changes wurden backfilled?
+SELECT count(*) FROM public.pipeline_stage_changes;
+
+-- Beispiel-Zeilen anschauen
+SELECT contact_id, from_stage, to_stage, changed_at
+FROM public.pipeline_stage_changes
+ORDER BY changed_at DESC LIMIT 10;
+
+-- Trigger-Test: ändere eine Stage und prüfe ob neue Zeile entsteht
+UPDATE public.contact_student
+SET pipeline_stage = 'qualified'
+WHERE contact_id = (SELECT contact_id FROM public.contact_student LIMIT 1)
+  AND pipeline_stage != 'qualified';
+
+SELECT * FROM public.pipeline_stage_changes ORDER BY changed_at DESC LIMIT 1;
+-- Expected: gerade entstandene Zeile mit aktuellem timestamp
+```
+
+- [ ] **Step 4: PgTAP-Test**
+
+```sql
+-- 05_pipeline_stage_changes.sql
+BEGIN;
+SELECT plan(3);
+
+INSERT INTO auth.users (id, email)
+  VALUES ('dddddddd-dddd-dddd-dddd-dddddddddddd', 'd@test.dev');
+INSERT INTO public.contacts (id, first_name)
+  VALUES ('44444444-4444-4444-4444-444444444444', 'StageTest');
+INSERT INTO public.contact_instructor (contact_id, auth_user_id)
+  VALUES ('44444444-4444-4444-4444-444444444444', 'dddddddd-dddd-dddd-dddd-dddddddddddd');
+INSERT INTO public.contact_student (contact_id, pipeline_stage)
+  VALUES ('44444444-4444-4444-4444-444444444444', 'lead');
+
+-- Test 1: Trigger feuert bei Stage-Wechsel
+UPDATE public.contact_student
+SET pipeline_stage = 'qualified'
+WHERE contact_id = '44444444-4444-4444-4444-444444444444';
+
+SELECT is(
+  (SELECT count(*) FROM public.pipeline_stage_changes
+   WHERE contact_id = '44444444-4444-4444-4444-444444444444')::int,
+  1, 'trigger inserted one row after stage change'
+);
+
+-- Test 2: from/to_stage korrekt
+SELECT is(
+  (SELECT from_stage || '→' || to_stage FROM public.pipeline_stage_changes
+   WHERE contact_id = '44444444-4444-4444-4444-444444444444'),
+  'lead→qualified', 'from/to_stage captured correctly'
+);
+
+-- Test 3: RLS — Nicht-Owner sieht nichts
+SET LOCAL request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000099","role":"authenticated"}';
+SET LOCAL role = authenticated;
+
+SELECT is(
+  (SELECT count(*) FROM public.pipeline_stage_changes
+   WHERE contact_id = '44444444-4444-4444-4444-444444444444')::int,
+  0, 'non-owner sees nothing via RLS'
+);
+
+SELECT * FROM finish();
+ROLLBACK;
+```
+
+- [ ] **Step 5: Test ausführen**
+
+Run:
+```bash
+cd supabase/tests/pgtap && ./run.sh 05_pipeline_stage_changes.sql
+```
+
+Expected: 3 ok.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add supabase/migrations/0112_pipeline_stage_changes.sql supabase/tests/pgtap/05_pipeline_stage_changes.sql
+git commit -m 'feat(db): pipeline_stage_changes history table + trigger + backfill'
+```
+
+---
+
+### Task 5: Migration 0113 — `v_contact_balance` View
+
+Per Audit (§3): `v_instructor_balance` existiert (legacy, Edge-Functions lesen noch davon), `v_contact_balance` nicht. Diese Migration baut den unified Saldo-View — `account_movements.instructor_id` ist UUID-identisch mit `contacts.id` (kein FK-Rewrite nötig).
+
+**Files:**
+- Create: `supabase/migrations/0113_v_contact_balance.sql`
+
+- [ ] **Step 1: Migration schreiben**
+
+```sql
+-- 0113_v_contact_balance.sql
+-- ─────────────────────────────────────────────────────────────────
+-- Phase G Foundation: Saldo-View für unified Contacts.
+-- Sibling zu v_instructor_balance (0014/0039) — Logik 1:1 portiert,
+-- aber JOIN über contacts statt instructors. account_movements.instructor_id
+-- speichert UUIDs die auch in contacts(id) leben (Phase F1 unified ID-Space).
+-- Legacy v_instructor_balance bleibt vorerst — Edge-Functions lesen noch davon.
+-- Spec: §5.2 Stat-Band "Saldo". Audit-Doc §3.
+-- ─────────────────────────────────────────────────────────────────
+
+CREATE OR REPLACE VIEW public.v_contact_balance AS
+SELECT
+  c.id                  AS contact_id,
+  c.display_name,
+  ci.padi_level,
+  COALESCE(SUM(
+    CASE
+      WHEN am.ref_assignment_id IS NULL THEN am.amount_chf
+      WHEN cr.status = 'completed'      THEN am.amount_chf
+      ELSE 0
+    END
+  ), 0)::NUMERIC(10,2)  AS balance_chf,
+  MAX(am.movement_date) AS last_movement_date,
+  COUNT(am.id)          AS movement_count
+FROM public.contacts c
+JOIN public.contact_instructor ci ON ci.contact_id = c.id
+LEFT JOIN public.account_movements  am ON am.instructor_id      = c.id
+LEFT JOIN public.course_assignments ca ON ca.id                 = am.ref_assignment_id
+LEFT JOIN public.courses            cr ON cr.id                 = ca.course_id
+GROUP BY c.id, c.display_name, ci.padi_level;
+
+ALTER VIEW public.v_contact_balance SET (security_invoker = on);
+GRANT SELECT ON public.v_contact_balance TO authenticated;
+
+-- v_instructor_balance bleibt unangetastet (legacy Edge-Functions).
+-- Deprecation-Marker:
+COMMENT ON VIEW public.v_instructor_balance IS
+  'DEPRECATED — use v_contact_balance. Kept for legacy Edge-Functions still reading via instructor_id.';
+```
+
+- [ ] **Step 2: Anwenden + smoke-test**
+
+Run:
+```bash
+supabase migration up
+```
+
+Im Supabase-Studio:
+```sql
+-- Saldo-Tile-Quelle: zeigt View Daten für einen aktiven Instructor?
+SELECT contact_id, display_name, balance_chf, last_movement_date, movement_count
+FROM public.v_contact_balance
+ORDER BY ABS(balance_chf) DESC
+LIMIT 5;
+
+-- Quervergleich mit Legacy (sollte deckungsgleich sein für instructors)
+SELECT
+  ib.instructor_id  AS legacy_id,
+  ib.balance_chf    AS legacy_balance,
+  cb.balance_chf    AS new_balance,
+  ib.balance_chf - cb.balance_chf AS diff
+FROM public.v_instructor_balance ib
+JOIN public.v_contact_balance    cb ON cb.contact_id = ib.instructor_id
+WHERE ABS(ib.balance_chf - cb.balance_chf) > 0.01;
+```
+
+Expected: zweite Query liefert 0 Zeilen (Salden stimmen überein).
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add supabase/migrations/0113_v_contact_balance.sql
+git commit -m 'feat(db): v_contact_balance view (sibling to legacy v_instructor_balance)'
+```
+
+---
+
+### Task 6: Migration 0114 — `v_contact_timeline` View (incremental)
 
 Wir bauen den View **schrittweise**: zuerst nur mit `contact_events` (User-Logs), dann mit jedem System-Event-UNION dazu. Jeder Schritt einzeln testbar.
 
 **Files:**
-- Create: `supabase/migrations/0112_v_contact_timeline.sql`
-- Create: `supabase/tests/pgtap/05_v_contact_timeline.sql`
+- Create: `supabase/migrations/0114_v_contact_timeline.sql`
+- Create: `supabase/tests/pgtap/06_v_contact_timeline.sql`
 
 - [ ] **Step 1: View-Skelett mit nur contact_events**
 
 ```sql
--- 0112_v_contact_timeline.sql (V1 — minimal)
+-- 0114_v_contact_timeline.sql (V1 — minimal)
 -- ─────────────────────────────────────────────────────────────────
 -- Phase G Foundation: unified read-side timeline view.
 -- Erste Version: nur contact_events (User-Logs).
@@ -426,7 +694,9 @@ Expected: 1 Zeile mit `source_table = 'contact_events'`.
 
 - [ ] **Step 3: System-Event UNION — Kurs-Teilnahmen ergänzen**
 
-Migration 0112 erweitern (CREATE OR REPLACE, also überschreiben):
+Per Audit (§1): `course_participants.student_id` enthält `contacts(id)` (Spaltenname behielt `student_id` aus Legacy, FK wurde in 0092 auf `contacts(id)` retargeted).
+
+Migration 0114 erweitern (CREATE OR REPLACE, also überschreiben):
 
 ```sql
 CREATE OR REPLACE VIEW public.v_contact_timeline AS
@@ -448,18 +718,19 @@ FROM public.contact_events e
 UNION ALL
 
 -- System: course participations
--- (FK-Spalte je nach Phase-F1-Audit: contact_id oder student_id mit JOIN)
+-- cp.student_id zeigt auf contacts(id) (Spaltenname legacy, Inhalt unified)
 SELECT
   cp.id                                   AS event_id,
-  cp.contact_id                           AS contact_id,  -- ggf. anpassen nach Audit
+  cp.student_id                           AS contact_id,
   'course_enrollment'::text               AS event_type,
-  cp.created_at                           AS occurred_at,
+  cp.enrolled_at                          AS occurred_at,
   NULL::uuid                              AS actor_contact_id,
   'Eingeschrieben in ' || c.code          AS summary,
   NULL::text                              AS body,
   jsonb_build_object(
     'course_id', cp.course_id,
-    'course_code', c.code
+    'course_code', c.code,
+    'status', cp.status
   )                                       AS payload,
   'open'::text                            AS status,
   'course_participants'::text             AS source_table,
@@ -483,17 +754,19 @@ SELECT event_type, count(*) FROM public.v_contact_timeline GROUP BY event_type;
 
 Expected: `note: N`, `course_enrollment: M` (M = anzahl tatsächlicher Teilnahmen in deiner DB).
 
-- [ ] **Step 4: System-Events: Zertifikate, Saldo-Bewegungen, Pipeline-Changes, Intake, Skill-Records, Card-Lead-Imports, Audit-Edits einzeln ergänzen**
+- [ ] **Step 4: System-Events einzeln ergänzen — konkrete Source-Tables nach Audit**
 
-Pro Source-Table einen UNION-Block analog zu Step 3. Reihenfolge:
+Pro Source-Table einen UNION-Block analog zu Step 3. Reihenfolge (Audit-§§ in Klammern):
 
-1. `certifications` (Migration 0028) — Tabelle für Brevet-Erteilungen
-2. `account_movements` (Migration 0012) — Saldo-Bewegungen
-3. `pipeline_stage_changes` (NEU wenn Audit das aufzeigte) oder `audit_log` (gefiltert auf `pipeline_stage`)
-4. Intake-Checkpoint-Detail-Tabelle (laut Audit-Doc)
-5. `padi_skill_records` (Migration 0090)
-6. `card_leads` (Migration 0105) mit `imported_contact_id IS NOT NULL`
-7. `audit_log` (gefiltert auf Role-Changes + PII-Edits separat)
+1. **`certifications`** (Migration 0028) — Brevet-Erteilungen. event_type `certification_issued`, occurred_at via `certified_on`.
+2. **`account_movements`** (Migration 0012) — Saldo-Bewegungen. event_type `saldo_movement`. `am.instructor_id` UUID matcht `contacts.id` (Audit §3).
+3. **`pipeline_stage_changes`** (NEU in Migration 0112). event_type `pipeline_change`. Summary „<from_stage> → <to_stage>".
+4. **`intake_checklists`** (Audit §4) — Coarse-Approach: ein Event pro Update der ganzen Checkliste, mit `updated_at` als `occurred_at`, `student_id` als `contact_id`, summary „Intake-Checkliste aktualisiert", payload mit allen booleschen Flags. Keine per-Checkpoint-Granularität bis audit_triggers extended sind.
+5. **`padi_skill_records`** (Migration 0090) — Skill-Checks.
+6. **`card_leads`** mit `imported_contact_id IS NOT NULL` (Migration 0105) — Lead-Imports. `imported_contact_id` als `contact_id`.
+7. **`contact_audit_log`** (Audit §5 — Tabelle heisst `contact_audit_log`, NICHT `audit_log`!) gefiltert:
+   - **Role-Changes:** `WHERE operation IN ('INSERT','DELETE') AND table_name IN ('contact_instructor','contact_student','contact_organization')`. Rolle abgeleitet aus `table_name`.
+   - **PII-Edits:** `WHERE operation = 'UPDATE' AND table_name = 'contacts'`. Geänderte Felder aus `jsonb_object_keys(changed_fields)`.
 
 Für jeden Block:
 - Schreibe den UNION-SELECT
@@ -504,7 +777,7 @@ Für jeden Block:
 - [ ] **Step 5: PgTAP-Test für View-Korrektheit**
 
 ```sql
--- 05_v_contact_timeline.sql
+-- 06_v_contact_timeline.sql
 BEGIN;
 SELECT plan(4);
 
@@ -564,7 +837,7 @@ ROLLBACK;
 
 Run:
 ```bash
-cd supabase/tests/pgtap && ./run.sh 05_v_contact_timeline.sql
+cd supabase/tests/pgtap && ./run.sh 06_v_contact_timeline.sql
 ```
 
 Expected: 4 ok.
@@ -572,21 +845,21 @@ Expected: 4 ok.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add supabase/migrations/0112_v_contact_timeline.sql supabase/tests/pgtap/05_v_contact_timeline.sql
+git add supabase/migrations/0114_v_contact_timeline.sql supabase/tests/pgtap/06_v_contact_timeline.sql
 git commit -m 'feat(db): v_contact_timeline view + pgtap correctness tests'
 ```
 
 ---
 
-### Task 5: Migration 0113 — `contact_saved_views` Tabelle + RLS
+### Task 7: Migration 0115 — `contact_saved_views` Tabelle + RLS
 
 **Files:**
-- Create: `supabase/migrations/0113_contact_saved_views.sql`
+- Create: `supabase/migrations/0115_contact_saved_views.sql`
 
 - [ ] **Step 1: Migration schreiben**
 
 ```sql
--- 0113_contact_saved_views.sql
+-- 0115_contact_saved_views.sql
 -- ─────────────────────────────────────────────────────────────────
 -- Phase G Foundation: per-User-Custom-Views für AddressbookScreen.
 -- Speichert Kombi aus Filter, sichtbaren Columns, Sort, Density.
@@ -641,13 +914,13 @@ DELETE FROM public.contact_saved_views WHERE name = 'VIP-Kunden';
 - [ ] **Step 3: Commit**
 
 ```bash
-git add supabase/migrations/0113_contact_saved_views.sql
+git add supabase/migrations/0115_contact_saved_views.sql
 git commit -m 'feat(db): contact_saved_views table + RLS for user-custom list views'
 ```
 
 ---
 
-### Task 6: TypeScript-Types für Events
+### Task 8: TypeScript-Types für Events
 
 **Files:**
 - Create: `apps/web/src/types/contactEvents.ts`
@@ -758,7 +1031,7 @@ git commit -m 'feat(types): contact event types for Phase G timeline'
 
 ---
 
-### Task 7: `contactEventQueries.ts` — TDD-Vorgehen
+### Task 9: `contactEventQueries.ts` — TDD-Vorgehen
 
 **Files:**
 - Create: `apps/web/src/lib/contactEventQueries.ts`
@@ -945,7 +1218,7 @@ git commit -m 'feat(web): contactEventQueries lib + unit tests'
 
 ---
 
-### Task 8: `useContactTimeline` Hook mit TDD
+### Task 10: `useContactTimeline` Hook mit TDD
 
 **Files:**
 - Create: `apps/web/src/hooks/useContactTimeline.ts`
@@ -1016,7 +1289,7 @@ interface PageCursor {
 
 /**
  * Paginated timeline für einen Contact.
- * Liest aus v_contact_timeline (Migration 0112) — vereint contact_events
+ * Liest aus v_contact_timeline (Migration 0114) — vereint contact_events
  * und alle System-Event-Source-Tables.
  *
  * Pagination: cursor auf (occurred_at, event_id) — stable bei concurrent inserts.
@@ -1082,7 +1355,7 @@ git commit -m 'feat(web): useContactTimeline hook with cursor pagination'
 
 ---
 
-### Task 9: `useEventComposer` Hook (Mutations)
+### Task 11: `useEventComposer` Hook (Mutations)
 
 **Files:**
 - Create: `apps/web/src/hooks/useEventComposer.ts`
@@ -1164,7 +1437,7 @@ git commit -m 'feat(web): useEventComposer mutations (insert/update/delete)'
 
 ---
 
-### Task 10: `useGlobalActivity` Hook
+### Task 12: `useGlobalActivity` Hook
 
 **Files:**
 - Create: `apps/web/src/hooks/useGlobalActivity.ts`
@@ -1247,7 +1520,7 @@ git commit -m 'feat(web): useGlobalActivity hook for /aktivitaet screen'
 
 ---
 
-### Task 11: `useContactSavedViews` Hook
+### Task 13: `useContactSavedViews` Hook
 
 **Files:**
 - Create: `apps/web/src/hooks/useContactSavedViews.ts`
@@ -1356,7 +1629,7 @@ git commit -m 'feat(web): useContactSavedViews CRUD hook + types'
 
 ---
 
-### Task 12: End-to-End Smoke-Test der Foundation
+### Task 14: End-to-End Smoke-Test der Foundation
 
 Manueller Smoke-Test via Dev-Server. Verifiziert dass alle Pieces zusammenpassen, bevor wir Phase 2 starten.
 
@@ -1442,7 +1715,7 @@ Expected:
 
 ---
 
-### Task 13: Phase 1 abschliessen — Branch mergen + Folge-Plan andeuten
+### Task 15: Phase 1 abschliessen — Branch mergen + Folge-Plan andeuten
 
 - [ ] **Step 1: Branch (falls Feature-Branch verwendet) auf main mergen**
 
@@ -1457,7 +1730,7 @@ Falls direkt auf main gearbeitet wurde: nur `git push origin main`.
 
 - [ ] **Step 2: Memory aktualisieren**
 
-(Claude erinnert sich nach der Session): Memory-Eintrag `project_atoll.md` ergänzen um „Phase G Foundation (Migrationen 0110-0113, Hooks, Types) durch — Phasen 2-6 folgen".
+(Claude erinnert sich nach der Session): Memory-Eintrag `project_atoll.md` ergänzen um „Phase G Foundation (Migrationen 0110-0115, Hooks, Types) durch — Phasen 2-6 folgen".
 
 - [ ] **Step 3: Plan-Datei für Phase 2 anstossen**
 
@@ -1470,8 +1743,10 @@ Wenn bereit: `superpowers:writing-plans` wieder aufrufen mit Scope „Phase 2 �
 | Gate | Wie geprüft |
 |---|---|
 | Migrationen anwendbar | `supabase migration up` ohne Fehler |
-| RLS isoliert | PgTAP `04_contact_events_rls.sql` 4/4 ok |
-| View liefert korrekt | PgTAP `05_v_contact_timeline.sql` 4/4 ok |
+| RLS isoliert (contact_events) | PgTAP `04_contact_events_rls.sql` 4/4 ok |
+| Pipeline-Trigger + RLS | PgTAP `05_pipeline_stage_changes.sql` 3/3 ok |
+| Saldo-Views deckungsgleich | Manuelle Cross-Query `v_instructor_balance ↔ v_contact_balance` 0 Diff-Zeilen |
+| Timeline-View liefert korrekt | PgTAP `06_v_contact_timeline.sql` 4/4 ok |
 | TypeScript clean | `npx tsc --noEmit` exit 0 |
 | Unit-Tests grün | `npx vitest run` 109+ passed |
 | End-to-End live | Browser-Smoke-Test in Safari + Chrome |
