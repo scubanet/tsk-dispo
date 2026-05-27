@@ -85,3 +85,24 @@ export interface TimelineFilter {
   date_to?: string
   owner_scope?: 'me' | 'team'
 }
+
+/** Persisted user-custom view aus contact_saved_views Tabelle. */
+export interface ContactSavedView {
+  id: string
+  user_id: string
+  name: string
+  filter: Record<string, unknown>
+  columns: string[]
+  sort: Array<{ col: string; dir: 'asc' | 'desc' }>
+  density: 'compact' | 'comfortable'
+  created_at: string
+  updated_at: string
+}
+
+export interface SavedViewInput {
+  name: string
+  filter: Record<string, unknown>
+  columns: string[]
+  sort: Array<{ col: string; dir: 'asc' | 'desc' }>
+  density: 'compact' | 'comfortable'
+}

@@ -1623,6 +1623,7 @@ export interface ContactSavedView {
   sort: Array<{ col: string; dir: 'asc' | 'desc' }>
   density: 'compact' | 'comfortable'
   created_at: string
+  updated_at: string
 }
 
 export interface SavedViewInput {
