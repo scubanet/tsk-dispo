@@ -598,8 +598,20 @@ SELECT
       ELSE 0
     END
   ), 0)::NUMERIC(10,2)  AS balance_chf,
-  MAX(am.movement_date) AS last_movement_date,
-  COUNT(am.id)          AS movement_count
+  MAX(
+    CASE
+      WHEN am.ref_assignment_id IS NULL THEN am.date
+      WHEN cr.status = 'completed'      THEN am.date
+      ELSE NULL
+    END
+  ) AS last_movement_date,
+  COUNT(
+    CASE
+      WHEN am.ref_assignment_id IS NULL THEN am.id
+      WHEN cr.status = 'completed'      THEN am.id
+      ELSE NULL
+    END
+  ) AS movement_count
 FROM public.contacts c
 JOIN public.contact_instructor ci ON ci.contact_id = c.id
 LEFT JOIN public.account_movements  am ON am.instructor_id      = c.id
