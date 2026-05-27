@@ -1023,15 +1023,17 @@ export interface TimelineEvent {
   source_id: string
 }
 
+/** Unified direction across call/email/whatsapp. */
+export type Direction = 'outbound' | 'inbound'
+
 /** Payload-Shapes pro User-Event-Typ. */
-export interface NotePayload {}
 export interface CallPayload {
   duration_min?: number
-  direction?: 'outbound' | 'inbound'
+  direction?: Direction
 }
 export interface EmailExternalPayload {
   subject: string
-  direction: 'sent' | 'received'
+  direction: Direction
 }
 export interface MeetingPastPayload {
   duration_min?: number
@@ -1043,19 +1045,21 @@ export interface TaskPayload {
   completed_at?: string | null
 }
 export interface WhatsAppLogPayload {
-  direction: 'sent' | 'received'
+  direction: Direction
 }
 
 /** Input für Composer-Insert. */
 export type EventComposerInput =
-  | { event_type: 'note'; summary: string; body?: string }
+  | { event_type: 'note'; summary: string; body?: string; occurred_at?: string }
   | { event_type: 'call'; summary: string; body?: string; payload: CallPayload; occurred_at?: string }
   | { event_type: 'email_external'; summary: string; body?: string; payload: EmailExternalPayload; occurred_at?: string }
   | { event_type: 'meeting_past'; summary: string; body?: string; payload: MeetingPastPayload; occurred_at?: string }
-  | { event_type: 'task'; summary: string; body?: string; payload: TaskPayload }
+  | { event_type: 'task'; summary: string; body?: string; payload: TaskPayload; occurred_at?: string }
   | { event_type: 'whatsapp_log'; summary: string; body?: string; payload: WhatsAppLogPayload; occurred_at?: string }
 
-/** Filter für useContactTimeline / useGlobalActivity. */
+/** Filter für useContactTimeline / useGlobalActivity.
+ *  channel ist eine kanal-zentrische Sicht über alle EventTypes;
+ *  Mapping: 'meeting' → meeting_past, 'note'/'task' bleiben gleich. */
 export interface TimelineFilter {
   event_types?: EventType[]
   channel?: ('email' | 'call' | 'whatsapp' | 'note' | 'meeting' | 'task')[]
