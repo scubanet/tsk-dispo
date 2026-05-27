@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { Lang } from '@/screens/PublicCardScreen.i18n'
 
@@ -17,6 +18,20 @@ const LABELS: Record<Lang, string> = {
  */
 export function LanguageSwitcher({ current }: Props) {
   const [, setSearchParams] = useSearchParams()
+  const menuRef = useRef<HTMLDetailsElement>(null)
+
+  // Outside-click close (same pattern as CardInboxDetailPanel ⋯-menu).
+  // The element has no native auto-close — without this listener the dropdown
+  // stays open until the user clicks the summary again, which feels broken.
+  useEffect(() => {
+    function onDocMouseDown(e: MouseEvent) {
+      const el = menuRef.current
+      if (!el || !el.open) return
+      if (!el.contains(e.target as Node)) el.open = false
+    }
+    document.addEventListener('mousedown', onDocMouseDown)
+    return () => document.removeEventListener('mousedown', onDocMouseDown)
+  }, [])
 
   function pick(lang: Lang) {
     setSearchParams((prev) => {
@@ -24,10 +39,12 @@ export function LanguageSwitcher({ current }: Props) {
       next.set('lang', lang)
       return next
     }, { replace: true })
+    if (menuRef.current) menuRef.current.open = false
   }
 
   return (
     <details
+      ref={menuRef}
       style={{
         position: 'absolute',
         top: 16,
