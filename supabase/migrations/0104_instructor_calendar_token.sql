@@ -1,4 +1,7 @@
--- 0095: instructors.calendar_token für iCal-Feed-Subscription
+-- 0104 (renamed from 0095): instructors.calendar_token für iCal-Feed-Subscription
+-- Rename-Grund: Version 0095 hatte drei kollidierende Files (course_dates_per_type_times,
+-- instructor_calendar_token, skill_definitions). Inhalt war bereits via Studio auf Prod
+-- applied; nur der Tracker war out of sync. Umbenannt auf freie Slots 0104 + 0116.
 --
 -- Pro Instructor ein 24-Byte-Random-Token (32 Zeichen Base64), der als URL-Param
 -- für die Edge Function ical-feed dient. Rotierbar via RPC rotate_calendar_token

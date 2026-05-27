@@ -1,4 +1,8 @@
--- 0095: skill_definitions — Katalog aller PADI-Skills pro Kurs-Typ.
+-- 0116 (renamed from 0095, historisch — gehört logisch zwischen 0094 und 0096):
+-- skill_definitions — Katalog aller PADI-Skills pro Kurs-Typ.
+-- Rename-Grund: Version 0095 hatte drei kollidierende Files; Content war bereits
+-- auf Prod via Studio applied. Umbenannt auf freien Slot 0116 (out-of-order, aber
+-- der Tracker registriert sie als bereits-applied, also keine Re-Execution).
 -- Quelle: apps/web/src/lib/padiOwdSkills.ts (wird post-Pitch in separate Etappe
 -- durch Hook ersetzt, der aus dieser Tabelle liest).
 -- iOS-SkillCheckStore liest direkt aus dieser Tabelle.
