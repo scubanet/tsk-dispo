@@ -149,7 +149,7 @@ CREATE TABLE public.contact_events (
     'note', 'call', 'email_external', 'meeting_past', 'task', 'whatsapp_log'
   )),
   occurred_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-  actor_id     UUID REFERENCES public.contacts(id),
+  actor_id     UUID REFERENCES public.contacts(id) ON DELETE SET NULL,
   summary      TEXT NOT NULL,
   body         TEXT,
   payload      JSONB,
