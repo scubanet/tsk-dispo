@@ -302,14 +302,23 @@ CREATE TABLE public.contact_saved_views (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name        TEXT NOT NULL,
-  filter      JSONB NOT NULL,    -- {roles, tags, status, ...}
-  columns     JSONB NOT NULL,    -- ordered visible columns
-  sort        JSONB NOT NULL,    -- [{column, direction}, ...]
+  filter      JSONB NOT NULL DEFAULT '{}'::jsonb,
+  columns     JSONB NOT NULL DEFAULT '[]'::jsonb,
+  sort        JSONB NOT NULL DEFAULT '[]'::jsonb,
   density     TEXT NOT NULL DEFAULT 'comfortable' CHECK (density IN ('compact', 'comfortable')),
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_contact_saved_views_user ON public.contact_saved_views(user_id);
+-- Unique view-name per user (case-insensitive); covers user_id-prefixed queries.
+CREATE UNIQUE INDEX uq_contact_saved_views_user_name
+  ON public.contact_saved_views(user_id, lower(name));
+
+-- Auto-touch updated_at bei UPDATE.
+CREATE TRIGGER tg_contact_saved_views_touch_updated_at
+  BEFORE UPDATE ON public.contact_saved_views
+  FOR EACH ROW
+  EXECUTE FUNCTION public.touch_contact_saved_views_updated_at();
 
 ALTER TABLE public.contact_saved_views ENABLE ROW LEVEL SECURITY;
 
