@@ -30,6 +30,8 @@ import {
 } from './tabs'
 import { AuditHistoryTab } from './tabs/AuditHistoryTab'
 import { ContactMoreMenu } from './ContactMoreMenu'
+import { isFeatureEnabled } from '@/lib/featureFlags'
+import { ContactDetailPanelV2 } from './ContactDetailPanelV2'
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -119,6 +121,11 @@ export function ContactDetailPanel({
   onClose,
   onSelectContact,
 }: Props) {
+  // Phase G Phase 2: crm_v2 flag routes to the new 3-pane V2 panel.
+  // Rollback = flag off. Parent components continue mounting <ContactDetailPanel/>.
+  if (isFeatureEnabled('crm_v2') && contactId && open) {
+    return <ContactDetailPanelV2 contactId={contactId} onClose={onClose} />
+  }
   const { t } = useTranslation()
   const qc = useQueryClient()
   const { data: contact = null, isLoading: loading, error } = useContactWithSidecars(
