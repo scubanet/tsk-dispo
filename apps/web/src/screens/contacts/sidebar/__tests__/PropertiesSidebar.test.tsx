@@ -38,7 +38,8 @@ describe('PropertiesSidebar', () => {
   it('renders display name + 6 always-on stubs + PADI stub (when instructor sidecar present)', async () => {
     render(<PropertiesSidebar contactId="c1" />, { wrapper })
     await waitFor(() => expect(screen.getByText('Hugo Eugster')).toBeTruthy())
-    expect(screen.getByTestId('stat-band-stub')).toBeTruthy()
+    expect(screen.getByTestId('stat-band')).toBeTruthy()
+    expect(screen.getByText('Saldo')).toBeTruthy()
     expect(screen.getByText('Kontakt')).toBeTruthy()
     expect(screen.getByText('Rollen & Status')).toBeTruthy()
     expect(screen.getByText('Organisationen')).toBeTruthy()
