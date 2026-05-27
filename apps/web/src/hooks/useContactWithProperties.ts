@@ -44,9 +44,9 @@ export function useContactWithProperties(contactId: string) {
           id, kind, display_name, first_name, last_name, birth_date,
           primary_email, primary_phone, primary_language, source,
           created_at, updated_at, owner_id, tags,
-          instructor:contact_instructor(padi_level, padi_pro_number, member_status, active),
-          student:contact_student(pipeline_stage, intake_status, current_level),
-          organization:contact_organization(legal_name, trading_name, category),
+          instructor:contact_instructor!contact_instructor_contact_id_fkey(padi_level, padi_pro_number, member_status, active),
+          student:contact_student!contact_student_contact_id_fkey(pipeline_stage, intake_status, current_level),
+          organization:contact_organization!contact_organization_contact_id_fkey(legal_name, trading_name, category),
           balance:v_contact_balance(balance_chf, last_movement_date)
         `)
         .eq('id', contactId)
