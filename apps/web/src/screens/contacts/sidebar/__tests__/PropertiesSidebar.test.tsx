@@ -44,8 +44,8 @@ describe('PropertiesSidebar', () => {
     expect(screen.getByText('Organisationen')).toBeTruthy()
     expect(screen.getByText('Tags')).toBeTruthy()
     expect(screen.getByText('Wichtige Daten')).toBeTruthy()
-    expect(screen.getByTestId('section-stub-padi')).toBeTruthy()  // role-gated: instructor sidecar present
-    expect(screen.getByTestId('section-stub-audit')).toBeTruthy()
+    expect(screen.getByText('PADI')).toBeTruthy()  // role-gated: instructor sidecar present
+    expect(screen.getByText('Quelle & Audit')).toBeTruthy()
   })
 
   it('shows loading skeleton initially', () => {
@@ -77,6 +77,6 @@ describe('PropertiesSidebar', () => {
       </QueryClientProvider>
     )
     await waitFor(() => expect(screen.getByText('TSK Zürich')).toBeTruthy())
-    expect(screen.queryByTestId('section-stub-padi')).toBeNull()
+    expect(screen.queryByText('PADI')).toBeNull()
   })
 })
