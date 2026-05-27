@@ -56,6 +56,10 @@ CREATE TRIGGER tg_log_pipeline_stage_change
 -- Backfill aus contact_audit_log: alle bisherigen Stage-Changes.
 -- Pattern: table_name='contact_student', operation='UPDATE',
 -- changed_fields ? 'pipeline_stage'.
+-- Wichtig: contact_audit_log hat KEINE FK auf contacts (by design — Audit-
+-- Historie überlebt Contact-DELETE), die neue pipeline_stage_changes-Tabelle
+-- ABER hat FK ON DELETE CASCADE. Orphan-audit-Rows (Contact wurde inzwischen
+-- gelöscht) würden den Backfill crashen — daher EXISTS-Filter.
 INSERT INTO public.pipeline_stage_changes (contact_id, from_stage, to_stage, changed_at, changed_by)
 SELECT
   cal.contact_id,
@@ -66,4 +70,5 @@ SELECT
 FROM public.contact_audit_log cal
 WHERE cal.table_name = 'contact_student'
   AND cal.operation  = 'UPDATE'
-  AND cal.changed_fields ? 'pipeline_stage';
+  AND cal.changed_fields ? 'pipeline_stage'
+  AND EXISTS (SELECT 1 FROM public.contacts WHERE id = cal.contact_id);
