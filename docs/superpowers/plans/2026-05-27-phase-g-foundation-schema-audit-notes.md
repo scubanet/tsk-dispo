@@ -223,3 +223,17 @@ $$;
 - **Intake events in the View should be one-event-per-checklist-row** (using `intake_checklists.updated_at` and `student_id`); per-checkpoint granularity would require extending audit triggers to cover `intake_checklists`.
 - **`is_contact_owner()` is brand new** — Migration 0111 must include the full `CREATE OR REPLACE FUNCTION` (no existing helper to consolidate).
 - **Watch:** `course_participants.student_id` FK to `contacts(id)` was added in 0092 but the header of 0086 contradicts this. Re-verify against production schema before finalising the SELECT in Migration 0112 (a missing FK doesn't break the view but may surprise tests).
+
+---
+
+## Actor-UUID Orphan-Probe (Pre-Phase-2, 2026-05-27)
+
+Drei Probes auf Production gelaufen, alle **0 orphans**:
+
+| Probe | Source-FK | Orphan-Count |
+|---|---|---|
+| `account_movements.created_by → contacts(id)` | nicht retargeted, UUID-Identität via Phase F1 | **0** |
+| `padi_skill_records.instructor_id → contacts(id)` | analog | **0** |
+| `certifications.issued_by_person_id → contacts(id)` | in 0086 retargeted | **0** |
+
+**Implication:** Actor-UUIDs sind komplett konsistent über alle Source-Tabellen die `v_contact_timeline.actor_contact_id` befüllen. `EventCard` kann den `actor_contact_id` UUID direkt mit `contacts`-Lookup auflösen — **kein „Unbekannt"-Orphan-Fallback** im UI nötig. Phase F1 hat die UUID-Identität echt durchgezogen.
