@@ -15,6 +15,24 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>ATOLL — The Scuba OS</title>
     <meta name="description" content="ATOLL — The Scuba OS. Operations, Disposition und Saldi für PADI-Tauchschulen." />
+
+    <!-- Open Graph defaults (used for /c/<slug> previews in WhatsApp / iMessage /
+         LinkedIn / Twitter / etc.). Because Atoll OS is a Vite SPA without SSR,
+         these tags are *static* — crawlers don't execute JS, so they see the
+         same generic AtollCard preview for every card URL. Dynamic per-card OG
+         (with the persona's name + theme image) is a Phase-7.5 roadmap item:
+         a Vercel Edge Function intercepting /c/* and rendering OG-only HTML
+         server-side, similar to how Linktree / Bento do it. -->
+    <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content="AtollCard" />
+    <meta property="og:title" content="Digitale Visitenkarte — AtollCard" />
+    <meta property="og:description" content="Persönliche Karte aus der Atoll-OS-Tauchschul-Plattform. Verbinde dich direkt." />
+    <meta property="og:image" content="/atollcard-logo.png" />
+    <meta property="og:locale" content="de_CH" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Digitale Visitenkarte — AtollCard" />
+    <meta name="twitter:description" content="Persönliche Karte aus der Atoll-OS-Tauchschul-Plattform." />
+    <meta name="twitter:image" content="/atollcard-logo.png" />
   </head>
   <body>
     <div id="root"></div>

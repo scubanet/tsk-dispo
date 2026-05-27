@@ -81,8 +81,10 @@ struct TimeAxisGrid<Content: View>: View {
   private func hourBand(_ hour: Int) -> some View {
     HStack(alignment: .top, spacing: 0) {
       if let tz = secondaryTimeZone {
+        // GL-005 H2: Match the primary hour label (.caption2) for Dynamic-Type
+        // consistency. Both labels share the same `hourLabelWidth` frame.
         Text(secondaryHourString(for: hour, in: tz))
-          .font(.system(size: 9))
+          .font(.caption2)
           .foregroundStyle(.tertiary)
           .frame(width: hourLabelWidth, alignment: .trailing)
           .padding(.trailing, 4)

@@ -26,8 +26,8 @@ export function TweakPanel() {
 
       {open && (
         <div className="tweak-panel glass-strong">
-          <div className="title-3" style={{ marginBottom: 4 }}>Tweaks</div>
-          <div className="caption" style={{ marginBottom: 8 }}>
+          <div className="title-3" style={{ marginBottom: 'var(--space-1)' }}>Tweaks</div>
+          <div className="caption" style={{ marginBottom: 'var(--space-2)' }}>
             Anpassungen werden lokal gespeichert
           </div>
 
@@ -44,7 +44,7 @@ export function TweakPanel() {
 
           <div className="tweak-row">
             <span>Akzent</span>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
               {ACCENTS.map((a) => (
                 <button
                   key={a.value}

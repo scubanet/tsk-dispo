@@ -122,6 +122,7 @@ struct WeekView: View {
       }
     }
     .padding(.vertical, 6)
+    // GL-005 M2: Flat header band — see MonthView weekdayHeader note.
     .background(.thinMaterial.opacity(0.6))
   }
 
@@ -176,6 +177,8 @@ struct WeekView: View {
         }
       }
       .frame(height: zoneHeight)
+      // GL-005 M2: All-day zone is a band inside the time grid (no corners).
+      // Stays as flat material; the event chips themselves carry tints.
       .background(.thinMaterial.opacity(0.5))
     }
   }
@@ -217,7 +220,7 @@ struct WeekView: View {
       state: dropState,
       dayStart: dayStart,
       isPastDrop: { y in
-        snappedDropDate(from: y, dayStart: dayStart) < Date()
+        snappedDropDate(from: y, dayStart: dayStart, grabOffsetY: dropState.grabOffsetY) < Date()
       },
       onPerform: { payload, y in
         handleEventDrop(payload: payload, dayStart: dayStart, locationY: y)
@@ -227,9 +230,10 @@ struct WeekView: View {
 
   @ViewBuilder
   private func dropTimeHint(at hoverY: CGFloat, dayStart: Date) -> some View {
-    let snapped = snappedDropMinutes(from: hoverY)
+    let adjustedY = hoverY - dropState.grabOffsetY
+    let snapped = snappedDropMinutes(from: adjustedY)
     let snappedY = CGFloat(snapped) / 60 * hourHeight
-    let snappedDate = snappedDropDate(from: hoverY, dayStart: dayStart)
+    let snappedDate = snappedDropDate(from: hoverY, dayStart: dayStart, grabOffsetY: dropState.grabOffsetY)
     let isPast = snappedDate < Date()
     let tint: Color = isPast ? .red : .accentColor
 
@@ -248,13 +252,14 @@ struct WeekView: View {
     .allowsHitTesting(false)
   }
 
-  private func snappedDropMinutes(from hoverY: CGFloat) -> Int {
-    let rawMin = max(0, Int((Double(hoverY) / Double(hourHeight)) * 60))
+  private func snappedDropMinutes(from adjustedY: CGFloat) -> Int {
+    let rawMin = max(0, Int((Double(adjustedY) / Double(hourHeight)) * 60))
     return (rawMin / dragSnapMinutes) * dragSnapMinutes
   }
 
-  private func snappedDropDate(from hoverY: CGFloat, dayStart: Date) -> Date {
-    Calendar.current.date(byAdding: .minute, value: snappedDropMinutes(from: hoverY), to: dayStart) ?? dayStart
+  private func snappedDropDate(from hoverY: CGFloat, dayStart: Date, grabOffsetY: CGFloat) -> Date {
+    let adjustedY = hoverY - grabOffsetY
+    return Calendar.current.date(byAdding: .minute, value: snappedDropMinutes(from: adjustedY), to: dayStart) ?? dayStart
   }
 
   private static let hintTimeFormatter: DateFormatter = {
@@ -279,7 +284,7 @@ struct WeekView: View {
     return EventBar(event: ev, measuredHeight: height, style: style, onTap: { selectedEvent = ev })
       .frame(maxWidth: .infinity, minHeight: height, maxHeight: height, alignment: .topLeading)
       .opacity(isPast ? 0.55 : 1.0)
-      .draggableIfPossible(ev.dragPayload)
+      .draggableIfPossible(ev.dragPayload())
       .offset(y: yOffset)
       .padding(.horizontal, 2)
       .contextMenu {
@@ -302,7 +307,7 @@ struct WeekView: View {
   /// EKEvent there. Duration is preserved.
   private func handleEventDrop(payload: SystemEventDragPayload, dayStart: Date, locationY: CGFloat) -> Bool {
     guard let ek = calendarStore.event(withIdentifier: payload.eventIdentifier) else { return false }
-    let newStart = snappedDropDate(from: locationY, dayStart: dayStart)
+    let newStart = snappedDropDate(from: locationY, dayStart: dayStart, grabOffsetY: payload.grabOffsetY)
     guard newStart >= Date() else { return false }
     do {
       try calendarStore.reschedule(ek, to: newStart, undoManager: undoManager)
@@ -379,6 +384,14 @@ struct WeekView: View {
             seenSystemIds.insert(ev.id)
             uniqueEvents.append(ev)
           }
+        case .anniversary:
+          // Synthetic anniversary events from Contacts — dedupe by their
+          // composite id (contactID + day stamp). They share the
+          // string-id seen-set with system events.
+          if !seenSystemIds.contains(ev.id) {
+            seenSystemIds.insert(ev.id)
+            uniqueEvents.append(ev)
+          }
         }
       }
     }
@@ -403,6 +416,10 @@ struct WeekView: View {
       case .system(let ek):
         evStart = cal.startOfDay(for: ek.startDate)
         evEnd = cal.startOfDay(for: ek.endDate.addingTimeInterval(-1))
+      case .anniversary(_, let d, _, _):
+        // Anniversaries are single-day all-day events — span start == end.
+        evStart = cal.startOfDay(for: d)
+        evEnd = evStart
       }
 
       let spanStart = max(evStart, weekStart)

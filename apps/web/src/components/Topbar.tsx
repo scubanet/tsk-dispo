@@ -13,7 +13,7 @@ export function Topbar({ title, subtitle, children }: TopbarProps) {
         <div className="title-2" style={{ lineHeight: 1.1 }}>{title}</div>
         {subtitle && <div className="caption" style={{ marginTop: 2 }}>{subtitle}</div>}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{children}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>{children}</div>
     </div>
   )
 }

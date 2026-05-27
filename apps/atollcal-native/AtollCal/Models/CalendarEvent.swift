@@ -19,6 +19,15 @@ enum CalendarEvent: Identifiable, Hashable {
   /// auf ein einzelnes Modul eingeschränkt. Ein Kurstag mit Theorie + Pool
   /// erzeugt zwei `.atoll`-Instanzen mit unterschiedlichen Modulen.
   case atoll(assignment: Assignment, dayDate: Date, module: CourseModule?)
+  /// Ein synthetisches Jahrestag-Event aus dem Contacts-Framework. EventKit
+  /// spiegelt nur Geburtstage in seinen Birthday-Calendar; Jahrestage holt
+  /// Apple's Calendar.app aus `CNContact.dates` (label = `CNLabelDateAnniversary`).
+  /// Wir machen es genauso — `ContactsAnniversaryStore` lädt die Kontakte,
+  /// und die Calendar-Views synthesisieren pro Jahr ein all-day Event.
+  ///
+  /// `ageYears` ist gesetzt, wenn der User beim Anlegen das Jahr eingetragen
+  /// hat — wir können dann den passenden "12. Jahrestag"-Suffix bilden.
+  case anniversary(contactName: String, dayDate: Date, ageYears: Int?, contactID: String)
 
   var id: String {
     switch self {
@@ -30,6 +39,9 @@ enum CalendarEvent: Identifiable, Hashable {
         return "atoll-\(a.id)-\(dayStamp)-\(m.type.rawValue)-\(Int(m.start.timeIntervalSince1970))"
       }
       return "atoll-\(a.id)-\(dayStamp)"
+    case .anniversary(_, let d, _, let cid):
+      let dayStamp = Int(Calendar.current.startOfDay(for: d).timeIntervalSince1970)
+      return "ann-\(cid)-\(dayStamp)"
     }
   }
 
@@ -43,6 +55,11 @@ enum CalendarEvent: Identifiable, Hashable {
         return "\(courseTitle) — \(m.type.label)"
       }
       return "\(courseTitle) (\(a.role.rawValue))"
+    case .anniversary(let name, _, let age, _):
+      if let age, age > 0 {
+        return "\(name)s \(age). Jahrestag"
+      }
+      return "\(name)s Jahrestag"
     }
   }
 
@@ -54,6 +71,8 @@ enum CalendarEvent: Identifiable, Hashable {
       return e.startDate
     case .atoll(_, let d, let m):
       if let m { return m.start }
+      return Calendar.current.startOfDay(for: d)
+    case .anniversary(_, let d, _, _):
       return Calendar.current.startOfDay(for: d)
     }
   }
@@ -68,6 +87,9 @@ enum CalendarEvent: Identifiable, Hashable {
       if let m { return m.end }
       let dayStart = Calendar.current.startOfDay(for: d)
       return Calendar.current.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
+    case .anniversary(_, let d, _, _):
+      let dayStart = Calendar.current.startOfDay(for: d)
+      return Calendar.current.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
     }
   }
 
@@ -75,6 +97,7 @@ enum CalendarEvent: Identifiable, Hashable {
     switch self {
     case .system(let e): return e.isAllDay
     case .atoll(_, _, let m): return m == nil
+    case .anniversary: return true
     }
   }
 
@@ -87,6 +110,8 @@ enum CalendarEvent: Identifiable, Hashable {
       // Kurs-Location (z. B. "Zürich") wenn nicht gesetzt.
       if let m, let loc = m.location, !loc.isEmpty { return loc }
       return a.course?.location
+    case .anniversary:
+      return nil
     }
   }
 
@@ -100,12 +125,51 @@ enum CalendarEvent: Identifiable, Hashable {
       return .gray
     case .atoll(let a, _, _):
       return .atollRole(a.role)
+    case .anniversary:
+      // Apple's Calendar.app tints anniversary entries with the same warm
+      // pink as the Birthdays calendar — keep that visual association.
+      return .pink
     }
   }
 
   var isATOLL: Bool {
     if case .atoll = self { return true }
     return false
+  }
+
+  /// GL-006 Phase 1.5f — SF Symbol name for "special day" markers that
+  /// should appear in the mini-month dot row alongside (or instead of) a
+  /// colour dot. Returns `nil` for ordinary events.
+  ///
+  /// Detection (title first so anniversaries in the Birthdays calendar get
+  /// the heart icon instead of the generic cake):
+  /// - Title contains "Jahrestag" / "Anniversary" → heart icon
+  /// - Title contains "Geburtstag" / "Birthday" → cake icon
+  /// - Otherwise, if it lives in the Apple Birthdays calendar
+  ///   (`EKCalendar.type == .birthday`) → cake icon (fallback for events
+  ///   that carry just the contact's name)
+  ///
+  /// Title-based detection is locale-aware: DE + EN keywords for now;
+  /// extend the list as needed for other locales.
+  var specialIconName: String? {
+    switch self {
+    case .anniversary:
+      return "heart.fill"
+    case .atoll:
+      return nil
+    case .system(let ek):
+      let title = (ek.title ?? "").lowercased()
+      if title.contains("jahrestag") || title.contains("anniversary") {
+        return "heart.fill"
+      }
+      if title.contains("geburtstag") || title.contains("birthday") {
+        return "birthday.cake.fill"
+      }
+      if ek.calendar?.type == .birthday {
+        return "birthday.cake.fill"
+      }
+      return nil
+    }
   }
 
   /// `AssignmentRole` if this is an ATOLL event — used by EventDetailSheet to

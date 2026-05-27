@@ -85,8 +85,13 @@ struct MonthPreview: View {
         if isToday {
           Circle().fill(Color.accentColor).frame(width: circleSize, height: circleSize)
         }
+        // GL-005 H2: Preview grid is pixel-locked (compact 14 / non-compact 22
+        // circle, dayNumSize matches). `.minimumScaleFactor` keeps numbers
+        // legible at AX content-size categories without breaking the layout.
         Text("\(cal.component(.day, from: day))")
           .font(.system(size: dayNumSize, weight: isToday ? .bold : .regular))
+          .minimumScaleFactor(0.75)
+          .lineLimit(1)
           .foregroundStyle(dayColor(
             isToday: isToday,
             isCurrentMonth: isCurrentMonth,

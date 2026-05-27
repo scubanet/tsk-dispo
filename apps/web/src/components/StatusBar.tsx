@@ -9,7 +9,7 @@ export function StatusBar() {
   const formatted = time.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' })
   return (
     <div className="statusbar">
-      <span style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+      <span style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-2)' }}>
         <span className="mono" style={{ fontWeight: 600 }}>{formatted}</span>
         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', opacity: 0.85 }}>ATOLL</span>
       </span>

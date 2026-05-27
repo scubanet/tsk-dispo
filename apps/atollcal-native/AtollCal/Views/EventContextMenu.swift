@@ -73,6 +73,9 @@ struct AtollEventContextMenu: View {
           Label("Auf atoll.swiss öffnen", systemImage: "arrow.up.right.square")
         }
       }
+    case .anniversary:
+      // Anniversaries live in the Contacts app — no in-app edit/delete.
+      EmptyView()
     }
   }
 }

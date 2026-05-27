@@ -35,6 +35,8 @@
 	<false/>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>AtollCal zeigt deine Termine aus iCloud, Google und anderen Kalendern an.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>AtollCal zeigt Geburtstage und Jahrestage deiner Kontakte direkt in der Agenda an.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>
@@ -42,21 +44,22 @@
 	</dict>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
-		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>swiss.atoll.cal.system-event</string>
-			<key>UTTypeDescription</key>
-			<string>AtollCal System Event Drag</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.data</string>
 			</array>
+			<key>UTTypeDescription</key>
+			<string>AtollCal System Event Drag</string>
+			<key>UTTypeIdentifier</key>
+			<string>swiss.atoll.cal.system-event</string>
 			<key>UTTypeTagSpecification</key>
 			<dict/>
 		</dict>

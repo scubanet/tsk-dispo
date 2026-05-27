@@ -28,8 +28,12 @@ struct SidebarView: View {
 
   @Environment(SystemCalendarStore.self) private var calendarStore
   @Environment(AtollEventLoader.self) private var atollLoader
+  @Environment(ContactsAnniversaryStore.self) private var anniversaryStore
   @Environment(AuthState.self) private var auth
   @Environment(\.locale) private var locale
+  /// GL-005 H1: Reduced Motion respect — drops the `.snappy` curve on the
+  /// agenda auto-scroll for vestibular-sensitive users.
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   @AppStorage("enabledCalendarIds") private var enabledCalendarIdsJSON: String = "[]"
   @AppStorage("atollEnabled") private var atollEnabled: Bool = true
@@ -49,18 +53,32 @@ struct SidebarView: View {
 
   /// Event count per day (start-of-day) for the mini-cal's three months window.
   /// Drives the dots beneath day numbers.
-  @State private var eventCountByDay: [Date: Int] = [:]
+  /// Per-day list of distinct event colours (max 3, deduped). Drives the
+  /// coloured dots beneath each day number in the mini-month.
+  @State private var eventColorsByDay: [Date: [Color]] = [:]
+
+  /// GL-006 Phase 1.5f — per-day list of SF Symbol names for special-event
+  /// icons (birthdays, anniversaries). Rendered alongside the colour dots.
+  @State private var specialIconsByDay: [Date: [String]] = [:]
 
   /// Scroll-position binding for the agenda — drives auto-scroll to today on
   /// appear and when `focusedDate` changes via the mini-cal.
   @State private var scrolledBucketId: Date?
+
+  /// Suppresses the agenda→mini-month sync while we are *programmatically*
+  /// scrolling the agenda (e.g., after the user tapped a day in the mini-cal).
+  /// Without this flag, the chain `focusedDate → scroll → scrolledBucketId →
+  /// focusedDate` would chase its own tail during the animation. Released
+  /// ~600 ms later, which covers `.snappy` plus a small buffer.
+  @State private var suppressScrollSync: Bool = false
 
   var body: some View {
     VStack(spacing: 0) {
       MiniMonthCalendar(
         displayedMonth: miniCalMonth,
         focusedDate: $focusedDate,
-        eventCountByDay: eventCountByDay,
+        eventColorsByDay: eventColorsByDay,
+        specialIconsByDay: specialIconsByDay,
         locale: locale,
         onMonthChange: { delta in
           let cal = Calendar.current
@@ -92,6 +110,9 @@ struct SidebarView: View {
       SidebarFooter(onOpenSettings: onOpenSettings)
     }
     .frame(maxHeight: .infinity)
+    // GL-005 M2: Sidebar background uses Apple's native `.regularMaterial`
+    // per HIG. Glass-card tokens are for floating content, not for the
+    // sidebar chrome itself.
     .background(.regularMaterial)
     .task {
       await rebuildAll()
@@ -101,18 +122,50 @@ struct SidebarView: View {
     .onReceive(NotificationCenter.default.publisher(for: .EKEventStoreChanged)) { _ in
       Task { await rebuildAll() }
     }
+    // GL-006 Phase 1.5h: react when the Contacts-anniversary store finishes
+    // its (async) refresh — without this hook the first rebuild runs with
+    // an empty anniversaries array and we never re-render once the data
+    // arrives.
+    .onChange(of: anniversaryStore.anniversaries) { _, _ in
+      Task { await rebuildAll() }
+    }
     .onChange(of: focusedDate) { _, newDate in
       let cal = Calendar.current
       if !cal.isDate(newDate, equalTo: miniCalMonth, toGranularity: .month) {
         miniCalMonth = newDate
         Task { await rebuildMiniCalCounts() }
       }
-      // Scroll the agenda to the focused day if a bucket exists for it.
       let key = cal.startOfDay(for: newDate)
+      // Skip the programmatic scroll if the agenda is already at this day —
+      // that path is taken when the user *scrolled* the agenda and the
+      // reverse-sync just bumped focusedDate. Re-animating would yank the
+      // scroll position from under their finger.
+      if let current = scrolledBucketId, cal.isDate(current, inSameDayAs: key) {
+        return
+      }
+      // Scroll the agenda to the focused day if a bucket exists for it.
       if buckets.contains(where: { $0.id == key }) {
-        withAnimation(.snappy) {
+        // Guard the reverse sync while the programmatic scroll animates.
+        suppressScrollSync = true
+        withAnimation(reduceMotion ? nil : .snappy) {
           scrolledBucketId = key
         }
+        Task { @MainActor in
+          try? await Task.sleep(for: .milliseconds(600))
+          suppressScrollSync = false
+        }
+      }
+    }
+    // Fantastical-style reverse sync: as the agenda scrolls, the mini-month
+    // follows the day at the top of the visible region. `scrolledBucketId` is
+    // the `.scrollPosition(id:)` binding inside `AgendaList`; it fires both
+    // when the user drags AND when we programmatically scroll. The
+    // `suppressScrollSync` flag breaks the latter loop.
+    .onChange(of: scrolledBucketId) { _, newDate in
+      guard let newDate, !suppressScrollSync else { return }
+      let cal = Calendar.current
+      if !cal.isDate(focusedDate, inSameDayAs: newDate) {
+        focusedDate = newDate
       }
     }
   }
@@ -192,6 +245,19 @@ struct SidebarView: View {
       }
     }
 
+    // GL-006 Phase 1.5h: anniversaries from Contacts framework. Apple
+    // doesn't mirror these into EventKit; we synthesise yearly all-day
+    // events so they land alongside birthdays in the agenda. They count as
+    // "personal" content, so the `.atollOnly` filter hides them.
+    if sourceFilter.includesSystem {
+      for ann in anniversaryStore.anniversaries {
+        for ev in CalendarEvent.expandAnniversary(ann, in: range) {
+          let key = cal.startOfDay(for: ev.startDate)
+          allDayByDay[key, default: []].append(ev)
+        }
+      }
+    }
+
     // Build buckets: keep days with at least one event, plus today and
     // tomorrow as anchors even if empty (so the user always sees their
     // immediate context).
@@ -215,8 +281,10 @@ struct SidebarView: View {
     buckets = result
   }
 
-  /// Count events per day across a 3-month window around the displayed month
-  /// (prev / current / next). Used for the mini-calendar's event dots.
+  /// Collect distinct event colours per day across a 3-month window around
+  /// the displayed month (prev / current / next). Drives the mini-calendar's
+  /// coloured dot row beneath each day. Deduped per-day; first occurrence
+  /// wins so the dot order is stable.
   private func rebuildMiniCalCounts() async {
     let cal = Calendar.current
     guard let monthStart = cal.dateInterval(of: .month, for: miniCalMonth)?.start,
@@ -229,20 +297,60 @@ struct SidebarView: View {
       ? calendarStore.events(in: range, calendarIds: sysIds.isEmpty ? nil : sysIds)
       : []
 
-    var counts: [Date: Int] = [:]
+    var colorsByDay: [Date: [Color]] = [:]
+    var iconsByDay: [Date: [String]] = [:]
+
+    func appendIfNew(_ color: Color, on key: Date) {
+      var list = colorsByDay[key] ?? []
+      if !list.contains(where: { $0.description == color.description }) {
+        list.append(color)
+      }
+      colorsByDay[key] = list
+    }
+
+    func appendIcon(_ name: String, on key: Date) {
+      var list = iconsByDay[key] ?? []
+      if !list.contains(name) {
+        list.append(name)
+      }
+      iconsByDay[key] = list
+    }
+
     for ek in sysEvents {
       let key = cal.startOfDay(for: ek.startDate)
-      counts[key, default: 0] += 1
+      let event = CalendarEvent.system(ek)
+      appendIfNew(event.color, on: key)
+      if let icon = event.specialIconName {
+        appendIcon(icon, on: key)
+      }
     }
     if sourceFilter.includesATOLL, atollEnabled {
       for assignment in atollLoader.assignments {
         for ev in CalendarEvent.expandATOLL(assignment, in: range) {
           let key = cal.startOfDay(for: ev.startDate)
-          counts[key, default: 0] += 1
+          appendIfNew(ev.color, on: key)
+          if let icon = ev.specialIconName {
+            appendIcon(icon, on: key)
+          }
         }
       }
     }
-    eventCountByDay = counts
+    // Anniversaries surface as heart icons in the mini-month — same dot+icon
+    // pattern as birthdays. The store's `anniversaries` list is empty until
+    // the user grants Contacts access, so this is a no-op without consent.
+    if sourceFilter.includesSystem {
+      for ann in anniversaryStore.anniversaries {
+        for ev in CalendarEvent.expandAnniversary(ann, in: range) {
+          let key = cal.startOfDay(for: ev.startDate)
+          appendIfNew(ev.color, on: key)
+          if let icon = ev.specialIconName {
+            appendIcon(icon, on: key)
+          }
+        }
+      }
+    }
+    eventColorsByDay = colorsByDay
+    specialIconsByDay = iconsByDay
   }
 
   private func isMultiDay(_ ev: CalendarEvent) -> Bool {
@@ -253,343 +361,15 @@ struct SidebarView: View {
   }
 }
 
-// MARK: - Data structs
-
-/// One day's worth of agenda content, used as a row in the scroll list.
-struct DayBucket: Identifiable, Hashable {
-  let id: Date
-  let date: Date
-  let allDayEvents: [CalendarEvent]
-  let timedEvents: [CalendarEvent]
-
-  static func == (lhs: DayBucket, rhs: DayBucket) -> Bool { lhs.id == rhs.id }
-  func hash(into hasher: inout Hasher) { hasher.combine(id) }
-}
-
-// MARK: - Mini month calendar
-
-private struct MiniMonthCalendar: View {
-  let displayedMonth: Date
-  @Binding var focusedDate: Date
-  let eventCountByDay: [Date: Int]
-  let locale: Locale
-  let onMonthChange: (Int) -> Void
-
-  private let columnWidth: CGFloat = 30
-  private let dayHeight: CGFloat = 34
-  private let todayCircleSize: CGFloat = 22
-
-  var body: some View {
-    VStack(spacing: 6) {
-      // Header
-      HStack(spacing: 4) {
-        Text(monthTitle)
-          .font(.headline)
-        Spacer()
-        Button { onMonthChange(-1) } label: {
-          Image(systemName: "chevron.left")
-            .font(.caption.weight(.semibold))
-        }
-        .buttonStyle(.plain)
-        .help("Vormonat")
-        Button { onMonthChange(1) } label: {
-          Image(systemName: "chevron.right")
-            .font(.caption.weight(.semibold))
-        }
-        .buttonStyle(.plain)
-        .help("Folgemonat")
-      }
-
-      // Column labels (KW + Mo–So)
-      HStack(spacing: 0) {
-        Text("KW")
-          .font(.system(size: 9, weight: .semibold))
-          .foregroundStyle(.tertiary)
-          .frame(width: columnWidth - 6, alignment: .center)
-        ForEach(weekdayLabels, id: \.self) { lbl in
-          Text(lbl)
-            .font(.system(size: 9, weight: .semibold))
-            .foregroundStyle(.tertiary)
-            .frame(width: columnWidth, alignment: .center)
-        }
-      }
-
-      // Week rows
-      ForEach(monthWeeks, id: \.first) { week in
-        if let first = week.first {
-          HStack(spacing: 0) {
-            Text("\(weekNumber(first))")
-              .font(.system(size: 9))
-              .foregroundStyle(.tertiary)
-              .frame(width: columnWidth - 6, alignment: .center)
-            ForEach(week, id: \.self) { day in
-              dayCell(day)
-                .frame(width: columnWidth, height: dayHeight)
-            }
-          }
-        }
-      }
-    }
-  }
-
-  @ViewBuilder
-  private func dayCell(_ day: Date) -> some View {
-    let cal = Calendar.current
-    let isCurrentMonth = cal.isDate(day, equalTo: displayedMonth, toGranularity: .month)
-    let isToday = cal.isDateInToday(day)
-    let isSelected = cal.isDate(day, inSameDayAs: focusedDate) && !isToday
-    let weekday = cal.component(.weekday, from: day)
-    let isWeekend = weekday == 1 || weekday == 7
-    let dotCount = min(3, eventCountByDay[cal.startOfDay(for: day)] ?? 0)
-
-    VStack(spacing: 2) {
-      ZStack {
-        if isToday {
-          Circle().fill(Color.accentColor).frame(width: todayCircleSize, height: todayCircleSize)
-        } else if isSelected {
-          Circle()
-            .strokeBorder(Color.accentColor, lineWidth: 1.4)
-            .frame(width: todayCircleSize, height: todayCircleSize)
-        }
-        Text("\(cal.component(.day, from: day))")
-          .font(.system(size: 12, weight: isToday ? .bold : .regular))
-          .foregroundStyle(dayNumberColor(
-            isToday: isToday,
-            isCurrentMonth: isCurrentMonth,
-            isWeekend: isWeekend
-          ))
-      }
-      HStack(spacing: 2) {
-        ForEach(0..<dotCount, id: \.self) { _ in
-          Circle()
-            .fill(isToday ? Color.accentColor : Color.accentColor.opacity(0.55))
-            .frame(width: 4, height: 4)
-        }
-      }
-      .frame(height: 5)
-    }
-    .contentShape(Rectangle())
-    .onTapGesture { focusedDate = day }
-  }
-
-  private func dayNumberColor(isToday: Bool, isCurrentMonth: Bool, isWeekend: Bool) -> Color {
-    if isToday { return .white }
-    if !isCurrentMonth { return Color.secondary.opacity(0.45) }
-    if isWeekend { return Color.secondary.opacity(0.85) }
-    return .primary
-  }
-
-  // MARK: - Date helpers
-
-  private var monthTitle: String {
-    let f = DateFormatter()
-    f.locale = locale
-    f.dateFormat = "MMMM yyyy"
-    return f.string(from: displayedMonth)
-  }
-
-  private var weekdayLabels: [String] {
-    let f = DateFormatter()
-    f.locale = locale
-    f.dateFormat = "EEEEE"  // single-letter / short weekday
-    var cal = Calendar(identifier: .iso8601)
-    cal.firstWeekday = 2
-    guard let ref = cal.date(from: DateComponents(year: 2026, month: 1, day: 5)) else {
-      return ["M", "D", "M", "D", "F", "S", "S"]
-    }
-    return (0..<7).compactMap { offset in
-      cal.date(byAdding: .day, value: offset, to: ref).map { d in
-        // Use 2-letter shorter form
-        let g = DateFormatter()
-        g.locale = locale
-        g.dateFormat = "EE"
-        return g.string(from: d)
-      }
-    }
-  }
-
-  private var monthWeeks: [[Date]] {
-    var cal = Calendar(identifier: .iso8601)
-    cal.firstWeekday = 2
-    let comps = cal.dateComponents([.year, .month], from: displayedMonth)
-    guard let monthStart = cal.date(from: comps) else { return [] }
-    let weekday = cal.component(.weekday, from: monthStart)
-    let daysFromMonday = (weekday + 5) % 7
-    guard let firstMonday = cal.date(byAdding: .day, value: -daysFromMonday, to: monthStart) else { return [] }
-    return (0..<6).map { weekIdx in
-      (0..<7).compactMap { dayIdx in
-        cal.date(byAdding: .day, value: weekIdx * 7 + dayIdx, to: firstMonday)
-      }
-    }
-  }
-
-  private func weekNumber(_ d: Date) -> Int {
-    var cal = Calendar(identifier: .iso8601)
-    cal.firstWeekday = 2
-    return cal.component(.weekOfYear, from: d)
-  }
-}
-
-// MARK: - Agenda list
-
-private struct AgendaList: View {
-  let buckets: [DayBucket]
-  let locale: Locale
-  @Binding var scrolledBucketId: Date?
-  let onSelectDay: (Date) -> Void
-  let onSelectEvent: (CalendarEvent) -> Void
-  let onLoadMore: () -> Void
-
-  var body: some View {
-    ScrollView {
-      LazyVStack(alignment: .leading, spacing: 18) {
-        ForEach(buckets) { bucket in
-          DayBucketRow(
-            bucket: bucket,
-            locale: locale,
-            onSelectDay: onSelectDay,
-            onSelectEvent: onSelectEvent
-          )
-          .id(bucket.id)
-        }
-        // Sentinel — triggers the next chunk to load when it scrolls into view.
-        Color.clear
-          .frame(height: 1)
-          .onAppear { onLoadMore() }
-      }
-      .padding(.horizontal, 12)
-      .padding(.vertical, 14)
-      .scrollTargetLayout()
-    }
-    .scrollPosition(id: $scrolledBucketId, anchor: .top)
-  }
-}
-
-private struct DayBucketRow: View {
-  let bucket: DayBucket
-  let locale: Locale
-  let onSelectDay: (Date) -> Void
-  let onSelectEvent: (CalendarEvent) -> Void
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Button { onSelectDay(bucket.date) } label: {
-        HStack(spacing: 6) {
-          Text(headerLabel)
-            .font(.system(size: 11, weight: .semibold))
-            .tracking(0.4)
-            .foregroundStyle(isToday ? Color.accentColor : Color.secondary)
-          Spacer(minLength: 0)
-        }
-      }
-      .buttonStyle(.plain)
-
-      ForEach(bucket.allDayEvents) { ev in
-        AllDayChip(event: ev)
-          .onTapGesture { onSelectEvent(ev) }
-      }
-
-      ForEach(bucket.timedEvents) { ev in
-        TimedEventRow(event: ev, locale: locale)
-          .onTapGesture { onSelectEvent(ev) }
-      }
-    }
-  }
-
-  private var isToday: Bool {
-    Calendar.current.isDateInToday(bucket.date)
-  }
-
-  private var headerLabel: String {
-    let cal = Calendar.current
-    let f = DateFormatter()
-    f.locale = locale
-    if cal.isDateInToday(bucket.date) {
-      f.dateFormat = "dd.MM.yy"
-      return "HEUTE  ·  \(f.string(from: bucket.date))"
-    }
-    if cal.isDateInTomorrow(bucket.date) {
-      f.dateFormat = "dd.MM.yy"
-      return "MORGEN  ·  \(f.string(from: bucket.date))"
-    }
-    f.dateFormat = "EEEE  ·  dd.MM.yy"
-    return f.string(from: bucket.date).uppercased()
-  }
-}
-
-private struct AllDayChip: View {
-  let event: CalendarEvent
-
-  var body: some View {
-    HStack(spacing: 6) {
-      if let role = event.atollRole {
-        Text(roleAbbrev(role))
-          .font(.system(size: 8, weight: .heavy))
-          .tracking(0.3)
-          .foregroundStyle(.white)
-          .padding(.horizontal, 5)
-          .padding(.vertical, 1.5)
-          .background(Color.atollRole(role))
-          .clipShape(Capsule())
-      }
-      Text(event.title)
-        .font(.system(size: 12, weight: .medium))
-        .lineLimit(1)
-        .foregroundStyle(.primary)
-      Spacer(minLength: 0)
-    }
-    .padding(.horizontal, 9)
-    .padding(.vertical, 5)
-    .background(event.color.opacity(0.18))
-    .overlay(
-      RoundedRectangle(cornerRadius: 7)
-        .strokeBorder(event.color.opacity(0.25), lineWidth: 0.5)
-    )
-    .clipShape(.rect(cornerRadius: 7))
-    .contentShape(Rectangle())
-  }
-
-  private func roleAbbrev(_ role: AssignmentRole) -> String {
-    switch role {
-    case .haupt:  return "LEAD"
-    case .assist: return "ASS"
-    case .opfer:  return "STBY"
-    case .dmt:    return "DMT"
-    }
-  }
-}
-
-private struct TimedEventRow: View {
-  let event: CalendarEvent
-  let locale: Locale
-
-  var body: some View {
-    HStack(spacing: 8) {
-      Circle()
-        .fill(event.color)
-        .frame(width: 7, height: 7)
-      Text(timeString)
-        .font(.system(size: 11, weight: .medium))
-        .monospacedDigit()
-        .foregroundStyle(.secondary)
-        .frame(minWidth: 42, alignment: .leading)
-      Text(event.title)
-        .font(.system(size: 12))
-        .lineLimit(1)
-        .foregroundStyle(.primary)
-      Spacer(minLength: 0)
-    }
-    .padding(.vertical, 1)
-    .contentShape(Rectangle())
-  }
-
-  private var timeString: String {
-    let f = DateFormatter()
-    f.locale = locale
-    f.timeStyle = .short
-    return f.string(from: event.startDate)
-  }
-}
+// MARK: - Extracted components
+//
+// `DayBucket`, `MiniMonthCalendar`, `AgendaList`, `DayBucketRow`, `AllDayChip`,
+// `TimedEventRow` were extracted in Pragmatic Phase 1 (GL-006) so the iPhone
+// root layout can reuse them alongside the macOS sidebar.
+//
+// See:
+// - `Views/Components/MiniMonthCalendar.swift`
+// - `Views/Components/AgendaList.swift` (carries the `DayBucket` struct too)
 
 // MARK: - Footer
 
@@ -629,12 +409,13 @@ private struct SidebarFooter: View {
       } label: {
         HStack(spacing: 6) {
           AvatarCircle(user: user)
+          // GL-005 H2: Dynamic Type-aware menu label.
           Text(user.firstName)
-            .font(.system(size: 11, weight: .medium))
+            .font(.caption.weight(.medium))
             .foregroundStyle(.primary)
             .lineLimit(1)
           Image(systemName: "chevron.down")
-            .font(.system(size: 8, weight: .semibold))
+            .font(.caption2.weight(.semibold))
             .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 8)
@@ -652,8 +433,9 @@ private struct SidebarFooter: View {
   // MARK: Timezone pill
 
   private var timezonePill: some View {
+    // GL-005 H2: Dynamic Type-aware. Capsule wraps text so it grows with AX.
     Text(timezoneAbbrev)
-      .font(.system(size: 11, weight: .semibold))
+      .font(.caption.weight(.semibold))
       .tracking(0.3)
       .foregroundStyle(.secondary)
       .padding(.horizontal, 8)
@@ -674,8 +456,13 @@ private struct AvatarCircle: View {
   private let size: CGFloat = 20
 
   var body: some View {
+    // GL-005 H2: Avatar is a fixed 20 × 20 circle — Dynamic-Type expansion
+    // would overflow the bounds. Keep the system size and shrink with
+    // `.minimumScaleFactor` if AX users hit two-character initials.
     Text(initialsString)
       .font(.system(size: 9, weight: .heavy))
+      .minimumScaleFactor(0.75)
+      .lineLimit(1)
       .foregroundStyle(.white)
       .frame(width: size, height: size)
       .background(Color.padiLevel(user.padiLevel))

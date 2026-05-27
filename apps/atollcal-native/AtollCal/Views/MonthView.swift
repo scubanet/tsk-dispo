@@ -100,8 +100,12 @@ struct MonthView: View {
 
             HStack(spacing: 3) {
               Rectangle().fill(span.event.color).frame(width: 2)
+              // GL-005 H2: Month grid is pixel-locked via CellMetrics
+              // (eventRowHeight ~14 pt). `.minimumScaleFactor` lets the
+              // Dynamic-Type system still scale within the bar bounds.
               Text(span.event.title)
                 .font(.system(size: 9))
+                .minimumScaleFactor(0.75)
                 .lineLimit(1)
                 .foregroundStyle(.primary)
               Spacer(minLength: 0)
@@ -153,6 +157,9 @@ struct MonthView: View {
       }
     }
     .padding(.vertical, 6)
+    // GL-005 M2: Intentionally a flat material band, not a glass card —
+    // this is a full-width column-header strip (no rounded corners), same
+    // pattern Apple uses for List/Table headers.
     .background(.thinMaterial.opacity(0.6))
   }
 
@@ -206,8 +213,10 @@ struct MonthView: View {
             Rectangle()
               .fill(ev.color)
               .frame(width: 2, height: 10)
+            // GL-005 H2: pixel-locked cell. See note above.
             Text(ev.title)
               .font(.system(size: 9))
+              .minimumScaleFactor(0.75)
               .lineLimit(1)
               .foregroundStyle(isCurrentMonth ? .primary : .secondary)
           }
@@ -215,7 +224,7 @@ struct MonthView: View {
           .frame(height: CellMetrics.eventRowHeight, alignment: .leading)
           .contentShape(Rectangle())
           .onTapGesture { selectedEvent = ev }
-          .draggableIfPossible(ev.dragPayload)
+          .draggableIfPossible(ev.dragPayload())
           .contextMenu {
             AtollEventContextMenu(
               event: ev,
@@ -229,8 +238,11 @@ struct MonthView: View {
           }
         }
         if hiddenCount > 0 {
+          // GL-005 H2: pixel-locked cell. See note above.
           Text("+\(hiddenCount) weitere")
             .font(.system(size: 8))
+            .minimumScaleFactor(0.75)
+            .lineLimit(1)
             .foregroundStyle(.secondary)
             .padding(.horizontal, 2)
             .frame(height: CellMetrics.moreRowHeight, alignment: .leading)

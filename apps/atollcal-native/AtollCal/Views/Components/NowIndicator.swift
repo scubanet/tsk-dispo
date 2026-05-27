@@ -25,8 +25,10 @@ struct NowIndicator: View {
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
         .atollGlassPill(tint: .red)
+      // GL-005 M1: Brand-red token instead of system `.red`. Matches the
+      // glass-pill tint above and aligns with the web tokens.css `--brand-red`.
       Rectangle()
-        .fill(Color.red)
+        .fill(Color.brandRed)
         .frame(height: 1.5)
     }
     .offset(y: yOffset - 9)  // centre pill on the time line

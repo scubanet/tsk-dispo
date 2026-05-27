@@ -47,6 +47,17 @@ struct EventDetailSheet: View {
           if let notes = ek.notes, !notes.isEmpty {
             Section("Notizen") { Text(notes) }
           }
+        case .anniversary(let name, _, let age, _):
+          Section("Jahrestag") {
+            Label("Kontakt: \(name)", systemImage: "person.crop.circle")
+            if let age, age > 0 {
+              Label("\(age). Jahrestag", systemImage: "heart.fill")
+                .foregroundStyle(.pink)
+            }
+            Label("Aus deinen Kontakten", systemImage: "person.text.rectangle")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
         case .atoll(let assignment, _, let module):
           Section("ATOLL — Tauchkurs") {
             Label("Rolle: \(assignment.role.rawValue)", systemImage: "person.badge.shield.checkmark")
@@ -137,6 +148,11 @@ struct EventDetailSheet: View {
       EventEditorSheet(editing: ek)
     case .atoll(let assignment, _, _):
       EventEditorSheet(readonlyAtoll: assignment)
+    case .anniversary:
+      // Anniversaries are read-only — they live in Contacts, not in
+      // EventKit, so the in-app editor doesn't apply. Show a placeholder.
+      Text("Jahrestage werden in der Kontakte-App verwaltet.")
+        .padding()
     }
   }
 

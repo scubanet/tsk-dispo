@@ -13,10 +13,14 @@ import AtollCore
 /// the admin web flow against Supabase, not on the calendar surface.
 struct SystemEventDragPayload: Codable, Transferable {
   let eventIdentifier: String
-  /// Duration in minutes — used by the drop handler to shift the cursor
-  /// position by half the event height, so the cursor "feels" anchored at
-  /// the event's center instead of its top edge.
+  /// Duration in minutes — preserved through the drop and used for any
+  /// future bar-shaped drop preview.
   let durationMinutes: Int
+  /// Vertical offset (in pts of the source EventBar's local coord space)
+  /// between the bar's top edge and the cursor at mouse-down. Lets the
+  /// drop handler anchor the new event start at the grab point instead of
+  /// the cursor: `newStart = cursor.y - grabOffsetY`.
+  let grabOffsetY: CGFloat
 
   static var transferRepresentation: some TransferRepresentation {
     CodableRepresentation(contentType: .atollSystemEvent)
@@ -42,10 +46,16 @@ extension CalendarEvent {
   }
 
   /// Drag payload for this event, or `nil` when the event cannot be moved.
-  var dragPayload: SystemEventDragPayload? {
+  /// `grabOffsetY` defaults to 0 — the live-grab-tracked value is supplied
+  /// from the source view's gesture state at drag-start time.
+  func dragPayload(grabOffsetY: CGFloat = 0) -> SystemEventDragPayload? {
     guard case .system(let ek) = self, let id = ek.eventIdentifier else { return nil }
     let durationMin = max(1, Int(ek.endDate.timeIntervalSince(ek.startDate) / 60))
-    return SystemEventDragPayload(eventIdentifier: id, durationMinutes: durationMin)
+    return SystemEventDragPayload(
+      eventIdentifier: id,
+      durationMinutes: durationMin,
+      grabOffsetY: grabOffsetY
+    )
   }
 }
 
@@ -60,6 +70,7 @@ extension View {
       self
     }
   }
+
 }
 
 /// Live drag/drop state for the calendar grids — captures the current cursor
@@ -74,10 +85,15 @@ final class CalendarDropState {
   /// multi-column views (WeekView) render the live hint only in the hovered
   /// column.
   var activeDayStart: Date?
+  /// Grab-point offset captured from the source event's simultaneous press
+  /// gesture. Lets the live hint anchor the snap line at the actual event-
+  /// top position instead of the cursor.
+  var grabOffsetY: CGFloat = 0
 
   func reset() {
     hoverY = nil
     activeDayStart = nil
+    grabOffsetY = 0
   }
 }
 

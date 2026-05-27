@@ -107,7 +107,7 @@ struct DayView: View {
                 state: dropState,
                 dayStart: Calendar.current.startOfDay(for: date),
                 isPastDrop: { y in
-                  snappedDropDate(from: y) < Date()
+                  snappedDropDate(from: y, grabOffsetY: dropState.grabOffsetY) < Date()
                 },
                 onPerform: { payload, y in
                   handleEventDrop(payload: payload, locationY: y)
@@ -207,8 +207,9 @@ struct DayView: View {
       .padding(.horizontal, 8)
       .padding(.vertical, 6)
       .frame(maxWidth: .infinity, alignment: .leading)
-      .background(.thinMaterial)
-      .clipShape(.rect(cornerRadius: 8))
+      // GL-005 M2: Liquid-Glass discipline — use the token instead of raw
+      // `.thinMaterial`. `atollGlassCard` already applies the rounded shape.
+      .atollGlassCard(cornerRadius: 8)
       .padding(.horizontal, 6)
       .padding(.top, 4)
     }
@@ -270,7 +271,7 @@ struct DayView: View {
     return EventBar(event: ev, measuredHeight: height, onTap: { selectedEvent = ev })
       .frame(width: barWidth, height: height, alignment: .topLeading)
       .opacity(isPast ? 0.55 : 1.0)
-      .draggableIfPossible(ev.dragPayload)
+      .draggableIfPossible(ev.dragPayload())
       .offset(x: xOffset, y: yOffset)
       .contextMenu {
         AtollEventContextMenu(
@@ -374,9 +375,12 @@ struct DayView: View {
   /// most predictable landing). Turns red when over a past time.
   @ViewBuilder
   private func dropTimeHint(at hoverY: CGFloat) -> some View {
-    let snapped = snappedDropMinutes(from: hoverY)
+    let adjustedY = hoverY - dropState.grabOffsetY
+    let snapped = snappedDropMinutes(from: adjustedY)
     let snappedY = CGFloat(snapped) / 60 * hourHeight
-    let snappedDate = snappedDropDate(from: hoverY)
+    let cal = Calendar.current
+    let dayStart = cal.startOfDay(for: date)
+    let snappedDate = cal.date(byAdding: .minute, value: snapped, to: dayStart) ?? dayStart
     let isPast = snappedDate < Date()
     let tint: Color = isPast ? .red : .accentColor
 
@@ -397,16 +401,19 @@ struct DayView: View {
     .allowsHitTesting(false)
   }
 
-  /// Snap a hover y to the 15-min minute offset from `dayStart`.
-  private func snappedDropMinutes(from hoverY: CGFloat) -> Int {
-    let rawMin = max(0, Int((Double(hoverY) / Double(hourHeight)) * 60))
+  /// Snap a (grab-offset-adjusted) y to the 15-min minute offset from `dayStart`.
+  private func snappedDropMinutes(from adjustedY: CGFloat) -> Int {
+    let rawMin = max(0, Int((Double(adjustedY) / Double(hourHeight)) * 60))
     return (rawMin / dragSnapMinutes) * dragSnapMinutes
   }
 
-  private func snappedDropDate(from hoverY: CGFloat) -> Date {
+  /// Snap a hover y into a Date — applies grab-offset compensation so the
+  /// resulting date anchors at the event-top position, not at the cursor.
+  private func snappedDropDate(from hoverY: CGFloat, grabOffsetY: CGFloat) -> Date {
     let cal = Calendar.current
     let dayStart = cal.startOfDay(for: date)
-    return cal.date(byAdding: .minute, value: snappedDropMinutes(from: hoverY), to: dayStart) ?? dayStart
+    let adjustedY = hoverY - grabOffsetY
+    return cal.date(byAdding: .minute, value: snappedDropMinutes(from: adjustedY), to: dayStart) ?? dayStart
   }
 
   private static let hintTimeFormatter: DateFormatter = {
@@ -417,7 +424,7 @@ struct DayView: View {
 
   private func handleEventDrop(payload: SystemEventDragPayload, locationY: CGFloat) -> Bool {
     guard let ek = calendarStore.event(withIdentifier: payload.eventIdentifier) else { return false }
-    let newStart = snappedDropDate(from: locationY)
+    let newStart = snappedDropDate(from: locationY, grabOffsetY: payload.grabOffsetY)
     // Reject drops into the past so a fat-fingered drag can't accidentally
     // backdate a meeting. The system also shows the .forbidden cursor over
     // these zones (see CalendarRescheduleDropDelegate.dropUpdated).

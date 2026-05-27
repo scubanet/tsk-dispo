@@ -67,7 +67,7 @@ export class ErrorBoundary extends Component<Props, State> {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 24,
+          padding: 'var(--space-6)',
           fontFamily:
             'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
           color: '#1a1a1a',
@@ -97,8 +97,8 @@ export class ErrorBoundary extends Component<Props, State> {
           </h1>
           <p
             style={{
-              marginTop: 12,
-              marginBottom: 24,
+              marginTop: 'var(--space-3)',
+              marginBottom: 'var(--space-6)',
               fontSize: 14,
               lineHeight: 1.55,
               color: '#555',
@@ -107,7 +107,7 @@ export class ErrorBoundary extends Component<Props, State> {
             Die App hat einen unerwarteten Fehler erwischt. Du kannst es noch einmal versuchen — oder die Seite komplett neu laden, falls der Fehler bleibt.
           </p>
 
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
             <button
               type="button"
               onClick={this.handleReset}
@@ -147,7 +147,7 @@ export class ErrorBoundary extends Component<Props, State> {
           {this.state.error && (
             <details
               style={{
-                marginTop: 24,
+                marginTop: 'var(--space-6)',
                 fontSize: 12,
                 color: '#666',
                 cursor: 'pointer',
@@ -156,8 +156,8 @@ export class ErrorBoundary extends Component<Props, State> {
               <summary style={{ outline: 'none' }}>Technische Details</summary>
               <pre
                 style={{
-                  marginTop: 8,
-                  padding: 12,
+                  marginTop: 'var(--space-2)',
+                  padding: 'var(--space-3)',
                   borderRadius: 8,
                   background: '#f3f3f3',
                   color: '#333',

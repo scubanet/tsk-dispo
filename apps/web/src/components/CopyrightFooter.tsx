@@ -17,7 +17,7 @@ export function CopyrightFooter({ variant = 'compact', align = 'center' }: Props
       <div
         style={{
           textAlign: align,
-          marginTop: 24,
+          marginTop: 'var(--space-6)',
           padding: '12px 0',
           fontSize: 11,
           opacity: 0.7,
@@ -28,7 +28,7 @@ export function CopyrightFooter({ variant = 'compact', align = 'center' }: Props
         <div style={{ fontWeight: 600, letterSpacing: '.12em', fontSize: 10, opacity: 0.85 }}>
           ATOLL · The Scuba OS
         </div>
-        <div style={{ marginTop: 4 }}>
+        <div style={{ marginTop: 'var(--space-1)' }}>
           © {YEAR} <strong>Dominik Weckherlin</strong> · alle Rechte vorbehalten
         </div>
         <div style={{ opacity: 0.7, marginTop: 2 }}>

@@ -1,0 +1,1018 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		020E74CC060D4D8B62D7F88C /* PersonaDetailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF9EA4EC5922218A5D83466C /* PersonaDetailCard.swift */; };
+		0256D062C3A63977539D3052 /* WalletPassService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3394A51F2C024F805F1E961 /* WalletPassService.swift */; };
+		02F818E66899213F85FF30FB /* LeadDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75025658B644A1CB964FB078 /* LeadDetailSheet.swift */; };
+		058990E30B6D52621537DCE9 /* SectionHeaderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DDF1C15ABB6346446CF4982 /* SectionHeaderRow.swift */; };
+		074E23C474A31C49DC34EB5D /* CardRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C4103F1F421B5B8AC239988 /* CardRepository.swift */; };
+		080C89035AE9AD73AA05EA0C /* CachedLeadRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893C450DB4C6A9849885FEA3 /* CachedLeadRepository.swift */; };
+		10ED7E190606982888D52699 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFCD41B8C7100861D50EFDC /* AppDelegate.swift */; };
+		134BAC56E9D76A179149B2F5 /* SharedCardSnapshotWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C543BE0423DB500F0EEBC3 /* SharedCardSnapshotWriter.swift */; };
+		16D6D1096A9DE686E17F6FFC /* CachedCardRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 693746E81CC0D7A3F3C151B6 /* CachedCardRepository.swift */; };
+		1799D5DECBEFF5229F29AEE0 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD22DDB48E332DA75D974031 /* NotificationService.swift */; };
+		1C097D7531660EC33C8A0719 /* AnalyticsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9697E1C9635F8C47D297FA55 /* AnalyticsStore.swift */; };
+		1DA9B649DC54F08BFB0BD914 /* MutationDrainerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7EC67AF3FA5D6AC0B99797 /* MutationDrainerTests.swift */; };
+		1FD971A0AEE0C464CF363713 /* CoreNFC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADB9AAB5D89B6A4B13F5CAC3 /* CoreNFC.framework */; };
+		20C9342FA565B3523795E5D0 /* Scan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D2E988FB0A4C369F34F5117 /* Scan.swift */; };
+		2134E86AC6C357FCF7933E20 /* SpecialtyCatalogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FBE08C99BFB171E60BDD77E /* SpecialtyCatalogService.swift */; };
+		267B34AE3C8BD7C4FFFB30D8 /* LockScreenCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB41865704C760FE1F1EEC3 /* LockScreenCardView.swift */; };
+		27DB68409BDFD70A6F94E57A /* SyncStatusSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C11B7620F77510A2ABEB9D07 /* SyncStatusSection.swift */; };
+		2D63CEC809C30E5E63F949C8 /* LeadStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC7D4C518A50A8F556593C8 /* LeadStore.swift */; };
+		2DBB0C8F69BD0A3EFFA5FABE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 290E64F52816BFCD5666EDC5 /* Assets.xcassets */; };
+		30A3EB768AEBC3132F9C1998 /* AtollCardWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D6BCEDB52DFA099126F9A0A /* AtollCardWidgetBundle.swift */; };
+		3228D8FC7680EC13E64E5BFD /* PushTokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526BB5A0B952B449A2007659 /* PushTokenService.swift */; };
+		3626821DAE8769862E9277D2 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54EAA293D24C0FC6DD41A47 /* Config.swift */; };
+		39F36E75CA31828456D8C5FF /* AtollCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7B65C0E62765271C53DB5CE /* AtollCardTests.swift */; };
+		3B44CB15F7C7D5DE0943CB46 /* NFCWriteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6220CD9A8599226461AF8D /* NFCWriteSheet.swift */; };
+		3DEBECE3D3237FCEA2623A08 /* Lead.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06D0A8B1D486CDC84255506B /* Lead.swift */; };
+		4D40569CCC0FA488EC80205F /* CacheStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67D5ECF0279FA5A5B7E5218A /* CacheStoreTests.swift */; };
+		4F5BE002A1C6D428B9959205 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EA6925B4439D37594C833B2 /* SettingsView.swift */; };
+		556D2A814B99FCC25C6BA4CC /* StatTriple.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B04DAC8D1D36DCE005760C6 /* StatTriple.swift */; };
+		57CF424EBDBA393A067B3B0D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E6433291C01B132B00E4E104 /* WidgetKit.framework */; };
+		5D8EFB49D40C33E62672FE05 /* ToastCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E263CEE5EF735A0D79CC555F /* ToastCenter.swift */; };
+		60DB162B6F354646366334D2 /* MutationDrainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F15A2AC397E181D8018AC9D /* MutationDrainer.swift */; };
+		672F5C9F4C5FD61A44628467 /* NFCWriterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF3EC8204527F739E0DC63B8 /* NFCWriterService.swift */; };
+		68566DF096F2205AF4A94AFE /* ScanEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 781216E02B70C7F3C953DAF8 /* ScanEntity.swift */; };
+		6C3E220B255341E78F579A25 /* AtollDesign in Frameworks */ = {isa = PBXBuildFile; productRef = 051D639791D7AEE8EC9C1FD4 /* AtollDesign */; };
+		6E19DE296379F1EA73ADDD73 /* AvatarUploadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20406F9A6C9BF3FAFCA2097 /* AvatarUploadService.swift */; };
+		7517597DD33344BD9AE14B47 /* Avatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0837E84DDF58E32473EF9BC9 /* Avatar.swift */; };
+		7735FEB7EB904D2AE4A326B0 /* LeadRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34C33A5EE59D7B3835A99DCE /* LeadRepository.swift */; };
+		7CA9B9657BE7DCC2A8C4B1AE /* CacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 446145FB52C6C5AB78288EBC /* CacheStore.swift */; };
+		7F47290806F88B4B5217E756 /* PassKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63DD108F984C70B8AFB0623F /* PassKit.framework */; };
+		8027FE255B6CCB03D3EFB46E /* AtollCardLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204D5DB57B6ADDD36140551D /* AtollCardLogo.swift */; };
+		8661BA536464F8F79E6233BB /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = BA7BBA0D51F5480F39D7A4B0 /* Supabase */; };
+		8766953A737FEA7F80FCC0B4 /* AnalyticsRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA015A107FCA8C91FCCB71E /* AnalyticsRepository.swift */; };
+		87819219E41F8FF24ABAC521 /* ReachabilityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEA81BD90DAEAB3D5BABA69D /* ReachabilityMonitor.swift */; };
+		8C1BB1E3044F3018342D7C9D /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03BC26567122D3CE35A58A44 /* Person.swift */; };
+		8DB484E38E42EF0BE7DA9EB0 /* MockSeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAECA4B146AE12029E900DE3 /* MockSeed.swift */; };
+		8DB486A5A4A7750C1F1C186B /* BizCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7664D2FC2A6CF7983610BD0 /* BizCardView.swift */; };
+		9038A36E4B9D7F657979B40E /* LeadEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3274AEA88FFBD5A92444037F /* LeadEntity.swift */; };
+		918B2BE230B9F98E3C418BD1 /* FloatingActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5959F5BA26B3A5D5DA7612D /* FloatingActionBar.swift */; };
+		93BF6FC0943189BE6003402B /* SharedCardSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25DE0A6C460FCA729AD2FF3C /* SharedCardSnapshot.swift */; };
+		9470B6D565D042A58705835B /* CachedAnalyticsRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500FD13F7904BA494D5C32B0 /* CachedAnalyticsRepository.swift */; };
+		9A1285DFB029D213CD41A46B /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DFB52A8AF9F3F038B850CC4 /* UserNotifications.framework */; };
+		9F9F72860FD95B4B5BAC0CB6 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7662DEB30CE8567B9354EB42 /* Card.swift */; };
+		A30A4D716A9537D0A6551DA9 /* CacheConverters.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71C21B3C086B757F58FF755 /* CacheConverters.swift */; };
+		A34D75373387F693F0E5A7B7 /* CardEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9529E95C2E2E75B7ECF1BCD /* CardEntity.swift */; };
+		A38BE0145BBA46A4FF10AD95 /* CardTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD32FBC443C6F8DD14EBD864 /* CardTheme.swift */; };
+		A95E7DD101EBF512EC57C17A /* LockScreenCardWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FD9561A3B466E2E3EDF155C /* LockScreenCardWidget.swift */; };
+		AB11A0FC113C8E66C6A0932A /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE324C9FE154A2B315D3D99 /* AnalyticsView.swift */; };
+		ABC9B682FA2864D306F4D9BB /* ShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623A1B2B1F32E3152645A2F8 /* ShareService.swift */; };
+		AC470795B52C66F485733AA1 /* SharedCardSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25DE0A6C460FCA729AD2FF3C /* SharedCardSnapshot.swift */; };
+		B4F2695820E150BF66D6E5FC /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F4C07662E8BCDA7870507 /* RootView.swift */; };
+		B6F8A524D450920522DE0400 /* LeadRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC107649554D8B115288C4D /* LeadRowView.swift */; };
+		BA734ECBE3181C4F454ED50C /* CardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7C525DFFA9645265EAB166 /* CardStore.swift */; };
+		BCBC8A961BDF3230E578C44D /* FullscreenQRView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A822146529073CF8B1B2474C /* FullscreenQRView.swift */; };
+		BCD76BB2F6B0A0DBDC29EC95 /* SharedCardSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A5D51CCF75E91B90941814 /* SharedCardSnapshotTests.swift */; };
+		BECF335E26F71B79A3D78EAB /* PillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF141B12C48BE92A52F75357 /* PillView.swift */; };
+		BFA7B097A856A7BB007406E0 /* PendingLeadStatusMutation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BED69D484D605162446C83 /* PendingLeadStatusMutation.swift */; };
+		C809BC0E878D111EF46ABC4C /* CardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08E47ACCCA42B51C3EF5FEDB /* CardsView.swift */; };
+		CACEC7032C1B0E0EE2B78DDA /* HeaderBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A80148568850620D8D63EEF2 /* HeaderBar.swift */; };
+		D5ED2CD93495570009E30AEC /* AtollCardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F9133806647427036FE6C1 /* AtollCardApp.swift */; };
+		E09B3E8A1E0AF7FF2F0585E0 /* AtollCardWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DFA515579E16B9941D0154A4 /* AtollCardWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E177E579CAF58D0882C40D1B /* CardEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F11DC1431FD9C0EC07E74BE /* CardEditorSheet.swift */; };
+		E89A8092D96F82F49ABF9EF0 /* PendingBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634C5337888109712328D7A7 /* PendingBadge.swift */; };
+		F1CDA81C98D9FC52941808BF /* NFCTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152D1705B7753CFE2D4E93A /* NFCTag.swift */; };
+		F23DC0AFF0D601547BB19590 /* QRCodeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E8D08449C6B59275F62A554 /* QRCodeService.swift */; };
+		F3C1BD8A0D97902A219CB8A3 /* LeadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452357BA70D091DE26B3EA7A /* LeadsView.swift */; };
+		FB2D3CAB19BBBFAFEBCC0EBD /* DeadLetterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1B7B162BC6F6462AFA96A77 /* DeadLetterView.swift */; };
+		FC48E95FFE74DC76730F3DE5 /* OfflineBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CA173D5EA73FA10D8C94283 /* OfflineBanner.swift */; };
+		FE28DD7007AA930FF8D45404 /* AtollCore in Frameworks */ = {isa = PBXBuildFile; productRef = 181D94E3857497006C981410 /* AtollCore */; };
+		FE63B7DD42DD907B7977E5A6 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BFD7ABB0B58471B224E2500 /* SwiftUI.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B75FCCA60E3EADD07D8370B1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 76921612FA075AB1CE188C6E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E47E59AF3270E715ECAE4DF9;
+			remoteInfo = AtollCard;
+		};
+		E6E495724BA47580BF7F44A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 76921612FA075AB1CE188C6E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2658DD85E43C4BAACEC4D9EB;
+			remoteInfo = AtollCardWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		DDF4BC4B7EA8665BA841E416 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E09B3E8A1E0AF7FF2F0585E0 /* AtollCardWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		03BC26567122D3CE35A58A44 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
+		05A5D51CCF75E91B90941814 /* SharedCardSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCardSnapshotTests.swift; sourceTree = "<group>"; };
+		06D0A8B1D486CDC84255506B /* Lead.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lead.swift; sourceTree = "<group>"; };
+		082245A2553C303BFA639B42 /* AtollCard.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AtollCard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0837E84DDF58E32473EF9BC9 /* Avatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Avatar.swift; sourceTree = "<group>"; };
+		08E47ACCCA42B51C3EF5FEDB /* CardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardsView.swift; sourceTree = "<group>"; };
+		08F9133806647427036FE6C1 /* AtollCardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtollCardApp.swift; sourceTree = "<group>"; };
+		0DFB52A8AF9F3F038B850CC4 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		0EA6925B4439D37594C833B2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		1C4103F1F421B5B8AC239988 /* CardRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardRepository.swift; sourceTree = "<group>"; };
+		204D5DB57B6ADDD36140551D /* AtollCardLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtollCardLogo.swift; sourceTree = "<group>"; };
+		2152D1705B7753CFE2D4E93A /* NFCTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCTag.swift; sourceTree = "<group>"; };
+		25DE0A6C460FCA729AD2FF3C /* SharedCardSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCardSnapshot.swift; sourceTree = "<group>"; };
+		290E64F52816BFCD5666EDC5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2D2E988FB0A4C369F34F5117 /* Scan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scan.swift; sourceTree = "<group>"; };
+		2EBAF4953756F81CB199B5C7 /* AtollCardTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = AtollCardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2FBE08C99BFB171E60BDD77E /* SpecialtyCatalogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpecialtyCatalogService.swift; sourceTree = "<group>"; };
+		2FFCD41B8C7100861D50EFDC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3274AEA88FFBD5A92444037F /* LeadEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadEntity.swift; sourceTree = "<group>"; };
+		34C33A5EE59D7B3835A99DCE /* LeadRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadRepository.swift; sourceTree = "<group>"; };
+		3885FE0D2C04AEDE9CF77F7F /* AtollCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AtollCore; path = "../../swift-packages/AtollCore"; sourceTree = SOURCE_ROOT; };
+		3A6220CD9A8599226461AF8D /* NFCWriteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCWriteSheet.swift; sourceTree = "<group>"; };
+		3F15A2AC397E181D8018AC9D /* MutationDrainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutationDrainer.swift; sourceTree = "<group>"; };
+		446145FB52C6C5AB78288EBC /* CacheStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheStore.swift; sourceTree = "<group>"; };
+		452357BA70D091DE26B3EA7A /* LeadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadsView.swift; sourceTree = "<group>"; };
+		4DC107649554D8B115288C4D /* LeadRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadRowView.swift; sourceTree = "<group>"; };
+		4E8D08449C6B59275F62A554 /* QRCodeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeService.swift; sourceTree = "<group>"; };
+		500FD13F7904BA494D5C32B0 /* CachedAnalyticsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedAnalyticsRepository.swift; sourceTree = "<group>"; };
+		526BB5A0B952B449A2007659 /* PushTokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushTokenService.swift; sourceTree = "<group>"; };
+		5B04DAC8D1D36DCE005760C6 /* StatTriple.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatTriple.swift; sourceTree = "<group>"; };
+		5B6F4C07662E8BCDA7870507 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		5BFD7ABB0B58471B224E2500 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		623A1B2B1F32E3152645A2F8 /* ShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareService.swift; sourceTree = "<group>"; };
+		634C5337888109712328D7A7 /* PendingBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingBadge.swift; sourceTree = "<group>"; };
+		63DD108F984C70B8AFB0623F /* PassKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PassKit.framework; path = System/Library/Frameworks/PassKit.framework; sourceTree = SDKROOT; };
+		66770099AF65748DBF69A121 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		67D5ECF0279FA5A5B7E5218A /* CacheStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheStoreTests.swift; sourceTree = "<group>"; };
+		693746E81CC0D7A3F3C151B6 /* CachedCardRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedCardRepository.swift; sourceTree = "<group>"; };
+		6CA173D5EA73FA10D8C94283 /* OfflineBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineBanner.swift; sourceTree = "<group>"; };
+		6D7C525DFFA9645265EAB166 /* CardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardStore.swift; sourceTree = "<group>"; };
+		6FD9561A3B466E2E3EDF155C /* LockScreenCardWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenCardWidget.swift; sourceTree = "<group>"; };
+		75025658B644A1CB964FB078 /* LeadDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadDetailSheet.swift; sourceTree = "<group>"; };
+		7662DEB30CE8567B9354EB42 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
+		781216E02B70C7F3C953DAF8 /* ScanEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEntity.swift; sourceTree = "<group>"; };
+		7D6BCEDB52DFA099126F9A0A /* AtollCardWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtollCardWidgetBundle.swift; sourceTree = "<group>"; };
+		7D7EC67AF3FA5D6AC0B99797 /* MutationDrainerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutationDrainerTests.swift; sourceTree = "<group>"; };
+		7FB41865704C760FE1F1EEC3 /* LockScreenCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenCardView.swift; sourceTree = "<group>"; };
+		85C543BE0423DB500F0EEBC3 /* SharedCardSnapshotWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCardSnapshotWriter.swift; sourceTree = "<group>"; };
+		893C450DB4C6A9849885FEA3 /* CachedLeadRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedLeadRepository.swift; sourceTree = "<group>"; };
+		9697E1C9635F8C47D297FA55 /* AnalyticsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsStore.swift; sourceTree = "<group>"; };
+		9DDF1C15ABB6346446CF4982 /* SectionHeaderRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderRow.swift; sourceTree = "<group>"; };
+		9EA015A107FCA8C91FCCB71E /* AnalyticsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsRepository.swift; sourceTree = "<group>"; };
+		9F11DC1431FD9C0EC07E74BE /* CardEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardEditorSheet.swift; sourceTree = "<group>"; };
+		9FE6B6266E634BEA5E98A844 /* AtollCard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AtollCard.entitlements; sourceTree = "<group>"; };
+		A80148568850620D8D63EEF2 /* HeaderBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderBar.swift; sourceTree = "<group>"; };
+		A822146529073CF8B1B2474C /* FullscreenQRView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenQRView.swift; sourceTree = "<group>"; };
+		AC90C22C21211705146A28A6 /* AtollCardWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AtollCardWidget.entitlements; sourceTree = "<group>"; };
+		ACC7D4C518A50A8F556593C8 /* LeadStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadStore.swift; sourceTree = "<group>"; };
+		ADB9AAB5D89B6A4B13F5CAC3 /* CoreNFC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreNFC.framework; path = System/Library/Frameworks/CoreNFC.framework; sourceTree = SDKROOT; };
+		AF9EA4EC5922218A5D83466C /* PersonaDetailCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonaDetailCard.swift; sourceTree = "<group>"; };
+		B5959F5BA26B3A5D5DA7612D /* FloatingActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingActionBar.swift; sourceTree = "<group>"; };
+		B9529E95C2E2E75B7ECF1BCD /* CardEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardEntity.swift; sourceTree = "<group>"; };
+		BCE324C9FE154A2B315D3D99 /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
+		BF3EC8204527F739E0DC63B8 /* NFCWriterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCWriterService.swift; sourceTree = "<group>"; };
+		C11B7620F77510A2ABEB9D07 /* SyncStatusSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStatusSection.swift; sourceTree = "<group>"; };
+		C3BED69D484D605162446C83 /* PendingLeadStatusMutation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingLeadStatusMutation.swift; sourceTree = "<group>"; };
+		C71C21B3C086B757F58FF755 /* CacheConverters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheConverters.swift; sourceTree = "<group>"; };
+		CAECA4B146AE12029E900DE3 /* MockSeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSeed.swift; sourceTree = "<group>"; };
+		CD22DDB48E332DA75D974031 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		CD32FBC443C6F8DD14EBD864 /* CardTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardTheme.swift; sourceTree = "<group>"; };
+		D1B7B162BC6F6462AFA96A77 /* DeadLetterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeadLetterView.swift; sourceTree = "<group>"; };
+		D20406F9A6C9BF3FAFCA2097 /* AvatarUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarUploadService.swift; sourceTree = "<group>"; };
+		D3394A51F2C024F805F1E961 /* WalletPassService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletPassService.swift; sourceTree = "<group>"; };
+		D7B65C0E62765271C53DB5CE /* AtollCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtollCardTests.swift; sourceTree = "<group>"; };
+		DE54AFFC407A9FDE1BA9ADB9 /* AtollDesign */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AtollDesign; path = "../../swift-packages/AtollDesign"; sourceTree = SOURCE_ROOT; };
+		DEA81BD90DAEAB3D5BABA69D /* ReachabilityMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReachabilityMonitor.swift; sourceTree = "<group>"; };
+		DFA515579E16B9941D0154A4 /* AtollCardWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = AtollCardWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E263CEE5EF735A0D79CC555F /* ToastCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastCenter.swift; sourceTree = "<group>"; };
+		E6433291C01B132B00E4E104 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		E7664D2FC2A6CF7983610BD0 /* BizCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BizCardView.swift; sourceTree = "<group>"; };
+		F54EAA293D24C0FC6DD41A47 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		F97C5630AE219020E3944FAC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		FF141B12C48BE92A52F75357 /* PillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		33D6C679B8BD673867F1232F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE28DD7007AA930FF8D45404 /* AtollCore in Frameworks */,
+				6C3E220B255341E78F579A25 /* AtollDesign in Frameworks */,
+				8661BA536464F8F79E6233BB /* Supabase in Frameworks */,
+				1FD971A0AEE0C464CF363713 /* CoreNFC.framework in Frameworks */,
+				7F47290806F88B4B5217E756 /* PassKit.framework in Frameworks */,
+				9A1285DFB029D213CD41A46B /* UserNotifications.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5A95BE5F39E93C67A7F01107 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE63B7DD42DD907B7977E5A6 /* SwiftUI.framework in Frameworks */,
+				57CF424EBDBA393A067B3B0D /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		015E1451E8C3FB2D7AA7930C /* AtollCardWidget */ = {
+			isa = PBXGroup;
+			children = (
+				AC90C22C21211705146A28A6 /* AtollCardWidget.entitlements */,
+				7D6BCEDB52DFA099126F9A0A /* AtollCardWidgetBundle.swift */,
+				66770099AF65748DBF69A121 /* Info.plist */,
+				7FB41865704C760FE1F1EEC3 /* LockScreenCardView.swift */,
+				6FD9561A3B466E2E3EDF155C /* LockScreenCardWidget.swift */,
+			);
+			path = AtollCardWidget;
+			sourceTree = "<group>";
+		};
+		0A12759CD924006C6B8438E4 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				D1B7B162BC6F6462AFA96A77 /* DeadLetterView.swift */,
+				0EA6925B4439D37594C833B2 /* SettingsView.swift */,
+				C11B7620F77510A2ABEB9D07 /* SyncStatusSection.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		0BE390AE481074B63480B36B /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				204D5DB57B6ADDD36140551D /* AtollCardLogo.swift */,
+				0837E84DDF58E32473EF9BC9 /* Avatar.swift */,
+				E7664D2FC2A6CF7983610BD0 /* BizCardView.swift */,
+				B5959F5BA26B3A5D5DA7612D /* FloatingActionBar.swift */,
+				A80148568850620D8D63EEF2 /* HeaderBar.swift */,
+				4DC107649554D8B115288C4D /* LeadRowView.swift */,
+				6CA173D5EA73FA10D8C94283 /* OfflineBanner.swift */,
+				634C5337888109712328D7A7 /* PendingBadge.swift */,
+				FF141B12C48BE92A52F75357 /* PillView.swift */,
+				9DDF1C15ABB6346446CF4982 /* SectionHeaderRow.swift */,
+				5B04DAC8D1D36DCE005760C6 /* StatTriple.swift */,
+				E263CEE5EF735A0D79CC555F /* ToastCenter.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		155731764280E26665D939E0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				082245A2553C303BFA639B42 /* AtollCard.app */,
+				2EBAF4953756F81CB199B5C7 /* AtollCardTests.xctest */,
+				DFA515579E16B9941D0154A4 /* AtollCardWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		19BF0931E99DA09611B33B66 /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				9EA015A107FCA8C91FCCB71E /* AnalyticsRepository.swift */,
+				9697E1C9635F8C47D297FA55 /* AnalyticsStore.swift */,
+				500FD13F7904BA494D5C32B0 /* CachedAnalyticsRepository.swift */,
+				693746E81CC0D7A3F3C151B6 /* CachedCardRepository.swift */,
+				893C450DB4C6A9849885FEA3 /* CachedLeadRepository.swift */,
+				1C4103F1F421B5B8AC239988 /* CardRepository.swift */,
+				6D7C525DFFA9645265EAB166 /* CardStore.swift */,
+				34C33A5EE59D7B3835A99DCE /* LeadRepository.swift */,
+				ACC7D4C518A50A8F556593C8 /* LeadStore.swift */,
+				CAECA4B146AE12029E900DE3 /* MockSeed.swift */,
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		1C450F8500A0789C317E1578 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				ADB9AAB5D89B6A4B13F5CAC3 /* CoreNFC.framework */,
+				63DD108F984C70B8AFB0623F /* PassKit.framework */,
+				5BFD7ABB0B58471B224E2500 /* SwiftUI.framework */,
+				0DFB52A8AF9F3F038B850CC4 /* UserNotifications.framework */,
+				E6433291C01B132B00E4E104 /* WidgetKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		5C9A8CAAF88AE6243D7C5170 /* AtollCard */ = {
+			isa = PBXGroup;
+			children = (
+				2FFCD41B8C7100861D50EFDC /* AppDelegate.swift */,
+				290E64F52816BFCD5666EDC5 /* Assets.xcassets */,
+				9FE6B6266E634BEA5E98A844 /* AtollCard.entitlements */,
+				08F9133806647427036FE6C1 /* AtollCardApp.swift */,
+				F54EAA293D24C0FC6DD41A47 /* Config.swift */,
+				F97C5630AE219020E3944FAC /* Info.plist */,
+				E66FCB793D407AF5D9F94A85 /* Cache */,
+				FC9499360D0448E0785E4198 /* Models */,
+				19BF0931E99DA09611B33B66 /* Repositories */,
+				DA77ABBFED1B7F7C1E06E05E /* Services */,
+				71E65B16C54AC5335BE70E99 /* Theme */,
+				A6A84D9AD60DAB1F591CA859 /* Views */,
+			);
+			path = AtollCard;
+			sourceTree = "<group>";
+		};
+		601E073E5601B89965BB70A5 /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				BCE324C9FE154A2B315D3D99 /* AnalyticsView.swift */,
+			);
+			path = Analytics;
+			sourceTree = "<group>";
+		};
+		71E65B16C54AC5335BE70E99 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				CD32FBC443C6F8DD14EBD864 /* CardTheme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		844E33A25BD15B747DABB6BD /* Cards */ = {
+			isa = PBXGroup;
+			children = (
+				9F11DC1431FD9C0EC07E74BE /* CardEditorSheet.swift */,
+				08E47ACCCA42B51C3EF5FEDB /* CardsView.swift */,
+				AF9EA4EC5922218A5D83466C /* PersonaDetailCard.swift */,
+			);
+			path = Cards;
+			sourceTree = "<group>";
+		};
+		9D7778895816A12CB864CFB0 /* Share */ = {
+			isa = PBXGroup;
+			children = (
+				A822146529073CF8B1B2474C /* FullscreenQRView.swift */,
+				3A6220CD9A8599226461AF8D /* NFCWriteSheet.swift */,
+			);
+			path = Share;
+			sourceTree = "<group>";
+		};
+		9F6F4889BB183E6DFD032C8C = {
+			isa = PBXGroup;
+			children = (
+				5C9A8CAAF88AE6243D7C5170 /* AtollCard */,
+				C2C5D7030153DBE8EB87D6DF /* AtollCardShared */,
+				BB0C05BCE66119E1BCD9F410 /* AtollCardTests */,
+				015E1451E8C3FB2D7AA7930C /* AtollCardWidget */,
+				C12C5040DC1CB3C5FC367FB2 /* Packages */,
+				1C450F8500A0789C317E1578 /* Frameworks */,
+				155731764280E26665D939E0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A6A84D9AD60DAB1F591CA859 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				5B6F4C07662E8BCDA7870507 /* RootView.swift */,
+				601E073E5601B89965BB70A5 /* Analytics */,
+				844E33A25BD15B747DABB6BD /* Cards */,
+				0BE390AE481074B63480B36B /* Components */,
+				DAA8DC305E2D820B53FD3FFF /* Leads */,
+				0A12759CD924006C6B8438E4 /* Settings */,
+				9D7778895816A12CB864CFB0 /* Share */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		BB0C05BCE66119E1BCD9F410 /* AtollCardTests */ = {
+			isa = PBXGroup;
+			children = (
+				D7B65C0E62765271C53DB5CE /* AtollCardTests.swift */,
+				67D5ECF0279FA5A5B7E5218A /* CacheStoreTests.swift */,
+				7D7EC67AF3FA5D6AC0B99797 /* MutationDrainerTests.swift */,
+				05A5D51CCF75E91B90941814 /* SharedCardSnapshotTests.swift */,
+			);
+			path = AtollCardTests;
+			sourceTree = "<group>";
+		};
+		C12C5040DC1CB3C5FC367FB2 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				3885FE0D2C04AEDE9CF77F7F /* AtollCore */,
+				DE54AFFC407A9FDE1BA9ADB9 /* AtollDesign */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		C2C5D7030153DBE8EB87D6DF /* AtollCardShared */ = {
+			isa = PBXGroup;
+			children = (
+				25DE0A6C460FCA729AD2FF3C /* SharedCardSnapshot.swift */,
+			);
+			path = AtollCardShared;
+			sourceTree = "<group>";
+		};
+		DA77ABBFED1B7F7C1E06E05E /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D20406F9A6C9BF3FAFCA2097 /* AvatarUploadService.swift */,
+				3F15A2AC397E181D8018AC9D /* MutationDrainer.swift */,
+				BF3EC8204527F739E0DC63B8 /* NFCWriterService.swift */,
+				CD22DDB48E332DA75D974031 /* NotificationService.swift */,
+				526BB5A0B952B449A2007659 /* PushTokenService.swift */,
+				4E8D08449C6B59275F62A554 /* QRCodeService.swift */,
+				DEA81BD90DAEAB3D5BABA69D /* ReachabilityMonitor.swift */,
+				85C543BE0423DB500F0EEBC3 /* SharedCardSnapshotWriter.swift */,
+				623A1B2B1F32E3152645A2F8 /* ShareService.swift */,
+				2FBE08C99BFB171E60BDD77E /* SpecialtyCatalogService.swift */,
+				D3394A51F2C024F805F1E961 /* WalletPassService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		DAA8DC305E2D820B53FD3FFF /* Leads */ = {
+			isa = PBXGroup;
+			children = (
+				75025658B644A1CB964FB078 /* LeadDetailSheet.swift */,
+				452357BA70D091DE26B3EA7A /* LeadsView.swift */,
+			);
+			path = Leads;
+			sourceTree = "<group>";
+		};
+		E66FCB793D407AF5D9F94A85 /* Cache */ = {
+			isa = PBXGroup;
+			children = (
+				C71C21B3C086B757F58FF755 /* CacheConverters.swift */,
+				446145FB52C6C5AB78288EBC /* CacheStore.swift */,
+				B9529E95C2E2E75B7ECF1BCD /* CardEntity.swift */,
+				3274AEA88FFBD5A92444037F /* LeadEntity.swift */,
+				C3BED69D484D605162446C83 /* PendingLeadStatusMutation.swift */,
+				781216E02B70C7F3C953DAF8 /* ScanEntity.swift */,
+			);
+			path = Cache;
+			sourceTree = "<group>";
+		};
+		FC9499360D0448E0785E4198 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				7662DEB30CE8567B9354EB42 /* Card.swift */,
+				06D0A8B1D486CDC84255506B /* Lead.swift */,
+				2152D1705B7753CFE2D4E93A /* NFCTag.swift */,
+				03BC26567122D3CE35A58A44 /* Person.swift */,
+				2D2E988FB0A4C369F34F5117 /* Scan.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2658DD85E43C4BAACEC4D9EB /* AtollCardWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 87899FAEF16176E474BCF5C6 /* Build configuration list for PBXNativeTarget "AtollCardWidget" */;
+			buildPhases = (
+				E5DB9EB28F8EFDFCC6163E18 /* Sources */,
+				5A95BE5F39E93C67A7F01107 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AtollCardWidget;
+			packageProductDependencies = (
+			);
+			productName = AtollCardWidget;
+			productReference = DFA515579E16B9941D0154A4 /* AtollCardWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		8211F671B6114087D94156BF /* AtollCardTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4B15B7B5CEB707E7495E3FB0 /* Build configuration list for PBXNativeTarget "AtollCardTests" */;
+			buildPhases = (
+				1F412889D765B1C8F20E6278 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				931AD7DAB8ED9AC77F487D15 /* PBXTargetDependency */,
+			);
+			name = AtollCardTests;
+			packageProductDependencies = (
+			);
+			productName = AtollCardTests;
+			productReference = 2EBAF4953756F81CB199B5C7 /* AtollCardTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		E47E59AF3270E715ECAE4DF9 /* AtollCard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 127F6AC5347FBF392AB31744 /* Build configuration list for PBXNativeTarget "AtollCard" */;
+			buildPhases = (
+				022428393271A5AC23F673C6 /* Sources */,
+				6EC6110F2E8655C396ED51CC /* Resources */,
+				33D6C679B8BD673867F1232F /* Frameworks */,
+				DDF4BC4B7EA8665BA841E416 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3D6922880D819D3EBCDD8D73 /* PBXTargetDependency */,
+			);
+			name = AtollCard;
+			packageProductDependencies = (
+				181D94E3857497006C981410 /* AtollCore */,
+				051D639791D7AEE8EC9C1FD4 /* AtollDesign */,
+				BA7BBA0D51F5480F39D7A4B0 /* Supabase */,
+			);
+			productName = AtollCard;
+			productReference = 082245A2553C303BFA639B42 /* AtollCard.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		76921612FA075AB1CE188C6E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					2658DD85E43C4BAACEC4D9EB = {
+						DevelopmentTeam = XK8V89P2QV;
+						ProvisioningStyle = Automatic;
+					};
+					8211F671B6114087D94156BF = {
+						DevelopmentTeam = XK8V89P2QV;
+						ProvisioningStyle = Automatic;
+					};
+					E47E59AF3270E715ECAE4DF9 = {
+						DevelopmentTeam = XK8V89P2QV;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = FA18B3D9805512CEE9DB238C /* Build configuration list for PBXProject "AtollCard" */;
+			developmentRegion = de;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				de,
+			);
+			mainGroup = 9F6F4889BB183E6DFD032C8C;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B166F88DF3BBF4D419935E9F /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				7E216022D4AD6AAA919CEDA9 /* XCLocalSwiftPackageReference "../../swift-packages/AtollCore" */,
+				5323DB59F50E43A774134FD9 /* XCLocalSwiftPackageReference "../../swift-packages/AtollDesign" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 155731764280E26665D939E0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E47E59AF3270E715ECAE4DF9 /* AtollCard */,
+				8211F671B6114087D94156BF /* AtollCardTests */,
+				2658DD85E43C4BAACEC4D9EB /* AtollCardWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6EC6110F2E8655C396ED51CC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DBB0C8F69BD0A3EFFA5FABE /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		022428393271A5AC23F673C6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8766953A737FEA7F80FCC0B4 /* AnalyticsRepository.swift in Sources */,
+				1C097D7531660EC33C8A0719 /* AnalyticsStore.swift in Sources */,
+				AB11A0FC113C8E66C6A0932A /* AnalyticsView.swift in Sources */,
+				10ED7E190606982888D52699 /* AppDelegate.swift in Sources */,
+				D5ED2CD93495570009E30AEC /* AtollCardApp.swift in Sources */,
+				8027FE255B6CCB03D3EFB46E /* AtollCardLogo.swift in Sources */,
+				7517597DD33344BD9AE14B47 /* Avatar.swift in Sources */,
+				6E19DE296379F1EA73ADDD73 /* AvatarUploadService.swift in Sources */,
+				8DB486A5A4A7750C1F1C186B /* BizCardView.swift in Sources */,
+				A30A4D716A9537D0A6551DA9 /* CacheConverters.swift in Sources */,
+				7CA9B9657BE7DCC2A8C4B1AE /* CacheStore.swift in Sources */,
+				9470B6D565D042A58705835B /* CachedAnalyticsRepository.swift in Sources */,
+				16D6D1096A9DE686E17F6FFC /* CachedCardRepository.swift in Sources */,
+				080C89035AE9AD73AA05EA0C /* CachedLeadRepository.swift in Sources */,
+				9F9F72860FD95B4B5BAC0CB6 /* Card.swift in Sources */,
+				E177E579CAF58D0882C40D1B /* CardEditorSheet.swift in Sources */,
+				A34D75373387F693F0E5A7B7 /* CardEntity.swift in Sources */,
+				074E23C474A31C49DC34EB5D /* CardRepository.swift in Sources */,
+				BA734ECBE3181C4F454ED50C /* CardStore.swift in Sources */,
+				A38BE0145BBA46A4FF10AD95 /* CardTheme.swift in Sources */,
+				C809BC0E878D111EF46ABC4C /* CardsView.swift in Sources */,
+				3626821DAE8769862E9277D2 /* Config.swift in Sources */,
+				FB2D3CAB19BBBFAFEBCC0EBD /* DeadLetterView.swift in Sources */,
+				918B2BE230B9F98E3C418BD1 /* FloatingActionBar.swift in Sources */,
+				BCBC8A961BDF3230E578C44D /* FullscreenQRView.swift in Sources */,
+				CACEC7032C1B0E0EE2B78DDA /* HeaderBar.swift in Sources */,
+				3DEBECE3D3237FCEA2623A08 /* Lead.swift in Sources */,
+				02F818E66899213F85FF30FB /* LeadDetailSheet.swift in Sources */,
+				9038A36E4B9D7F657979B40E /* LeadEntity.swift in Sources */,
+				7735FEB7EB904D2AE4A326B0 /* LeadRepository.swift in Sources */,
+				B6F8A524D450920522DE0400 /* LeadRowView.swift in Sources */,
+				2D63CEC809C30E5E63F949C8 /* LeadStore.swift in Sources */,
+				F3C1BD8A0D97902A219CB8A3 /* LeadsView.swift in Sources */,
+				8DB484E38E42EF0BE7DA9EB0 /* MockSeed.swift in Sources */,
+				60DB162B6F354646366334D2 /* MutationDrainer.swift in Sources */,
+				F1CDA81C98D9FC52941808BF /* NFCTag.swift in Sources */,
+				3B44CB15F7C7D5DE0943CB46 /* NFCWriteSheet.swift in Sources */,
+				672F5C9F4C5FD61A44628467 /* NFCWriterService.swift in Sources */,
+				1799D5DECBEFF5229F29AEE0 /* NotificationService.swift in Sources */,
+				FC48E95FFE74DC76730F3DE5 /* OfflineBanner.swift in Sources */,
+				E89A8092D96F82F49ABF9EF0 /* PendingBadge.swift in Sources */,
+				BFA7B097A856A7BB007406E0 /* PendingLeadStatusMutation.swift in Sources */,
+				8C1BB1E3044F3018342D7C9D /* Person.swift in Sources */,
+				020E74CC060D4D8B62D7F88C /* PersonaDetailCard.swift in Sources */,
+				BECF335E26F71B79A3D78EAB /* PillView.swift in Sources */,
+				3228D8FC7680EC13E64E5BFD /* PushTokenService.swift in Sources */,
+				F23DC0AFF0D601547BB19590 /* QRCodeService.swift in Sources */,
+				87819219E41F8FF24ABAC521 /* ReachabilityMonitor.swift in Sources */,
+				B4F2695820E150BF66D6E5FC /* RootView.swift in Sources */,
+				20C9342FA565B3523795E5D0 /* Scan.swift in Sources */,
+				68566DF096F2205AF4A94AFE /* ScanEntity.swift in Sources */,
+				058990E30B6D52621537DCE9 /* SectionHeaderRow.swift in Sources */,
+				4F5BE002A1C6D428B9959205 /* SettingsView.swift in Sources */,
+				ABC9B682FA2864D306F4D9BB /* ShareService.swift in Sources */,
+				93BF6FC0943189BE6003402B /* SharedCardSnapshot.swift in Sources */,
+				134BAC56E9D76A179149B2F5 /* SharedCardSnapshotWriter.swift in Sources */,
+				2134E86AC6C357FCF7933E20 /* SpecialtyCatalogService.swift in Sources */,
+				556D2A814B99FCC25C6BA4CC /* StatTriple.swift in Sources */,
+				27DB68409BDFD70A6F94E57A /* SyncStatusSection.swift in Sources */,
+				5D8EFB49D40C33E62672FE05 /* ToastCenter.swift in Sources */,
+				0256D062C3A63977539D3052 /* WalletPassService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1F412889D765B1C8F20E6278 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				39F36E75CA31828456D8C5FF /* AtollCardTests.swift in Sources */,
+				4D40569CCC0FA488EC80205F /* CacheStoreTests.swift in Sources */,
+				1DA9B649DC54F08BFB0BD914 /* MutationDrainerTests.swift in Sources */,
+				BCD76BB2F6B0A0DBDC29EC95 /* SharedCardSnapshotTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E5DB9EB28F8EFDFCC6163E18 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				30A3EB768AEBC3132F9C1998 /* AtollCardWidgetBundle.swift in Sources */,
+				267B34AE3C8BD7C4FFFB30D8 /* LockScreenCardView.swift in Sources */,
+				A95E7DD101EBF512EC57C17A /* LockScreenCardWidget.swift in Sources */,
+				AC470795B52C66F485733AA1 /* SharedCardSnapshot.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3D6922880D819D3EBCDD8D73 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2658DD85E43C4BAACEC4D9EB /* AtollCardWidget */;
+			targetProxy = E6E495724BA47580BF7F44A0 /* PBXContainerItemProxy */;
+		};
+		931AD7DAB8ED9AC77F487D15 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E47E59AF3270E715ECAE4DF9 /* AtollCard */;
+			targetProxy = B75FCCA60E3EADD07D8370B1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		016049FF58D4F751D7F62A41 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = XK8V89P2QV;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.8.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		2F812DDE6F85A15C0D3795DF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = XK8V89P2QV;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.8.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		518A283775B7628D274EDBC7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AtollCard/AtollCard.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = AtollCard/Info.plist;
+				INFOPLIST_KEY_NFCReaderUsageDescription = "AtollCard schreibt deine Karten-URL auf physische NFC-Tags.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = swiss.atoll.card;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7F692264B4B9818F63375AE8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AtollCard/AtollCard.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = AtollCard/Info.plist;
+				INFOPLIST_KEY_NFCReaderUsageDescription = "AtollCard schreibt deine Karten-URL auf physische NFC-Tags.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = swiss.atoll.card;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		ACC431D7671BD791C2E355D5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = swiss.atoll.AtollCardTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AtollCard.app/AtollCard";
+			};
+			name = Release;
+		};
+		B6255E2ABF7F0B1EE8A60099 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = AtollCardWidget/AtollCardWidget.entitlements;
+				INFOPLIST_FILE = AtollCardWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = swiss.atoll.card.widget;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B746BF3B0674861B753FB78E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = swiss.atoll.AtollCardTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AtollCard.app/AtollCard";
+			};
+			name = Debug;
+		};
+		D68EC467C914A3133209D999 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = AtollCardWidget/AtollCardWidget.entitlements;
+				INFOPLIST_FILE = AtollCardWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = swiss.atoll.card.widget;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		127F6AC5347FBF392AB31744 /* Build configuration list for PBXNativeTarget "AtollCard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				518A283775B7628D274EDBC7 /* Debug */,
+				7F692264B4B9818F63375AE8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4B15B7B5CEB707E7495E3FB0 /* Build configuration list for PBXNativeTarget "AtollCardTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B746BF3B0674861B753FB78E /* Debug */,
+				ACC431D7671BD791C2E355D5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		87899FAEF16176E474BCF5C6 /* Build configuration list for PBXNativeTarget "AtollCardWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D68EC467C914A3133209D999 /* Debug */,
+				B6255E2ABF7F0B1EE8A60099 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FA18B3D9805512CEE9DB238C /* Build configuration list for PBXProject "AtollCard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2F812DDE6F85A15C0D3795DF /* Debug */,
+				016049FF58D4F751D7F62A41 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		5323DB59F50E43A774134FD9 /* XCLocalSwiftPackageReference "../../swift-packages/AtollDesign" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../../swift-packages/AtollDesign";
+		};
+		7E216022D4AD6AAA919CEDA9 /* XCLocalSwiftPackageReference "../../swift-packages/AtollCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../../swift-packages/AtollCore";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B166F88DF3BBF4D419935E9F /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		051D639791D7AEE8EC9C1FD4 /* AtollDesign */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AtollDesign;
+		};
+		181D94E3857497006C981410 /* AtollCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AtollCore;
+		};
+		BA7BBA0D51F5480F39D7A4B0 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B166F88DF3BBF4D419935E9F /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 76921612FA075AB1CE188C6E /* Project object */;
+}

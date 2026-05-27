@@ -6,26 +6,21 @@ public enum AppDate {
         isoDateFormatter.date(from: s)
     }
 
-    // Swift-6 strict-concurrency: `DateFormatter` / `RelativeDateTimeFormatter`
-    // sind nicht `Sendable`, aber laut Apple-Doku ab iOS 7 read-thread-safe
-    // sobald konfiguriert. `nonisolated(unsafe)` ist die idiomatische
-    // Promise-Annotation dafür.
-
-    nonisolated(unsafe) private static let isoDateFormatter: DateFormatter = {
+    private static let isoDateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
         f.locale = Locale(identifier: "en_US_POSIX")
         return f
     }()
 
-    nonisolated(unsafe) private static let weekdayFormatter: DateFormatter = {
+    private static let weekdayFormatter: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "de_CH")
         f.dateFormat = "EEEE"
         return f
     }()
 
-    nonisolated(unsafe) private static let shortFormatter: DateFormatter = {
+    private static let shortFormatter: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "de_CH")
         f.dateFormat = "d. MMM"

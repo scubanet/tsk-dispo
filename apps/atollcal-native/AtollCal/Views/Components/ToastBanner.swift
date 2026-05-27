@@ -1,4 +1,5 @@
 import SwiftUI
+import AtollDesign
 
 /// Lightweight global toast surface. Inject as `.environment(toastCenter)` at
 /// the app root and call `show(_:)` from anywhere to surface a transient
@@ -62,8 +63,10 @@ private struct ToastBannerView: View {
     }
     .padding(.horizontal, 12)
     .padding(.vertical, 8)
-    .background(.thinMaterial)
-    .clipShape(.capsule)
+    // GL-005 M2: Liquid-Glass token instead of raw `.thinMaterial`. The pill
+    // takes the toast's tint, so the surface picks up info/success/error
+    // semantics from `ToastMessage`.
+    .atollGlassPill(tint: message.tint)
     .overlay(
       Capsule().strokeBorder(message.tint.opacity(0.4), lineWidth: 0.5)
     )

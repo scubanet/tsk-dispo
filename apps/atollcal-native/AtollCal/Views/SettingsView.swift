@@ -51,7 +51,13 @@ struct SettingsView: View {
                 }
               )) {
                 HStack {
-                  Circle().fill(Color(cgColor: cal.cgColor)).frame(width: 10, height: 10)
+                  // Apple's Birthdays calendar (type == .birthday) often has
+                  // `cgColor == nil`. `Color(cgColor:)` is non-optional and
+                  // would crash — fall back to a neutral pink that matches
+                  // the system Birthdays tint.
+                  Circle()
+                    .fill(calendarColor(cal))
+                    .frame(width: 10, height: 10)
                   Text(cal.title)
                   Spacer()
                   Text(cal.source.title).font(.caption).foregroundColor(.secondary)
@@ -141,6 +147,16 @@ struct SettingsView: View {
        let str = String(data: data, encoding: .utf8) {
       enabledCalendarIdsJSON = str
     }
+  }
+
+  /// Safe colour lookup — Apple's Birthdays calendar can have `cgColor == nil`,
+  /// which would crash `Color(cgColor:)`. Fall back to the system pink so the
+  /// swatch matches Apple's own Calendar UI for that calendar.
+  private func calendarColor(_ cal: EKCalendar) -> Color {
+    if let cg = cal.cgColor as CGColor? {
+      return Color(cgColor: cg)
+    }
+    return .pink
   }
 
   /// Current wall-clock time in the given timezone, formatted as "HH:mm".

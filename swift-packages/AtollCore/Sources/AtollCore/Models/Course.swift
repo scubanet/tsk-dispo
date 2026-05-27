@@ -68,9 +68,7 @@ public struct Course: Codable, Identifiable, Hashable {
         return allDates.first { cal.isDate($0, inSameDayAs: day) }
     }
 
-    /// Swift-6 strict-concurrency: `DateFormatter` ist nicht `Sendable`, aber
-    /// laut Apple-Doku ab iOS 7 read-thread-safe sobald konfiguriert.
-    nonisolated(unsafe) public static let dateFormatter: DateFormatter = {
+    public static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
         f.locale = Locale(identifier: "en_US_POSIX")

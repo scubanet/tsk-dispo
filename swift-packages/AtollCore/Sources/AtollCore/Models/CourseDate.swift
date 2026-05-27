@@ -107,8 +107,9 @@ public struct CourseDate: Codable, Identifiable, Hashable, Sendable {
     return cal.date(from: comps)
   }
 
-  /// Shared ISO-date formatter for the `date` column. Thread-safe for reads.
-  nonisolated(unsafe) public static let dateFormatter: DateFormatter = {
+  /// Shared ISO-date formatter for the `date` column. `DateFormatter` is
+  /// `Sendable` in Swift 6 so no explicit isolation annotation is needed.
+  public static let dateFormatter: DateFormatter = {
     let f = DateFormatter()
     f.dateFormat = "yyyy-MM-dd"
     f.locale = Locale(identifier: "en_US_POSIX")

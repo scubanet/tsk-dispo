@@ -25,7 +25,25 @@ public final class SystemCalendarStore {
   public func refreshAuthStatus() {
     authorizationStatus = EKEventStore.authorizationStatus(for: .event)
     if authorizationStatus == .fullAccess {
-      calendars = store.calendars(for: .event)
+      // Apple's high-level API returns most calendars but, on some iOS
+      // versions, omits the iCloud "Geburtstage / Birthdays" calendar
+      // (`EKCalendar.type == .birthday`). That calendar also holds
+      // *Jahrestage* (anniversaries) — when it's missing, the user can't
+      // toggle birthdays/anniversaries in the source picker and they never
+      // surface in the agenda.
+      //
+      // Sweep every `EKSource` (iCloud, Local, Google, Birthdays-source)
+      // and merge in anything the high-level call missed. Dedupe by
+      // `calendarIdentifier` so we never double-count.
+      var found = store.calendars(for: .event)
+      var knownIds = Set(found.map { $0.calendarIdentifier })
+      for source in store.sources {
+        for cal in source.calendars(for: .event) where !knownIds.contains(cal.calendarIdentifier) {
+          found.append(cal)
+          knownIds.insert(cal.calendarIdentifier)
+        }
+      }
+      calendars = found
     }
   }
 

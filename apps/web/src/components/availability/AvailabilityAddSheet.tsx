@@ -59,7 +59,7 @@ export function AvailabilityAddSheet({ open, onClose, onCreated, instructorId }:
     <Sheet open={open} onClose={onClose} title={t('my_profile.add_availability')}>
       <div style={{ display: 'grid', gap: 14 }}>
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_kind')}</div>
+          <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{t('my_profile.label_kind')}</div>
           <select
             value={kind}
             onChange={(e) => setKind(e.target.value as typeof kind)}
@@ -72,7 +72,7 @@ export function AvailabilityAddSheet({ open, onClose, onCreated, instructorId }:
         </div>
 
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_from')}</div>
+          <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{t('my_profile.label_from')}</div>
           <input
             type="date"
             value={fromDate}
@@ -82,7 +82,7 @@ export function AvailabilityAddSheet({ open, onClose, onCreated, instructorId }:
         </div>
 
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_to')}</div>
+          <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{t('my_profile.label_to')}</div>
           <input
             type="date"
             value={toDate}
@@ -92,7 +92,7 @@ export function AvailabilityAddSheet({ open, onClose, onCreated, instructorId }:
         </div>
 
         <div>
-          <div className="caption-2" style={{ marginBottom: 4 }}>{t('my_profile.label_note')}</div>
+          <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{t('my_profile.label_note')}</div>
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -101,7 +101,7 @@ export function AvailabilityAddSheet({ open, onClose, onCreated, instructorId }:
           />
         </div>
 
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           <button className="atoll-btn" onClick={onClose}>{t('common.cancel')}</button>
           <button
             className="atoll-btn atoll-btn--primary"
