@@ -1453,8 +1453,10 @@ import {
 import type { EventComposerInput, TimelineEvent } from '@/types/contactEvents'
 
 /**
- * Insert a new event for a contact + invalidate timeline.
- * Optimistic update der ersten Timeline-Seite damit die Karte sofort erscheint.
+ * Insert a new event for a contact + invalidate timeline & global-activity.
+ * Phase 1: plain invalidate (Refetch nach Server-Round-Trip).
+ * Phase 2 (Composer-UI): optimistic insert in die erste Page damit
+ * die Karte schon vor Server-Response erscheint.
  */
 export function useInsertContactEvent(contactId: string) {
   const qc = useQueryClient()
@@ -1485,7 +1487,8 @@ export function useUpdateContactEvent(contactId: string) {
 }
 
 /**
- * Delete event — RLS sorgt für owner-only. Optimistic remove + rollback bei Fehler.
+ * Delete event — RLS sorgt für owner-only.
+ * Phase 1: plain invalidate. Phase 2: optimistic remove + rollback bei Fehler.
  */
 export function useDeleteContactEvent(contactId: string) {
   const qc = useQueryClient()
