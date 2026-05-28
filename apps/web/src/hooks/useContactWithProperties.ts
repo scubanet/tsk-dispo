@@ -11,6 +11,7 @@ import type {
   InstructorSidecar,
   StudentSidecar,
   OrgSidecar,
+  PhoneJsonbEntry,
 } from '@/types/contactProperties'
 
 interface RawContactWithRelations {
@@ -21,8 +22,8 @@ interface RawContactWithRelations {
   last_name: string | null
   birth_date: string | null
   primary_email: string | null
-  primary_phone: string | null
-  primary_language: string | null
+  phones: PhoneJsonbEntry[] | null
+  languages: string[] | null
   source: string | null
   created_at: string
   updated_at: string
@@ -48,7 +49,7 @@ export function useContactWithProperties(contactId: string) {
         .from('contacts')
         .select(`
           id, kind, display_name, first_name, last_name, birth_date,
-          primary_email, primary_phone, primary_language, source,
+          primary_email, phones, languages, source,
           created_at, updated_at, owner_id, tags,
           instructor:contact_instructor!contact_instructor_contact_id_fkey(padi_level, padi_pro_number, active),
           student:contact_student!contact_student_contact_id_fkey(pipeline_stage, intake_status, highest_brevet),
@@ -96,8 +97,8 @@ function normalize(
     last_name: raw.last_name,
     birth_date: raw.birth_date,
     primary_email: raw.primary_email,
-    primary_phone: raw.primary_phone,
-    primary_language: raw.primary_language,
+    phones: raw.phones ?? [],
+    languages: raw.languages ?? [],
     source: raw.source,
     created_at: raw.created_at,
     updated_at: raw.updated_at,

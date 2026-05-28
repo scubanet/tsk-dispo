@@ -20,8 +20,8 @@ const baseContact: ContactWithProperties = {
   id: 'c1', kind: 'person', display_name: 'Hugo Eugster',
   first_name: 'Hugo', last_name: 'Eugster', birth_date: null,
   primary_email: 'hugo@test.com',
-  primary_phone: '+41791234567',
-  primary_language: 'de',
+  phones: [{ label: 'mobile', e164: '+41791234567', primary: true }],
+  languages: ['de'],
   source: 'manual',
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-05-27T00:00:00Z',
@@ -33,17 +33,19 @@ const baseContact: ContactWithProperties = {
 }
 
 describe('ContactSection', () => {
-  it('renders email, phone, and language values', () => {
+  it('renders email, primary phone, and first language', () => {
     render(<ContactSection contact={baseContact} />, { wrapper })
     expect(screen.getByText('hugo@test.com')).toBeTruthy()
     expect(screen.getByText('+41791234567')).toBeTruthy()
     expect(screen.getByText('de')).toBeTruthy()
   })
 
-  it('renders dash for null fields', () => {
-    render(<ContactSection contact={{ ...baseContact, primary_phone: null }} />, { wrapper })
-    // EditableField renders '—' for null values
-    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1)
+  it('renders dash for empty phones/languages', () => {
+    render(
+      <ContactSection contact={{ ...baseContact, phones: [], languages: [] }} />,
+      { wrapper },
+    )
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(2)
   })
 
   it('editing email calls mutation with primary_email field on contacts table', async () => {
@@ -60,5 +62,18 @@ describe('ContactSection', () => {
         value: 'new@test.com',
       })
     )
+  })
+
+  it('phone is read-only — picks the primary entry from phones[]', () => {
+    const contact = {
+      ...baseContact,
+      phones: [
+        { label: 'home', e164: '+41441111111', primary: false },
+        { label: 'mobile', e164: '+41792222222', primary: true },
+      ],
+    }
+    render(<ContactSection contact={contact} />, { wrapper })
+    expect(screen.getByText('+41792222222')).toBeTruthy()
+    expect(screen.queryByText('+41441111111')).toBeNull()
   })
 })

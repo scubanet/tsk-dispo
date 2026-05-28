@@ -22,6 +22,16 @@ export interface OrgSidecar {
 
 export type ContactRoleDerived = 'instructor' | 'student' | 'organization'
 
+/**
+ * Phones-JSONB-Entry — mirrors apps/web/src/types/contacts.ts PhoneEntry shape.
+ * Wir typisieren hier minimal weil die Sidebar nur den primary-Eintrag liest.
+ */
+export interface PhoneJsonbEntry {
+  label?: string
+  e164: string
+  primary?: boolean
+}
+
 export interface ContactWithProperties {
   // Base
   id: string
@@ -31,8 +41,8 @@ export interface ContactWithProperties {
   last_name: string | null
   birth_date: string | null
   primary_email: string | null
-  primary_phone: string | null
-  primary_language: string | null
+  phones: PhoneJsonbEntry[]        // JSONB-Array auf contacts.phones
+  languages: string[]              // TEXT[]-Array auf contacts.languages
   source: string | null
   created_at: string
   updated_at: string

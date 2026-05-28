@@ -16,8 +16,8 @@ vi.mock('@/lib/supabase', () => {
       last_name: 'Eugster',
       birth_date: '1990-01-15',
       primary_email: 'hugo@example.com',
-      primary_phone: '+41791234567',
-      primary_language: 'de',
+      phones: [{ label: 'mobile', e164: '+41791234567', primary: true }],
+      languages: ['de'],
       source: 'manual',
       created_at: '2026-01-01T00:00:00Z',
       updated_at: '2026-05-27T00:00:00Z',
@@ -26,7 +26,6 @@ vi.mock('@/lib/supabase', () => {
       instructor: {
         padi_level: 'OWSI',
         padi_pro_number: '123456',
-        member_status: 'active',
         active: true,
       },
       student: null,

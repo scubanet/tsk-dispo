@@ -22,7 +22,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 const baseContact: ContactWithProperties = {
   id: 'c1', kind: 'person', display_name: 'Hugo Eugster',
   first_name: 'Hugo', last_name: 'Eugster', birth_date: null,
-  primary_email: null, primary_phone: null, primary_language: null,
+  primary_email: null, phones: [], languages: [], 
   source: 'manual',
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-05-27T00:00:00Z',

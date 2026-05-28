@@ -13,14 +13,13 @@ vi.mock('@/lib/supabase', () => {
     last_name: 'Eugster',
     birth_date: null,
     primary_email: 'hugo@test.com',
-    primary_phone: null,
-    primary_language: 'de',
+    phones: [], languages: ['de'],
     source: 'manual',
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-05-27T00:00:00Z',
     owner_id: null,
     tags: [],
-    instructor: { padi_level: 'OWSI', padi_pro_number: null, member_status: 'active', active: true },
+    instructor: { padi_level: 'OWSI', padi_pro_number: null, active: true },
     student: null,
     organization: null,
   }
@@ -76,11 +75,11 @@ describe('PropertiesSidebar', () => {
     const orgContact = {
       id: 'c2', kind: 'organization', display_name: 'TSK Zürich',
       first_name: null, last_name: null, birth_date: null,
-      primary_email: null, primary_phone: null, primary_language: null,
+      primary_email: null, phones: [], languages: [], 
       source: null, created_at: '2026-01-01', updated_at: '2026-01-01', owner_id: null,
       tags: [],
       instructor: null, student: null,
-      organization: { legal_name: 'TSK', trading_name: null, category: 'dive_shop' },
+      organization: { org_kind: 'dive_shop' },
     }
     const single = vi.fn().mockResolvedValue({ data: orgContact, error: null })
     const eqContacts = vi.fn().mockReturnValue({ single })
