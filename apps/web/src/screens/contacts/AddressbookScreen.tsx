@@ -23,11 +23,13 @@ import {
 import { type ContactListFilter } from '@/lib/contactQueries'
 import { useContactList } from '@/hooks/useContactList'
 import { useAddressbookDensity } from '@/hooks/useAddressbookDensity'
+import { useAddressbookColumns } from '@/hooks/useAddressbookColumns'
 import { ContactDetailPanel, type TabKey } from './ContactDetailPanel'
 import { CreateContactSheet } from './CreateContactSheet'
 import { AddressbookTable } from './AddressbookTable'
 import { CompactContactList } from './CompactContactList'
 import { DensityToggle } from './DensityToggle'
+import { ColumnPicker } from './ColumnPicker'
 
 // ── Saved views ───────────────────────────────────────────────────────────
 
@@ -71,6 +73,7 @@ export function AddressbookScreen() {
 
   const [createOpen, setCreateOpen] = useState(false)
   const [density, , toggleDensity] = useAddressbookDensity()
+  const { visibleIds, toggle: toggleColumn, reset: resetColumns } = useAddressbookColumns()
 
   // ── Param helpers ──────────────────────────────────────────────────────
 
@@ -163,6 +166,11 @@ export function AddressbookScreen() {
           ))}
         </div>
         <DensityToggle density={density} onToggle={toggleDensity} />
+        <ColumnPicker
+          visibleIds={visibleIds}
+          onToggle={toggleColumn}
+          onReset={resetColumns}
+        />
       </div>
     </div>
   )
@@ -214,6 +222,7 @@ export function AddressbookScreen() {
                   selectedId={null}
                   onSelect={selectContact}
                   density={density}
+                  columns={visibleIds}
                 />
               )}
             </div>

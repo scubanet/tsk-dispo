@@ -90,4 +90,69 @@ describe('AddressbookTable', () => {
     const root = container.querySelector('[data-density="comfortable"]')
     expect(root).toBeTruthy()
   })
+
+  it('renders exactly the columns supplied via the columns prop', () => {
+    render(
+      <AddressbookTable
+        rows={[]}
+        selectedId={null}
+        onSelect={vi.fn()}
+        columns={['name', 'phone', 'tags']}
+      />,
+    )
+    // Header sollte genau diese 3 Spalten zeigen (+ Auswahl + Aktionen)
+    const headers = screen.getAllByRole('columnheader')
+    // 1 Auswahl + 3 dynamische + 1 Aktionen = 5
+    expect(headers.length).toBe(5)
+    expect(screen.getByRole('columnheader', { name: /^Name$/i })).toBeTruthy()
+    expect(screen.getByRole('columnheader', { name: /^Telefon$/i })).toBeTruthy()
+    expect(screen.getByRole('columnheader', { name: /^Tags$/i })).toBeTruthy()
+    // Email-Header darf NICHT vorhanden sein
+    expect(screen.queryByRole('columnheader', { name: /^Email$/i })).toBeNull()
+  })
+
+  it('renders non-default column headers when opted in', () => {
+    render(
+      <AddressbookTable
+        rows={[]}
+        selectedId={null}
+        onSelect={vi.fn()}
+        columns={['name', 'org', 'sprache', 'quelle', 'geburtstag', 'created_at']}
+      />,
+    )
+    expect(screen.getByRole('columnheader', { name: /^Sprache$/i })).toBeTruthy()
+    expect(screen.getByRole('columnheader', { name: /^Quelle$/i })).toBeTruthy()
+    expect(screen.getByRole('columnheader', { name: /^Geburtstag$/i })).toBeTruthy()
+    expect(screen.getByRole('columnheader', { name: /^Erstellt$/i })).toBeTruthy()
+  })
+
+  it('renders cell values for opted-in columns (phone, tags, sprache, geburtstag, created_at, quelle)', () => {
+    const row = makeContact({
+      id: 'cP',
+      display_name: 'Phone User',
+      phones: [{ label: 'mobile', e164: '+41791234567' }],
+      tags: ['vip', 'taucher', 'medic', 'extra'],
+      languages: ['de'],
+      birth_date: '1990-04-15',
+      source: 'newsletter',
+      created_at: '2025-12-31T00:00:00Z',
+    })
+    render(
+      <AddressbookTable
+        rows={[row]}
+        selectedId={null}
+        onSelect={vi.fn()}
+        columns={['name', 'phone', 'tags', 'sprache', 'geburtstag', 'created_at', 'quelle']}
+      />,
+    )
+    expect(screen.getByText('+41791234567')).toBeTruthy()
+    // tags: erste 3 + +N
+    expect(screen.getByText(/vip, taucher, medic \+1/)).toBeTruthy()
+    expect(screen.getByText('de')).toBeTruthy()
+    expect(screen.getByText('newsletter')).toBeTruthy()
+    // Date formatted de-CH (15.04.1990 / 15.4.1990 — happy-dom variiert; wir
+    // prüfen nur einen markanten Bestandteil)
+    expect(screen.getByText(/1990/)).toBeTruthy()
+    expect(screen.getByText(/2025/)).toBeTruthy()
+  })
 })

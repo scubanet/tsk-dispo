@@ -1,23 +1,24 @@
 /**
  * AddressbookTable — table-based List-Pane for the Adressbuch (Phase G Phase 4 Task 1).
  *
- * Replaces the legacy single-column `<ul.atoll-people-list>` with a CSS-Grid
- * table that supports multiple columns. The default column set is 6 columns:
+ * Layout: CSS-Grid table. Spalten sind dynamisch konfigurierbar über die
+ * `columns`-Prop (Task 3 — ColumnPicker). Header- und Body-Rows rendern beide
+ * exakt die Liste aus `columns` in derselben Reihenfolge, eingefasst von:
  *
- *   Checkbox │ Name+Avatar │ Rollen │ Email │ Letzter Kontakt │ Aktionen
+ *   [ Checkbox 40px ] … dynamic columns … [ Aktionen 44px ]
  *
- * Tasks 2/3 will introduce a ColumnPicker + density toggle that opt-in the
- * remaining hidden columns (Phone, Saldo, Tags). Task 4 wires up sorting on
- * the header cells. Task 6 fills the checkbox column.
- *
- * For now the header cells are static (no onClick / no Sort arrows) and the
- * checkbox + ⋯-action cells are placeholders that stop propagation so they
- * don't accidentally open the detail panel.
+ * Task 4 wires up sorting on the header cells. Task 6 fills the checkbox
+ * column. Task 5 fills filter logic.
  */
 
 import type { CSSProperties, KeyboardEvent } from 'react'
 import { Avatar, avatarColor } from '@/foundation'
 import type { Contact, ContactRole } from '@/types/contacts'
+import {
+  COLUMN_CATALOG,
+  defaultVisibleIds,
+  type ColumnId,
+} from '@/hooks/useAddressbookColumns'
 
 // ── Role color dots (mirrors RolesBadgeList color mapping) ──────────────
 
@@ -72,21 +73,32 @@ export interface AddressbookTableProps {
   selectedId: string | null
   onSelect: (id: string) => void
   density?: AddressbookDensity
+  /**
+   * Liste der sichtbaren Spalten (Reihenfolge wird übernommen). Wenn undefined,
+   * verwendet die Tabelle die `defaultVisible: true`-Spalten aus dem Catalog.
+   */
+  columns?: ColumnId[]
 }
 
-// 6 default columns. Phone / Saldo / Tags arrive in Task 3 (ColumnPicker).
-//   1: checkbox placeholder  (40px)
-//   2: avatar + name + sub   (3fr)
-//   3: role dots             (100px)
-//   4: email                 (3fr)
-//   5: last contact          (160px)
-//   6: actions placeholder   (44px)
-//
-// Sizing post-hotfix: the table is now always rendered full-width (no
-// DetailPane next to it), so we give every column a little more air.
-// The 3fr/3fr split keeps Name and Email balanced — both can ellipsis-
-// truncate symmetrically when the viewport narrows.
-const GRID_TEMPLATE = '40px 3fr 100px 3fr 160px 44px'
+const CATALOG_BY_ID: Record<ColumnId, (typeof COLUMN_CATALOG)[number]> =
+  COLUMN_CATALOG.reduce((acc, c) => {
+    acc[c.id] = c
+    return acc
+  }, {} as Record<ColumnId, (typeof COLUMN_CATALOG)[number]>)
+
+function buildGridTemplate(columns: ColumnId[]): string {
+  const middle = columns
+    .map((id) => CATALOG_BY_ID[id]?.gridWidth ?? '1fr')
+    .join(' ')
+  return `40px ${middle} 44px`
+}
+
+function formatDateCH(value: string | null | undefined): string {
+  if (!value) return '—'
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('de-CH')
+}
 
 // ── Component ───────────────────────────────────────────────────────────
 
@@ -95,12 +107,16 @@ export function AddressbookTable({
   selectedId,
   onSelect,
   density = 'comfortable',
+  columns,
 }: AddressbookTableProps) {
   const compact = density === 'compact'
   const rowHeight = compact ? 32 : 44
   const fontSize = compact ? 13 : 14
   const subFontSize = compact ? 11 : 12
   const cellPaddingX = compact ? 8 : 12
+
+  const cols = columns ?? defaultVisibleIds()
+  const gridTemplate = buildGridTemplate(cols)
 
   const baseCell: CSSProperties = {
     display: 'flex',
@@ -121,6 +137,15 @@ export function AddressbookTable({
     borderBottom: '1px solid var(--border-primary)',
   }
 
+  const truncate: CSSProperties = {
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    display: 'block',
+    lineHeight: `${rowHeight}px`,
+    width: '100%',
+  }
+
   return (
     <div
       role="table"
@@ -138,7 +163,7 @@ export function AddressbookTable({
         role="row"
         style={{
           display: 'grid',
-          gridTemplateColumns: GRID_TEMPLATE,
+          gridTemplateColumns: gridTemplate,
           position: 'sticky',
           top: 0,
           background: 'var(--surface-primary)',
@@ -146,10 +171,11 @@ export function AddressbookTable({
         }}
       >
         <div role="columnheader" aria-label="Auswahl" style={headerCell} />
-        <div role="columnheader" style={headerCell}>Name</div>
-        <div role="columnheader" style={headerCell}>Rollen</div>
-        <div role="columnheader" style={headerCell}>Email</div>
-        <div role="columnheader" style={headerCell}>Letzter Kontakt</div>
+        {cols.map((id) => (
+          <div key={id} role="columnheader" style={headerCell}>
+            {CATALOG_BY_ID[id]?.labelKey ?? id}
+          </div>
+        ))}
         <div role="columnheader" aria-label="Aktionen" style={headerCell} />
       </div>
 
@@ -179,7 +205,7 @@ export function AddressbookTable({
             onKeyDown={handleKeyDown}
             style={{
               display: 'grid',
-              gridTemplateColumns: GRID_TEMPLATE,
+              gridTemplateColumns: gridTemplate,
               height: rowHeight,
               cursor: 'pointer',
               background: isActive ? 'var(--surface-secondary)' : 'transparent',
@@ -206,76 +232,17 @@ export function AddressbookTable({
               onClick={(e) => e.stopPropagation()}
             />
 
-            {/* Cell 2: avatar + name + subtitle */}
-            <div role="cell" style={{ ...baseCell, gap: 10, overflow: 'hidden' }}>
-              <Avatar
-                id={r.id}
-                name={r.display_name}
-                size="sm"
-                color={avatarColor(r.id)}
-              />
-              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, lineHeight: 1.2 }}>
-                <div
-                  style={{
-                    fontWeight: 500,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    color: isActive ? 'var(--brand-blue-800)' : 'var(--text-body)',
-                  }}
-                >
-                  {r.display_name}
-                </div>
-                {subtitle && (
-                  <div
-                    style={{
-                      fontSize: subFontSize,
-                      color: 'var(--text-tertiary)',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {subtitle}
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Dynamic cells in `cols` order */}
+            {cols.map((id) => renderCell(id, r, {
+              baseCell,
+              truncate,
+              isActive,
+              subtitle,
+              subFontSize,
+              rowHeight,
+            }))}
 
-            {/* Cell 3: role dots */}
-            <div role="cell" style={baseCell}>
-              <RoleDots roles={r.roles} />
-            </div>
-
-            {/* Cell 4: email (truncate) */}
-            <div
-              role="cell"
-              style={{
-                ...baseCell,
-                color: 'var(--text-secondary)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: 'block',
-                lineHeight: `${rowHeight}px`,
-              }}
-            >
-              {r.primary_email ?? ''}
-            </div>
-
-            {/* Cell 5: last contact (stub — Task 4 fills) */}
-            <div
-              role="cell"
-              style={{
-                ...baseCell,
-                color: 'var(--text-tertiary)',
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
-              —
-            </div>
-
-            {/* Cell 6: actions (⋯) */}
+            {/* Last cell: actions (⋯) */}
             <div
               role="cell"
               style={{ ...baseCell, padding: 0, justifyContent: 'center' }}
@@ -308,4 +275,179 @@ export function AddressbookTable({
       })}
     </div>
   )
+}
+
+// ── Cell renderer (per ColumnId) ────────────────────────────────────────
+
+interface CellCtx {
+  baseCell: CSSProperties
+  truncate: CSSProperties
+  isActive: boolean
+  subtitle: string
+  subFontSize: number
+  rowHeight: number
+}
+
+function renderCell(id: ColumnId, r: Contact, ctx: CellCtx) {
+  const { baseCell, truncate, isActive, subtitle, subFontSize } = ctx
+  const dash = (
+    <span style={{ color: 'var(--text-tertiary)' }}>—</span>
+  )
+
+  switch (id) {
+    case 'name':
+      return (
+        <div key={id} role="cell" style={{ ...baseCell, gap: 10, overflow: 'hidden' }}>
+          <Avatar
+            id={r.id}
+            name={r.display_name}
+            size="sm"
+            color={avatarColor(r.id)}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, lineHeight: 1.2 }}>
+            <div
+              style={{
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                color: isActive ? 'var(--brand-blue-800)' : 'var(--text-body)',
+              }}
+            >
+              {r.display_name}
+            </div>
+            {subtitle && (
+              <div
+                style={{
+                  fontSize: subFontSize,
+                  color: 'var(--text-tertiary)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {subtitle}
+              </div>
+            )}
+          </div>
+        </div>
+      )
+
+    case 'roles':
+      return (
+        <div key={id} role="cell" style={baseCell}>
+          <RoleDots roles={r.roles} />
+        </div>
+      )
+
+    case 'email':
+      return (
+        <div
+          key={id}
+          role="cell"
+          style={{ ...baseCell, color: 'var(--text-secondary)', overflow: 'hidden' }}
+        >
+          <span style={truncate}>{r.primary_email ?? ''}</span>
+        </div>
+      )
+
+    case 'phone': {
+      const p = r.phones?.[0]?.e164
+      return (
+        <div key={id} role="cell" style={{ ...baseCell, color: 'var(--text-secondary)', overflow: 'hidden' }}>
+          {p ? <span style={truncate}>{p}</span> : dash}
+        </div>
+      )
+    }
+
+    case 'last_contact':
+      // Stub — Task 4 fills with last_contact_at aggregate.
+      return (
+        <div
+          key={id}
+          role="cell"
+          style={{ ...baseCell, color: 'var(--text-tertiary)', fontVariantNumeric: 'tabular-nums' }}
+        >
+          {dash}
+        </div>
+      )
+
+    case 'saldo':
+      // Stub — braucht v_contact_balance-Join, kommt in T4 oder via eigenem Hook.
+      return (
+        <div
+          key={id}
+          role="cell"
+          style={{ ...baseCell, color: 'var(--text-tertiary)', fontVariantNumeric: 'tabular-nums', justifyContent: 'flex-end' }}
+        >
+          {dash}
+        </div>
+      )
+
+    case 'tags': {
+      const tags = r.tags ?? []
+      if (tags.length === 0) return (
+        <div key={id} role="cell" style={baseCell}>{dash}</div>
+      )
+      const shown = tags.slice(0, 3).join(', ')
+      const extra = tags.length > 3 ? ` +${tags.length - 3}` : ''
+      return (
+        <div key={id} role="cell" style={{ ...baseCell, color: 'var(--text-secondary)', overflow: 'hidden' }}>
+          <span style={truncate}>{shown}{extra}</span>
+        </div>
+      )
+    }
+
+    case 'org':
+      // Stub — braucht contact_relationships works_at-Join, kommt später.
+      return (
+        <div key={id} role="cell" style={baseCell}>{dash}</div>
+      )
+
+    case 'pipeline_stage':
+      // Stub — braucht contact_student-Join. listContacts joinet das nur, wenn
+      // pipeline_stages-Filter aktiv ist; daher hier konsistent Dash.
+      return (
+        <div key={id} role="cell" style={baseCell}>{dash}</div>
+      )
+
+    case 'sprache': {
+      const lang = r.languages?.[0]
+      return (
+        <div key={id} role="cell" style={{ ...baseCell, color: 'var(--text-secondary)' }}>
+          {lang ? <span>{lang}</span> : dash}
+        </div>
+      )
+    }
+
+    case 'quelle':
+      return (
+        <div key={id} role="cell" style={{ ...baseCell, color: 'var(--text-secondary)', overflow: 'hidden' }}>
+          {r.source ? <span style={truncate}>{r.source}</span> : dash}
+        </div>
+      )
+
+    case 'geburtstag':
+      return (
+        <div key={id} role="cell" style={{ ...baseCell, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
+          {r.birth_date ? <span>{formatDateCH(r.birth_date)}</span> : dash}
+        </div>
+      )
+
+    case 'padi_number':
+      // Stub — braucht contact_instructor-Join.
+      return (
+        <div key={id} role="cell" style={baseCell}>{dash}</div>
+      )
+
+    case 'created_at':
+      return (
+        <div key={id} role="cell" style={{ ...baseCell, color: 'var(--text-tertiary)', fontVariantNumeric: 'tabular-nums' }}>
+          <span>{formatDateCH(r.created_at)}</span>
+        </div>
+      )
+
+    default:
+      return <div key={id} role="cell" style={baseCell} />
+  }
 }
