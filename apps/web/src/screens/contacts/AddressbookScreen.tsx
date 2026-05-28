@@ -22,10 +22,12 @@ import {
 } from '@/foundation'
 import { type ContactListFilter } from '@/lib/contactQueries'
 import { useContactList } from '@/hooks/useContactList'
+import { useAddressbookDensity } from '@/hooks/useAddressbookDensity'
 import { ContactDetailPanel, type TabKey } from './ContactDetailPanel'
 import { CreateContactSheet } from './CreateContactSheet'
 import { AddressbookTable } from './AddressbookTable'
 import { CompactContactList } from './CompactContactList'
+import { DensityToggle } from './DensityToggle'
 
 // ── Saved views ───────────────────────────────────────────────────────────
 
@@ -68,6 +70,7 @@ export function AddressbookScreen() {
   const rows = data?.rows ?? []
 
   const [createOpen, setCreateOpen] = useState(false)
+  const [density, , toggleDensity] = useAddressbookDensity()
 
   // ── Param helpers ──────────────────────────────────────────────────────
 
@@ -120,40 +123,46 @@ export function AddressbookScreen() {
         placeholder={t('contacts.search_placeholder')}
       />
       {/* Saved-view chips. GL-004 M4: right-edge fade hints at
-          horizontal scroll when more chips overflow the container. */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 6,
-          overflowX: 'auto',
-          paddingBottom: 'var(--space-1)',
-          scrollbarWidth: 'none',
-          maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
-          WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
-        }}
-      >
-        {SAVED_VIEWS.map((v) => (
-          <button
-            key={v.id}
-            type="button"
-            data-active={v.id === viewId || undefined}
-            onClick={() => setView(v.id)}
-            style={{
-              flexShrink: 0,
-              padding: '3px 10px',
-              borderRadius: 'var(--radius-pill)',
-              border: '1px solid var(--border-primary)',
-              background: v.id === viewId ? 'var(--brand-blue)' : 'transparent',
-              color: v.id === viewId ? '#fff' : 'var(--text-body)',
-              fontSize: 12,
-              fontWeight: 500,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {t(v.labelKey)}
-          </button>
-        ))}
+          horizontal scroll when more chips overflow the container.
+          Density-Toggle sitzt rechts daneben, außerhalb der scroll-area. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 6,
+            overflowX: 'auto',
+            paddingBottom: 'var(--space-1)',
+            scrollbarWidth: 'none',
+            maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
+            WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          {SAVED_VIEWS.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              data-active={v.id === viewId || undefined}
+              onClick={() => setView(v.id)}
+              style={{
+                flexShrink: 0,
+                padding: '3px 10px',
+                borderRadius: 'var(--radius-pill)',
+                border: '1px solid var(--border-primary)',
+                background: v.id === viewId ? 'var(--brand-blue)' : 'transparent',
+                color: v.id === viewId ? '#fff' : 'var(--text-body)',
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {t(v.labelKey)}
+            </button>
+          ))}
+        </div>
+        <DensityToggle density={density} onToggle={toggleDensity} />
       </div>
     </div>
   )
@@ -204,6 +213,7 @@ export function AddressbookScreen() {
                   rows={rows}
                   selectedId={null}
                   onSelect={selectContact}
+                  density={density}
                 />
               )}
             </div>
