@@ -8,7 +8,7 @@
  *   ?tab=<tabkey>  active detail tab
  */
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -25,6 +25,7 @@ import { useContactList } from '@/hooks/useContactList'
 import { useAddressbookDensity } from '@/hooks/useAddressbookDensity'
 import { useAddressbookColumns } from '@/hooks/useAddressbookColumns'
 import { useAddressbookSort } from '@/hooks/useAddressbookSort'
+import { useBulkSelection } from '@/hooks/useBulkSelection'
 import {
   useAddressbookFilter,
   type AddressbookFilterState,
@@ -113,6 +114,37 @@ export function AddressbookScreen() {
   const [createOpen, setCreateOpen] = useState(false)
   const [density, , toggleDensity] = useAddressbookDensity()
   const { visibleIds, toggle: toggleColumn, reset: resetColumns } = useAddressbookColumns()
+
+  // ── Bulk-Selection (Phase G Phase 4 T6) ────────────────────────────────
+  // currentIds in stabiler Referenz, damit der useBulkSelection-Effect nur
+  // bei tatsächlichem Wechsel der ID-Liste feuert.
+  const currentIds = useMemo(() => rows.map((r) => r.id), [rows])
+  const bulk = useBulkSelection(currentIds)
+
+  // Master-detail-Mode (contact param gesetzt) zeigt CompactContactList ohne
+  // Checkboxen — die Bulk-Selektion ergibt dort keinen Sinn, also wegwerfen.
+  useEffect(() => {
+    if (contactId !== null && bulk.selected.size > 0) {
+      bulk.clear()
+    }
+  }, [contactId, bulk])
+
+  function handleToggleAll() {
+    if (bulk.allSelected) {
+      bulk.clear()
+      return
+    }
+    if (currentIds.length > 100) {
+      const ok =
+        typeof window === 'undefined'
+          ? true
+          : window.confirm(
+              `${currentIds.length} Treffer auswählen?`,
+            )
+      if (!ok) return
+    }
+    bulk.selectAll()
+  }
 
   // ── Param helpers ──────────────────────────────────────────────────────
 
@@ -264,6 +296,41 @@ export function AddressbookScreen() {
             }}
           >
             <div style={{ flexShrink: 0 }}>{toolbar}</div>
+            {bulk.selected.size > 0 && (
+              <div
+                data-testid="bulk-selection-counter"
+                style={{
+                  padding: '6px 14px',
+                  margin: '0 12px 8px',
+                  background: 'var(--surface-selected, #f0f7ff)',
+                  border: '1px solid var(--border-primary)',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  fontSize: 13,
+                  color: 'var(--text-body)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                  flexShrink: 0,
+                }}
+              >
+                <span>{bulk.selected.size} ausgewählt</span>
+                <button
+                  type="button"
+                  onClick={() => bulk.clear()}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-tertiary)',
+                    cursor: 'pointer',
+                    padding: '2px 6px',
+                    fontSize: 12,
+                  }}
+                >
+                  {t('common.clear', 'Aufheben')}
+                </button>
+              </div>
+            )}
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 12px 12px' }}>
               {loading ? loadingNode : rows.length === 0 ? emptyNode : (
                 <AddressbookTable
@@ -274,6 +341,12 @@ export function AddressbookScreen() {
                   columns={visibleIds}
                   sort={sort}
                   onHeaderClick={onHeaderClick}
+                  selected={bulk.selected}
+                  isSelected={bulk.isSelected}
+                  onToggleRow={bulk.toggle}
+                  onToggleAll={handleToggleAll}
+                  allSelected={bulk.allSelected}
+                  someSelected={bulk.someSelected}
                 />
               )}
             </div>

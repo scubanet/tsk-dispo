@@ -206,4 +206,80 @@ describe('AddressbookTable', () => {
     expect(screen.getByText(/1990/)).toBeTruthy()
     expect(screen.getByText(/2025/)).toBeTruthy()
   })
+
+  // ── Task 6: Bulk-Selection ─────────────────────────────────────────
+
+  it('renders body checkbox checked + data-selected on row when isSelected returns true', () => {
+    const rows = [
+      makeContact({ id: 'c1', display_name: 'Hugo' }),
+      makeContact({ id: 'c2', display_name: 'Anna' }),
+    ]
+    const selectedSet = new Set(['c1'])
+    const { container } = render(
+      <AddressbookTable
+        rows={rows}
+        selectedId={null}
+        onSelect={vi.fn()}
+        selected={selectedSet}
+        isSelected={(id) => selectedSet.has(id)}
+        onToggleRow={vi.fn()}
+        onToggleAll={vi.fn()}
+        allSelected={false}
+        someSelected={true}
+      />,
+    )
+    const hugoRow = container.querySelector('[data-selected="true"]')
+    expect(hugoRow).toBeTruthy()
+    expect(hugoRow!.textContent).toContain('Hugo')
+
+    // Body-Checkbox für Hugo ist checked, für Anna nicht
+    const hugoCheckbox = screen.getByRole('checkbox', { name: /Auswählen Hugo/i }) as HTMLInputElement
+    const annaCheckbox = screen.getByRole('checkbox', { name: /Auswählen Anna/i }) as HTMLInputElement
+    expect(hugoCheckbox.checked).toBe(true)
+    expect(annaCheckbox.checked).toBe(false)
+  })
+
+  it('click on body checkbox triggers onToggleRow with the row id (and not onSelect)', () => {
+    const onToggleRow = vi.fn()
+    const onSelect = vi.fn()
+    const rows = [makeContact({ id: 'c1', display_name: 'Hugo' })]
+    render(
+      <AddressbookTable
+        rows={rows}
+        selectedId={null}
+        onSelect={onSelect}
+        selected={new Set()}
+        isSelected={() => false}
+        onToggleRow={onToggleRow}
+        onToggleAll={vi.fn()}
+      />,
+    )
+    const cb = screen.getByRole('checkbox', { name: /Auswählen Hugo/i })
+    fireEvent.click(cb)
+    expect(onToggleRow).toHaveBeenCalledWith('c1')
+    expect(onSelect).not.toHaveBeenCalled()
+  })
+
+  it('click on header checkbox triggers onToggleAll and not row onSelect', () => {
+    const onToggleAll = vi.fn()
+    const onSelect = vi.fn()
+    const rows = [makeContact({ id: 'c1', display_name: 'Hugo' })]
+    render(
+      <AddressbookTable
+        rows={rows}
+        selectedId={null}
+        onSelect={onSelect}
+        selected={new Set()}
+        isSelected={() => false}
+        onToggleRow={vi.fn()}
+        onToggleAll={onToggleAll}
+        allSelected={false}
+        someSelected={false}
+      />,
+    )
+    const cb = screen.getByRole('checkbox', { name: /Alle auswählen/i })
+    fireEvent.click(cb)
+    expect(onToggleAll).toHaveBeenCalledTimes(1)
+    expect(onSelect).not.toHaveBeenCalled()
+  })
 })

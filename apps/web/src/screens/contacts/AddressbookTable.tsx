@@ -11,6 +11,7 @@
  * column. Task 5 fills filter logic.
  */
 
+import { useEffect, useRef } from 'react'
 import type { CSSProperties, KeyboardEvent } from 'react'
 import { Avatar, avatarColor } from '@/foundation'
 import type { Contact, ContactRole } from '@/types/contacts'
@@ -92,6 +93,19 @@ export interface AddressbookTableProps {
    * Header-Zelle ein `<div>` und feuert nichts.
    */
   onHeaderClick?: (columnId: ColumnId, shiftKey: boolean) => void
+  // ── Task 6: Bulk-Selection ────────────────────────────────────────────
+  /** Set der aktuell ausgewählten Row-IDs. */
+  selected?: Set<string>
+  /** Helper: true wenn `id` selektiert ist. Wird pro Row aufgerufen. */
+  isSelected?: (id: string) => boolean
+  /** Toggle für eine einzelne Row-ID. */
+  onToggleRow?: (id: string) => void
+  /** Header-Checkbox-Click — Caller entscheidet "alle aus" oder "alle an". */
+  onToggleAll?: () => void
+  /** true wenn ALLE currentIds ausgewählt sind (Header checkbox: checked). */
+  allSelected?: boolean
+  /** true wenn 1..n-1 ausgewählt sind (Header checkbox: indeterminate). */
+  someSelected?: boolean
 }
 
 const CATALOG_BY_ID: Record<ColumnId, (typeof COLUMN_CATALOG)[number]> =
@@ -105,6 +119,33 @@ function buildGridTemplate(columns: ColumnId[]): string {
     .map((id) => CATALOG_BY_ID[id]?.gridWidth ?? '1fr')
     .join(' ')
   return `40px ${middle} 44px`
+}
+
+// ── Indeterminate-fähige Header-Checkbox ──────────────────────────────
+// React kennt das `indeterminate`-Attribut nicht als JSX-Prop — es muss
+// imperativ via `ref.current.indeterminate = …` nach jedem Render gesetzt
+// werden. Dieser Wrapper macht das gekapselt.
+interface BulkHeaderCheckboxProps {
+  checked: boolean
+  indeterminate: boolean
+  onChange: () => void
+}
+function BulkHeaderCheckbox({ checked, indeterminate, onChange }: BulkHeaderCheckboxProps) {
+  const ref = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (ref.current) ref.current.indeterminate = indeterminate
+  }, [indeterminate])
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      aria-label="Alle auswählen"
+      title="Alle auswählen / abwählen"
+      checked={checked}
+      onChange={onChange}
+      style={{ cursor: 'pointer', margin: 0 }}
+    />
+  )
 }
 
 function formatDateCH(value: string | null | undefined): string {
@@ -124,7 +165,15 @@ export function AddressbookTable({
   columns,
   sort,
   onHeaderClick,
+  selected,
+  isSelected,
+  onToggleRow,
+  onToggleAll,
+  allSelected = false,
+  someSelected = false,
 }: AddressbookTableProps) {
+  const bulkEnabled = !!onToggleRow && !!onToggleAll
+  void selected // currently only used by callers; props are accepted for completeness
   const compact = density === 'compact'
   const rowHeight = compact ? 32 : 44
   const fontSize = compact ? 13 : 14
@@ -186,7 +235,20 @@ export function AddressbookTable({
           zIndex: 1,
         }}
       >
-        <div role="columnheader" aria-label="Auswahl" style={headerCell} />
+        <div
+          role="columnheader"
+          aria-label="Auswahl"
+          style={{ ...headerCell, justifyContent: 'center' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {bulkEnabled && (
+            <BulkHeaderCheckbox
+              checked={allSelected}
+              indeterminate={someSelected}
+              onChange={() => onToggleAll!()}
+            />
+          )}
+        </div>
         {cols.map((id) => {
           const def = CATALOG_BY_ID[id]
           const label = def?.labelKey ?? id
@@ -245,6 +307,7 @@ export function AddressbookTable({
       {/* Body rows */}
       {rows.map((r) => {
         const isActive = r.id === selectedId
+        const rowSelected = isSelected ? isSelected(r.id) : false
         const subtitle =
           r.primary_email ??
           (r.kind === 'organization' ? 'Organisation' : '')
@@ -257,6 +320,12 @@ export function AddressbookTable({
           }
         }
 
+        const rowBackground = isActive
+          ? 'var(--surface-secondary)'
+          : rowSelected
+          ? 'var(--surface-selected, #f0f7ff)'
+          : 'transparent'
+
         return (
           <div
             key={r.id}
@@ -264,6 +333,7 @@ export function AddressbookTable({
             tabIndex={0}
             aria-selected={isActive}
             data-active={isActive || undefined}
+            data-selected={rowSelected || undefined}
             onClick={handleActivate}
             onKeyDown={handleKeyDown}
             style={{
@@ -271,29 +341,40 @@ export function AddressbookTable({
               gridTemplateColumns: gridTemplate,
               height: rowHeight,
               cursor: 'pointer',
-              background: isActive ? 'var(--surface-secondary)' : 'transparent',
+              background: rowBackground,
               borderBottom: '1px solid var(--border-primary)',
               transition: 'background 120ms ease',
               outline: 'none',
             }}
             onMouseEnter={(e) => {
-              if (!isActive) {
+              if (!isActive && !rowSelected) {
                 (e.currentTarget as HTMLDivElement).style.background =
                   'var(--surface-hover, var(--bg-sand))'
               }
             }}
             onMouseLeave={(e) => {
-              if (!isActive) {
+              if (!isActive && !rowSelected) {
                 (e.currentTarget as HTMLDivElement).style.background = 'transparent'
               }
             }}
           >
-            {/* Cell 1: checkbox placeholder (Task 6 fills) */}
+            {/* Cell 1: bulk-selection checkbox (Task 6). */}
             <div
               role="cell"
-              style={baseCell}
+              style={{ ...baseCell, justifyContent: 'center' }}
               onClick={(e) => e.stopPropagation()}
-            />
+            >
+              {bulkEnabled && (
+                <input
+                  type="checkbox"
+                  aria-label={`Auswählen ${r.display_name}`}
+                  checked={rowSelected}
+                  onChange={() => onToggleRow!(r.id)}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ cursor: 'pointer', margin: 0 }}
+                />
+              )}
+            </div>
 
             {/* Dynamic cells in `cols` order */}
             {cols.map((id) => renderCell(id, r, {
