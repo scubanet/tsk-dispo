@@ -1,7 +1,9 @@
 // apps/web/src/screens/contacts/timeline/__tests__/TimelineFeed.test.tsx
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router-dom'
+import type { ReactNode } from 'react'
 import { TimelineFeed } from '../TimelineFeed'
 
 vi.mock('@/lib/supabase', () => {
@@ -27,27 +29,78 @@ vi.mock('@/lib/supabase', () => {
   return { supabase: { from: vi.fn().mockReturnValue({ select }) } }
 })
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+function makeWrapper(initialEntries: string[] = ['/']) {
+  return function Wrapper({ children }: { children: ReactNode }) {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    return (
+      <MemoryRouter initialEntries={initialEntries}>
+        <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+      </MemoryRouter>
+    )
+  }
 }
 
 describe('TimelineFeed', () => {
   it('renders events from useContactTimeline', async () => {
-    render(<TimelineFeed contactId="c1" />, { wrapper })
+    render(<TimelineFeed contactId="c1" />, { wrapper: makeWrapper() })
     await waitFor(() => expect(screen.getByText('one')).toBeTruthy())
     expect(screen.getByText('two')).toBeTruthy()
   })
 
   it('shows skeleton while loading', () => {
-    render(<TimelineFeed contactId="c1" />, { wrapper })
+    render(<TimelineFeed contactId="c1" />, { wrapper: makeWrapper() })
     expect(screen.getByText(/Lade Timeline/i)).toBeTruthy()
   })
 
   it('renders composer and filter bar', async () => {
-    render(<TimelineFeed contactId="c1" />, { wrapper })
+    render(<TimelineFeed contactId="c1" />, { wrapper: makeWrapper() })
     // EventComposer segmented control button + TimelineFilterBar both expose 'Notiz' buttons
     expect(screen.getAllByRole('button', { name: 'Notiz' }).length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Alle')).toBeTruthy()
+  })
+
+  // ── Phase G Phase 5 Task 6 — Event-Highlighting via ?event=<id> ──────
+  describe('event highlighting via ?event=<id>', () => {
+    beforeEach(() => {
+      // happy-dom hat scrollIntoView nicht implementiert — wir mocken global.
+      if (!Element.prototype.scrollIntoView) {
+        Element.prototype.scrollIntoView = vi.fn()
+      }
+    })
+
+    it('highlighted die Card mit matchender event_id und nur diese', async () => {
+      render(<TimelineFeed contactId="c1" />, {
+        wrapper: makeWrapper(['/contacts?contact=c1&event=a']),
+      })
+      await waitFor(() => expect(screen.getByText('one')).toBeTruthy())
+
+      const cardA = document.querySelector('article[data-event-id="a"]')
+      const cardB = document.querySelector('article[data-event-id="b"]')
+      expect(cardA?.getAttribute('data-event-highlighted')).toBe('true')
+      expect(cardB?.hasAttribute('data-event-highlighted')).toBe(false)
+    })
+
+    it('keine Card highlighted wenn ?event=<id> fehlt', async () => {
+      render(<TimelineFeed contactId="c1" />, {
+        wrapper: makeWrapper(['/contacts?contact=c1']),
+      })
+      await waitFor(() => expect(screen.getByText('one')).toBeTruthy())
+
+      const highlighted = document.querySelector('article[data-event-highlighted="true"]')
+      expect(highlighted).toBeNull()
+    })
+
+    it('ruft scrollIntoView auf der gehighlighteten Card', async () => {
+      const scrollSpy = vi.fn()
+      Element.prototype.scrollIntoView = scrollSpy
+
+      render(<TimelineFeed contactId="c1" />, {
+        wrapper: makeWrapper(['/contacts?contact=c1&event=b']),
+      })
+      await waitFor(() => expect(screen.getByText('two')).toBeTruthy())
+      await waitFor(() => expect(scrollSpy).toHaveBeenCalled())
+      // Smooth-scroll + block:center sind die spezifizierten Options.
+      expect(scrollSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
+    })
   })
 })

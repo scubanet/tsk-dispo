@@ -48,4 +48,23 @@ describe('EventCard', () => {
     }} />)
     expect(screen.getByText(/Daten bearbeitet:/)).toBeTruthy()
   })
+
+  // ── Phase G Phase 5 Task 6 — Highlight-Prop ──────────────────────────
+  it('sets data-event-id attr immer auf das Outer-Article', () => {
+    const { container } = render(<EventCard event={baseEvent} />)
+    const article = container.querySelector('article')
+    expect(article?.getAttribute('data-event-id')).toBe('a')
+  })
+
+  it('setzt data-event-highlighted="true" wenn highlighted-Prop true ist', () => {
+    const { container } = render(<EventCard event={baseEvent} highlighted />)
+    const article = container.querySelector('article')
+    expect(article?.getAttribute('data-event-highlighted')).toBe('true')
+  })
+
+  it('omits data-event-highlighted wenn highlighted-Prop false/undefined ist', () => {
+    const { container } = render(<EventCard event={baseEvent} />)
+    const article = container.querySelector('article')
+    expect(article?.hasAttribute('data-event-highlighted')).toBe(false)
+  })
 })

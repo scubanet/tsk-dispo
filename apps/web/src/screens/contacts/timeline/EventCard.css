@@ -1,0 +1,20 @@
+/**
+ * EventCard — Highlight-Animation (Phase G Phase 5 Task 6).
+ *
+ * Wenn das DetailPanel via `?event=<id>`-URL-Param geöffnet wird (z.B. durch
+ * Klick auf eine ActivityEventCard im Activity-Feed), markiert die TimelineFeed
+ * die entsprechende Card via `data-event-highlighted="true"`. Diese CSS-Regel
+ * setzt einen kurzen Border-Pulse (1.5s, ease-out, runs once), der nach Ablauf
+ * der Animation rückstandsfrei verschwindet.
+ *
+ * Wir verwenden `box-shadow` statt `border`, damit das Layout (insbesondere die
+ * Höhe der Card) nicht verschoben wird, wenn der Highlight aktiv ist.
+ */
+@keyframes event-card-pulse {
+  0%   { box-shadow: 0 0 0 2px var(--brand-blue, #4a90e2); }
+  100% { box-shadow: 0 0 0 2px transparent; }
+}
+
+article[data-event-highlighted="true"] {
+  animation: event-card-pulse 1.5s ease-out;
+}

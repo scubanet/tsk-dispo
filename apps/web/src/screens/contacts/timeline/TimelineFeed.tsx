@@ -1,5 +1,6 @@
 // apps/web/src/screens/contacts/timeline/TimelineFeed.tsx
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useContactTimeline } from '@/hooks/useContactTimeline'
 import type { TimelineFilter } from '@/types/contactEvents'
 import { EventCard } from './EventCard'
@@ -14,6 +15,24 @@ export function TimelineFeed({ contactId }: Props) {
   const [filter, setFilter] = useState<TimelineFilter>({})
   const tl = useContactTimeline(contactId, filter)
   const events = tl.data?.pages.flat() ?? []
+
+  // Phase G Phase 5 Task 6 — Event-Highlight via `?event=<id>`-URL-Param.
+  // Wenn die App via ActivityEventCard ins DetailPanel navigiert, wird die
+  // entsprechende Card hier hervorgehoben (Border-Pulse 1.5s) und in den
+  // Viewport gescrollt.
+  const [searchParams] = useSearchParams()
+  const eventId = searchParams.get('event')
+  const highlightedRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    if (!eventId || events.length === 0) return
+    const node = highlightedRef.current
+    if (!node) return
+    // happy-dom hat scrollIntoView nicht implementiert — wir fallen leise zurück.
+    if (typeof node.scrollIntoView === 'function') {
+      node.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [eventId, events.length])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -34,7 +53,17 @@ export function TimelineFeed({ contactId }: Props) {
             Noch keine Events. Erfasse oben eine Notiz, einen Anruf oder Task.
           </div>
         )}
-        {events.map(e => <EventCard key={e.event_id} event={e} />)}
+        {events.map(e => {
+          const isHighlighted = e.event_id === eventId
+          return (
+            <EventCard
+              key={e.event_id}
+              event={e}
+              highlighted={isHighlighted}
+              ref={isHighlighted ? highlightedRef : undefined}
+            />
+          )
+        })}
         {tl.hasNextPage && (
           <div style={{ padding: 16, textAlign: 'center' }}>
             <button

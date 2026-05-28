@@ -1,9 +1,18 @@
 // apps/web/src/screens/contacts/timeline/EventCard.tsx
+import { forwardRef } from 'react'
 import type { TimelineEvent, EventType } from '@/types/contactEvents'
 import { Icon, type IconName } from '@/foundation/primitives/Icon'
+import './EventCard.css'
 
 interface Props {
   event: TimelineEvent
+  /**
+   * Phase G Phase 5 Task 6 — Highlight-Animation.
+   * Wenn `true`, läuft ein kurzer Border-Pulse (1.5s, ease-out, runs once) auf
+   * der Card. Wird von TimelineFeed gesetzt, wenn der URL-Param `?event=<id>`
+   * auf diese Card matched.
+   */
+  highlighted?: boolean
 }
 
 // Icon-Mapping (Tabler-Icons via Foundation). Phase 3 (Task 17) ersetzt den
@@ -27,13 +36,21 @@ const ICON_FOR: Record<EventType, IconName> = {
   audit_edit:          'edit',
 }
 
-export function EventCard({ event }: Props) {
+export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
+  { event, highlighted },
+  ref,
+) {
   const iconName: IconName = ICON_FOR[event.event_type] ?? 'point'
   return (
-    <article style={{
-      display: 'flex', gap: 10, padding: '10px 12px',
-      borderBottom: '1px solid var(--border-subtle, #eee)',
-    }}>
+    <article
+      ref={ref}
+      data-event-id={event.event_id}
+      data-event-highlighted={highlighted ? 'true' : undefined}
+      style={{
+        display: 'flex', gap: 10, padding: '10px 12px',
+        borderBottom: '1px solid var(--border-subtle, #eee)',
+      }}
+    >
       <span
         data-icon={iconName}
         aria-hidden="true"
@@ -59,4 +76,4 @@ export function EventCard({ event }: Props) {
       </div>
     </article>
   )
-}
+})
