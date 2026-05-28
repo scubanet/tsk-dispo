@@ -5,7 +5,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useContactWithProperties } from '../useContactWithProperties'
 
 vi.mock('@/lib/supabase', () => {
-  const single = vi.fn().mockResolvedValue({
+  // Two separate queries now: 'contacts' (single) and 'v_contact_balance' (maybeSingle).
+  // We dispatch on the table-name in `from()` so each builder returns the right shape.
+  const contactsResult = {
     data: {
       id: 'c1',
       kind: 'person',
@@ -20,6 +22,7 @@ vi.mock('@/lib/supabase', () => {
       created_at: '2026-01-01T00:00:00Z',
       updated_at: '2026-05-27T00:00:00Z',
       owner_id: null,
+      tags: [],
       instructor: {
         padi_level: 'OWSI',
         padi_pro_number: '123456',
@@ -28,16 +31,33 @@ vi.mock('@/lib/supabase', () => {
       },
       student: null,
       organization: null,
-      balance: {
-        balance_chf: 1250.50,
-        last_movement_date: '2026-05-20',
-      },
     },
     error: null,
-  })
-  const eq = vi.fn().mockReturnValue({ single })
-  const select = vi.fn().mockReturnValue({ eq })
-  return { supabase: { from: vi.fn().mockReturnValue({ select }) } }
+  }
+  const balanceResult = {
+    data: { balance_chf: 1250.50, last_movement_date: '2026-05-20' },
+    error: null,
+  }
+
+  function contactsBuilder() {
+    const single = vi.fn().mockResolvedValue(contactsResult)
+    const eq = vi.fn().mockReturnValue({ single })
+    const select = vi.fn().mockReturnValue({ eq })
+    return { select }
+  }
+  function balanceBuilder() {
+    const maybeSingle = vi.fn().mockResolvedValue(balanceResult)
+    const eq = vi.fn().mockReturnValue({ maybeSingle })
+    const select = vi.fn().mockReturnValue({ eq })
+    return { select }
+  }
+  return {
+    supabase: {
+      from: vi.fn((table: string) =>
+        table === 'v_contact_balance' ? balanceBuilder() : contactsBuilder(),
+      ),
+    },
+  }
 })
 
 function wrapper({ children }: { children: React.ReactNode }) {

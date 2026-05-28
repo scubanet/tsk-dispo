@@ -31,14 +31,20 @@ interface RawContactWithRelations {
   instructor: InstructorSidecar | null
   student: StudentSidecar | null
   organization: OrgSidecar | null
-  balance: { balance_chf: number; last_movement_date: string | null } | null
+}
+
+interface RawBalance {
+  balance_chf: number | null
+  last_movement_date: string | null
 }
 
 export function useContactWithProperties(contactId: string) {
   return useQuery({
     queryKey: ['contact-properties', contactId],
     queryFn: async (): Promise<ContactWithProperties> => {
-      const { data, error } = await supabase
+      // Main contact + sidecars (single query with explicit FK constraint
+      // names to disambiguate contact_organization's two FKs to contacts).
+      const contactRes = await supabase
         .from('contacts')
         .select(`
           id, kind, display_name, first_name, last_name, birth_date,
@@ -46,20 +52,36 @@ export function useContactWithProperties(contactId: string) {
           created_at, updated_at, owner_id, tags,
           instructor:contact_instructor!contact_instructor_contact_id_fkey(padi_level, padi_pro_number, member_status, active),
           student:contact_student!contact_student_contact_id_fkey(pipeline_stage, intake_status, current_level),
-          organization:contact_organization!contact_organization_contact_id_fkey(legal_name, trading_name, category),
-          balance:v_contact_balance(balance_chf, last_movement_date)
+          organization:contact_organization!contact_organization_contact_id_fkey(legal_name, trading_name, category)
         `)
         .eq('id', contactId)
         .single()
+      if (contactRes.error) throw new Error(contactRes.error.message)
 
-      if (error) throw new Error(error.message)
-      return normalize(data as unknown as RawContactWithRelations)
+      // Balance separat — v_contact_balance hat keine eindeutige FK-Beziehung
+      // zu contacts (mehrfach via instructor + account_movements verkettet),
+      // PostgREST kann das Embedding nicht auflösen. Daher ein zweiter Hit.
+      // maybeSingle() weil Contacts ohne Instructor-Sidecar keine Saldo-Row haben.
+      const balanceRes = await supabase
+        .from('v_contact_balance')
+        .select('balance_chf, last_movement_date')
+        .eq('contact_id', contactId)
+        .maybeSingle()
+      if (balanceRes.error) throw new Error(balanceRes.error.message)
+
+      return normalize(
+        contactRes.data as unknown as RawContactWithRelations,
+        balanceRes.data as RawBalance | null,
+      )
     },
     enabled: !!contactId,
   })
 }
 
-function normalize(raw: RawContactWithRelations): ContactWithProperties {
+function normalize(
+  raw: RawContactWithRelations,
+  balance: RawBalance | null,
+): ContactWithProperties {
   // Roles derived from sidecar presence.
   const roles: ContactRoleDerived[] = []
   if (raw.instructor) roles.push('instructor')
@@ -84,8 +106,8 @@ function normalize(raw: RawContactWithRelations): ContactWithProperties {
     instructor: raw.instructor,
     student: raw.student,
     organization: raw.organization,
-    balance_chf: raw.balance?.balance_chf ?? null,
-    last_movement_date: raw.balance?.last_movement_date ?? null,
+    balance_chf: balance?.balance_chf ?? null,
+    last_movement_date: balance?.last_movement_date ?? null,
     roles,
   }
 }
