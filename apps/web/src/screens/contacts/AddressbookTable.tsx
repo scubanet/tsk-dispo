@@ -75,13 +75,18 @@ export interface AddressbookTableProps {
 }
 
 // 6 default columns. Phone / Saldo / Tags arrive in Task 3 (ColumnPicker).
-//   1: checkbox placeholder  (32px)
-//   2: avatar + name + sub   (2fr)
-//   3: role dots             (80px)
-//   4: email                 (2fr)
-//   5: last contact          (130px)
-//   6: actions placeholder   (36px)
-const GRID_TEMPLATE = '32px 2fr 80px 2fr 130px 36px'
+//   1: checkbox placeholder  (40px)
+//   2: avatar + name + sub   (3fr)
+//   3: role dots             (100px)
+//   4: email                 (3fr)
+//   5: last contact          (160px)
+//   6: actions placeholder   (44px)
+//
+// Sizing post-hotfix: the table is now always rendered full-width (no
+// DetailPane next to it), so we give every column a little more air.
+// The 3fr/3fr split keeps Name and Email balanced — both can ellipsis-
+// truncate symmetrically when the viewport narrows.
+const GRID_TEMPLATE = '40px 3fr 100px 3fr 160px 44px'
 
 // ── Component ───────────────────────────────────────────────────────────
 

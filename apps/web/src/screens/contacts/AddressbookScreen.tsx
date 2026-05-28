@@ -25,6 +25,7 @@ import { useContactList } from '@/hooks/useContactList'
 import { ContactDetailPanel, type TabKey } from './ContactDetailPanel'
 import { CreateContactSheet } from './CreateContactSheet'
 import { AddressbookTable } from './AddressbookTable'
+import { CompactContactList } from './CompactContactList'
 
 // ── Saved views ───────────────────────────────────────────────────────────
 
@@ -109,6 +110,61 @@ export function AddressbookScreen() {
 
   // ── Render ─────────────────────────────────────────────────────────────
 
+  // Shared toolbar — appears identical in full-width AND master-detail mode.
+  const toolbar = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', padding: '8px 12px 0' }}>
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        ariaLabel={t('contacts.search_aria')}
+        placeholder={t('contacts.search_placeholder')}
+      />
+      {/* Saved-view chips. GL-004 M4: right-edge fade hints at
+          horizontal scroll when more chips overflow the container. */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 6,
+          overflowX: 'auto',
+          paddingBottom: 'var(--space-1)',
+          scrollbarWidth: 'none',
+          maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
+          WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
+        }}
+      >
+        {SAVED_VIEWS.map((v) => (
+          <button
+            key={v.id}
+            type="button"
+            data-active={v.id === viewId || undefined}
+            onClick={() => setView(v.id)}
+            style={{
+              flexShrink: 0,
+              padding: '3px 10px',
+              borderRadius: 'var(--radius-pill)',
+              border: '1px solid var(--border-primary)',
+              background: v.id === viewId ? 'var(--brand-blue)' : 'transparent',
+              color: v.id === viewId ? '#fff' : 'var(--text-body)',
+              fontSize: 12,
+              fontWeight: 500,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {t(v.labelKey)}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+
+  const loadingNode = (
+    <div style={{ padding: 'var(--space-6)', color: 'var(--text-tertiary)', fontSize: 13 }}>{t('contacts.loading')}</div>
+  )
+  const emptyNode = (
+    <EmptyState icon={<Icon.Users size={20} />} title={t('contacts.no_contacts')} />
+  )
+
   return (
     <div className="atoll-screen">
       {/* Screen header */}
@@ -127,93 +183,58 @@ export function AddressbookScreen() {
       </div>
 
       <div className="atoll-screen__body atoll-screen__body--full">
-        <MasterDetail>
-          {/* ── Master / List pane ────────────────────────────── */}
-          <ListPane
-            toolbar={
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', padding: '8px 12px 0' }}>
-                <SearchInput
-                  value={search}
-                  onChange={setSearch}
-                  ariaLabel={t('contacts.search_aria')}
-                  placeholder={t('contacts.search_placeholder')}
-                />
-                {/* Saved-view chips. GL-004 M4: right-edge fade hints at
-                    horizontal scroll when more chips overflow the container. */}
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 6,
-                    overflowX: 'auto',
-                    paddingBottom: 'var(--space-1)',
-                    scrollbarWidth: 'none',
-                    maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
-                    WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)',
-                  }}
-                >
-                  {SAVED_VIEWS.map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      data-active={v.id === viewId || undefined}
-                      onClick={() => setView(v.id)}
-                      style={{
-                        flexShrink: 0,
-                        padding: '3px 10px',
-                        borderRadius: 'var(--radius-pill)',
-                        border: '1px solid var(--border-primary)',
-                        background: v.id === viewId ? 'var(--brand-blue)' : 'transparent',
-                        color: v.id === viewId ? '#fff' : 'var(--text-body)',
-                        fontSize: 12,
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {t(v.labelKey)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            }
+        {contactId === null ? (
+          /* ── Full-width table mode ──────────────────────────
+             Kein DetailPane sichtbar. AddressbookTable bekommt die
+             ganze Bühne und kann ihre Spalten atmen lassen. */
+          <div
+            data-testid="addressbook-fullwidth"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              minHeight: 0,
+              background: 'var(--bg-card)',
+            }}
           >
-            {loading ? (
-              <div style={{ padding: 'var(--space-6)', color: 'var(--text-tertiary)', fontSize: 13 }}>{t('contacts.loading')}</div>
-            ) : rows.length === 0 ? (
-              <EmptyState
-                icon={<Icon.Users size={20} />}
-                title={t('contacts.no_contacts')}
-              />
-            ) : (
-              <AddressbookTable
-                rows={rows}
-                selectedId={contactId}
-                onSelect={selectContact}
-              />
-            )}
-          </ListPane>
+            <div style={{ flexShrink: 0 }}>{toolbar}</div>
+            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 12px 12px' }}>
+              {loading ? loadingNode : rows.length === 0 ? emptyNode : (
+                <AddressbookTable
+                  rows={rows}
+                  selectedId={null}
+                  onSelect={selectContact}
+                />
+              )}
+            </div>
+          </div>
+        ) : (
+          /* ── Master-detail mode ─────────────────────────────
+             Kompakte Single-Column-Liste + DetailPane. */
+          <MasterDetail>
+            <ListPane toolbar={toolbar}>
+              {loading ? loadingNode : rows.length === 0 ? emptyNode : (
+                <CompactContactList
+                  rows={rows}
+                  selectedId={contactId}
+                  onSelect={selectContact}
+                />
+              )}
+            </ListPane>
 
-          {/* ── Detail pane ───────────────────────────────────── */}
-          <DetailPane>
-            {contactId ? (
+            <DetailPane>
               <ContactDetailPanel
                 contactId={contactId}
                 open
                 initialTab={tab}
                 onClose={clearContact}
               />
-            ) : (
-              <EmptyState
-                icon={<Icon.Users size={24} />}
-                title={t('contacts.empty_select_title')}
-                body={t('contacts.empty_select_body')}
-              />
-            )}
-          </DetailPane>
-        </MasterDetail>
+            </DetailPane>
+          </MasterDetail>
+        )}
       </div>
 
-      {/* Create sheet */}
+      {/* Create sheet — single mount works in both modes */}
       <CreateContactSheet
         open={createOpen}
         onClose={() => setCreateOpen(false)}
