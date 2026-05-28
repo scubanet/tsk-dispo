@@ -24,6 +24,7 @@ import { type ContactListFilter } from '@/lib/contactQueries'
 import { useContactList } from '@/hooks/useContactList'
 import { useAddressbookDensity } from '@/hooks/useAddressbookDensity'
 import { useAddressbookColumns } from '@/hooks/useAddressbookColumns'
+import { useAddressbookSort } from '@/hooks/useAddressbookSort'
 import { ContactDetailPanel, type TabKey } from './ContactDetailPanel'
 import { CreateContactSheet } from './CreateContactSheet'
 import { AddressbookTable } from './AddressbookTable'
@@ -64,9 +65,11 @@ export function AddressbookScreen() {
   const currentView = SAVED_VIEWS.find((v) => v.id === viewId) ?? SAVED_VIEWS[0]
 
   const qc = useQueryClient()
+  const { sort, onHeaderClick } = useAddressbookSort()
   const filter: ContactListFilter = {
     ...currentView.filter,
     searchText: search || undefined,
+    sort: sort.length > 0 ? sort : undefined,
   }
   const { data, isFetching: loading } = useContactList(filter, 0, 500)
   const rows = data?.rows ?? []
@@ -223,6 +226,8 @@ export function AddressbookScreen() {
                   onSelect={selectContact}
                   density={density}
                   columns={visibleIds}
+                  sort={sort}
+                  onHeaderClick={onHeaderClick}
                 />
               )}
             </div>

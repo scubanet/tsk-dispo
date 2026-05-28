@@ -52,8 +52,12 @@ const mockRows: Contact[] = [
   },
 ]
 
+const useContactListSpy = vi.fn()
 vi.mock('@/hooks/useContactList', () => ({
-  useContactList: () => ({ data: { rows: mockRows }, isFetching: false }),
+  useContactList: (...args: unknown[]) => {
+    useContactListSpy(...args)
+    return { data: { rows: mockRows }, isFetching: false }
+  },
 }))
 
 // Mock the ContactDetailPanel so we don't drag the RLS/Supabase roundtrip in.
@@ -88,6 +92,7 @@ function renderAt(url: string) {
 describe('AddressbookScreen conditional layout', () => {
   beforeEach(() => {
     window.localStorage.clear()
+    useContactListSpy.mockClear()
   })
 
   it('without ?contact= renders full-width AddressbookTable, no DetailPanel', () => {
@@ -105,6 +110,16 @@ describe('AddressbookScreen conditional layout', () => {
 
     // No CompactContactList rendered
     expect(container.querySelector('.atoll-people-list')).toBeNull()
+  })
+
+  it('forwards ?sort=name:asc from URL into useContactList filter', () => {
+    renderAt('/addressbook?sort=name:asc')
+    // The hook may have been called multiple times (re-renders) — pick the
+    // last invocation, which reflects the settled state.
+    expect(useContactListSpy).toHaveBeenCalled()
+    const lastCall = useContactListSpy.mock.calls[useContactListSpy.mock.calls.length - 1]
+    const filterArg = lastCall[0] as { sort?: unknown }
+    expect(filterArg.sort).toEqual([{ field: 'name', direction: 'asc' }])
   })
 
   it('with ?contact= renders CompactContactList + ContactDetailPanel', () => {

@@ -126,6 +126,57 @@ describe('AddressbookTable', () => {
     expect(screen.getByRole('columnheader', { name: /^Erstellt$/i })).toBeTruthy()
   })
 
+  it('renders ↑ indicator next to sortable header when sort=[{field:"name",asc}]', () => {
+    render(
+      <AddressbookTable
+        rows={[]}
+        selectedId={null}
+        onSelect={vi.fn()}
+        sort={[{ field: 'name', direction: 'asc' }]}
+        onHeaderClick={vi.fn()}
+      />,
+    )
+    const nameHeader = screen.getByRole('columnheader', { name: /Name/i })
+    expect(nameHeader.textContent).toContain('↑')
+    expect(nameHeader.textContent).not.toContain('↓')
+  })
+
+  it('renders ↓ indicator for desc + click on sortable header triggers onHeaderClick', () => {
+    const onHeaderClick = vi.fn()
+    render(
+      <AddressbookTable
+        rows={[]}
+        selectedId={null}
+        onSelect={vi.fn()}
+        sort={[{ field: 'name', direction: 'desc' }]}
+        onHeaderClick={onHeaderClick}
+      />,
+    )
+    const nameHeader = screen.getByRole('columnheader', { name: /Name/i })
+    expect(nameHeader.textContent).toContain('↓')
+    const button = nameHeader.querySelector('button')
+    expect(button).toBeTruthy()
+    fireEvent.click(button!)
+    expect(onHeaderClick).toHaveBeenCalledWith('name', false)
+  })
+
+  it('non-sortable header (roles) is NOT a button and does not call onHeaderClick', () => {
+    const onHeaderClick = vi.fn()
+    render(
+      <AddressbookTable
+        rows={[]}
+        selectedId={null}
+        onSelect={vi.fn()}
+        columns={['name', 'roles', 'email']}
+        onHeaderClick={onHeaderClick}
+      />,
+    )
+    const rolesHeader = screen.getByRole('columnheader', { name: /^Rollen$/i })
+    expect(rolesHeader.querySelector('button')).toBeNull()
+    fireEvent.click(rolesHeader)
+    expect(onHeaderClick).not.toHaveBeenCalled()
+  })
+
   it('renders cell values for opted-in columns (phone, tags, sprache, geburtstag, created_at, quelle)', () => {
     const row = makeContact({
       id: 'cP',

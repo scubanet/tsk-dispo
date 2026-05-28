@@ -19,6 +19,8 @@ import {
   defaultVisibleIds,
   type ColumnId,
 } from '@/hooks/useAddressbookColumns'
+import type { SortSpec } from '@/lib/contactQueries'
+import { COLUMN_TO_SORT_FIELD } from '@/hooks/useAddressbookSort'
 
 // ── Role color dots (mirrors RolesBadgeList color mapping) ──────────────
 
@@ -78,6 +80,18 @@ export interface AddressbookTableProps {
    * verwendet die Tabelle die `defaultVisible: true`-Spalten aus dem Catalog.
    */
   columns?: ColumnId[]
+  /**
+   * Aktiver Multi-Sort. Reihenfolge entspricht der Sort-Priorität (erster
+   * Eintrag = primärer Sort). Sortierbare Header-Cells zeigen einen
+   * `↑`/`↓`-Indicator, wenn ihr `field` hier vorkommt.
+   */
+  sort?: SortSpec[]
+  /**
+   * Wird beim Klick auf einen sortierbaren Header gerufen. `shiftKey=true`
+   * signalisiert Multi-Sort-Modus. Bei nicht-sortierbaren Spalten ist die
+   * Header-Zelle ein `<div>` und feuert nichts.
+   */
+  onHeaderClick?: (columnId: ColumnId, shiftKey: boolean) => void
 }
 
 const CATALOG_BY_ID: Record<ColumnId, (typeof COLUMN_CATALOG)[number]> =
@@ -108,6 +122,8 @@ export function AddressbookTable({
   onSelect,
   density = 'comfortable',
   columns,
+  sort,
+  onHeaderClick,
 }: AddressbookTableProps) {
   const compact = density === 'compact'
   const rowHeight = compact ? 32 : 44
@@ -171,11 +187,58 @@ export function AddressbookTable({
         }}
       >
         <div role="columnheader" aria-label="Auswahl" style={headerCell} />
-        {cols.map((id) => (
-          <div key={id} role="columnheader" style={headerCell}>
-            {CATALOG_BY_ID[id]?.labelKey ?? id}
-          </div>
-        ))}
+        {cols.map((id) => {
+          const def = CATALOG_BY_ID[id]
+          const label = def?.labelKey ?? id
+          const sortField = COLUMN_TO_SORT_FIELD[id]
+          const isSortable = def?.sortable === true && !!sortField
+          const activeSort = sortField
+            ? sort?.find((s) => s.field === sortField)
+            : undefined
+          const indicator = activeSort
+            ? activeSort.direction === 'asc'
+              ? ' ↑'
+              : ' ↓'
+            : ''
+
+          if (isSortable && onHeaderClick) {
+            return (
+              <div key={id} role="columnheader" style={headerCell}>
+                <button
+                  type="button"
+                  onClick={(e) => onHeaderClick(id, e.shiftKey)}
+                  style={{
+                    background: 'transparent',
+                    border: 0,
+                    padding: 0,
+                    margin: 0,
+                    font: 'inherit',
+                    color: 'inherit',
+                    textTransform: 'inherit',
+                    letterSpacing: 'inherit',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 2,
+                  }}
+                >
+                  {label}
+                  {indicator && (
+                    <span aria-hidden="true" style={{ fontWeight: 700 }}>
+                      {indicator}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )
+          }
+
+          return (
+            <div key={id} role="columnheader" style={headerCell}>
+              {label}
+            </div>
+          )
+        })}
         <div role="columnheader" aria-label="Aktionen" style={headerCell} />
       </div>
 
