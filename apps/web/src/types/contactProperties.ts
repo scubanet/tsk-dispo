@@ -7,20 +7,17 @@
 export interface InstructorSidecar {
   padi_level: string | null
   padi_pro_number: string | null
-  member_status: string | null
   active: boolean
 }
 
 export interface StudentSidecar {
   pipeline_stage: string | null
   intake_status: string | null
-  current_level: string | null
+  highest_brevet: string | null
 }
 
 export interface OrgSidecar {
-  legal_name: string | null
-  trading_name: string | null
-  category: string | null
+  org_kind: string | null
 }
 
 export type ContactRoleDerived = 'instructor' | 'student' | 'organization'

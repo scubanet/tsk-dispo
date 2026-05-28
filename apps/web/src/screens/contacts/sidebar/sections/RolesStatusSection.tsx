@@ -62,10 +62,10 @@ export function RolesStatusSection({ contact }: Props) {
           />
           <EditableField
             label="Brevet"
-            value={contact.student.current_level}
+            value={contact.student.highest_brevet}
             placeholder="z.B. OWD, AOWD, Rescue"
             onSave={(next) => mutate.mutateAsync({
-              table: 'contact_student', field: 'current_level', value: next,
+              table: 'contact_student', field: 'highest_brevet', value: next,
             })}
           />
         </>

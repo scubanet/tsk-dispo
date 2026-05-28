@@ -37,13 +37,12 @@ const baseContact: ContactWithProperties = {
 const studentSidecar: StudentSidecar = {
   pipeline_stage: 'lead',
   intake_status: 'erstkontakt',
-  current_level: 'OWD',
+  highest_brevet: 'OWD',
 }
 
 const instructorSidecar: InstructorSidecar = {
   padi_level: 'IDC Staff',
   padi_pro_number: '123456',
-  member_status: 'teaching',
   active: true,
 }
 

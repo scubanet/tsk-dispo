@@ -36,7 +36,6 @@ const baseContact: ContactWithProperties = {
 const instructorSidecar: InstructorSidecar = {
   padi_level: 'IDC Staff',
   padi_pro_number: '123456',
-  member_status: 'teaching',
   active: true,
 }
 
@@ -78,7 +77,7 @@ describe('PadiSection', () => {
     expect(body?.hasAttribute('hidden')).toBe(true)
   })
 
-  it('after open: renders padi_level, padi_pro_number, member_status values', () => {
+  it('after open: renders padi_level + padi_pro_number values', () => {
     openPadi()
     render(
       <PadiSection contact={{ ...baseContact, instructor: instructorSidecar }} />,
@@ -86,7 +85,6 @@ describe('PadiSection', () => {
     )
     expect(screen.getByText('IDC Staff')).toBeTruthy()
     expect(screen.getByText('123456')).toBeTruthy()
-    expect(screen.getByText('teaching')).toBeTruthy()
   })
 
   it('editing padi_level calls mutate with contact_instructor/padi_level', async () => {
@@ -127,22 +125,4 @@ describe('PadiSection', () => {
     )
   })
 
-  it('editing member_status calls mutate with contact_instructor/member_status', async () => {
-    openPadi()
-    render(
-      <PadiSection contact={{ ...baseContact, instructor: instructorSidecar }} />,
-      { wrapper },
-    )
-    fireEvent.click(screen.getByText('teaching'))
-    const input = screen.getByDisplayValue('teaching') as HTMLInputElement
-    fireEvent.change(input, { target: { value: 'renew' } })
-    fireEvent.keyDown(input, { key: 'Enter' })
-    await waitFor(() =>
-      expect(mockMutate).toHaveBeenCalledWith({
-        table: 'contact_instructor',
-        field: 'member_status',
-        value: 'renew',
-      }),
-    )
-  })
 })
