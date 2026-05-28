@@ -65,7 +65,7 @@ export function ContactDetailPanelV2({ contactId, onClose }: Props) {
           data-testid="properties-sidebar"
           data-open={sidebarOpen}
           style={{
-            width: sidebarOpen ? 280 : 32,
+            width: sidebarOpen ? 340 : 32,
             flexShrink: 0,
             borderLeft: '1px solid var(--border-subtle, #eee)',
             background: 'var(--surface-tertiary, #fafafa)',

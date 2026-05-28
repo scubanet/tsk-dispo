@@ -39,15 +39,18 @@ export function relativeTime(iso: string): string {
 }
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 10,
+  fontSize: 9,
   textTransform: 'uppercase',
-  letterSpacing: 0.3,
+  letterSpacing: 0.2,
   color: 'var(--text-tertiary, #888)',
   marginBottom: 2,
+  whiteSpace: 'normal',
+  lineHeight: 1.15,
+  minHeight: 22,  // Reserviert Platz für 2-Zeiler — Tiles oben+unten bleiben aligned
 }
 
 const valueStyle: React.CSSProperties = {
-  fontSize: 16,
+  fontSize: 15,
   fontWeight: 600,
   color: 'var(--text-primary, #222)',
   whiteSpace: 'nowrap',
