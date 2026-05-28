@@ -22,33 +22,91 @@ import type {
 
 // ─────────────────────────── Filter type ─────────────────────────────
 
+/**
+ * Multi-sort spec for {@link listContacts}. The list of `SortSpec`s is applied
+ * in order, so the first entry is the primary sort, the second the tie-breaker,
+ * etc. Field-to-column mapping lives inside `listContacts`.
+ */
+export interface SortSpec {
+  field: 'name' | 'last_contact' | 'balance' | 'created_at'
+  direction: 'asc' | 'desc'
+}
+
 export interface ContactListFilter {
   kind?: ContactKind
   roles?: ContactRole[]
   searchText?: string
   archivedOnly?: boolean
   ownerId?: string
+  /** @deprecated use `pipeline_stages: [stage]` instead. Kept for back-compat. */
   pipelineStage?: string
+
+  // ── Phase 4 T0 additions ─────────────────────────────────────────
+  /** Sort spec list — applied in order. Default: `[{ field: 'name', direction: 'asc' }]`. */
+  sort?: SortSpec[]
+  /** Tags overlap on `contacts.tags`. */
+  tags?: string[]
+  /** Languages overlap on `contacts.languages`. */
+  languages?: string[]
+  /** `contacts.source IN (...)`. */
+  sources?: string[]
+  /** `contact_student.pipeline_stage IN (...)`. Forces inner-join. */
+  pipeline_stages?: string[]
+  /** Account-balance bucket on `contact_instructor.account_balance`. Forces inner-join. */
+  saldo_bucket?: 'positive' | 'negative' | 'zero'
+  /**
+   * TODO Phase 4.x — `v_contact_balance.last_movement_date` filter needs
+   * either its own RPC or a client-side post-filter. The bucket is reserved
+   * on the type now so call-sites can already pass it, but it is *not* applied
+   * inside {@link listContacts} yet.
+   */
+  last_contact_bucket?: 'lt_7d' | 'lt_30d' | 'gt_30d'
 }
 
 // ─────────────────────── List / search ───────────────────────────────
+
+const DEFAULT_SORT: SortSpec[] = [{ field: 'name', direction: 'asc' }]
 
 export async function listContacts(
   filter: ContactListFilter = {},
   page = 0,
   pageSize = 50,
 ): Promise<{ rows: Contact[]; count: number }> {
+  // Decide which sidecars need an `!inner` join. PostgREST embedded-filters
+  // only work when the embed is on the select string, so we build the select
+  // string up front based on what the filter touches.
+  const needsStudentInner =
+    !!(filter.pipeline_stages && filter.pipeline_stages.length > 0)
+  const needsInstructorInner = !!filter.saldo_bucket
+  const sortNeedsBalance =
+    (filter.sort ?? DEFAULT_SORT).some((s) => s.field === 'balance')
+
+  // Phase 3 lesson: `contact_organization` has two FKs back to contacts, so
+  // *every* embed on a sidecar must be FK-disambiguated. We do the same for
+  // contact_student and contact_instructor pre-emptively.
+  let selectStr =
+    'id, kind, first_name, last_name, birth_date, gender, ' +
+    'legal_name, trading_name, display_name, ' +
+    'primary_email, emails, phones, addresses, ' +
+    'languages, roles, tags, notes, owner_id, ' +
+    'consent_marketing, consent_marketing_at, consent_marketing_source, ' +
+    'source, archived_at, merged_into_id, created_at, updated_at, created_by'
+
+  if (needsStudentInner) {
+    selectStr +=
+      ', contact_student!contact_student_contact_id_fkey!inner(pipeline_stage)'
+  }
+  if (needsInstructorInner || sortNeedsBalance) {
+    // Inner-join when we filter on it; sort-only stays as an inner anyway
+    // because PostgREST cannot order by a column it doesn't know — and a
+    // balance sort without an instructor sidecar wouldn't return useful rows.
+    selectStr +=
+      ', contact_instructor!contact_instructor_contact_id_fkey!inner(account_balance)'
+  }
+
   let query = supabase
     .from('contacts')
-    .select(
-      'id, kind, first_name, last_name, birth_date, gender, ' +
-      'legal_name, trading_name, display_name, ' +
-      'primary_email, emails, phones, addresses, ' +
-      'languages, roles, tags, notes, owner_id, ' +
-      'consent_marketing, consent_marketing_at, consent_marketing_source, ' +
-      'source, archived_at, merged_into_id, created_at, updated_at, created_by',
-      { count: 'exact' },
-    )
+    .select(selectStr, { count: 'exact' })
 
   // Archived / active
   if (filter.archivedOnly) {
@@ -72,6 +130,36 @@ export async function listContacts(
     query = query.eq('owner_id', filter.ownerId)
   }
 
+  // ── Phase 4 T0 simple filters ─────────────────────────────────────
+  if (filter.tags && filter.tags.length > 0) {
+    query = query.overlaps('tags', filter.tags)
+  }
+
+  if (filter.languages && filter.languages.length > 0) {
+    query = query.overlaps('languages', filter.languages)
+  }
+
+  if (filter.sources && filter.sources.length > 0) {
+    query = query.in('source', filter.sources)
+  }
+
+  // ── Embedded sidecar filters (require !inner-join above) ─────────
+  if (filter.pipeline_stages && filter.pipeline_stages.length > 0) {
+    query = query.in('contact_student.pipeline_stage', filter.pipeline_stages)
+  }
+
+  if (filter.saldo_bucket === 'positive') {
+    query = query.gt('contact_instructor.account_balance', 0)
+  } else if (filter.saldo_bucket === 'negative') {
+    query = query.lt('contact_instructor.account_balance', 0)
+  } else if (filter.saldo_bucket === 'zero') {
+    query = query.eq('contact_instructor.account_balance', 0)
+  }
+
+  // TODO Phase 4.x — last_contact_bucket needs v_contact_balance access,
+  // either via a dedicated RPC or a client-side post-filter. Intentionally
+  // unimplemented for T0.
+
   if (filter.searchText && filter.searchText.trim() !== '') {
     // ilike-based substring search — matches single chars + partial words.
     // PostgREST websearch tokenizes and skips stopwords/single-letters, so we
@@ -84,7 +172,35 @@ export async function listContacts(
 
   const from = page * pageSize
   const to = from + pageSize - 1
-  query = query.range(from, to).order('display_name')
+  query = query.range(from, to)
+
+  // ── Multi-sort ────────────────────────────────────────────────────
+  const sortSpecs = filter.sort && filter.sort.length > 0 ? filter.sort : DEFAULT_SORT
+  for (const spec of sortSpecs) {
+    const ascending = spec.direction === 'asc'
+    switch (spec.field) {
+      case 'name':
+        query = query.order('display_name', { ascending })
+        break
+      case 'created_at':
+        query = query.order('created_at', { ascending })
+        break
+      case 'balance':
+        // contact_instructor.account_balance is reachable through the inner
+        // join we added to the select string above.
+        query = query.order('account_balance', {
+          ascending,
+          foreignTable: 'contact_instructor',
+        })
+        break
+      case 'last_contact':
+        // TODO Phase 4.x — once v_contact_balance.last_movement_date is
+        // embedded (or a dedicated RPC exists), switch to that. For T0 we
+        // proxy via updated_at, which trips on every audit-logged mutation.
+        query = query.order('updated_at', { ascending })
+        break
+    }
+  }
 
   const { data, error, count } = await query
   if (error) throw error
