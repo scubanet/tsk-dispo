@@ -121,16 +121,14 @@ export function AddressbookFilterBar({
       data-testid="addressbook-filter-bar"
       style={{
         display: 'flex',
+        flexWrap: 'wrap',
         gap: 6,
-        overflowX: 'auto',
         padding: '4px 0',
-        scrollbarWidth: 'none',
-        maskImage:
-          'linear-gradient(to right, black calc(100% - 24px), transparent)',
-        WebkitMaskImage:
-          'linear-gradient(to right, black calc(100% - 24px), transparent)',
         alignItems: 'center',
         minWidth: 0,
+        // KEIN overflow:auto/scroll — clippt sonst die absoluten Dropdowns
+        // der FilterChips. Bei zu vielen Chips wrappen sie in die nächste
+        // Zeile statt horizontal zu scrollen.
       }}
     >
       <FilterChipDropdown<ContactRole>
