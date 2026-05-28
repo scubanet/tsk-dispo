@@ -46,6 +46,9 @@ jobs:
 
       - name: Run unit tests
         working-directory: apps/web
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm test
 
       - name: Build production bundle

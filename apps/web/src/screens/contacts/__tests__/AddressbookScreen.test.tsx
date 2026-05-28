@@ -89,6 +89,25 @@ vi.mock('@/hooks/useContactSavedViews', () => ({
   }),
 }))
 
+// useBulkContactMutation transitively imports @/lib/supabase which evaluates
+// `import.meta.env.VITE_SUPABASE_URL` at module init — fails in CI without
+// env vars. Mock both to short-circuit the import chain.
+vi.mock('@/hooks/useBulkContactMutation', () => ({
+  useBulkContactMutation: () => ({
+    mutateAsync: vi.fn().mockResolvedValue(undefined),
+    isPending: false,
+  }),
+}))
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    })),
+  },
+}))
+
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 import { AddressbookScreen } from '../AddressbookScreen'
