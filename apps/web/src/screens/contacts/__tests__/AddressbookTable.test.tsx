@@ -260,6 +260,17 @@ describe('AddressbookTable', () => {
     expect(onSelect).not.toHaveBeenCalled()
   })
 
+  it('rendert RowQuickActions (Mail + Notiz) in der Action-Cell jeder Body-Row (Task 9)', () => {
+    const rows = [makeContact({ id: 'c1', display_name: 'Hugo Eugster' })]
+    render(<AddressbookTable rows={rows} selectedId={null} onSelect={vi.fn()} />)
+    expect(
+      screen.getByRole('button', { name: /Quick-Mail an Hugo Eugster/i }),
+    ).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: /Quick-Notiz für Hugo Eugster/i }),
+    ).toBeTruthy()
+  })
+
   it('click on header checkbox triggers onToggleAll and not row onSelect', () => {
     const onToggleAll = vi.fn()
     const onSelect = vi.fn()

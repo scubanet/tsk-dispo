@@ -22,6 +22,7 @@ import {
 } from '@/hooks/useAddressbookColumns'
 import type { SortSpec } from '@/lib/contactQueries'
 import { COLUMN_TO_SORT_FIELD } from '@/hooks/useAddressbookSort'
+import { RowQuickActions } from './RowQuickActions'
 
 // ── Role color dots (mirrors RolesBadgeList color mapping) ──────────────
 
@@ -118,7 +119,9 @@ function buildGridTemplate(columns: ColumnId[]): string {
   const middle = columns
     .map((id) => CATALOG_BY_ID[id]?.gridWidth ?? '1fr')
     .join(' ')
-  return `40px ${middle} 44px`
+  // Actions-Cell wurde mit Task 9 erweitert: vorher 44px (nur ⋯), jetzt 88px
+  // (Quick-Mail + Quick-Notiz + ⋯).
+  return `40px ${middle} 88px`
 }
 
 // ── Indeterminate-fähige Header-Checkbox ──────────────────────────────
@@ -386,18 +389,24 @@ export function AddressbookTable({
               rowHeight,
             }))}
 
-            {/* Last cell: actions (⋯) */}
+            {/* Last cell: Quick-Actions (Task 9) + actions (⋯) */}
             <div
               role="cell"
-              style={{ ...baseCell, padding: 0, justifyContent: 'center' }}
+              style={{
+                ...baseCell,
+                padding: 0,
+                justifyContent: 'center',
+                gap: compact ? 2 : 4,
+              }}
             >
+              <RowQuickActions contact={r} density={density} />
               <button
                 type="button"
                 aria-label="Aktionen"
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                  width: 24,
-                  height: 24,
+                  width: compact ? 18 : 22,
+                  height: compact ? 18 : 22,
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -406,7 +415,7 @@ export function AddressbookTable({
                   borderRadius: 'var(--radius-sm, 4px)',
                   cursor: 'pointer',
                   color: 'var(--text-tertiary)',
-                  fontSize: 16,
+                  fontSize: compact ? 14 : 16,
                   lineHeight: 1,
                   padding: 0,
                 }}

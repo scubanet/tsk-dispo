@@ -1,0 +1,21 @@
+/**
+ * RowQuickActions — Hover-only Sichtbarkeit (Phase G Phase 4 Task 9).
+ *
+ * Die Quick-Actions (Mail / Notiz) werden default ausgeblendet (opacity: 0)
+ * und erscheinen erst, wenn die zugehörige Row gehovert oder fokussiert wird.
+ * Auf diese Weise vermeiden wir per-Row React-state für hover-Tracking.
+ *
+ * Selector zielt auf das `data-row-quick-actions`-Attribut, das `RowQuickActions`
+ * an seinen Container hängt. Die Visibility wird vom `role="row"`-Parent
+ * gesteuert — passt zur Grid-Row-Struktur in AddressbookTable.
+ */
+[data-row-quick-actions] {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+[role="row"]:hover [data-row-quick-actions],
+[role="row"]:focus-within [data-row-quick-actions],
+[data-row-quick-actions]:focus-within {
+  opacity: 1;
+}
