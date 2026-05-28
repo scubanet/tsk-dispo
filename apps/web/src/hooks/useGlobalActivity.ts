@@ -44,6 +44,9 @@ export function useGlobalActivity(filter?: TimelineFilter) {
       if (filter?.date_to) {
         q = q.lte('occurred_at', filter.date_to)
       }
+      if (filter?.actor_id) {
+        q = q.eq('actor_contact_id', filter.actor_id)
+      }
       if (pageParam) {
         q = q.or(
           `occurred_at.lt.${pageParam.occurred_at},and(occurred_at.eq.${pageParam.occurred_at},event_id.lt.${pageParam.event_id})`

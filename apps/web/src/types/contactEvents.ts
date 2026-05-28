@@ -77,13 +77,18 @@ export type EventComposerInput =
 
 /** Filter für useContactTimeline / useGlobalActivity.
  *  channel ist eine kanal-zentrische Sicht über alle EventTypes;
- *  Mapping: 'meeting' → meeting_past, 'note'/'task' bleiben gleich. */
+ *  Mapping: 'meeting' → meeting_past, 'note'/'task' bleiben gleich.
+ *
+ *  actor_id wird in Phase G Phase 5 T0 für owner_scope='mine' gesetzt —
+ *  filtert auf v_contact_timeline.actor_contact_id (Server-Side).
+ */
 export interface TimelineFilter {
   event_types?: EventType[]
   channel?: ('email' | 'call' | 'whatsapp' | 'note' | 'meeting' | 'task')[]
   date_from?: string
   date_to?: string
   owner_scope?: 'me' | 'team'
+  actor_id?: string
 }
 
 /** Persisted sort entry inside a saved view.
