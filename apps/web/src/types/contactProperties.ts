@@ -32,6 +32,19 @@ export interface PhoneJsonbEntry {
   primary?: boolean
 }
 
+/**
+ * Address-JSONB-Entry — mirrors apps/web/src/types/contacts.ts AddressEntry.
+ * Sidebar liest nur den primary-Eintrag und zeigt ihn read-only.
+ */
+export interface AddressJsonbEntry {
+  label?: string
+  street?: string
+  postal?: string
+  city?: string
+  country?: string
+  primary?: boolean
+}
+
 export interface ContactWithProperties {
   // Base
   id: string
@@ -42,6 +55,7 @@ export interface ContactWithProperties {
   birth_date: string | null
   primary_email: string | null
   phones: PhoneJsonbEntry[]        // JSONB-Array auf contacts.phones
+  addresses: AddressJsonbEntry[]   // JSONB-Array auf contacts.addresses
   languages: string[]              // TEXT[]-Array auf contacts.languages
   source: string | null
   created_at: string

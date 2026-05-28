@@ -13,7 +13,7 @@ vi.mock('@/lib/supabase', () => {
     last_name: 'Eugster',
     birth_date: null,
     primary_email: 'hugo@test.com',
-    phones: [], languages: ['de'],
+    phones: [], addresses: [], languages: ['de'],
     source: 'manual',
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-05-27T00:00:00Z',
@@ -75,7 +75,7 @@ describe('PropertiesSidebar', () => {
     const orgContact = {
       id: 'c2', kind: 'organization', display_name: 'TSK Zürich',
       first_name: null, last_name: null, birth_date: null,
-      primary_email: null, phones: [], languages: [], 
+      primary_email: null, phones: [], addresses: [], languages: [], 
       source: null, created_at: '2026-01-01', updated_at: '2026-01-01', owner_id: null,
       tags: [],
       instructor: null, student: null,

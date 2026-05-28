@@ -29,10 +29,23 @@ function primaryLanguage(contact: ContactWithProperties): string | null {
   return contact.languages?.[0] ?? null
 }
 
+/** Erste primary-Adresse oder die erste überhaupt. Formatiert als 1-Zeile + ggf. 2-Zeile. */
+function primaryAddressLines(contact: ContactWithProperties): string[] | null {
+  if (!contact.addresses || contact.addresses.length === 0) return null
+  const a = contact.addresses.find(x => x.primary === true) ?? contact.addresses[0]
+  if (!a) return null
+  const line1 = [a.street].filter(Boolean).join('').trim()
+  const line2 = [a.postal, a.city].filter(Boolean).join(' ').trim()
+  const line3 = a.country ?? ''
+  const lines = [line1, line2, line3].filter(s => s.length > 0)
+  return lines.length > 0 ? lines : null
+}
+
 export function ContactSection({ contact }: Props) {
   const mutate = useContactFieldMutation(contact.id)
   const phone = primaryPhone(contact)
   const lang = primaryLanguage(contact)
+  const addressLines = primaryAddressLines(contact)
 
   return (
     <SidebarSection id="contact" title="Kontakt" defaultOpen>
@@ -46,6 +59,7 @@ export function ContactSection({ contact }: Props) {
         })}
       />
       <ReadOnlyRow label="Telefon" value={phone} />
+      <ReadOnlyAddressRow label="Adresse" lines={addressLines} />
       <ReadOnlyRow label="Sprache" value={lang} />
     </SidebarSection>
   )
@@ -66,6 +80,29 @@ function ReadOnlyRow({ label, value }: { label: string; value: string | null }) 
         }}
       >
         {value == null || value === '' ? '—' : value}
+      </div>
+    </div>
+  )
+}
+
+/** Multi-Line Adress-Row (Street / PLZ City / Country). */
+function ReadOnlyAddressRow({ label, lines }: { label: string; lines: string[] | null }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '6px 0' }}>
+      <div style={{ fontSize: 11, color: 'var(--text-tertiary, #888)', letterSpacing: 0.2 }}>
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: 13,
+          padding: '4px 6px',
+          color: lines == null ? 'var(--text-tertiary, #888)' : 'var(--text-primary, #222)',
+          lineHeight: 1.4,
+        }}
+      >
+        {lines == null
+          ? '—'
+          : lines.map((l, i) => <div key={i}>{l}</div>)}
       </div>
     </div>
   )

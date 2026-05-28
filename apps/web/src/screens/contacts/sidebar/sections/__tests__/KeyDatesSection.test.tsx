@@ -11,7 +11,7 @@ const baseContact: ContactWithProperties = {
   last_name: 'Eugster',
   birth_date: '1985-03-12',
   primary_email: null,
-  phones: [], languages: [],
+  phones: [], addresses: [], languages: [],
   
   source: 'manual',
   created_at: '2024-01-15T10:00:00Z',

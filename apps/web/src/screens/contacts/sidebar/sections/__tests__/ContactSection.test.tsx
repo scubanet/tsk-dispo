@@ -21,6 +21,7 @@ const baseContact: ContactWithProperties = {
   first_name: 'Hugo', last_name: 'Eugster', birth_date: null,
   primary_email: 'hugo@test.com',
   phones: [{ label: 'mobile', e164: '+41791234567', primary: true }],
+  addresses: [],
   languages: ['de'],
   source: 'manual',
   created_at: '2026-01-01T00:00:00Z',
@@ -42,7 +43,7 @@ describe('ContactSection', () => {
 
   it('renders dash for empty phones/languages', () => {
     render(
-      <ContactSection contact={{ ...baseContact, phones: [], languages: [] }} />,
+      <ContactSection contact={{ ...baseContact, phones: [], addresses: [], languages: [] }} />,
       { wrapper },
     )
     expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(2)

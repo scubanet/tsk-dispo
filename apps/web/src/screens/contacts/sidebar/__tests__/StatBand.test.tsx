@@ -13,7 +13,7 @@ function makeContact(over: Partial<ContactWithProperties> = {}): ContactWithProp
     last_name: 'Person',
     birth_date: null,
     primary_email: null,
-    phones: [], languages: [],
+    phones: [], addresses: [], languages: [],
     
     source: null,
     created_at: '2026-01-01T00:00:00Z',
