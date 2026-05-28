@@ -29,8 +29,10 @@ const MyProfileScreen       = lazy(() => import('@/screens/MyProfileScreen').the
 const CockpitScreen         = lazy(() => import('@/screens/CockpitScreen').then(m => ({ default: m.CockpitScreen })))
 const CDPipelineScreen      = lazy(() => import('@/screens/cd/CDPipelineScreen').then(m => ({ default: m.CDPipelineScreen })))
 const CDOrganizationsScreen = lazy(() => import('@/screens/cd/CDOrganizationsScreen').then(m => ({ default: m.CDOrganizationsScreen })))
-const CommunicationHubScreen = lazy(() => import('@/screens/cd/CommunicationHubScreen').then(m => ({ default: m.CommunicationHubScreen })))
+// CommunicationHubScreen-Import bewusst entfernt (Phase G P5 T5): /communication redirected jetzt auf /aktivitaet.
+// Die Datei CommunicationHubScreen.tsx bleibt bis Phase 6, ist aber nicht mehr geroutet.
 const AddressbookScreen     = lazy(() => import('@/screens/contacts/AddressbookScreen').then(m => ({ default: m.AddressbookScreen })))
+const ActivityScreen        = lazy(() => import('@/screens/contacts/activity/ActivityScreen').then(m => ({ default: m.ActivityScreen })))
 const CardInboxScreen       = lazy(() => import('@/screens/contacts/CardInboxScreen').then(m => ({ default: m.CardInboxScreen })))
 const PublicCardScreen      = lazy(() => import('@/screens/PublicCardScreen').then(m => ({ default: m.PublicCardScreen })))
 
@@ -100,7 +102,9 @@ function App() {
               {/* CD-Modul */}
               <Route path="/cd/pipeline"            element={<CDPipelineScreen />} />
               <Route path="/cd/organisationen"      element={<CDOrganizationsScreen />} />
-              <Route path="/communication"          element={<CommunicationHubScreen />} />
+              <Route path="/aktivitaet"             element={<ActivityScreen />} />
+              {/* Phase G P5 T5: alte /communication-Route auf /aktivitaet redirecten (1 Release lang). */}
+              <Route path="/communication"          element={<Navigate to="/aktivitaet" replace />} />
               <Route path="/contacts"               element={<AddressbookScreen />} />
               <Route path="/contacts/card-inbox"    element={<CardInboxScreen />} />
               <Route path="*"                       element={<Navigate to="/heute" replace />} />

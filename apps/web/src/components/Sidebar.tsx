@@ -55,7 +55,7 @@ const ITEMS: NavItem[] = [
 const ADRESSEN_ITEMS: NavItem[] = [
   { to: '/contacts',             icon: 'tag',   i18nKey: 'addressbook',       roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/contacts/card-inbox',  icon: 'tag',   i18nKey: 'card_inbox',        roles: ['owner', 'cd'] },
-  { to: '/communication',        icon: 'chart', i18nKey: 'communication_hub', roles: ['dispatcher', 'owner', 'cd'] },
+  { to: '/aktivitaet',           icon: 'chart', i18nKey: 'activity',          roles: ['dispatcher', 'owner', 'cd'] },
 ]
 
 // TEAM section: dispatcher / owner / cd
