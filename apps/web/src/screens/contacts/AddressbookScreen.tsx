@@ -23,13 +23,20 @@ import {
 import { type ContactListFilter } from '@/lib/contactQueries'
 import { useContactList } from '@/hooks/useContactList'
 import { useAddressbookDensity } from '@/hooks/useAddressbookDensity'
-import { useAddressbookColumns } from '@/hooks/useAddressbookColumns'
+import { useAddressbookColumns, type ColumnId } from '@/hooks/useAddressbookColumns'
 import { useAddressbookSort } from '@/hooks/useAddressbookSort'
 import { useBulkSelection } from '@/hooks/useBulkSelection'
 import {
   useAddressbookFilter,
+  EMPTY_FILTER,
   type AddressbookFilterState,
 } from '@/hooks/useAddressbookFilter'
+import {
+  useContactSavedViews,
+  useCreateSavedView,
+  useDeleteSavedView,
+} from '@/hooks/useContactSavedViews'
+import type { ContactSavedView } from '@/types/contactEvents'
 import { ContactDetailPanel, type TabKey } from './ContactDetailPanel'
 import { CreateContactSheet } from './CreateContactSheet'
 import { AddressbookTable } from './AddressbookTable'
@@ -38,6 +45,8 @@ import { DensityToggle } from './DensityToggle'
 import { ColumnPicker } from './ColumnPicker'
 import { AddressbookFilterBar } from './AddressbookFilterBar'
 import { AddressbookBulkActionBar } from './AddressbookBulkActionBar'
+import { SaveViewDialog } from './SaveViewDialog'
+import { SavedViewsMenu } from './SavedViewsMenu'
 
 // ── Saved views ───────────────────────────────────────────────────────────
 
@@ -72,10 +81,11 @@ export function AddressbookScreen() {
   const currentView = SAVED_VIEWS.find((v) => v.id === viewId) ?? SAVED_VIEWS[0]
 
   const qc = useQueryClient()
-  const { sort, onHeaderClick } = useAddressbookSort()
+  const { sort, onHeaderClick, setSort } = useAddressbookSort()
   const {
     filter: addressFilter,
     setFilter: setAddressFilter,
+    replaceAll: replaceFilter,
     clear: clearAddressFilter,
   } = useAddressbookFilter()
 
@@ -113,8 +123,53 @@ export function AddressbookScreen() {
   const rows = data?.rows ?? []
 
   const [createOpen, setCreateOpen] = useState(false)
-  const [density, , toggleDensity] = useAddressbookDensity()
-  const { visibleIds, toggle: toggleColumn, reset: resetColumns } = useAddressbookColumns()
+  const [saveViewOpen, setSaveViewOpen] = useState(false)
+  const [density, setDensity, toggleDensity] = useAddressbookDensity()
+  const {
+    visibleIds,
+    toggle: toggleColumn,
+    setVisibleIds,
+    reset: resetColumns,
+  } = useAddressbookColumns()
+
+  // ── Saved Views (Custom) ────────────────────────────────────────────
+  const savedViewsQuery = useContactSavedViews()
+  const createSavedView = useCreateSavedView()
+  const deleteSavedView = useDeleteSavedView()
+
+  function applySavedView(view: ContactSavedView) {
+    // Filter: payload is `Record<string, unknown>` in DB — coerce to
+    // AddressbookFilterState by merging on top of EMPTY_FILTER so missing
+    // keys default to [].
+    const f = view.filter as Partial<AddressbookFilterState>
+    replaceFilter({ ...EMPTY_FILTER, ...f })
+
+    // Columns: trust the array — `setVisibleIds` cleans / dedupes / forces 'name'.
+    setVisibleIds((view.columns ?? []) as ColumnId[])
+
+    // Sort: setSort filters invalid entries internally.
+    setSort(view.sort ?? [])
+
+    // Density: setter is plain state, validates own type.
+    if (view.density === 'compact' || view.density === 'comfortable') {
+      setDensity(view.density)
+    }
+  }
+
+  async function handleSaveView(name: string) {
+    await createSavedView.mutateAsync({
+      name,
+      filter: addressFilter as unknown as Record<string, unknown>,
+      columns: visibleIds,
+      sort,
+      density,
+    })
+    setSaveViewOpen(false)
+  }
+
+  function handleDeleteView(viewId: string) {
+    deleteSavedView.mutate(viewId)
+  }
 
   // ── Bulk-Selection (Phase G Phase 4 T6) ────────────────────────────────
   // currentIds in stabiler Referenz, damit der useBulkSelection-Effect nur
@@ -237,6 +292,13 @@ export function AddressbookScreen() {
             </button>
           ))}
         </div>
+        <SavedViewsMenu
+          views={savedViewsQuery.data ?? []}
+          onApply={applySavedView}
+          onDelete={handleDeleteView}
+          onOpenSaveDialog={() => setSaveViewOpen(true)}
+          isDeleting={deleteSavedView.isPending}
+        />
         <DensityToggle density={density} onToggle={toggleDensity} />
         <ColumnPicker
           visibleIds={visibleIds}
@@ -357,6 +419,14 @@ export function AddressbookScreen() {
           qc.invalidateQueries({ queryKey: ['contacts'] })
           selectContact(newId)
         }}
+      />
+
+      {/* Save Custom View dialog */}
+      <SaveViewDialog
+        open={saveViewOpen}
+        onClose={() => setSaveViewOpen(false)}
+        onSave={handleSaveView}
+        isSaving={createSavedView.isPending}
       />
     </div>
   )

@@ -160,6 +160,34 @@ describe('useAddressbookSort', () => {
     expect(result.current.sort).toEqual([{ field: 'name', direction: 'asc' }])
   })
 
+  it('setSort replaces the whole stack and filters invalid entries', () => {
+    const { result } = renderHook(() => useSortWithLocation(), {
+      wrapper: wrapperFor('/contacts?sort=name:asc'),
+    })
+    act(() => {
+      result.current.setSort([
+        { field: 'last_contact', direction: 'desc' },
+        // invalid field — should be dropped
+        { field: 'bogus' as never, direction: 'asc' },
+        { field: 'balance', direction: 'asc' },
+      ])
+    })
+    expect(result.current.sort).toEqual([
+      { field: 'last_contact', direction: 'desc' },
+      { field: 'balance', direction: 'asc' },
+    ])
+    expect(result.current.search).toContain('sort=last_contact%3Adesc%2Cbalance%3Aasc')
+  })
+
+  it('setSort with empty array clears the URL param', () => {
+    const { result } = renderHook(() => useSortWithLocation(), {
+      wrapper: wrapperFor('/contacts?sort=name:asc'),
+    })
+    act(() => { result.current.setSort([]) })
+    expect(result.current.sort).toEqual([])
+    expect(result.current.search).not.toContain('sort=')
+  })
+
   it('clear() resets sort=[] and removes the URL param', () => {
     const { result } = renderHook(() => useSortWithLocation(), {
       wrapper: wrapperFor('/contacts?sort=last_contact:desc,name:asc'),

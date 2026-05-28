@@ -72,6 +72,23 @@ vi.mock('../CreateContactSheet', () => ({
   CreateContactSheet: () => null,
 }))
 
+// useContactSavedViews hits Supabase; stub query + mutations.
+import type { ContactSavedView } from '@/types/contactEvents'
+const savedViewsData: ContactSavedView[] = []
+const createMutateAsync = vi.fn()
+const deleteMutate = vi.fn()
+vi.mock('@/hooks/useContactSavedViews', () => ({
+  useContactSavedViews: () => ({ data: savedViewsData, isLoading: false }),
+  useCreateSavedView: () => ({
+    mutateAsync: createMutateAsync,
+    isPending: false,
+  }),
+  useDeleteSavedView: () => ({
+    mutate: deleteMutate,
+    isPending: false,
+  }),
+}))
+
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 import { AddressbookScreen } from '../AddressbookScreen'
@@ -93,6 +110,9 @@ describe('AddressbookScreen conditional layout', () => {
   beforeEach(() => {
     window.localStorage.clear()
     useContactListSpy.mockClear()
+    savedViewsData.length = 0
+    createMutateAsync.mockReset()
+    deleteMutate.mockReset()
   })
 
   it('without ?contact= renders full-width AddressbookTable, no DetailPanel', () => {
@@ -136,6 +156,49 @@ describe('AddressbookScreen conditional layout', () => {
     expect(screen.getByTestId('bulk-action-counter').textContent).toBe(
       '1 ausgewählt',
     )
+  })
+
+  it('renders SavedViewsMenu chip even with zero custom views (saving entry)', () => {
+    renderAt('/addressbook')
+    expect(
+      screen.getByRole('button', { name: 'Eigene Ansichten' }),
+    ).toBeTruthy()
+  })
+
+  it('opens dropdown showing custom views and triggers apply', () => {
+    savedViewsData.push({
+      id: 'sv1',
+      user_id: 'u1',
+      name: 'Meine Studenten',
+      filter: { roles: ['student'] },
+      columns: ['name', 'email', 'last_contact'],
+      sort: [{ field: 'name', direction: 'asc' }],
+      density: 'compact',
+      created_at: '2026-05-28T00:00:00Z',
+      updated_at: '2026-05-28T00:00:00Z',
+    })
+
+    renderAt('/addressbook')
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Eigene Ansichten' }),
+    )
+    const row = screen.getByTestId('saved-view-row-sv1')
+    expect(row).toBeTruthy()
+    expect(row.textContent).toContain('Meine Studenten')
+
+    // Click the menu-item (first button inside the row) → applies the view.
+    const applyBtn = row.querySelector('button[role="menuitem"]') as HTMLButtonElement
+    fireEvent.click(applyBtn)
+
+    // Density persisted to localStorage by the hook.
+    expect(window.localStorage.getItem('addressbook.density')).toBe('compact')
+    // visibleIds persisted as JSON.
+    const cols = JSON.parse(
+      window.localStorage.getItem('addressbook.columns') ?? '[]',
+    )
+    expect(cols).toContain('name')
+    expect(cols).toContain('email')
   })
 
   it('with ?contact= renders CompactContactList + ContactDetailPanel', () => {

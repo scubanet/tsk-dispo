@@ -86,6 +86,15 @@ export interface TimelineFilter {
   owner_scope?: 'me' | 'team'
 }
 
+/** Persisted sort entry inside a saved view.
+ *  Shape matches the runtime `SortSpec` from lib/contactQueries.ts so the
+ *  AddressbookScreen can roundtrip filter/columns/sort/density into and out
+ *  of the DB without any field-mapping. */
+export interface SavedViewSort {
+  field: 'name' | 'last_contact' | 'balance' | 'created_at'
+  direction: 'asc' | 'desc'
+}
+
 /** Persisted user-custom view aus contact_saved_views Tabelle. */
 export interface ContactSavedView {
   id: string
@@ -93,7 +102,7 @@ export interface ContactSavedView {
   name: string
   filter: Record<string, unknown>
   columns: string[]
-  sort: Array<{ col: string; dir: 'asc' | 'desc' }>
+  sort: SavedViewSort[]
   density: 'compact' | 'comfortable'
   created_at: string
   updated_at: string
@@ -103,6 +112,6 @@ export interface SavedViewInput {
   name: string
   filter: Record<string, unknown>
   columns: string[]
-  sort: Array<{ col: string; dir: 'asc' | 'desc' }>
+  sort: SavedViewSort[]
   density: 'compact' | 'comfortable'
 }

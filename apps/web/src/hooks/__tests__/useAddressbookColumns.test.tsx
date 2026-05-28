@@ -63,6 +63,32 @@ describe('useAddressbookColumns', () => {
     expect(result.current.visibleIds).toContain('name')
   })
 
+  it('setVisibleIds replaces the list, dedupes, forces name, and sorts by catalog', () => {
+    const { result } = renderHook(() => useAddressbookColumns())
+    act(() => {
+      // Out-of-order + duplicate + missing 'name' + invalid id.
+      result.current.setVisibleIds([
+        'saldo',
+        'email',
+        'email',
+        'phone',
+        'bogus' as never,
+      ])
+    })
+    // 'name' was injected automatically.
+    expect(result.current.visibleIds).toContain('name')
+    // Order matches COLUMN_CATALOG: name, email, phone, saldo
+    expect(result.current.visibleIds).toEqual([
+      'name',
+      'email',
+      'phone',
+      'saldo',
+    ])
+    // No duplicates.
+    const seen = new Set(result.current.visibleIds)
+    expect(seen.size).toBe(result.current.visibleIds.length)
+  })
+
   it('reset() restores defaults', () => {
     const { result } = renderHook(() => useAddressbookColumns())
     act(() => {

@@ -173,6 +173,36 @@ describe('useAddressbookFilter', () => {
     expect(result.current.search).not.toContain('filter=')
   })
 
+  it('replaceAll overwrites the whole state in one call', () => {
+    const { result } = renderHook(() => useFilterWithLocation(), {
+      wrapper: wrapperFor('/contacts?filter=role:instructor,tag:vip'),
+    })
+    act(() => {
+      result.current.replaceAll({
+        ...EMPTY_FILTER,
+        roles: ['student'],
+        languages: ['de'],
+      })
+    })
+    expect(result.current.filter.roles).toEqual(['student'])
+    expect(result.current.filter.languages).toEqual(['de'])
+    // Old tag was dropped
+    expect(result.current.filter.tags).toEqual([])
+    expect(result.current.search).toContain('role%3Astudent')
+    expect(result.current.search).toContain('language%3Ade')
+  })
+
+  it('replaceAll with EMPTY_FILTER removes the URL param', () => {
+    const { result } = renderHook(() => useFilterWithLocation(), {
+      wrapper: wrapperFor('/contacts?filter=role:instructor'),
+    })
+    act(() => {
+      result.current.replaceAll(EMPTY_FILTER)
+    })
+    expect(result.current.filter).toEqual(EMPTY_FILTER)
+    expect(result.current.search).not.toContain('filter=')
+  })
+
   it('unknown URL keys are silently dropped', () => {
     const { result } = renderHook(() => useAddressbookFilter(), {
       wrapper: wrapperFor('/contacts?filter=bogus:x,role:instructor'),

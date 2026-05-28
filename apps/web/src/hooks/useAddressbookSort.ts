@@ -71,6 +71,11 @@ export function serializeSort(sort: SortSpec[]): string {
 export interface UseAddressbookSortResult {
   sort: SortSpec[]
   onHeaderClick: (columnId: ColumnId, shiftKey: boolean) => void
+  /**
+   * Replace the entire sort stack at once (e.g. when applying a saved view).
+   * Invalid entries (unknown field / dir) are filtered out.
+   */
+  setSort: (next: SortSpec[]) => void
   clear: () => void
 }
 
@@ -140,9 +145,20 @@ export function useAddressbookSort(): UseAddressbookSortResult {
     [sort, writeSort],
   )
 
+  const setSort = useCallback(
+    (next: SortSpec[]) => {
+      const filtered = next.filter(
+        (s) =>
+          VALID_FIELDS.has(s.field) && VALID_DIRS.has(s.direction),
+      )
+      writeSort(filtered)
+    },
+    [writeSort],
+  )
+
   const clear = useCallback(() => {
     writeSort([])
   }, [writeSort])
 
-  return { sort, onHeaderClick, clear }
+  return { sort, onHeaderClick, setSort, clear }
 }

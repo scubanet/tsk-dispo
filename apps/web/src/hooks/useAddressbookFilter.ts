@@ -198,6 +198,11 @@ export function isFilterEmpty(state: AddressbookFilterState): boolean {
 export interface UseAddressbookFilterResult {
   filter: AddressbookFilterState
   setFilter: (partial: Partial<AddressbookFilterState>) => void
+  /**
+   * Replace the entire filter state in one go (e.g. when applying a saved
+   * view). Empty fields auto-prune the URL param like `setFilter` does.
+   */
+  replaceAll: (next: AddressbookFilterState) => void
   clear: () => void
 }
 
@@ -236,9 +241,16 @@ export function useAddressbookFilter(): UseAddressbookFilterResult {
     [filter, writeFilter],
   )
 
+  const replaceAll = useCallback(
+    (next: AddressbookFilterState) => {
+      writeFilter(next)
+    },
+    [writeFilter],
+  )
+
   const clear = useCallback(() => {
     writeFilter(EMPTY_FILTER)
   }, [writeFilter])
 
-  return { filter, setFilter, clear }
+  return { filter, setFilter, replaceAll, clear }
 }

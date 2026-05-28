@@ -76,11 +76,17 @@ function readInitial(): ColumnId[] {
 export interface UseAddressbookColumnsResult {
   visibleIds: ColumnId[]
   toggle: (id: ColumnId) => void
+  /**
+   * Replace the full visible-column list (e.g. when applying a saved view).
+   * Filters invalid IDs, dedupes, guarantees 'name' is present, and
+   * re-sorts by COLUMN_CATALOG order.
+   */
+  setVisibleIds: (ids: ColumnId[]) => void
   reset: () => void
 }
 
 export function useAddressbookColumns(): UseAddressbookColumnsResult {
-  const [visibleIds, setVisibleIds] = useState<ColumnId[]>(readInitial)
+  const [visibleIds, setVisibleIdsState] = useState<ColumnId[]>(readInitial)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -94,7 +100,7 @@ export function useAddressbookColumns(): UseAddressbookColumnsResult {
   const toggle = useCallback((id: ColumnId) => {
     // 'name' ist immer sichtbar — silently ignore.
     if (id === 'name') return
-    setVisibleIds((prev) => {
+    setVisibleIdsState((prev) => {
       if (prev.includes(id)) {
         return prev.filter((c) => c !== id)
       }
@@ -106,9 +112,24 @@ export function useAddressbookColumns(): UseAddressbookColumnsResult {
     })
   }, [])
 
-  const reset = useCallback(() => {
-    setVisibleIds(defaultVisibleIds())
+  const setVisibleIds = useCallback((ids: ColumnId[]) => {
+    const order = new Map(COLUMN_CATALOG.map((c, i) => [c.id, i]))
+    const seen = new Set<ColumnId>()
+    const cleaned: ColumnId[] = []
+    for (const id of ids) {
+      if (!VALID_IDS.has(id)) continue
+      if (seen.has(id)) continue
+      seen.add(id)
+      cleaned.push(id)
+    }
+    if (!cleaned.includes('name')) cleaned.unshift('name')
+    cleaned.sort((a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0))
+    setVisibleIdsState(cleaned)
   }, [])
 
-  return { visibleIds, toggle, reset }
+  const reset = useCallback(() => {
+    setVisibleIdsState(defaultVisibleIds())
+  }, [])
+
+  return { visibleIds, toggle, setVisibleIds, reset }
 }
