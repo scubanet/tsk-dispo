@@ -37,6 +37,7 @@ import { CompactContactList } from './CompactContactList'
 import { DensityToggle } from './DensityToggle'
 import { ColumnPicker } from './ColumnPicker'
 import { AddressbookFilterBar } from './AddressbookFilterBar'
+import { AddressbookBulkActionBar } from './AddressbookBulkActionBar'
 
 // ── Saved views ───────────────────────────────────────────────────────────
 
@@ -296,41 +297,6 @@ export function AddressbookScreen() {
             }}
           >
             <div style={{ flexShrink: 0 }}>{toolbar}</div>
-            {bulk.selected.size > 0 && (
-              <div
-                data-testid="bulk-selection-counter"
-                style={{
-                  padding: '6px 14px',
-                  margin: '0 12px 8px',
-                  background: 'var(--surface-selected, #f0f7ff)',
-                  border: '1px solid var(--border-primary)',
-                  borderRadius: 'var(--radius-sm, 6px)',
-                  fontSize: 13,
-                  color: 'var(--text-body)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  flexShrink: 0,
-                }}
-              >
-                <span>{bulk.selected.size} ausgewählt</span>
-                <button
-                  type="button"
-                  onClick={() => bulk.clear()}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-tertiary)',
-                    cursor: 'pointer',
-                    padding: '2px 6px',
-                    fontSize: 12,
-                  }}
-                >
-                  {t('common.clear', 'Aufheben')}
-                </button>
-              </div>
-            )}
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 12px 12px' }}>
               {loading ? loadingNode : rows.length === 0 ? emptyNode : (
                 <AddressbookTable
@@ -350,6 +316,12 @@ export function AddressbookScreen() {
                 />
               )}
             </div>
+            {bulk.selected.size > 0 && (
+              <AddressbookBulkActionBar
+                selectedIds={Array.from(bulk.selected)}
+                onClear={bulk.clear}
+              />
+            )}
           </div>
         ) : (
           /* ── Master-detail mode ─────────────────────────────

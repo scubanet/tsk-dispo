@@ -7,7 +7,7 @@
 // is set in the URL.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { Contact } from '@/types/contacts'
@@ -120,6 +120,22 @@ describe('AddressbookScreen conditional layout', () => {
     const lastCall = useContactListSpy.mock.calls[useContactListSpy.mock.calls.length - 1]
     const filterArg = lastCall[0] as { sort?: unknown }
     expect(filterArg.sort).toEqual([{ field: 'name', direction: 'asc' }])
+  })
+
+  it('BulkActionBar visibility depends on selection size', () => {
+    renderAt('/addressbook')
+    // No selection → no bar.
+    expect(screen.queryByTestId('addressbook-bulk-action-bar')).toBeNull()
+
+    // Toggle the row checkbox for c1 (first body checkbox after the
+    // header checkbox in the table).
+    const checkboxes = screen.getAllByRole('checkbox')
+    // checkboxes[0] = header toggle-all
+    fireEvent.click(checkboxes[1])
+    expect(screen.getByTestId('addressbook-bulk-action-bar')).toBeTruthy()
+    expect(screen.getByTestId('bulk-action-counter').textContent).toBe(
+      '1 ausgewählt',
+    )
   })
 
   it('with ?contact= renders CompactContactList + ContactDetailPanel', () => {
