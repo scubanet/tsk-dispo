@@ -1,8 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, act } from '@testing-library/react'
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { ContactDetailPanelV2 } from '../ContactDetailPanelV2'
+
+// ContactEditSheet zieht zur Render-Zeit OverviewTab inkl. Foundation-Pattern
+// hinein — für die V2-Panel-Tests reicht uns ein Mock, der nur signalisiert
+// ob das Sheet "open" ist.
+vi.mock('../ContactEditSheet', () => ({
+  ContactEditSheet: ({ open, contactId }: { open: boolean; contactId: string | null }) =>
+    open ? <div data-testid="contact-edit-sheet">edit:{contactId}</div> : null,
+}))
 
 // Mock Supabase: returns contact summary + empty timeline + properties fetch
 vi.mock('@/lib/supabase', () => {
@@ -111,5 +119,18 @@ describe('ContactDetailPanelV2', () => {
     await waitFor(() => expect(screen.getByTestId('properties-sidebar')).toBeTruthy())
     const sidebar = screen.getByTestId('properties-sidebar')
     expect(sidebar.getAttribute('data-open')).toBe('false')
+  })
+
+  it('Klick auf Bearbeiten öffnet das ContactEditSheet', async () => {
+    render(<ContactDetailPanelV2 contactId="c1" onClose={vi.fn()} />, { wrapper })
+    // Sheet zunächst nicht offen:
+    expect(screen.queryByTestId('contact-edit-sheet')).toBeNull()
+    // Bearbeiten-Button im Header klicken:
+    const editBtn = await screen.findByRole('button', { name: /Bearbeiten/i })
+    fireEvent.click(editBtn)
+    // Sheet ist jetzt offen, mit korrekter contactId:
+    const sheet = screen.getByTestId('contact-edit-sheet')
+    expect(sheet).toBeTruthy()
+    expect(sheet.textContent).toContain('edit:c1')
   })
 })

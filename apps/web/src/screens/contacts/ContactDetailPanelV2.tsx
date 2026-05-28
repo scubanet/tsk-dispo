@@ -3,11 +3,13 @@
 // Phase G Phase 2/3 — 3-Pane Detail-Panel-Variante hinter crm_v2-Flag.
 // Layout: [ Liste in Parent ] [ Header + TimelineFeed ] [ PropertiesSidebar ]
 // Phase 3 Task 14: Sidebar collapse/expand-Toggle (localStorage-persistiert).
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { ContactDetailHeader } from './ContactDetailHeader'
 import { TimelineFeed } from './timeline/TimelineFeed'
 import { PropertiesSidebar } from './sidebar/PropertiesSidebar'
+import { ContactEditSheet } from './ContactEditSheet'
 import { useSidebarToggle } from '@/hooks/useSidebarToggle'
 import type { ContactRole } from '@/types/contacts'
 
@@ -43,6 +45,7 @@ export function ContactDetailPanelV2({ contactId, onClose }: Props) {
   })
 
   const [sidebarOpen, toggleSidebar] = useSidebarToggle(SIDEBAR_KEY, true)
+  const [editOpen, setEditOpen] = useState(false)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -53,7 +56,7 @@ export function ContactDetailPanelV2({ contactId, onClose }: Props) {
             contactId={contactId}
             displayName={contact.data?.display_name ?? '…'}
             roles={contact.data?.roles ?? []}
-            onEdit={() => { /* öffnet existing edit-sheet — Phase 3 nachrüsten */ }}
+            onEdit={() => setEditOpen(true)}
             onClose={onClose}
           />
           <div style={{ flex: 1, minHeight: 0 }}>
@@ -108,6 +111,11 @@ export function ContactDetailPanelV2({ contactId, onClose }: Props) {
           )}
         </aside>
       </div>
+      <ContactEditSheet
+        contactId={contactId}
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+      />
     </div>
   )
 }
