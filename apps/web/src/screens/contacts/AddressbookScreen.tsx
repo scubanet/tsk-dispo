@@ -18,15 +18,13 @@ import {
   DetailPane,
   SearchInput,
   EmptyState,
-  Avatar,
   Icon,
-  avatarColor,
 } from '@/foundation'
 import { type ContactListFilter } from '@/lib/contactQueries'
 import { useContactList } from '@/hooks/useContactList'
-import type { ContactRole } from '@/types/contacts'
 import { ContactDetailPanel, type TabKey } from './ContactDetailPanel'
 import { CreateContactSheet } from './CreateContactSheet'
+import { AddressbookTable } from './AddressbookTable'
 
 // ── Saved views ───────────────────────────────────────────────────────────
 
@@ -46,50 +44,6 @@ const SAVED_VIEWS: SavedView[] = [
   { id: 'suppliers',   labelKey: 'contacts.view_suppliers',   filter: { roles: ['supplier'] } },
   { id: 'newsletter',  labelKey: 'contacts.view_newsletter',  filter: { roles: ['newsletter'] } },
 ]
-
-// ── Role color dots (mirrors RolesBadgeList color mapping) ────────────────
-
-const ROLE_COLORS: Record<ContactRole, string> = {
-  instructor:           'var(--brand-blue)',
-  student:              'var(--brand-teal)',
-  candidate:            'var(--brand-amber)',
-  organization_profile: 'var(--brand-purple)',
-  cd:                   'var(--brand-deep)',
-  owner:                'var(--brand-red)',
-  dispatcher:           'var(--brand-pink)',
-  newsletter:           'var(--text-tertiary)',
-  supplier:             'var(--text-tertiary)',
-  partner_rep:          'var(--text-tertiary)',
-  authority:            'var(--text-tertiary)',
-}
-
-// Significant roles to show as dots (skip internal/system ones)
-const DOT_ROLES: ContactRole[] = [
-  'instructor', 'student', 'candidate', 'organization_profile',
-  'newsletter', 'supplier', 'partner_rep', 'authority',
-]
-
-function RoleDots({ roles }: { roles: ContactRole[] }) {
-  const visible = roles.filter((r) => DOT_ROLES.includes(r)).slice(0, 4)
-  if (visible.length === 0) return null
-  return (
-    <div style={{ display: 'flex', gap: 3, alignItems: 'center', flexShrink: 0 }}>
-      {visible.map((role) => (
-        <span
-          key={role}
-          title={role}
-          style={{
-            width: 7,
-            height: 7,
-            borderRadius: '50%',
-            background: ROLE_COLORS[role] ?? 'var(--text-tertiary)',
-            flexShrink: 0,
-          }}
-        />
-      ))}
-    </div>
-  )
-}
 
 // ── Main component ────────────────────────────────────────────────────────
 
@@ -231,31 +185,11 @@ export function AddressbookScreen() {
                 title={t('contacts.no_contacts')}
               />
             ) : (
-              <ul className="atoll-people-list">
-                {rows.map((r) => (
-                  <li key={r.id}>
-                    <button
-                      type="button"
-                      className={`atoll-people-row${contactId === r.id ? ' atoll-people-row--active' : ''}`}
-                      onClick={() => selectContact(r.id)}
-                    >
-                      <Avatar
-                        id={r.id}
-                        name={r.display_name}
-                        size="sm"
-                        color={avatarColor(r.id)}
-                      />
-                      <div className="atoll-people-row__main">
-                        <div className="atoll-people-row__name">{r.display_name}</div>
-                        <div className="atoll-people-row__sub">
-                          {r.primary_email ?? (r.kind === 'organization' ? t('contacts.kind_organisation') : '')}
-                        </div>
-                      </div>
-                      <RoleDots roles={r.roles} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <AddressbookTable
+                rows={rows}
+                selectedId={contactId}
+                onSelect={selectContact}
+              />
             )}
           </ListPane>
 
