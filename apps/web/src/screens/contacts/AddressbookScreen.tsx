@@ -25,12 +25,17 @@ import { useContactList } from '@/hooks/useContactList'
 import { useAddressbookDensity } from '@/hooks/useAddressbookDensity'
 import { useAddressbookColumns } from '@/hooks/useAddressbookColumns'
 import { useAddressbookSort } from '@/hooks/useAddressbookSort'
+import {
+  useAddressbookFilter,
+  type AddressbookFilterState,
+} from '@/hooks/useAddressbookFilter'
 import { ContactDetailPanel, type TabKey } from './ContactDetailPanel'
 import { CreateContactSheet } from './CreateContactSheet'
 import { AddressbookTable } from './AddressbookTable'
 import { CompactContactList } from './CompactContactList'
 import { DensityToggle } from './DensityToggle'
 import { ColumnPicker } from './ColumnPicker'
+import { AddressbookFilterBar } from './AddressbookFilterBar'
 
 // ── Saved views ───────────────────────────────────────────────────────────
 
@@ -66,10 +71,41 @@ export function AddressbookScreen() {
 
   const qc = useQueryClient()
   const { sort, onHeaderClick } = useAddressbookSort()
+  const {
+    filter: addressFilter,
+    setFilter: setAddressFilter,
+    clear: clearAddressFilter,
+  } = useAddressbookFilter()
+
+  // Merge der drei Filter-Quellen (Saved-View + Search + FilterBar) zu einer
+  // ContactListFilter. Explizite FilterBar-Selektionen überschreiben
+  // Saved-View-Defaults pro Feld (AND-kombinierte Filter).
+  //
+  // Achtung: saldo_bucket/last_contact_bucket sind im Hook-Type singular
+  // (positive | negative | zero). Wir nehmen den ersten Eintrag aus dem
+  // Array, mehrere selektierte Buckets sind ein Carry-Forward für Phase 4.x.
   const filter: ContactListFilter = {
     ...currentView.filter,
     searchText: search || undefined,
     sort: sort.length > 0 ? sort : undefined,
+    roles:
+      addressFilter.roles.length > 0
+        ? addressFilter.roles
+        : currentView.filter.roles,
+    tags: addressFilter.tags.length > 0 ? addressFilter.tags : undefined,
+    pipeline_stages:
+      addressFilter.pipeline_stages.length > 0
+        ? addressFilter.pipeline_stages
+        : undefined,
+    languages:
+      addressFilter.languages.length > 0
+        ? addressFilter.languages
+        : undefined,
+    sources:
+      addressFilter.sources.length > 0 ? addressFilter.sources : undefined,
+    saldo_bucket: addressFilter.saldo_buckets[0],
+    last_contact_bucket: addressFilter.last_contact_buckets[0],
+    archivedOnly: addressFilter.status.includes('archived'),
   }
   const { data, isFetching: loading } = useContactList(filter, 0, 500)
   const rows = data?.rows ?? []
@@ -175,6 +211,16 @@ export function AddressbookScreen() {
           onReset={resetColumns}
         />
       </div>
+      <AddressbookFilterBar
+        filter={addressFilter}
+        onChange={(key, values) => {
+          // setFilter ist Partial<AddressbookFilterState> — wir lassen TS via
+          // generic key/values eine valide Combo erzwingen, dann übergeben
+          // wir an den merging setFilter.
+          setAddressFilter({ [key]: values } as Partial<AddressbookFilterState>)
+        }}
+        onClear={clearAddressFilter}
+      />
     </div>
   )
 
