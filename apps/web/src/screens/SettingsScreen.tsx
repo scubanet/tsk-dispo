@@ -36,6 +36,7 @@ import {
 import { useLanguage } from '@/i18n/useLanguage'
 import type { Lang } from '@/i18n'
 import type { OutletCtx } from '@/layout/AppShell'
+import { ConnectedAccountsSection } from '@/screens/settings/ConnectedAccountsSection'
 
 export function SettingsScreen() {
   const { t } = useTranslation()
@@ -147,6 +148,8 @@ export function SettingsScreen() {
             </button>
           </div>
         </section>
+
+        {isDispatcher && <ConnectedAccountsSection />}
 
         {dirty && isDispatcher && (
           <Banner tone="warning" title={t('settings.recalc.saved_notice_strong')}>
