@@ -9,6 +9,7 @@ export type UserEventType =
   | 'meeting_past'
   | 'task'
   | 'whatsapp_log'
+  | 'linkedin_message'
 
 /** System event types — gelesen aus Source-Tables via View. */
 export type SystemEventType =
@@ -66,6 +67,16 @@ export interface WhatsAppLogPayload {
   direction: Direction
 }
 
+/** Gemeinsames Payload für auto-synct Messaging-Events (E-Mail/WA/LinkedIn). */
+export interface MessagingPayload {
+  source: 'auto' | 'manual'
+  direction: Direction
+  provider_message_id: string
+  thread_id?: string
+  attachment_count?: number
+  unipile_account_id: string
+}
+
 /** Input für Composer-Insert. */
 export type EventComposerInput =
   | { event_type: 'note'; summary: string; body?: string; occurred_at?: string }
@@ -74,6 +85,7 @@ export type EventComposerInput =
   | { event_type: 'meeting_past'; summary: string; body?: string; payload: MeetingPastPayload; occurred_at?: string }
   | { event_type: 'task'; summary: string; body?: string; payload: TaskPayload; occurred_at?: string }
   | { event_type: 'whatsapp_log'; summary: string; body?: string; payload: WhatsAppLogPayload; occurred_at?: string }
+  | { event_type: 'linkedin_message'; summary: string; body?: string; payload: MessagingPayload; occurred_at?: string }
 
 /** Filter für useContactTimeline / useGlobalActivity.
  *  channel ist eine kanal-zentrische Sicht über alle EventTypes;

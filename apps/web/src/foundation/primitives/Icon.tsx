@@ -10,7 +10,7 @@ import type { JSX } from 'react'
 
 export type IconName =
   | 'note' | 'phone' | 'mail' | 'calendar-event' | 'checkbox'
-  | 'brand-whatsapp' | 'school' | 'certificate' | 'cash' | 'arrow-right'
+  | 'brand-whatsapp' | 'brand-linkedin' | 'school' | 'certificate' | 'cash' | 'arrow-right'
   | 'anchor' | 'id-badge' | 'user-cog' | 'edit' | 'point'
 
 interface IconProps {
@@ -63,6 +63,16 @@ const PATHS: Record<IconName, JSX.Element> = {
       {/* TODO: ersetzen mit tabler-path */}
       <circle cx="12" cy="12" r="9" />
       <path d="M9 10c0 4 3 7 7 7l1 -3l-3 -1l-1 1c-1 0 -2 -1 -2 -2l1 -1l-1 -3z" />
+    </>
+  ),
+  // brand-linkedin — Tabler Icons v3 (MIT)
+  'brand-linkedin': (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M8 11v5" />
+      <path d="M8 8v.01" />
+      <path d="M12 16v-5" />
+      <path d="M16 16v-3a2 2 0 0 0 -4 0" />
     </>
   ),
   // school — TODO: ersetzen mit tabler-path

@@ -39,6 +39,7 @@ const ICON_FOR: Record<EventType, IconName> = {
   meeting_past:        'calendar-event',
   task:                'checkbox',
   whatsapp_log:        'brand-whatsapp',
+  linkedin_message:    'brand-linkedin',
   course_enrollment:   'school',
   certification_issued:'certificate',
   saldo_movement:      'cash',
