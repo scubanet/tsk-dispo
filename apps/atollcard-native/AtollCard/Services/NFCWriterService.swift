@@ -10,17 +10,21 @@ import OSLog
 ///   • A user-initiated session — we surface `NFCWriterController` from the
 ///     UI (see `NFCWriteSheet`) so the system prompt appears immediately.
 ///
+/// Uses `NFCTagReaderSession` (entitlement format `TAG`). The legacy
+/// `NFCNDEFReaderSession` / `NDEF` entitlement is no longer accepted by App
+/// Store Connect on iOS 26 SDKs.
+///
 /// **Concurrency note:** the Core NFC delegate methods are not annotated by
 /// the SDK, so we keep them `nonisolated` and hop to the main actor before
 /// touching any stored state. Tag instances aren't `Sendable`, so we do the
 /// full async-write dance *inside* the delegate callback (on the NFC queue),
 /// then hop back to publish the result.
-public final class NFCWriterController: NSObject, NFCNDEFReaderSessionDelegate, @unchecked Sendable {
+public final class NFCWriterController: NSObject, NFCTagReaderSessionDelegate, @unchecked Sendable {
   // All `private` properties are touched only on the main actor. The
   // `@unchecked Sendable` annotation tells the compiler we know what we
   // are doing — the `nonisolated` delegate methods all hop to main before
   // accessing these.
-  private var session: NFCNDEFReaderSession?
+  private var session: NFCTagReaderSession?
   private var url: URL?
   private var completion: ((Result<NFCTagWriteResult, Error>) -> Void)?
   private static let logger = Logger(subsystem: "swiss.atoll.card", category: "nfc")
@@ -29,7 +33,7 @@ public final class NFCWriterController: NSObject, NFCNDEFReaderSessionDelegate, 
 
   /// Are we on a device that can write NFC tags? Simulator returns false.
   public static var isAvailable: Bool {
-    NFCNDEFReaderSession.readingAvailable
+    NFCTagReaderSession.readingAvailable
   }
 
   /// Start a write session. The completion handler is invoked exactly once
@@ -43,15 +47,21 @@ public final class NFCWriterController: NSObject, NFCNDEFReaderSessionDelegate, 
     self.url = url
     self.completion = { result in Task { @MainActor in completion(result) } }
 
-    let session = NFCNDEFReaderSession(delegate: self, queue: nil, invalidateAfterFirstRead: false)
-    session.alertMessage = "Halte dein iPhone an einen leeren NFC-Tag."
+    let session = NFCTagReaderSession(
+      pollingOption: [.iso14443, .iso15693, .iso18092],
+      delegate: self,
+      queue: nil
+    )
+    session?.alertMessage = "Halte dein iPhone an einen leeren NFC-Tag."
     self.session = session
-    session.begin()
+    session?.begin()
   }
 
-  // MARK: - NFCNDEFReaderSessionDelegate
+  // MARK: - NFCTagReaderSessionDelegate
 
-  public func readerSession(_ session: NFCNDEFReaderSession, didInvalidateWithError error: Error) {
+  public func tagReaderSessionDidBecomeActive(_ session: NFCTagReaderSession) {}
+
+  public func tagReaderSession(_ session: NFCTagReaderSession, didInvalidateWithError error: Error) {
     let snapshot = completionSnapshot()
     if let nsError = error as? NFCReaderError, nsError.code == .readerSessionInvalidationErrorUserCanceled {
       snapshot?(.failure(NFCWriterError.userCancelled))
@@ -61,18 +71,14 @@ public final class NFCWriterController: NSObject, NFCNDEFReaderSessionDelegate, 
     finishOnMain()
   }
 
-  public func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {
-    // Reading-only callback — we use the tag-level delegate path instead.
-  }
-
-  public func readerSession(_ session: NFCNDEFReaderSession, didDetect tags: [NFCNDEFTag]) {
-    guard let tag = tags.first else { return }
+  public func tagReaderSession(_ session: NFCTagReaderSession, didDetect tags: [NFCTag]) {
+    guard let firstTag = tags.first else { return }
     guard let url = urlSnapshot() else { return }
 
     // Connect and write on the NFC queue (not the main actor) using the
     // closure-based API — this side-steps tag-is-not-Sendable issues with
     // structured concurrency / Task on Swift 6.
-    session.connect(to: tag) { [weak self] connectError in
+    session.connect(to: firstTag) { [weak self] connectError in
       guard let self else { return }
       if let connectError {
         session.invalidate(errorMessage: connectError.localizedDescription)
@@ -80,7 +86,13 @@ public final class NFCWriterController: NSObject, NFCNDEFReaderSessionDelegate, 
         self.finishOnMain()
         return
       }
-      tag.queryNDEFStatus { status, capacity, statusError in
+      guard let ndefTag = Self.ndefTag(from: firstTag) else {
+        session.invalidate(errorMessage: NFCWriterError.notSupported.localizedDescription)
+        self.completionSnapshot()?(.failure(NFCWriterError.notSupported))
+        self.finishOnMain()
+        return
+      }
+      ndefTag.queryNDEFStatus { status, capacity, statusError in
         if let statusError {
           session.invalidate(errorMessage: statusError.localizedDescription)
           self.completionSnapshot()?(.failure(statusError))
@@ -113,7 +125,7 @@ public final class NFCWriterController: NSObject, NFCNDEFReaderSessionDelegate, 
           self.finishOnMain()
           return
         }
-        tag.writeNDEF(message) { writeError in
+        ndefTag.writeNDEF(message) { writeError in
           if let writeError {
             session.invalidate(errorMessage: writeError.localizedDescription)
             self.completionSnapshot()?(.failure(writeError))
@@ -122,7 +134,7 @@ public final class NFCWriterController: NSObject, NFCNDEFReaderSessionDelegate, 
           }
           session.alertMessage = "Tag erfolgreich beschrieben ✓"
           session.invalidate()
-          let uid = Self.tagUIDHex(from: tag) ?? "—"
+          let uid = Self.tagUIDHex(from: firstTag) ?? "—"
           self.completionSnapshot()?(.success(NFCTagWriteResult(tagUID: uid, capacity: capacity)))
           self.finishOnMain()
         }
@@ -150,15 +162,26 @@ public final class NFCWriterController: NSObject, NFCNDEFReaderSessionDelegate, 
     }
   }
 
-  /// `NFCNDEFTag` doesn't expose UID directly — the concrete subtypes do.
-  private static func tagUIDHex(from tag: NFCNDEFTag) -> String? {
-    if let mifare = tag as? NFCMiFareTag {
-      return mifare.identifier.map { String(format: "%02X", $0) }.joined()
+  /// Resolve the NDEF-capable view of a concrete `NFCTag` enum case.
+  private static func ndefTag(from tag: NFCTag) -> NFCNDEFTag? {
+    switch tag {
+    case .miFare(let t):   return t
+    case .iso15693(let t): return t
+    case .iso7816(let t):  return t
+    case .feliCa(let t):   return t
+    @unknown default:      return nil
     }
-    if let iso = tag as? NFCISO15693Tag {
-      return iso.identifier.map { String(format: "%02X", $0) }.joined()
+  }
+
+  /// Extract the tag UID as hex — concrete subtypes expose different fields.
+  private static func tagUIDHex(from tag: NFCTag) -> String? {
+    switch tag {
+    case .miFare(let t):   return t.identifier.map { String(format: "%02X", $0) }.joined()
+    case .iso15693(let t): return t.identifier.map { String(format: "%02X", $0) }.joined()
+    case .iso7816(let t):  return t.identifier.map { String(format: "%02X", $0) }.joined()
+    case .feliCa(let t):   return t.currentIDm.map { String(format: "%02X", $0) }.joined()
+    @unknown default:      return nil
     }
-    return nil
   }
 }
 

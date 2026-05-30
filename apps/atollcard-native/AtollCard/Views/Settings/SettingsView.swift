@@ -114,15 +114,13 @@ struct SettingsView: View {
       }
       .listRowBackground(Color.clear)
 
+      let pickerLabel = previewImage == nil ? "Foto auswählen" : "Anderes Foto"
       PhotosPicker(
         selection: $pickedItem,
         matching: .images,
         photoLibrary: .shared()
       ) {
-        Label(
-          previewImage == nil ? "Foto auswählen" : "Anderes Foto",
-          systemImage: "photo.on.rectangle"
-        )
+        Label(pickerLabel, systemImage: "photo.on.rectangle")
       }
 
       if previewImage != nil {
