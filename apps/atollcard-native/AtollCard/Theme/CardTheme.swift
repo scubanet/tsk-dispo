@@ -11,9 +11,9 @@ public extension Color {
 
   // ─────────────── Page / surfaces (AtollCal-aligned) ───────────────
 
-  /// Cremig-weisser Hintergrund — wärmer als brandSand200, identisch zu AtollCal-Mockup.
-  static let cardPageBackground = Color(hex: 0xFEFDFB)
-  static let cardSoftBackground = Color(hex: 0xF7F4EE)
+  /// Kühl-weisser Page-Hintergrund (Blau/Grau) — Glas-Look-Restyle (vorher cremig 0xFEFDFB).
+  static let cardPageBackground = Color(hex: 0xEEF2F9)
+  static let cardSoftBackground = Color(hex: 0xEAEEF5)
 
   // ─────────────── Accent / text (mockup-aligned) ───────────────
 
@@ -115,5 +115,80 @@ public extension Color {
     if raw.hasPrefix("#") { raw.removeFirst() }
     guard let value = UInt32(raw, radix: 16) else { return nil }
     self.init(hex: value)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// MARK: - Glas-Look Restyle (kühl Blau/Grau, wenig Rot, kein Rosa)
+// ─────────────────────────────────────────────────────────────────────────
+
+public extension Color {
+  /// Slate-Akzent für die großen Titel ("Meine [Karten]") — ersetzt das Rot.
+  static let cardTitleAccent = Color(hex: 0x37486A)
+
+  /// Kühle Page-Verlaufsstops (Blau → Grau), kein Warm-/Rosaton.
+  static let cardPageGradientTop    = Color(hex: 0xE8EFF9)
+  static let cardPageGradientMid    = Color(hex: 0xEAF0F7)
+  static let cardPageGradientBottom = Color(hex: 0xEEF2F6)
+
+  /// Weiche, kühle Blobs hinter dem Glas.
+  static let cardGlassBlob      = Color(hex: 0xB8D2F6)
+  static let cardGlassBlobSteel = Color(hex: 0xCDD9EA)
+}
+
+/// Frosted-Glass-Oberfläche: durchscheinendes Material, helle Kante, weicher
+/// Schatten. Liegt über `GlassBackground`, damit der Blur den kühlen Verlauf
+/// aufnimmt.
+public struct GlassCardModifier: ViewModifier {
+  var cornerRadius: CGFloat = 22
+  public func body(content: Content) -> some View {
+    content
+      .background(.ultraThinMaterial,
+                  in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+      .overlay(
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+          .stroke(Color.white.opacity(0.55), lineWidth: 1)
+      )
+      .shadow(color: Color.black.opacity(0.08), radius: 14, x: 0, y: 8)
+  }
+}
+
+public extension View {
+  /// AtollCard Frosted-Glass-Surface anwenden.
+  func glassCard(cornerRadius: CGFloat = 22) -> some View {
+    modifier(GlassCardModifier(cornerRadius: cornerRadius))
+  }
+}
+
+/// Kühler Blau/Grau-Hintergrund mit weichen Blur-Blobs — Basis-Layer hinter
+/// den Haupt-Surfaces (Cards / Leads / Analytics). Kein Rosa/Lavendel.
+public struct GlassBackground: View {
+  public init() {}
+  public var body: some View {
+    LinearGradient(
+      colors: [.cardPageGradientTop, .cardPageGradientMid, .cardPageGradientBottom],
+      startPoint: .topLeading,
+      endPoint: .bottomTrailing
+    )
+    .overlay(alignment: .topTrailing) {
+      blob(.cardGlassBlob, size: 260, blur: 70, opacity: 0.7, dx: 60, dy: -40)
+    }
+    .overlay(alignment: .bottomLeading) {
+      blob(.cardGlassBlobSteel, size: 240, blur: 70, opacity: 0.6, dx: -50, dy: 40)
+    }
+    .overlay(alignment: .topLeading) {
+      blob(.cardGlassBlob, size: 200, blur: 75, opacity: 0.45, dx: -40, dy: 120)
+    }
+  }
+
+  private func blob(_ color: Color, size: CGFloat, blur: CGFloat,
+                    opacity: Double, dx: CGFloat, dy: CGFloat) -> some View {
+    Circle()
+      .fill(color)
+      .frame(width: size, height: size)
+      .blur(radius: blur)
+      .opacity(opacity)
+      .offset(x: dx, y: dy)
+      .allowsHitTesting(false)
   }
 }

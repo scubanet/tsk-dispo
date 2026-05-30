@@ -54,13 +54,7 @@ struct LeadRowView: View {
     }
     .padding(.vertical, 14)
     .padding(.horizontal, 16)
-    .background(Color.white)
-    .clipShape(RoundedRectangle(cornerRadius: 18))
-    .shadow(color: .black.opacity(0.03), radius: 4, x: 0, y: 1)
-    .overlay(
-      RoundedRectangle(cornerRadius: 18)
-        .stroke(.black.opacity(0.025), lineWidth: 1)
-    )
+    .glassCard(cornerRadius: 18)
   }
 
   private static func relative(_ date: Date) -> String {

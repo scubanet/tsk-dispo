@@ -32,11 +32,7 @@ struct PersonaDetailCard: View {
     }
     .padding(.horizontal, 20)
     .padding(.vertical, 18)
-    .background(Color.white, in: RoundedRectangle(cornerRadius: 24))
-    .overlay(
-      RoundedRectangle(cornerRadius: 24).stroke(.black.opacity(0.03))
-    )
-    .shadow(color: .black.opacity(0.04), radius: 12, y: 2)
+    .glassCard(cornerRadius: 24)
     .sheet(isPresented: $showShareSheet) {
       CardShareSheet(card: card, person: person)
         .presentationDetents([.medium, .large])

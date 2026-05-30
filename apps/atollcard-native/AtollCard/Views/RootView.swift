@@ -69,7 +69,7 @@ struct RootView: View {
   @ViewBuilder
   private var signedInBody: some View {
     ZStack(alignment: .bottom) {
-      Color.cardPageBackground.ignoresSafeArea()
+      GlassBackground().ignoresSafeArea()
 
       Group {
         switch route {

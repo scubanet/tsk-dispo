@@ -36,7 +36,7 @@ struct CardsView: View {
       }
       .padding(.bottom, 16)
     }
-    .background(Color.cardPageBackground)
+    .background(Color.clear)
     .refreshable {
       await cardStore.refresh()
       await leadStore.refresh()

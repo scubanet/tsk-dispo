@@ -24,7 +24,7 @@ struct HeaderBar: View {
   }
 }
 
-/// Big title with red accent word — "Meine [Karten]" / "Inbox [2026]".
+/// Big title with slate accent word — "Meine [Karten]" / "Inbox [2026]".
 struct BigTitleView: View {
   let leading: String
   let accent: String
@@ -32,7 +32,7 @@ struct BigTitleView: View {
 
   var body: some View {
     HStack(alignment: .firstTextBaseline) {
-      Text(leading) + Text(" ") + Text(accent).foregroundStyle(Color.cardAccentRed)
+      Text(leading) + Text(" ") + Text(accent).foregroundStyle(Color.cardTitleAccent)
       Spacer()
       if let trailing { trailing }
     }

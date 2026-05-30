@@ -46,7 +46,7 @@ struct LeadsView: View {
       }
       .padding(.bottom, 24)
     }
-    .background(Color.cardPageBackground)
+    .background(Color.clear)
     .refreshable { await leadStore.refresh() }
     .sheet(item: $selected) { lead in
       LeadDetailSheet(lead: lead)

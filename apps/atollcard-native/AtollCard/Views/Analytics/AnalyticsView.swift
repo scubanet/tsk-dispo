@@ -33,7 +33,7 @@ struct AnalyticsView: View {
       }
       .padding(.bottom, 24)
     }
-    .background(Color.cardPageBackground)
+    .background(Color.clear)
     .task(id: scopeKey) { await analyticsStore.refresh() }
     .refreshable { await analyticsStore.refresh() }
   }
@@ -113,8 +113,7 @@ struct AnalyticsView: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(14)
-    .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
-    .overlay(RoundedRectangle(cornerRadius: 16).stroke(.black.opacity(0.04)))
+    .glassCard(cornerRadius: 16)
   }
 
   // MARK: - Charts
@@ -140,15 +139,14 @@ struct AnalyticsView: View {
           x: .value("Tag", entry.date, unit: .day),
           y: .value("Leads", entry.count)
         )
-        .foregroundStyle(Color.cardAccentRed)
+        .foregroundStyle(Color(hex: 0x1D9E75))
         .interpolationMethod(.monotone)
         .symbol(.circle)
       }
     }
     .frame(height: 200)
     .padding(14)
-    .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
-    .overlay(RoundedRectangle(cornerRadius: 16).stroke(.black.opacity(0.04)))
+    .glassCard(cornerRadius: 16)
   }
 
   // MARK: - Countries
@@ -173,7 +171,7 @@ struct AnalyticsView: View {
           }
           .padding(.horizontal, 14)
           .padding(.vertical, 10)
-          .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
+          .glassCard(cornerRadius: 12)
         }
       }
     }
@@ -201,7 +199,7 @@ struct AnalyticsView: View {
       }
       .frame(height: CGFloat(40 * sorted.count))
       .padding(14)
-      .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
+      .glassCard(cornerRadius: 16)
     }
   }
 

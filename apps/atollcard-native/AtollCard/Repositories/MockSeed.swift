@@ -31,7 +31,7 @@ enum MockSeed {
     phonePrimary: "+41 79 000 00 00",
     languages: ["DE", "EN", "FR", "IT"],
     padiMemberNumber: "226710",
-    avatarColorHex: "#b03844"
+    avatarColorHex: "#52668A"
   )
 
   // Cards ----------------------------------------------------------------
