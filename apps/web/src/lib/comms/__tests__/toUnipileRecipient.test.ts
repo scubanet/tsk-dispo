@@ -9,6 +9,10 @@ describe('toUnipileRecipient', () => {
     expect(toUnipileRecipient('whatsapp', { e164: '+41791234567' }))
       .toEqual({ kind: 'attendee', identifier: '41791234567@s.whatsapp.net' })
   })
+  it('whatsapp → strippt Leerzeichen & Sonderzeichen aus e164', () => {
+    expect(toUnipileRecipient('whatsapp', { e164: '+41 79 877 80 80' }))
+      .toEqual({ kind: 'attendee', identifier: '41798778080@s.whatsapp.net' })
+  })
   it('linkedin → member_id', () => {
     expect(toUnipileRecipient('linkedin', { linkedin_member_id: 'ACoAAB' }))
       .toEqual({ kind: 'attendee', identifier: 'ACoAAB' })

@@ -19,7 +19,7 @@ export function toUnipileRecipient(channel: CommsChannel, f: RecipientFields): U
   }
   if (channel === 'whatsapp') {
     if (!f.e164) return null
-    return { kind: 'attendee', identifier: `${f.e164.replace(/^\+/, '')}@s.whatsapp.net` }
+    return { kind: 'attendee', identifier: `${f.e164.replace(/\D/g, '')}@s.whatsapp.net` }
   }
   if (channel === 'linkedin') {
     return f.linkedin_member_id ? { kind: 'attendee', identifier: f.linkedin_member_id } : null

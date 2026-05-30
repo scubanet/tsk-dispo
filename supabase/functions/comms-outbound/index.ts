@@ -65,7 +65,7 @@ serve(async (req) => {
       providerMessageId = parsed.id ?? parsed.email_id ?? crypto.randomUUID()
     } else {
       const identifier = channel === 'whatsapp'
-        ? (e164 ? `${e164.replace(/^\+/, '')}@s.whatsapp.net` : null)
+        ? (e164 ? `${e164.replace(/\D/g, '')}@s.whatsapp.net` : null)
         : c?.linkedin_member_id
       if (!identifier) return json({ error: 'no_recipient', channel }, 422)
       const form = new FormData()
