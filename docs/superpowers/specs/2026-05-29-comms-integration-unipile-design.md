@@ -107,6 +107,11 @@ Gesendete Nachrichten = dasselbe Event mit `direction: 'outbound'`.
 - **Webhook-Härtung:** Kein Insert ohne verifizierte HMAC-Signatur. Idempotenz gegen Replays.
 - **RLS:** Schreiben in `contact_events`, `messaging_accounts`, `messaging_unmatched`
   nur über Service-Rolle. Lesen owner-/rollen-gescoped. Jeder sieht nur eigene Konten.
+- **Rollen-Gate (Entscheidung 2026-05-29):** Comms-Funktionen (Kombox, Quarantäne,
+  Anreicherung) nur für **Comms-Staff** = Dispatcher, Course Director, Superadmin —
+  Helper `is_comms_staff()` (Migration 0123). Superadmin ist derzeit `owner`; wird zu
+  `developer`, sobald der Rollen-Refactor kommt (dann nur diese Funktion anpassen).
+  Frontend gated die Kombox-Route entsprechend (Plan 6).
 - **DSGVO-Pflichtteile:**
   - Auftragsverarbeitungsvertrag mit Unipile (Voraussetzung Produktivbetrieb).
   - Löschpfad: Kontakt löschen → kaskadiert Messaging-Events + Anreicherung; zusätzlich
