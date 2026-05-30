@@ -2,6 +2,7 @@ import SwiftUI
 import AtollCore
 import OSLog
 import Supabase
+import UserNotifications
 
 /// AtollCard — digital business cards with lead capture, part of the Atoll OS
 /// ecosystem (Atoll OS web, AtollCal, AtollLog, AtollCard).
@@ -177,6 +178,7 @@ struct AtollCardApp: App {
             Task {
               await leadStore.refresh()  // fresh leads when foregrounding
               await drainer?.drain()      // and flush any queued mutations
+              try? await UNUserNotificationCenter.current().setBadgeCount(0)
             }
           }
         }

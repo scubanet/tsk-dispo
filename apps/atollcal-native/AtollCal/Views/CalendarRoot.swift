@@ -211,6 +211,7 @@ struct CalendarRoot: View {
       .onKeyPress(.leftArrow)  { navigate(by: -1); return .handled }
       .onKeyPress(.rightArrow) { navigate(by:  1); return .handled }
       .background(globalKeyboardShortcuts)
+      .background(AtollGlassBackdrop().ignoresSafeArea())
     }
   }
 
@@ -459,6 +460,7 @@ struct CalendarRoot: View {
       .onKeyPress(.leftArrow)  { navigate(by: -1); return .handled }
       .onKeyPress(.rightArrow) { navigate(by:  1); return .handled }
       .background(globalKeyboardShortcuts)
+      .background(AtollGlassBackdrop().ignoresSafeArea())
   }
 
   // MARK: - Toolbar (identical structure on iOS and macOS)
@@ -1007,5 +1009,36 @@ private struct BlurReplaceModifier: ViewModifier {
     content
       .blur(radius: blurRadius)
       .opacity(opacity)
+  }
+}
+
+// MARK: - Glas-Look Restyle: kühler Hintergrund (Blau/Grau, hell/dunkel-adaptiv)
+
+/// Kühler Verlaufs-Hintergrund mit weichen Blau/Grau-Blobs — liegt hinter den
+/// nativen Liquid-Glass-Flächen, damit der Kalender den kühlen „Dribbble"-Look
+/// bekommt. Hell- und Dunkelmodus-adaptiv, kein Rosa/Lavendel.
+private struct AtollGlassBackdrop: View {
+  @Environment(\.colorScheme) private var scheme
+
+  var body: some View {
+    let stops: [Color] = scheme == .dark
+      ? [Color(hex: 0x0E1626), Color(hex: 0x101A2E), Color(hex: 0x0C1320)]
+      : [Color(hex: 0xE8EFF9), Color(hex: 0xEAF0F7), Color(hex: 0xEEF2F6)]
+    let blobA: Color = scheme == .dark ? Color(hex: 0x1E3A6B) : Color(hex: 0xB8D2F6)
+    let blobB: Color = scheme == .dark ? Color(hex: 0x223047) : Color(hex: 0xCDD9EA)
+    let blobOpacity: Double = scheme == .dark ? 0.40 : 0.55
+
+    return LinearGradient(colors: stops, startPoint: .topLeading, endPoint: .bottomTrailing)
+      .overlay(alignment: .topTrailing) { blob(blobA, blobOpacity).offset(x: 60, y: -40) }
+      .overlay(alignment: .bottomLeading) { blob(blobB, blobOpacity).offset(x: -50, y: 40) }
+  }
+
+  private func blob(_ color: Color, _ opacity: Double) -> some View {
+    Circle()
+      .fill(color)
+      .frame(width: 260, height: 260)
+      .blur(radius: 70)
+      .opacity(opacity)
+      .allowsHitTesting(false)
   }
 }
