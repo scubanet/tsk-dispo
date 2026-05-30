@@ -1,5 +1,5 @@
 import Foundation
-import CoreNFC
+@preconcurrency import CoreNFC
 import OSLog
 
 /// Writes a card's public URL onto a physical NFC tag using NDEF.
@@ -71,7 +71,7 @@ public final class NFCWriterController: NSObject, NFCTagReaderSessionDelegate, @
     finishOnMain()
   }
 
-  public func tagReaderSession(_ session: NFCTagReaderSession, didDetect tags: [NFCTag]) {
+  public func tagReaderSession(_ session: NFCTagReaderSession, didDetect tags: [CoreNFC.NFCTag]) {
     guard let firstTag = tags.first else { return }
     guard let url = urlSnapshot() else { return }
 
@@ -163,7 +163,7 @@ public final class NFCWriterController: NSObject, NFCTagReaderSessionDelegate, @
   }
 
   /// Resolve the NDEF-capable view of a concrete `NFCTag` enum case.
-  private static func ndefTag(from tag: NFCTag) -> NFCNDEFTag? {
+  private static func ndefTag(from tag: CoreNFC.NFCTag) -> NFCNDEFTag? {
     switch tag {
     case .miFare(let t):   return t
     case .iso15693(let t): return t
@@ -174,7 +174,7 @@ public final class NFCWriterController: NSObject, NFCTagReaderSessionDelegate, @
   }
 
   /// Extract the tag UID as hex — concrete subtypes expose different fields.
-  private static func tagUIDHex(from tag: NFCTag) -> String? {
+  private static func tagUIDHex(from tag: CoreNFC.NFCTag) -> String? {
     switch tag {
     case .miFare(let t):   return t.identifier.map { String(format: "%02X", $0) }.joined()
     case .iso15693(let t): return t.identifier.map { String(format: "%02X", $0) }.joined()

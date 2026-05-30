@@ -54,8 +54,8 @@
   --brand-gray-60: #888780;     /* Neutrals, REAC/CXL, DM/Andere */
   --brand-gray-80: #5F5E5A;
 
-  --brand-sand: #FAF9F4;        /* Sidebar, page bg */
-  --brand-sand-200: #F1EFE8;    /* Divider tint */
+  --brand-sand: #F5F8FC;        /* Sidebar, page bg — kühl (Glas-Look) */
+  --brand-sand-200: #E9EEF5;    /* Divider tint — kühl (Glas-Look) */
 
   /* ─────────────── Platform-specific brand colors ──────────────────── */
   /* WhatsApp green — for the WhatsApp integration buttons only. Documented

@@ -3,16 +3,16 @@
   background:
     radial-gradient(1200px 800px at 18% 10%, rgba(10,132,255,.18), transparent 60%),
     radial-gradient(900px 700px at 92% 8%, rgba(48,176,199,.20), transparent 65%),
-    radial-gradient(1000px 800px at 80% 92%, rgba(175,82,222,.14), transparent 60%),
-    radial-gradient(800px 700px at 12% 95%, rgba(255,149,0,.10), transparent 65%),
+    radial-gradient(1000px 800px at 80% 92%, rgba(120,150,200,.16), transparent 60%),
+    radial-gradient(800px 700px at 12% 95%, rgba(150,175,210,.12), transparent 65%),
     linear-gradient(180deg, var(--brand-sand) 0%, var(--brand-sand-200) 100%);
 }
 .dark .wallpaper {
   background:
     radial-gradient(1200px 800px at 18% 10%, rgba(10,132,255,.32), transparent 60%),
     radial-gradient(900px 700px at 92% 8%, rgba(48,176,199,.28), transparent 65%),
-    radial-gradient(1000px 800px at 80% 92%, rgba(175,82,222,.24), transparent 60%),
-    radial-gradient(800px 700px at 12% 95%, rgba(255,149,0,.16), transparent 65%),
+    radial-gradient(1000px 800px at 80% 92%, rgba(90,120,180,.26), transparent 60%),
+    radial-gradient(800px 700px at 12% 95%, rgba(110,140,190,.18), transparent 65%),
     linear-gradient(180deg, #08080a 0%, #000 100%);
 }
 
