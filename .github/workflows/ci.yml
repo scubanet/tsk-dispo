@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: https://ci.invalid.supabase.co
+      VITE_SUPABASE_ANON_KEY: ci-dummy-anon-key
     steps:
       - uses: actions/checkout@v4
 
