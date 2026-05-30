@@ -171,7 +171,7 @@ function CenteredMessage({ children }: { children: React.ReactNode }) {
       justifyContent: 'center',
       fontFamily: '-apple-system, system-ui, sans-serif',
       color: '#5A6478',
-      background: '#FEFDFB',
+      background: '#F5F8FC',
     }}>
       {children}
     </div>
@@ -238,7 +238,7 @@ function CardView({ card, contact, lang, t }: { card: CardRow; contact: ContactR
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#FEFDFB',
+      background: '#F5F8FC',
       fontFamily: '-apple-system, BlinkMacSystemFont, system-ui, sans-serif',
       color: '#1A1F2E',
       padding: '24px 16px 64px',
@@ -299,10 +299,10 @@ function CardView({ card, contact, lang, t }: { card: CardRow; contact: ContactR
             style={{
               width: 88, height: 88, borderRadius: '50%',
               objectFit: 'cover',
-              border: '4px solid #FEFDFB',
+              border: '4px solid #F5F8FC',
               boxShadow: '0 8px 18px rgba(0,0,0,.20)',
               flexShrink: 0,
-              background: '#F7F4EE',
+              background: '#EAEEF5',
             }}
           />
         ) : (
@@ -311,7 +311,7 @@ function CardView({ card, contact, lang, t }: { card: CardRow; contact: ContactR
             background: gradientFor(card.theme),
             color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontWeight: 700, fontSize: 30, letterSpacing: .5,
-            border: '4px solid #FEFDFB',
+            border: '4px solid #F5F8FC',
             boxShadow: '0 8px 18px rgba(0,0,0,.20)',
             flexShrink: 0,
           }}>{initials}</div>
@@ -346,8 +346,8 @@ function CardView({ card, contact, lang, t }: { card: CardRow; contact: ContactR
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 12, marginTop: 20, padding: '14px 0',
-          borderTop: '1px solid #F0EBE2',
-          borderBottom: '1px solid #F0EBE2',
+          borderTop: '1px solid #E3E8F2',
+          borderBottom: '1px solid #E3E8F2',
         }}>
           {card.dive_profile.total_dives !== undefined && (
             <Stat label="Dives" value={card.dive_profile.total_dives.toLocaleString('de-CH')} />
@@ -554,7 +554,7 @@ function LeadForm({ card, onTap, t }: { card: CardRow; onTap: () => void; t: Tra
         onChange={(e) => setMessage(e.target.value)}
         style={{
           width: '100%', minHeight: 80, padding: '10px 12px', borderRadius: 10,
-          border: '1px solid rgba(0,0,0,.08)', background: '#F7F4EE',
+          border: '1px solid rgba(0,0,0,.08)', background: '#EAEEF5',
           fontFamily: 'inherit', fontSize: 14, resize: 'vertical', marginBottom: 12,
         }}
       />
@@ -590,7 +590,7 @@ function Field({
       onChange={(e) => onChange(e.target.value)}
       style={{
         width: '100%', padding: '10px 12px', borderRadius: 10,
-        border: '1px solid rgba(0,0,0,.08)', background: '#F7F4EE',
+        border: '1px solid rgba(0,0,0,.08)', background: '#EAEEF5',
         fontFamily: 'inherit', fontSize: 14, ...style,
       }}
     />
