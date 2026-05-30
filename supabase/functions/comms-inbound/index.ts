@@ -22,7 +22,7 @@ function normalize(p: any) {
     const direction = p.event === 'mail_sent' ? 'outbound' : 'inbound'
     const handleRaw = direction === 'inbound' ? p.from_attendee?.identifier : p.to_attendees?.[0]?.identifier
     if (!handleRaw) return null
-    return { channel: 'email', direction, external_id: p.email_id,
+    return { channel: 'email', direction, external_id: p.message_id || p.email_id,
       counterparty_handle: String(handleRaw).trim().toLowerCase(),
       summary: p.subject || '(kein Betreff)', body: p.body_plain || p.body || '',
       occurred_at: p.date, thread_id: undefined,

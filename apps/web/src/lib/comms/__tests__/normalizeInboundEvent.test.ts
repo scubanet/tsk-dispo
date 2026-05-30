@@ -31,8 +31,14 @@ describe('normalizeInboundEvent', () => {
   })
   it('E-Mail inbound matcht auf Absender (lowercased)', () => {
     const r = normalizeInboundEvent(emailIn)
-    expect(r).toMatchObject({ channel: 'email', direction: 'inbound', external_id: 'mail1',
+    expect(r).toMatchObject({ channel: 'email', direction: 'inbound', external_id: '<x@y>',
       counterparty_handle: 'marco@example.mt', summary: 'Specialty Termine', body: 'Hi' })
+  })
+  it('E-Mail: gleiche message_id trotz anderer email_id → gleiche external_id (Dedupe)', () => {
+    const a = normalizeInboundEvent({ ...emailIn, email_id: 'sync-A' })
+    const b = normalizeInboundEvent({ ...emailIn, email_id: 'sync-B' })
+    expect(a!.external_id).toBe('<x@y>')
+    expect(b!.external_id).toBe('<x@y>')
   })
   it('E-Mail outbound nimmt Empfänger als Gegenpart', () => {
     const r = normalizeInboundEvent({ ...emailIn, email_id: 'mail2', event: 'mail_sent' })

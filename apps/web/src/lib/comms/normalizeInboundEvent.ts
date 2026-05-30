@@ -32,7 +32,9 @@ export function normalizeInboundEvent(p: Raw): NormalizedInbound | null {
     return {
       channel: 'email',
       direction,
-      external_id: p.email_id,
+      // RFC-message_id ist stabil über Ordner/Syncs; Unipiles email_id kann
+      // pro Sync variieren und denselben Mail-Event mehrfach liefern.
+      external_id: p.message_id || p.email_id,
       counterparty_handle: String(handleRaw).trim().toLowerCase(),
       summary: p.subject || '(kein Betreff)',
       body: p.body_plain || p.body || '',
