@@ -105,4 +105,11 @@ final class CachedLeadRepository: LeadRepository {
     try await remote.markImported(id: id)
     await MainActor.run { cache.updateLeadStatus(leadId: id, status: .imported) }
   }
+
+  /// Write-through delete: remote first so failures surface to the caller, then
+  /// drop it from the cache so the UI updates immediately.
+  func delete(id: UUID) async throws {
+    try await remote.delete(id: id)
+    await MainActor.run { cache.deleteLead(id: id) }
+  }
 }

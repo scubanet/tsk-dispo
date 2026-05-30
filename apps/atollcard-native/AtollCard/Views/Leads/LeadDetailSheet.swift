@@ -11,6 +11,8 @@ struct LeadDetailSheet: View {
   @Environment(ToastCenter.self) private var toast
   @Environment(\.dismiss)        private var dismiss
 
+  @State private var showDeleteConfirm = false
+
   var body: some View {
     NavigationStack {
       ScrollView {
@@ -34,6 +36,18 @@ struct LeadDetailSheet: View {
         ToolbarItem(placement: .topBarTrailing) {
           Button(String(localized: "Fertig")) { dismiss() }
         }
+      }
+      .alert("Lead löschen?", isPresented: $showDeleteConfirm) {
+        Button("Löschen", role: .destructive) {
+          Task {
+            await leadStore.delete(id: lead.id)
+            toast.show("Lead gelöscht", kind: .info)
+            dismiss()
+          }
+        }
+        Button("Abbrechen", role: .cancel) {}
+      } message: {
+        Text("Der Lead „\(lead.fullName.isEmpty ? lead.firstName : lead.fullName)“ wird permanent entfernt.")
       }
     }
   }
@@ -125,6 +139,17 @@ struct LeadDetailSheet: View {
         statusButton(String(localized: "Kontaktiert"), target: .contacted)
         statusButton(String(localized: "Archiviert"), target: .archived)
       }
+
+      Button(role: .destructive) {
+        showDeleteConfirm = true
+      } label: {
+        Label("Lead löschen", systemImage: "trash")
+          .font(.system(size: 14, weight: .semibold))
+          .frame(maxWidth: .infinity)
+          .padding(.vertical, 12)
+          .foregroundStyle(Color.red)
+      }
+      .buttonStyle(.plain)
     }
   }
 

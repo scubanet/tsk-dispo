@@ -60,6 +60,15 @@ public final class LeadStore {
     }
   }
 
+  public func delete(id: UUID) async {
+    do {
+      try await repository.delete(id: id)
+      await refresh()
+    } catch {
+      lastError = error
+    }
+  }
+
   // MARK: - Realtime
 
   /// Subscribe to `card_leads` INSERTs server-side. New rows arrive over

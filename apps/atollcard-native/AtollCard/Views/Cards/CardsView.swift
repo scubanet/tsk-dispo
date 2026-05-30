@@ -11,6 +11,7 @@ struct CardsView: View {
   @State private var topTab: String = "personas"
   @State private var editingCard: Card?
   @State private var pendingDelete: Card?
+  @State private var pendingDeleteLead: Lead?
 
   var body: some View {
     ScrollView {
@@ -60,6 +61,23 @@ struct CardsView: View {
       Button("Abbrechen", role: .cancel) { pendingDelete = nil }
     } message: {
       Text(pendingDelete.map { "Die Karte „\($0.title)“ wird permanent entfernt." } ?? "")
+    }
+    .alert("Lead löschen?", isPresented: Binding(
+      get: { pendingDeleteLead != nil },
+      set: { if !$0 { pendingDeleteLead = nil } }
+    )) {
+      Button("Löschen", role: .destructive) {
+        if let target = pendingDeleteLead {
+          Task {
+            await leadStore.delete(id: target.id)
+            toast.show("Lead gelöscht", kind: .info)
+            pendingDeleteLead = nil
+          }
+        }
+      }
+      Button("Abbrechen", role: .cancel) { pendingDeleteLead = nil }
+    } message: {
+      Text(pendingDeleteLead.map { "Der Lead „\($0.fullName.isEmpty ? $0.firstName : $0.fullName)“ wird permanent entfernt." } ?? "")
     }
   }
 
@@ -138,7 +156,8 @@ struct CardsView: View {
         ForEach(recent) { lead in
           LeadRowView(
             lead: lead,
-            cardBadge: badge(forCardId: lead.cardId)
+            cardBadge: badge(forCardId: lead.cardId),
+            onDelete: { pendingDeleteLead = lead }
           )
         }
       }

@@ -5,6 +5,7 @@ import AtollDesign
 struct LeadRowView: View {
   let lead: Lead
   var cardBadge: String? = nil           // "CD" / "SE"
+  var onDelete: (() -> Void)? = nil
 
   var body: some View {
     HStack(spacing: 12) {
@@ -55,6 +56,13 @@ struct LeadRowView: View {
     .padding(.vertical, 14)
     .padding(.horizontal, 16)
     .glassCard(cornerRadius: 18)
+    .contextMenu {
+      if let onDelete {
+        Button(role: .destructive, action: onDelete) {
+          Label("Löschen", systemImage: "trash")
+        }
+      }
+    }
   }
 
   private static func relative(_ date: Date) -> String {

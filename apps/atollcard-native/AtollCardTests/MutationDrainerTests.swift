@@ -23,6 +23,7 @@ final class MutationDrainerTests: XCTestCase {
       }
     }
     func markImported(id: UUID) async throws {}
+    func delete(id: UUID) async throws {}
   }
 
   func test_drain_happy_path_removes_mutation() async throws {

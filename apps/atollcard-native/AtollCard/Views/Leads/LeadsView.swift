@@ -8,6 +8,7 @@ struct LeadsView: View {
 
   @State private var filter: LeadFilter = .all
   @State private var selected: Lead?
+  @State private var pendingDelete: Lead?
 
   enum LeadFilter: Hashable {
     case all
@@ -36,7 +37,8 @@ struct LeadsView: View {
                                            trailing: section.leads.count == 1 ? "1 neu" : nil)) {
             VStack(spacing: 8) {
               ForEach(section.leads) { lead in
-                LeadRowView(lead: lead, cardBadge: badge(for: lead.cardId))
+                LeadRowView(lead: lead, cardBadge: badge(for: lead.cardId),
+                            onDelete: { pendingDelete = lead })
                   .onTapGesture { selected = lead }
               }
             }
@@ -51,6 +53,23 @@ struct LeadsView: View {
     .sheet(item: $selected) { lead in
       LeadDetailSheet(lead: lead)
         .presentationDetents([.medium, .large])
+    }
+    .alert("Lead löschen?", isPresented: Binding(
+      get: { pendingDelete != nil },
+      set: { if !$0 { pendingDelete = nil } }
+    )) {
+      Button("Löschen", role: .destructive) {
+        if let target = pendingDelete {
+          Task {
+            await leadStore.delete(id: target.id)
+            toast.show("Lead gelöscht", kind: .info)
+            pendingDelete = nil
+          }
+        }
+      }
+      Button("Abbrechen", role: .cancel) { pendingDelete = nil }
+    } message: {
+      Text(pendingDelete.map { "Der Lead „\($0.fullName.isEmpty ? $0.firstName : $0.fullName)“ wird permanent entfernt." } ?? "")
     }
   }
 

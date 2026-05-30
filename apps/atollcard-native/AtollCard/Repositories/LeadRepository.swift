@@ -6,6 +6,7 @@ public protocol LeadRepository: Sendable {
   func upsert(_ lead: Lead) async throws
   func updateStatus(id: UUID, status: LeadStatus) async throws
   func markImported(id: UUID) async throws
+  func delete(id: UUID) async throws
 }
 
 // MARK: - Mock
@@ -42,6 +43,10 @@ public final class MockLeadRepository: LeadRepository, @unchecked Sendable {
       leads[idx].importedToAddressBook = true
       leads[idx].status = .imported
     }
+  }
+
+  public func delete(id: UUID) async throws {
+    leads.removeAll { $0.id == id }
   }
 }
 
@@ -99,6 +104,14 @@ public final class SupabaseLeadRepository: LeadRepository, @unchecked Sendable {
     try await client
       .from("card_leads")
       .update(Patch(imported_to_address_book: true, status: LeadStatus.imported.rawValue))
+      .eq("id", value: id)
+      .execute()
+  }
+
+  public func delete(id: UUID) async throws {
+    try await client
+      .from("card_leads")
+      .delete()
       .eq("id", value: id)
       .execute()
   }
