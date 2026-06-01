@@ -289,7 +289,7 @@ export function TimelineFeed({ contactId }: Props) {
           <button className="mb-iconbtn ghost" aria-label="Suche" onClick={() => setSearchOpen(o => !o)}><MIcon.search size={16} /></button>
           {(searchOpen || q) && (
             <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="Im Verlauf suchen…"
-              onBlur={() => { if (!q) setSearchOpen(false) }} />
+              name="thread-search" autoComplete="off" onBlur={() => { if (!q) setSearchOpen(false) }} />
           )}
           {q && <button className="mb-clear" aria-label="Suche löschen" onClick={() => setSearch('')}><MIcon.x size={13} /></button>}
         </div>
@@ -355,7 +355,9 @@ export function TimelineFeed({ contactId }: Props) {
         {channel === 'email' && (
           <div className="mb-mailfields">
             <div className="mb-field"><span>Betreff</span>
-              <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Betreff" /></div>
+              <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Betreff"
+                name="event-subject" autoComplete="off" autoCorrect="off" autoCapitalize="sentences"
+                data-1p-ignore data-lpignore="true" /></div>
           </div>
         )}
 
@@ -363,6 +365,7 @@ export function TimelineFeed({ contactId }: Props) {
           <textarea rows={channel === 'email' ? 3 : 1}
             placeholder={channel === 'whatsapp' ? 'Nachricht' : 'Schreib deine E-Mail…'}
             value={draft} onChange={e => setDraft(e.target.value)}
+            name="event-draft" autoComplete="off"
             onKeyDown={e => { if (channel === 'whatsapp' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend() } }} />
           <button className="mb-send" aria-label="Senden" style={{ background: CH_COLOR[channel] }}
             disabled={!draft.trim() || send.isPending} onClick={doSend}>
