@@ -297,6 +297,7 @@ export function TimelineFeed({ contactId }: Props) {
 
       {/* thread */}
       <div className="mb-thread">
+        <div className="mb-threadinner">
         {tl.isLoading && <div className="mb-noresults">Lade Timeline…</div>}
         {tl.error && (
           <div className="mb-noresults" style={{ color: 'var(--danger-fg, #c0392b)' }}>
@@ -331,10 +332,12 @@ export function TimelineFeed({ contactId }: Props) {
             </button>
           </div>
         )}
+        </div>
       </div>
 
       {/* composer */}
       <div className="mb-composer">
+        <div className="mb-threadinner">
         <div className="mb-cswitch">
           {(['whatsapp', 'email'] as Channel[]).map(k => (
             <button key={k} className={channel === k ? 'on' : ''} onClick={() => setChannel(k)}
@@ -365,6 +368,7 @@ export function TimelineFeed({ contactId }: Props) {
             disabled={!draft.trim() || send.isPending} onClick={doSend}>
             <MIcon.send size={17} />
           </button>
+        </div>
         </div>
       </div>
 
