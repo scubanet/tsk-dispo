@@ -9,6 +9,7 @@ const COMMS_NOTIFY_SECRET = Deno.env.get('COMMS_NOTIFY_SECRET')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
+const D360_API_KEY = Deno.env.get('D360_API_KEY') ?? ''
 
 const EVENT_TYPE: Record<string, string> = {
   email: 'email_external', whatsapp: 'whatsapp_log', linkedin: 'linkedin_message',
@@ -22,6 +23,19 @@ function extractEmail(s: string): string {
 // Grobes HTML→Text als Fallback, falls Resend kein text liefert.
 function stripHtml(html?: string | null): string {
   return html ? html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : ''
+}
+
+// Eingehende WhatsApp bei 360dialog als 'read' markieren → blaue Haken beim
+// Absender. Best-effort: ein Fehler hier darf den Webhook nicht scheitern lassen.
+async function markWhatsappRead(messageId: string) {
+  if (!D360_API_KEY || !messageId) return
+  try {
+    await fetch('https://waba-v2.360dialog.io/messages', {
+      method: 'POST',
+      headers: { 'D360-API-KEY': D360_API_KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({ messaging_product: 'whatsapp', status: 'read', message_id: messageId }),
+    })
+  } catch (_) { /* Read-Receipt ist best-effort */ }
 }
 
 // Resend Inbound: der email.received-Webhook enthält NUR Metadaten (kein Body).
@@ -90,6 +104,11 @@ serve(async (req) => {
     n = await resendInbound(payload)
   }
   if (!n) return new Response('Ignored', { status: 200 })   // Reaktionen/Reads/unbekannte Kanäle
+
+  // Eingehende WhatsApp sofort als gelesen markieren (blaue Haken beim Absender).
+  if (n.channel === 'whatsapp' && n.direction === 'inbound') {
+    await markWhatsappRead(n.external_id)
+  }
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE)
 
