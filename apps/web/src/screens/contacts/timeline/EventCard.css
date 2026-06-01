@@ -29,13 +29,14 @@ article[data-event-highlighted="true"] .event-bubble {
   animation: event-card-pulse 1.5s ease-out;
 }
 
-/* Löschen einer Nachricht — Mülleimer erscheint beim Hovern über die Bubble.
- * Opacity-Toggle (statt display) hält das Layout stabil; auf Touch/Fokus auch
- * sichtbar. */
+/* Aktionen auf einer Nachricht — Reply-Pfeil + Mülleimer erscheinen beim Hovern
+ * über die Bubble. Opacity-Toggle (statt display) hält das Layout stabil; auf
+ * Touch/Fokus auch sichtbar. */
 .event-bubble {
   position: relative;
 }
-.event-bubble__delete {
+.event-bubble__delete,
+.event-bubble__reply {
   opacity: 0;
   transition: opacity 0.12s ease;
   background: transparent;
@@ -48,10 +49,16 @@ article[data-event-highlighted="true"] .event-bubble {
   border-radius: 4px;
 }
 .event-bubble:hover .event-bubble__delete,
-.event-bubble__delete:focus-visible {
+.event-bubble:hover .event-bubble__reply,
+.event-bubble__delete:focus-visible,
+.event-bubble__reply:focus-visible {
   opacity: 1;
 }
 .event-bubble__delete:hover {
   color: var(--danger-fg, #c0392b);
   background: rgba(192, 57, 43, 0.1);
+}
+.event-bubble__reply:hover {
+  color: var(--bubble-out-accent, #185FA5);
+  background: rgba(24, 95, 165, 0.1);
 }

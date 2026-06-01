@@ -4,6 +4,8 @@ import type { TimelineEvent, EventType } from '@/types/contactEvents'
 import { Icon, type IconName } from '@/foundation/primitives/Icon'
 import './EventCard.css'
 
+type ReplyChannel = 'email' | 'whatsapp' | 'linkedin'
+
 interface Props {
   event: TimelineEvent
   /**
@@ -21,6 +23,12 @@ interface Props {
   onDelete?: (eventId: string) => void
   /** True, solange genau diese Nachricht gerade gelöscht wird. */
   isDeleting?: boolean
+  /**
+   * Antworten auf eine Nachricht (nur Mail/WhatsApp-Bubbles). Wenn gesetzt,
+   * erscheint beim Hovern ein Reply-Pfeil mit Inline-Antwortfeld. Sendet über
+   * denselben Pfad wie der Composer (comms-outbound).
+   */
+  onReply?: (payload: { channel: ReplyChannel; body: string; subject?: string }) => void
 }
 
 // Icon-Mapping (Tabler-Icons via Foundation). Phase 3 (Task 17) ersetzt den
@@ -59,8 +67,14 @@ const CHANNEL_LABEL: Partial<Record<EventType, string>> = {
   linkedin_message: 'LinkedIn',
 }
 
+// Event-Typ → Sende-Kanal (für Reply). LinkedIn ist hier gelistet, wird aber für
+// den Reply nicht freigeschaltet (comms-outbound kann nur Mail/WhatsApp senden).
+const CHANNEL_FOR: Partial<Record<EventType, ReplyChannel>> = {
+  email_external: 'email', whatsapp_log: 'whatsapp', linkedin_message: 'linkedin',
+}
+
 export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
-  { event, highlighted, onDelete, isDeleting },
+  { event, highlighted, onDelete, isDeleting, onReply },
   ref,
 ) {
   const iconName: IconName = ICON_FOR[event.event_type] ?? 'point'
@@ -71,6 +85,8 @@ export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
 
   const timeLabel = new Date(event.occurred_at).toLocaleString()
   const [confirming, setConfirming] = useState(false)
+  const [replying, setReplying] = useState(false)
+  const [replyText, setReplyText] = useState('')
 
   // ── Nachricht: gerichtete Chat-Bubble ──────────────────────────────
   if (isMessage) {
@@ -84,7 +100,22 @@ export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
     const accent = outbound
       ? 'var(--bubble-out-accent, #185FA5)'
       : 'var(--bubble-in-accent, #0F6E56)'
+
     const canDelete = typeof onDelete === 'function'
+    const replyChannel = CHANNEL_FOR[event.event_type]
+    const canReply = typeof onReply === 'function' && (replyChannel === 'email' || replyChannel === 'whatsapp')
+    const replySubject = isEmail
+      ? ((event.summary ?? '').startsWith('Re:') ? event.summary : `Re: ${event.summary ?? ''}`.trim())
+      : undefined
+    const actionsHidden = confirming || replying
+
+    function submitReply() {
+      const t = replyText.trim()
+      if (!t || !replyChannel) return
+      onReply?.({ channel: replyChannel as ReplyChannel, body: t, subject: replySubject })
+      setReplyText('')
+      setReplying(false)
+    }
 
     return (
       <article
@@ -103,7 +134,7 @@ export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
           data-direction={direction}
           style={{
             maxWidth: '80%',
-            minWidth: 0,
+            minWidth: replying ? '60%' : 0,
             padding: '8px 12px 7px',
             border: `1px solid ${outbound ? 'rgba(24,95,165,0.20)' : 'rgba(29,158,117,0.28)'}`,
             background: outbound ? 'var(--bubble-out-bg, #E8F1FB)' : 'var(--bubble-in-bg, #F1FAF6)',
@@ -127,13 +158,28 @@ export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
             <span style={{ marginLeft: 'auto', fontWeight: 400, color: 'var(--text-tertiary, #8a93a6)' }}>
               {timeLabel}
             </span>
-            {canDelete && !confirming && (
+            {canReply && !actionsHidden && (
+              <button
+                type="button"
+                className="event-bubble__reply"
+                aria-label="Antworten"
+                title="Antworten"
+                onClick={() => { setConfirming(false); setReplying(true) }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M9 14l-4 -4l4 -4" />
+                  <path d="M5 10h11a4 4 0 1 1 0 8h-1" />
+                </svg>
+              </button>
+            )}
+            {canDelete && !actionsHidden && (
               <button
                 type="button"
                 className="event-bubble__delete"
                 aria-label="Nachricht löschen"
                 title="Nachricht löschen"
-                onClick={() => setConfirming(true)}
+                onClick={() => { setReplying(false); setConfirming(true) }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -162,6 +208,55 @@ export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
               {text}
             </div>
           )}
+
+          {canReply && replying && (
+            <div style={{ marginTop: 8 }}>
+              {isEmail && (
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary, #8a93a6)', marginBottom: 4 }}>
+                  Betreff: {replySubject}
+                </div>
+              )}
+              <textarea
+                value={replyText}
+                onChange={e => setReplyText(e.target.value)}
+                placeholder="Antwort…"
+                autoComplete="off"
+                rows={3}
+                autoFocus
+                style={{
+                  width: '100%', boxSizing: 'border-box', padding: 8, fontSize: 13,
+                  borderRadius: 8, border: '1px solid var(--border-subtle, #d8dee8)',
+                  background: '#fff', resize: 'vertical',
+                }}
+              />
+              <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                <button
+                  type="button"
+                  onClick={submitReply}
+                  disabled={!replyText.trim()}
+                  style={{
+                    padding: '4px 14px', borderRadius: 6, cursor: 'pointer',
+                    border: '1px solid rgba(24,95,165,0.35)', background: 'var(--bubble-out-bg, #E8F1FB)',
+                    color: 'var(--bubble-out-accent, #185FA5)', fontWeight: 600,
+                  }}
+                >
+                  Senden
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setReplying(false); setReplyText('') }}
+                  style={{
+                    padding: '4px 12px', borderRadius: 6, cursor: 'pointer',
+                    border: '1px solid var(--border-subtle, #d8dee8)', background: 'transparent',
+                    color: 'var(--text-secondary, #5a6478)',
+                  }}
+                >
+                  Abbrechen
+                </button>
+              </div>
+            </div>
+          )}
+
           {canDelete && confirming && (
             <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
               <span style={{ color: 'var(--text-secondary, #5a6478)' }}>Nachricht löschen?</span>

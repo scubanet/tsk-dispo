@@ -149,4 +149,40 @@ describe('EventCard', () => {
     expect(onDelete).not.toHaveBeenCalled()
     expect(screen.getByLabelText('Nachricht löschen')).toBeTruthy()
   })
+
+  // ── Antworten (Reply-Pfeil + Inline-Antwortfeld) ─────────────────────
+  it('Reply: Pfeil öffnet Antwortfeld und sendet via onReply (WhatsApp, ohne Betreff)', () => {
+    const onReply = vi.fn()
+    render(<EventCard event={{
+      ...baseEvent,
+      event_type: 'whatsapp_log',
+      summary: 'Hallo',
+      body: 'Hallo',
+      payload: { direction: 'inbound' },
+    }} onReply={onReply} />)
+    fireEvent.click(screen.getByLabelText('Antworten'))
+    fireEvent.change(screen.getByPlaceholderText('Antwort…'), { target: { value: 'Bis bald' } })
+    fireEvent.click(screen.getByText('Senden'))
+    expect(onReply).toHaveBeenCalledWith({ channel: 'whatsapp', body: 'Bis bald', subject: undefined })
+  })
+
+  it('Reply auf E-Mail setzt den Betreff auf "Re: …"', () => {
+    const onReply = vi.fn()
+    render(<EventCard event={{
+      ...baseEvent,
+      event_type: 'email_external',
+      summary: 'Buchung OWD',
+      body: 'Text',
+      payload: { direction: 'inbound' },
+    }} onReply={onReply} />)
+    fireEvent.click(screen.getByLabelText('Antworten'))
+    fireEvent.change(screen.getByPlaceholderText('Antwort…'), { target: { value: 'Danke!' } })
+    fireEvent.click(screen.getByText('Senden'))
+    expect(onReply).toHaveBeenCalledWith({ channel: 'email', body: 'Danke!', subject: 'Re: Buchung OWD' })
+  })
+
+  it('bietet KEIN Antworten auf Nicht-Nachrichten-Events', () => {
+    render(<EventCard event={{ ...baseEvent, event_type: 'note', summary: 'Notiz' }} onReply={vi.fn()} />)
+    expect(screen.queryByLabelText('Antworten')).toBeNull()
+  })
 })
