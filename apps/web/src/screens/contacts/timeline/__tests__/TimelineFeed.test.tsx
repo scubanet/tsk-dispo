@@ -26,7 +26,17 @@ vi.mock('@/lib/supabase', () => {
     error: null,
   })
   const select = vi.fn().mockReturnValue({ eq })
-  return { supabase: { from: vi.fn().mockReturnValue({ select }) } }
+  // Realtime-Stub (useContactTimelineRealtime abonniert beim Mount).
+  const channelStub: Record<string, unknown> = {}
+  channelStub.on = vi.fn().mockReturnValue(channelStub)
+  channelStub.subscribe = vi.fn().mockReturnValue(channelStub)
+  return {
+    supabase: {
+      from: vi.fn().mockReturnValue({ select }),
+      channel: vi.fn().mockReturnValue(channelStub),
+      removeChannel: vi.fn(),
+    },
+  }
 })
 
 function makeWrapper(initialEntries: string[] = ['/']) {

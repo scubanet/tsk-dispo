@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useContactTimeline } from '@/hooks/useContactTimeline'
 import { useDeleteContactEvent } from '@/hooks/useEventComposer'
 import { useSendMessage } from '@/hooks/useSendMessage'
+import { useContactTimelineRealtime } from '@/hooks/useContactTimelineRealtime'
 import type { TimelineFilter } from '@/types/contactEvents'
 import { EventCard } from './EventCard'
 import { TimelineFilterBar } from './TimelineFilterBar'
@@ -19,6 +20,8 @@ export function TimelineFeed({ contactId }: Props) {
   const events = tl.data?.pages.flat() ?? []
   const del = useDeleteContactEvent(contactId)
   const send = useSendMessage(contactId)
+  // Live-Aktualisierung: eingehende Nachrichten erscheinen ohne Reload.
+  useContactTimelineRealtime(contactId)
 
   // Phase G Phase 5 Task 6 — Event-Highlight via `?event=<id>`-URL-Param.
   // Wenn die App via ActivityEventCard ins DetailPanel navigiert, wird die
