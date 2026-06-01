@@ -1,13 +1,11 @@
 // supabase/functions/comms-outbound/index.ts
-// Sendet eine Nachricht über Unipile und schreibt das outbound-Event.
+// Sendet eine Nachricht (E-Mail via Resend, WhatsApp via 360dialog) und schreibt das outbound-Event.
 // Aufruf via supabase.functions.invoke('comms-outbound',
 //   { body: { contact_id, channel, body, subject? } }).
 // Spec: docs/superpowers/specs/2026-05-29-comms-integration-unipile-design.md §6.1
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
-const UNIPILE_API_KEY = Deno.env.get('UNIPILE_API_KEY')!
-const UNIPILE_DSN = 'api13.unipile.com:14315'           // wie comms-connect (DSN kein Geheimnis)
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!

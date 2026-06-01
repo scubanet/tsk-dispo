@@ -1,5 +1,5 @@
 // supabase/functions/comms-inbound/index.ts
-// Inbound-Webhook: WhatsApp (360dialog/Meta), Resend Inbound (E-Mail) + Legacy-Unipile.
+// Inbound-Webhook: WhatsApp (360dialog/Meta) + Resend Inbound (E-Mail).
 // Verifiziert ?token, normalisiert, matcht Kontakt via RPC, schreibt contact_events
 // oder messaging_unmatched. Deploy mit --no-verify-jwt. Idempotenz über external_id.
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
@@ -56,7 +56,7 @@ async function resendInbound(p: any) {
   }
 }
 
-// Gespiegelt aus apps/web/src/lib/comms/normalizeInboundEvent.ts (Deno kann nicht aus src importieren).
+// WhatsApp-Inbound (360dialog/Meta Cloud-API). E-Mail-Inbound siehe resendInbound().
 // deno-lint-ignore no-explicit-any
 function normalize(p: any) {
   // 360dialog/Meta Cloud-API Webhook (WhatsApp): entry[].changes[].value.messages[]
@@ -69,35 +69,6 @@ function normalize(p: any) {
       summary: (m.text?.body ?? '').slice(0, 140) || '(kein Text)', body: m.text?.body ?? '',
       occurred_at: m.timestamp ? new Date(Number(m.timestamp) * 1000).toISOString() : new Date().toISOString(),
       thread_id: undefined, attachment_count: 0 }
-  }
-  if (p.email_id) {
-    if (p.event !== 'mail_received' && p.event !== 'mail_sent') return null
-    const direction = p.event === 'mail_sent' ? 'outbound' : 'inbound'
-    const handleRaw = direction === 'inbound' ? p.from_attendee?.identifier : p.to_attendees?.[0]?.identifier
-    if (!handleRaw) return null
-    return { channel: 'email', direction, external_id: p.message_id || p.email_id,
-      counterparty_handle: String(handleRaw).trim().toLowerCase(),
-      summary: p.subject || '(kein Betreff)', body: p.body_plain || p.body || '',
-      occurred_at: p.date, thread_id: undefined,
-      attachment_count: Array.isArray(p.attachments) ? p.attachments.length : 0 }
-  }
-  if (p.message_id) {
-    if (p.event !== 'message_received') return null
-    const channel = p.account_type === 'WHATSAPP' ? 'whatsapp' : p.account_type === 'LINKEDIN' ? 'linkedin' : null
-    if (!channel) return null
-    const selfId = p.account_info?.user_id
-    const senderId = p.sender?.attendee_provider_id
-    const isOutbound = !!selfId && senderId === selfId
-    // deno-lint-ignore no-explicit-any
-    const counterparty = isOutbound
-      ? (p.attendees ?? []).map((a: any) => a.attendee_provider_id).find((id: string) => id && id !== selfId)
-      : senderId
-    if (!counterparty) return null
-    return { channel, direction: isOutbound ? 'outbound' : 'inbound', external_id: p.message_id,
-      counterparty_handle: String(counterparty).trim(),
-      summary: (p.message ?? '').slice(0, 140) || '(kein Text)', body: p.message ?? '',
-      occurred_at: p.timestamp, thread_id: p.chat_id,
-      attachment_count: Array.isArray(p.attachments) ? p.attachments.length : 0 }
   }
   return null
 }
