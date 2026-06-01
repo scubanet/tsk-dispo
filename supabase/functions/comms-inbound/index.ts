@@ -1,17 +1,59 @@
 // supabase/functions/comms-inbound/index.ts
-// Unipile-Webhook (messaging + email). Verifiziert ?token, normalisiert,
-// matcht Kontakt via RPC, schreibt contact_events oder messaging_unmatched.
-// Deploy mit --no-verify-jwt. Idempotenz über contact_events.external_id.
-// Spec: docs/superpowers/specs/2026-05-29-comms-integration-unipile-design.md §6.1, §7
+// Inbound-Webhook: WhatsApp (360dialog/Meta), Resend Inbound (E-Mail) + Legacy-Unipile.
+// Verifiziert ?token, normalisiert, matcht Kontakt via RPC, schreibt contact_events
+// oder messaging_unmatched. Deploy mit --no-verify-jwt. Idempotenz über external_id.
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
 const COMMS_NOTIFY_SECRET = Deno.env.get('COMMS_NOTIFY_SECRET')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 
 const EVENT_TYPE: Record<string, string> = {
   email: 'email_external', whatsapp: 'whatsapp_log', linkedin: 'linkedin_message',
+}
+
+// "Name <a@b.com>" → "a@b.com"; nackte Adresse bleibt unverändert.
+function extractEmail(s: string): string {
+  const m = s.match(/<([^>]+)>/)
+  return (m ? m[1] : s).trim()
+}
+// Grobes HTML→Text als Fallback, falls Resend kein text liefert.
+function stripHtml(html?: string | null): string {
+  return html ? html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : ''
+}
+
+// Resend Inbound: der email.received-Webhook enthält NUR Metadaten (kein Body).
+// Den Body holen wir per Received-Emails-API nach (GET /emails/receiving/:id).
+// deno-lint-ignore no-explicit-any
+async function resendInbound(p: any) {
+  const d = p?.data ?? {}
+  if (!d.email_id) return null
+  const fromAddr = extractEmail(String(d.from ?? '')).toLowerCase()
+  if (!fromAddr) return null
+
+  let body = ''
+  if (RESEND_API_KEY) {
+    try {
+      const r = await fetch(`https://api.resend.com/emails/receiving/${d.email_id}`, {
+        headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
+      })
+      if (r.ok) {
+        const full = await r.json()
+        body = full.text || stripHtml(full.html) || ''
+      }
+    } catch (_) { /* Body bleibt leer — Event wird trotzdem erfasst */ }
+  }
+
+  return {
+    channel: 'email', direction: 'inbound', external_id: String(d.email_id),
+    counterparty_handle: fromAddr,
+    summary: d.subject || '(kein Betreff)',
+    body,
+    occurred_at: d.created_at || p.created_at || new Date().toISOString(),
+    thread_id: d.message_id, attachment_count: Array.isArray(d.attachments) ? d.attachments.length : 0,
+  }
 }
 
 // Gespiegelt aus apps/web/src/lib/comms/normalizeInboundEvent.ts (Deno kann nicht aus src importieren).
@@ -70,15 +112,23 @@ serve(async (req) => {
   const payload = await req.json().catch(() => null)
   if (!payload) return new Response('Bad payload', { status: 200 })
 
-  const n = normalize(payload)
+  // Resend Inbound (email.received) braucht einen async Body-Nachlade-Schritt,
+  // daher separat von der synchronen normalize().
+  let n = normalize(payload)
+  if (!n && payload?.type === 'email.received') {
+    n = await resendInbound(payload)
+  }
   if (!n) return new Response('Ignored', { status: 200 })   // Reaktionen/Reads/unbekannte Kanäle
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE)
 
-  // Quell-Konto auflösen (owner + FK). Unbekanntes Konto → FK bleibt null.
-  const { data: acct } = await admin.from('messaging_accounts')
-    .select('id').eq('unipile_account_id', payload.account_id).maybeSingle()
-  const messagingAccountId = acct?.id ?? null
+  // Quell-Konto auflösen (owner + FK). Unbekanntes/fehlendes Konto → FK bleibt null.
+  let messagingAccountId: string | null = null
+  if (payload.account_id) {
+    const { data: acct } = await admin.from('messaging_accounts')
+      .select('id').eq('unipile_account_id', payload.account_id).maybeSingle()
+    messagingAccountId = acct?.id ?? null
+  }
 
   // Kontakt matchen
   const { data: contactId } = await admin
@@ -86,13 +136,13 @@ serve(async (req) => {
 
   const eventPayload = {
     source: 'auto', direction: n.direction, provider_message_id: n.external_id,
-    thread_id: n.thread_id, attachment_count: n.attachment_count, unipile_account_id: payload.account_id,
+    thread_id: n.thread_id, attachment_count: n.attachment_count, unipile_account_id: payload.account_id ?? null,
   }
 
   if (!contactId) {
     const { error } = await admin.from('messaging_unmatched').upsert({
       channel: n.channel, sender_handle: n.counterparty_handle,
-      normalized_payload: { ...n, raw_event: payload.event }, external_id: n.external_id,
+      normalized_payload: { ...n, raw_event: payload.event ?? payload.type }, external_id: n.external_id,
     }, { onConflict: 'external_id' })
     if (error && !error.message.includes('duplicate')) return new Response(error.message, { status: 500 })
     return new Response('Quarantined', { status: 200 })

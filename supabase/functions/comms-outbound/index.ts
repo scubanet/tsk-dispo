@@ -12,6 +12,9 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const COMMS_FROM_EMAIL = Deno.env.get('COMMS_FROM_EMAIL') ?? 'dominik@atoll-os.com'
+// Antworten laufen in die CRM (Resend-Inbound). Default = die resend.app-Empfangsadresse;
+// per Secret COMMS_REPLY_TO überschreibbar (z.B. später eine hübsche Subdomain).
+const COMMS_REPLY_TO = Deno.env.get('COMMS_REPLY_TO') ?? 'crm@soliivoraa.resend.app'
 const D360_API_KEY = Deno.env.get('D360_API_KEY')!
 
 const corsHeaders = {
@@ -56,10 +59,14 @@ serve(async (req) => {
     let providerMessageId: string
     if (channel === 'email') {
       if (!email) return json({ error: 'no_recipient', channel }, 422)
+      const emailPayload: Record<string, unknown> = {
+        from: COMMS_FROM_EMAIL, to: [email], subject: subject ?? '(kein Betreff)', text: body,
+      }
+      if (COMMS_REPLY_TO) emailPayload.reply_to = [COMMS_REPLY_TO]
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'content-type': 'application/json' },
-        body: JSON.stringify({ from: COMMS_FROM_EMAIL, to: [email], subject: subject ?? '(kein Betreff)', text: body }),
+        body: JSON.stringify(emailPayload),
       })
       const text = await res.text()
       if (!res.ok) {
