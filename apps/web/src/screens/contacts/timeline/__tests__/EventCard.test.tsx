@@ -67,4 +67,46 @@ describe('EventCard', () => {
     const article = container.querySelector('article')
     expect(article?.hasAttribute('data-event-highlighted')).toBe(false)
   })
+
+  // ── Richtungs-Bubble (rein/raus) ─────────────────────────────────────
+  it('zeigt eingehende WhatsApp als "Empfangen"-Bubble (data-direction=inbound)', () => {
+    const { container } = render(<EventCard event={{
+      ...baseEvent,
+      event_type: 'whatsapp_log',
+      summary: 'Guten Morgen',
+      body: 'Guten Morgen',
+      payload: { direction: 'inbound' },
+    }} />)
+    expect(screen.getByText('Empfangen')).toBeTruthy()
+    expect(screen.getByText('Guten Morgen')).toBeTruthy()
+    expect(container.querySelector('article')?.getAttribute('data-direction')).toBe('inbound')
+    expect(container.querySelector('.event-bubble')).toBeTruthy()
+  })
+
+  it('zeigt ausgehende E-Mail als "Gesendet"-Bubble mit Betreff + Text', () => {
+    const { container } = render(<EventCard event={{
+      ...baseEvent,
+      event_type: 'email_external',
+      summary: 'Deine Buchung',
+      body: 'Hallo, anbei die Details.',
+      payload: { direction: 'outbound' },
+    }} />)
+    expect(screen.getByText('Gesendet')).toBeTruthy()
+    expect(screen.getByText('Deine Buchung')).toBeTruthy()
+    expect(screen.getByText('Hallo, anbei die Details.')).toBeTruthy()
+    expect(container.querySelector('article')?.getAttribute('data-direction')).toBe('outbound')
+  })
+
+  it('faellt auf den Zeilen-Marker zurueck, wenn die Nachricht keine Richtung hat', () => {
+    const { container } = render(<EventCard event={{
+      ...baseEvent,
+      event_type: 'whatsapp_log',
+      summary: 'Log ohne Richtung',
+      payload: null,
+    }} />)
+    expect(screen.queryByText('Empfangen')).toBeNull()
+    expect(screen.queryByText('Gesendet')).toBeNull()
+    expect(container.querySelector('.event-bubble')).toBeNull()
+    expect(screen.getByText('Log ohne Richtung')).toBeTruthy()
+  })
 })

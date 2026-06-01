@@ -18,3 +18,13 @@
 article[data-event-highlighted="true"] {
   animation: event-card-pulse 1.5s ease-out;
 }
+
+/* Nachrichten-Bubbles: Der Puls hüllt die Bubble selbst ein, nicht die volle
+ * (links/rechts ausgerichtete) Zeile — sonst läge der Schatten quer über die
+ * gesamte Breite. Die Wrapper-Animation wird dann unterdrückt. */
+article[data-event-highlighted="true"]:has(.event-bubble) {
+  animation: none;
+}
+article[data-event-highlighted="true"] .event-bubble {
+  animation: event-card-pulse 1.5s ease-out;
+}

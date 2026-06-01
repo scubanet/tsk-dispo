@@ -47,6 +47,7 @@ export function OverviewTab({ contact, onUpdated }: Props) {
   const id = contact.id
   const isOrg = contact.kind === 'organization'
   const [savingLang, setSavingLang] = useState(false)
+  const [phoneError, setPhoneError] = useState<string | null>(null)
 
   async function save<K extends Parameters<typeof updateContactField>[1]>(
     field: K,
@@ -135,10 +136,36 @@ export function OverviewTab({ contact, onUpdated }: Props) {
         <PhoneList
           phones={contact.phones}
           onChange={async (next) => {
-            await updateContactField(id, 'phones', next)
-            onUpdated()
+            setPhoneError(null)
+            try {
+              await updateContactField(id, 'phones', next)
+              onUpdated()
+            } catch (err) {
+              // 0129-Trigger wirft unique_violation (23505), wenn die Nummer
+              // bereits einem anderen lebenden Kontakt gehört.
+              const e = err as { code?: string; message?: string }
+              const isDuplicate =
+                e?.code === '23505' ||
+                /bereits einem anderen Kontakt/i.test(e?.message ?? '')
+              if (isDuplicate) {
+                setPhoneError('Diese Nummer ist bereits einem anderen Kontakt zugeordnet.')
+              } else {
+                throw err
+              }
+            }
           }}
         />
+        {phoneError && (
+          <div
+            role="alert"
+            style={{
+              marginTop: 6, fontSize: 12, lineHeight: 1.4,
+              color: 'var(--danger-fg, #c0392b)',
+            }}
+          >
+            {phoneError}
+          </div>
+        )}
         <div className="contact-section__field-label" style={{ marginTop: 'var(--space-4)' }}>{t('contacts.field_address_label')}</div>
         <AddressList
           addresses={contact.addresses}
