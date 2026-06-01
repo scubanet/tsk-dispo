@@ -16,7 +16,10 @@ export function useContactTimelineRealtime(contactId: string) {
   const qc = useQueryClient()
 
   useEffect(() => {
-    if (!contactId) return
+    // Realtime ist best-effort: ohne contactId — oder wenn der Supabase-Client
+    // keinen channel() bereitstellt (z.B. in Unit-Tests mit Teil-Mock) — läuft
+    // die Timeline einfach ohne Live-Update weiter, statt beim Render zu crashen.
+    if (!contactId || typeof supabase.channel !== 'function') return
 
     const invalidate = () => {
       qc.invalidateQueries({ queryKey: ['contact-timeline', contactId] })
