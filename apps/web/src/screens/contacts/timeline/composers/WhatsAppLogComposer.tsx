@@ -53,6 +53,7 @@ export function WhatsAppLogComposer({ contactId, onDone }: Props) {
         placeholder={whatsappConnected ? 'Nachricht' : 'Inhalt der Nachricht'}
         value={summary}
         onChange={e => setSummary(e.target.value)}
+        autoComplete="off"
         rows={3}
         style={{ padding: 8 }}
       />

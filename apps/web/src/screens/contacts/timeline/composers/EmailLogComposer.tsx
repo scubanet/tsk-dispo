@@ -53,15 +53,22 @@ export function EmailLogComposer({ contactId, onDone }: Props) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <input
         type="text"
-        placeholder="Subject der Mail"
+        name="event-subject"
+        placeholder="Betreff"
         value={subject}
         onChange={e => setSubject(e.target.value)}
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="sentences"
+        data-1p-ignore
+        data-lpignore="true"
         style={{ padding: 8 }}
       />
       <textarea
         placeholder={emailConnected ? 'Nachricht' : 'Zusammenfassung des Inhalts'}
         value={summary}
         onChange={e => setSummary(e.target.value)}
+        autoComplete="off"
         rows={3}
         style={{ padding: 8 }}
       />

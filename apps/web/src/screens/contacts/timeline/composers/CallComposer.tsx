@@ -46,12 +46,14 @@ export function CallComposer({ contactId, onDone }: Props) {
         placeholder="Worum ging der Anruf"
         value={summary}
         onChange={e => setSummary(e.target.value)}
+        autoComplete="off"
         style={{ padding: 8 }}
       />
       <textarea
         placeholder="Notizen (optional)"
         value={body}
         onChange={e => setBody(e.target.value)}
+        autoComplete="off"
         rows={2}
         style={{ padding: 8 }}
       />

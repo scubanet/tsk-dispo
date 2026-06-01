@@ -33,7 +33,7 @@ describe('EmailLogComposer', () => {
 
   it('ohne verbundenes Konto: loggt event_type=email_external (Speichern)', () => {
     render(<EmailLogComposer contactId="c1" onDone={vi.fn()} />, { wrapper })
-    fireEvent.change(screen.getByPlaceholderText(/Subject/i), { target: { value: 'Re: OWD Anmeldung' } })
+    fireEvent.change(screen.getByPlaceholderText(/Betreff/i), { target: { value: 'Re: OWD Anmeldung' } })
     fireEvent.change(screen.getByPlaceholderText(/Zusammenfassung/i), { target: { value: 'Bestätigt für Juli' } })
     fireEvent.click(screen.getByRole('button', { name: /Speichern/i }))
     expect(h.insert).toHaveBeenCalledWith(
@@ -50,7 +50,7 @@ describe('EmailLogComposer', () => {
   it('mit verbundenem E-Mail-Konto: sendet via comms-outbound (Senden)', () => {
     h.accounts = [{ id: 'a1', channel: 'email', status: 'connected' }]
     render(<EmailLogComposer contactId="c1" onDone={vi.fn()} />, { wrapper })
-    fireEvent.change(screen.getByPlaceholderText(/Subject/i), { target: { value: 'Hallo Lena' } })
+    fireEvent.change(screen.getByPlaceholderText(/Betreff/i), { target: { value: 'Hallo Lena' } })
     fireEvent.change(screen.getByPlaceholderText(/Nachricht/i), { target: { value: 'Bis Februar!' } })
     fireEvent.click(screen.getByRole('button', { name: /Senden/i }))
     expect(h.send).toHaveBeenCalledWith(

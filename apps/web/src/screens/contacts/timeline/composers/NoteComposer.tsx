@@ -32,12 +32,14 @@ export function NoteComposer({ contactId, onDone }: Props) {
         placeholder="Titel der Notiz"
         value={summary}
         onChange={e => setSummary(e.target.value)}
+        autoComplete="off"
         style={{ padding: 8 }}
       />
       <textarea
         placeholder="Text (optional)"
         value={body}
         onChange={e => setBody(e.target.value)}
+        autoComplete="off"
         rows={3}
         style={{ padding: 8, resize: 'vertical' }}
       />

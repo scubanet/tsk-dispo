@@ -48,12 +48,14 @@ export function MeetingComposer({ contactId, onDone }: Props) {
         placeholder="Worum ging das Meeting"
         value={summary}
         onChange={e => setSummary(e.target.value)}
+        autoComplete="off"
         style={{ padding: 8 }}
       />
       <textarea
         placeholder="Notizen (optional)"
         value={body}
         onChange={e => setBody(e.target.value)}
+        autoComplete="off"
         rows={2}
         style={{ padding: 8 }}
       />
@@ -83,6 +85,7 @@ export function MeetingComposer({ contactId, onDone }: Props) {
           placeholder="Ort (optional)"
           value={location}
           onChange={e => setLocation(e.target.value)}
+          autoComplete="off"
           style={{ padding: 4, flex: 1, minWidth: 120 }}
         />
       </div>

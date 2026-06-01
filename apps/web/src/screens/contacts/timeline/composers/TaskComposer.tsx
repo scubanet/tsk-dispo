@@ -44,12 +44,14 @@ export function TaskComposer({ contactId, onDone }: Props) {
         placeholder="Was ist zu tun?"
         value={summary}
         onChange={e => setSummary(e.target.value)}
+        autoComplete="off"
         style={{ padding: 8 }}
       />
       <textarea
         placeholder="Details (optional)"
         value={body}
         onChange={e => setBody(e.target.value)}
+        autoComplete="off"
         rows={2}
         style={{ padding: 8 }}
       />
