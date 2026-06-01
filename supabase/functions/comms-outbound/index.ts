@@ -12,6 +12,7 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const COMMS_FROM_EMAIL = Deno.env.get('COMMS_FROM_EMAIL') ?? 'dominik@weckherlin.com'
+const D360_API_KEY = Deno.env.get('D360_API_KEY')!
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,7 +45,6 @@ serve(async (req) => {
     const { data: acct } = await admin.from('messaging_accounts')
       .select('id, unipile_account_id').eq('owner_user_id', user.id).eq('channel', channel)
       .eq('status', 'connected').limit(1).maybeSingle()
-    if (!acct) return json({ error: 'no_connected_account', channel }, 409)
 
     const { data: c } = await admin.from('contacts')
       .select('emails, phones, linkedin_member_id').eq('id', contact_id).single()
@@ -64,30 +64,27 @@ serve(async (req) => {
       const text = await res.text()
       if (!res.ok) return json({ error: 'resend_send_failed', http: res.status, detail: text }, 502)
       providerMessageId = JSON.parse(text).id ?? crypto.randomUUID()
-    } else {
-      const identifier = channel === 'whatsapp'
-        ? (e164 ? `${e164.replace(/\D/g, '')}@s.whatsapp.net` : null)
-        : c?.linkedin_member_id
-      if (!identifier) return json({ error: 'no_recipient', channel }, 422)
-      const form = new FormData()
-      form.append('account_id', acct.unipile_account_id)
-      form.append('text', body)
-      form.append('attendees_ids', identifier)
-      const res = await fetch(`https://${UNIPILE_DSN}/api/v1/chats`, {
-        method: 'POST', headers: { 'X-API-KEY': UNIPILE_API_KEY, accept: 'application/json' }, body: form,
+    } else if (channel === 'whatsapp') {
+      const digits = e164 ? e164.replace(/\D/g, '') : null
+      if (!digits) return json({ error: 'no_recipient', channel }, 422)
+      const res = await fetch('https://waba-v2.360dialog.io/messages', {
+        method: 'POST',
+        headers: { 'D360-API-KEY': D360_API_KEY, 'content-type': 'application/json' },
+        body: JSON.stringify({ messaging_product: 'whatsapp', recipient_type: 'individual', to: digits, type: 'text', text: { body } }),
       })
       const text = await res.text()
-      if (!res.ok) return json({ error: 'unipile_send_failed', http: res.status, detail: text }, 502)
-      const parsed = JSON.parse(text)
-      providerMessageId = parsed.message_id ?? parsed.id ?? crypto.randomUUID()
+      if (!res.ok) return json({ error: 'd360_send_failed', http: res.status, detail: text }, 502)
+      providerMessageId = JSON.parse(text).messages?.[0]?.id ?? crypto.randomUUID()
+    } else {
+      return json({ error: 'unsupported_channel', channel }, 400)
     }
 
     const { error } = await admin.from('contact_events').insert({
       contact_id, event_type: EVENT_TYPE[channel], occurred_at: new Date().toISOString(),
       summary: channel === 'email' ? (subject ?? '(kein Betreff)') : String(body).slice(0, 140),
       body,
-      payload: { source: 'auto', direction: 'outbound', provider_message_id: providerMessageId, unipile_account_id: acct.unipile_account_id },
-      external_id: providerMessageId, messaging_account_id: acct.id,
+      payload: { source: 'auto', direction: 'outbound', provider_message_id: providerMessageId },
+      external_id: providerMessageId, messaging_account_id: acct?.id ?? null,
     })
     if (error && error.code !== '23505') return json({ error: 'db_insert_failed', detail: error.message }, 500)
 

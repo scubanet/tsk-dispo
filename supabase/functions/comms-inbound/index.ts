@@ -17,6 +17,17 @@ const EVENT_TYPE: Record<string, string> = {
 // Gespiegelt aus apps/web/src/lib/comms/normalizeInboundEvent.ts (Deno kann nicht aus src importieren).
 // deno-lint-ignore no-explicit-any
 function normalize(p: any) {
+  // 360dialog/Meta Cloud-API Webhook (WhatsApp): entry[].changes[].value.messages[]
+  const waChange = p.entry?.[0]?.changes?.[0]?.value
+  if (waChange?.messages?.[0]) {
+    const m = waChange.messages[0]
+    if (m.type !== 'text') return null
+    return { channel: 'whatsapp', direction: 'inbound', external_id: m.id,
+      counterparty_handle: String(m.from).replace(/\D/g, ''),
+      summary: (m.text?.body ?? '').slice(0, 140) || '(kein Text)', body: m.text?.body ?? '',
+      occurred_at: m.timestamp ? new Date(Number(m.timestamp) * 1000).toISOString() : new Date().toISOString(),
+      thread_id: undefined, attachment_count: 0 }
+  }
   if (p.email_id) {
     if (p.event !== 'mail_received' && p.event !== 'mail_sent') return null
     const direction = p.event === 'mail_sent' ? 'outbound' : 'inbound'
@@ -51,7 +62,8 @@ function normalize(p: any) {
 
 serve(async (req) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 })
-  if (new URL(req.url).searchParams.get('token') !== COMMS_NOTIFY_SECRET) {
+  const reqToken = new URL(req.url).searchParams.get('token') ?? req.headers.get('x-comms-token')
+  if (reqToken !== COMMS_NOTIFY_SECRET) {
     return new Response('Forbidden', { status: 403 })
   }
 
