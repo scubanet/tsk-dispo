@@ -11,7 +11,7 @@ const UNIPILE_DSN = 'api13.unipile.com:14315'           // wie comms-connect (DS
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
-const COMMS_FROM_EMAIL = Deno.env.get('COMMS_FROM_EMAIL') ?? 'dominik@weckherlin.com'
+const COMMS_FROM_EMAIL = Deno.env.get('COMMS_FROM_EMAIL') ?? 'dominik@atoll-os.com'
 const D360_API_KEY = Deno.env.get('D360_API_KEY')!
 
 const corsHeaders = {
@@ -62,7 +62,10 @@ serve(async (req) => {
         body: JSON.stringify({ from: COMMS_FROM_EMAIL, to: [email], subject: subject ?? '(kein Betreff)', text: body }),
       })
       const text = await res.text()
-      if (!res.ok) return json({ error: 'resend_send_failed', http: res.status, detail: text }, 502)
+      if (!res.ok) {
+        console.error('[comms-outbound] resend_send_failed', res.status, 'from=', COMMS_FROM_EMAIL, 'to=', email, 'detail=', text)
+        return json({ error: 'resend_send_failed', http: res.status, detail: text }, 502)
+      }
       providerMessageId = JSON.parse(text).id ?? crypto.randomUUID()
     } else if (channel === 'whatsapp') {
       const digits = e164 ? e164.replace(/\D/g, '') : null
@@ -73,7 +76,10 @@ serve(async (req) => {
         body: JSON.stringify({ messaging_product: 'whatsapp', recipient_type: 'individual', to: digits, type: 'text', text: { body } }),
       })
       const text = await res.text()
-      if (!res.ok) return json({ error: 'd360_send_failed', http: res.status, detail: text }, 502)
+      if (!res.ok) {
+        console.error('[comms-outbound] d360_send_failed', res.status, 'detail=', text)
+        return json({ error: 'd360_send_failed', http: res.status, detail: text }, 502)
+      }
       providerMessageId = JSON.parse(text).messages?.[0]?.id ?? crypto.randomUUID()
     } else {
       return json({ error: 'unsupported_channel', channel }, 400)
