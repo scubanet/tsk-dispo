@@ -10,6 +10,8 @@ const UNIPILE_API_KEY = Deno.env.get('UNIPILE_API_KEY')!
 const UNIPILE_DSN = 'api13.unipile.com:14315'           // wie comms-connect (DSN kein Geheimnis)
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
+const COMMS_FROM_EMAIL = Deno.env.get('COMMS_FROM_EMAIL') ?? 'dominik@weckherlin.com'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -54,15 +56,14 @@ serve(async (req) => {
     let providerMessageId: string
     if (channel === 'email') {
       if (!email) return json({ error: 'no_recipient', channel }, 422)
-      const res = await fetch(`https://${UNIPILE_DSN}/api/v1/emails`, {
+      const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
-        headers: { 'X-API-KEY': UNIPILE_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify({ account_id: acct.unipile_account_id, to: [{ identifier: email }], subject: subject ?? '(kein Betreff)', body }),
+        headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ from: COMMS_FROM_EMAIL, to: [email], subject: subject ?? '(kein Betreff)', text: body }),
       })
       const text = await res.text()
-      if (!res.ok) return json({ error: 'unipile_send_failed', http: res.status, detail: text }, 502)
-      const parsed = JSON.parse(text)
-      providerMessageId = parsed.id ?? parsed.email_id ?? crypto.randomUUID()
+      if (!res.ok) return json({ error: 'resend_send_failed', http: res.status, detail: text }, 502)
+      providerMessageId = JSON.parse(text).id ?? crypto.randomUUID()
     } else {
       const identifier = channel === 'whatsapp'
         ? (e164 ? `${e164.replace(/\D/g, '')}@s.whatsapp.net` : null)
