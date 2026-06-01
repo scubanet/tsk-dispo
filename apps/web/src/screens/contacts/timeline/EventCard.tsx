@@ -1,5 +1,5 @@
 // apps/web/src/screens/contacts/timeline/EventCard.tsx
-import { forwardRef } from 'react'
+import { forwardRef, useState } from 'react'
 import type { TimelineEvent, EventType } from '@/types/contactEvents'
 import { Icon, type IconName } from '@/foundation/primitives/Icon'
 import './EventCard.css'
@@ -13,6 +13,14 @@ interface Props {
    * auf diese Card matched.
    */
   highlighted?: boolean
+  /**
+   * Löschen einer Nachricht (nur Bubbles: Mail/WhatsApp/LinkedIn, rein & raus).
+   * Wenn gesetzt, erscheint beim Hovern ein Mülleimer mit Inline-Bestätigung.
+   * Wird vom TimelineFeed mit `event_id` aufgerufen (= contact_events.id).
+   */
+  onDelete?: (eventId: string) => void
+  /** True, solange genau diese Nachricht gerade gelöscht wird. */
+  isDeleting?: boolean
 }
 
 // Icon-Mapping (Tabler-Icons via Foundation). Phase 3 (Task 17) ersetzt den
@@ -52,7 +60,7 @@ const CHANNEL_LABEL: Partial<Record<EventType, string>> = {
 }
 
 export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
-  { event, highlighted },
+  { event, highlighted, onDelete, isDeleting },
   ref,
 ) {
   const iconName: IconName = ICON_FOR[event.event_type] ?? 'point'
@@ -62,6 +70,7 @@ export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
     (direction === 'inbound' || direction === 'outbound')
 
   const timeLabel = new Date(event.occurred_at).toLocaleString()
+  const [confirming, setConfirming] = useState(false)
 
   // ── Nachricht: gerichtete Chat-Bubble ──────────────────────────────
   if (isMessage) {
@@ -75,6 +84,7 @@ export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
     const accent = outbound
       ? 'var(--bubble-out-accent, #185FA5)'
       : 'var(--bubble-in-accent, #0F6E56)'
+    const canDelete = typeof onDelete === 'function'
 
     return (
       <article
@@ -117,6 +127,24 @@ export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
             <span style={{ marginLeft: 'auto', fontWeight: 400, color: 'var(--text-tertiary, #8a93a6)' }}>
               {timeLabel}
             </span>
+            {canDelete && !confirming && (
+              <button
+                type="button"
+                className="event-bubble__delete"
+                aria-label="Nachricht löschen"
+                title="Nachricht löschen"
+                onClick={() => setConfirming(true)}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 7h16" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2 -2l1 -12" />
+                  <path d="M9 7V4a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+                </svg>
+              </button>
+            )}
           </div>
           {subject && (
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary, #1a2238)' }}>
@@ -132,6 +160,35 @@ export const EventCard = forwardRef<HTMLElement, Props>(function EventCard(
               }}
             >
               {text}
+            </div>
+          )}
+          {canDelete && confirming && (
+            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+              <span style={{ color: 'var(--text-secondary, #5a6478)' }}>Nachricht löschen?</span>
+              <button
+                type="button"
+                onClick={() => onDelete?.(event.event_id)}
+                disabled={isDeleting}
+                style={{
+                  padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
+                  border: '1px solid rgba(192,57,43,0.35)', background: '#fbeae8',
+                  color: 'var(--danger-fg, #c0392b)', fontWeight: 600,
+                }}
+              >
+                {isDeleting ? 'Lösche…' : 'Löschen'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirming(false)}
+                disabled={isDeleting}
+                style={{
+                  padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
+                  border: '1px solid var(--border-subtle, #d8dee8)', background: 'transparent',
+                  color: 'var(--text-secondary, #5a6478)',
+                }}
+              >
+                Abbrechen
+              </button>
             </div>
           )}
         </div>

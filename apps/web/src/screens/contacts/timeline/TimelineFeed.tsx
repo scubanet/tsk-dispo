@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useContactTimeline } from '@/hooks/useContactTimeline'
+import { useDeleteContactEvent } from '@/hooks/useEventComposer'
 import type { TimelineFilter } from '@/types/contactEvents'
 import { EventCard } from './EventCard'
 import { TimelineFilterBar } from './TimelineFilterBar'
@@ -15,6 +16,7 @@ export function TimelineFeed({ contactId }: Props) {
   const [filter, setFilter] = useState<TimelineFilter>({})
   const tl = useContactTimeline(contactId, filter)
   const events = tl.data?.pages.flat() ?? []
+  const del = useDeleteContactEvent(contactId)
 
   // Phase G Phase 5 Task 6 — Event-Highlight via `?event=<id>`-URL-Param.
   // Wenn die App via ActivityEventCard ins DetailPanel navigiert, wird die
@@ -61,6 +63,8 @@ export function TimelineFeed({ contactId }: Props) {
               event={e}
               highlighted={isHighlighted}
               ref={isHighlighted ? highlightedRef : undefined}
+              onDelete={(id) => del.mutate(id)}
+              isDeleting={del.isPending && del.variables === e.event_id}
             />
           )
         })}

@@ -28,3 +28,30 @@ article[data-event-highlighted="true"]:has(.event-bubble) {
 article[data-event-highlighted="true"] .event-bubble {
   animation: event-card-pulse 1.5s ease-out;
 }
+
+/* Löschen einer Nachricht — Mülleimer erscheint beim Hovern über die Bubble.
+ * Opacity-Toggle (statt display) hält das Layout stabil; auf Touch/Fokus auch
+ * sichtbar. */
+.event-bubble {
+  position: relative;
+}
+.event-bubble__delete {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  background: transparent;
+  border: 0;
+  padding: 1px;
+  margin-left: 2px;
+  line-height: 0;
+  cursor: pointer;
+  color: var(--text-tertiary, #8a93a6);
+  border-radius: 4px;
+}
+.event-bubble:hover .event-bubble__delete,
+.event-bubble__delete:focus-visible {
+  opacity: 1;
+}
+.event-bubble__delete:hover {
+  color: var(--danger-fg, #c0392b);
+  background: rgba(192, 57, 43, 0.1);
+}

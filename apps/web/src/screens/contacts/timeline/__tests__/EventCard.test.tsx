@@ -1,6 +1,6 @@
 // apps/web/src/screens/contacts/timeline/__tests__/EventCard.test.tsx
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { EventCard } from '../EventCard'
 import type { TimelineEvent } from '@/types/contactEvents'
 
@@ -108,5 +108,45 @@ describe('EventCard', () => {
     expect(screen.queryByText('Gesendet')).toBeNull()
     expect(container.querySelector('.event-bubble')).toBeNull()
     expect(screen.getByText('Log ohne Richtung')).toBeTruthy()
+  })
+
+  // ── Nachricht löschen (Mülleimer + Inline-Bestätigung) ───────────────
+  it('zeigt einen Löschen-Button auf einer Bubble und ruft onDelete nach Bestätigung mit event_id', () => {
+    const onDelete = vi.fn()
+    render(<EventCard event={{
+      ...baseEvent,
+      event_id: 'msg-1',
+      event_type: 'whatsapp_log',
+      summary: 'Hallo',
+      body: 'Hallo',
+      payload: { direction: 'outbound' },
+    }} onDelete={onDelete} />)
+    fireEvent.click(screen.getByLabelText('Nachricht löschen'))
+    fireEvent.click(screen.getByText('Löschen'))
+    expect(onDelete).toHaveBeenCalledWith('msg-1')
+  })
+
+  it('bietet KEIN Löschen auf Nicht-Nachrichten-Events (z.B. Saldo)', () => {
+    render(<EventCard event={{
+      ...baseEvent,
+      event_type: 'saldo_movement',
+      summary: 'Saldo +50',
+    }} onDelete={vi.fn()} />)
+    expect(screen.queryByLabelText('Nachricht löschen')).toBeNull()
+  })
+
+  it('Abbrechen schließt die Bestätigung ohne zu löschen', () => {
+    const onDelete = vi.fn()
+    render(<EventCard event={{
+      ...baseEvent,
+      event_type: 'email_external',
+      summary: 'Betreff',
+      body: 'Text',
+      payload: { direction: 'inbound' },
+    }} onDelete={onDelete} />)
+    fireEvent.click(screen.getByLabelText('Nachricht löschen'))
+    fireEvent.click(screen.getByText('Abbrechen'))
+    expect(onDelete).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Nachricht löschen')).toBeTruthy()
   })
 })
