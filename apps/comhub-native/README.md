@@ -56,3 +56,11 @@ System-Marker, Tages-Trenner) mit **Live-Updates** über Supabase-Realtime
 (`contact_events`, invalidate→refetch). Reine Logik getestet in `AtollHub`
 (`KomboxEvent`/`KomboxMapper`/`KomboxDigest`). Senden/Antworten/Löschen/Filter
 folgen in Phase 3b, der Privat-WhatsApp-WebView-Tab in 3c.
+
+**Design D1** — CoHub-Mockup-Look: ComHub-lokale Design-Schicht (`ComHub/Design/`:
+`CoColor`/`CoTheme`/`CoCard`/`CoAvatar`/`CoChip`), Systemblau-Akzent (light/dark),
+restylte **Sidebar** (modul-farbige Icons, Count-Badges, User-Footer) und ein neu
+gebautes **Heute** (Begrüssung + „Heutiger Tagesablauf"-Karte + Vorschau-Widgets).
+Reine Helfer getestet in `AtollHub` (`Initials`/`AvatarPalette`/`Greeting`).
+Referenz: `docs/superpowers/specs/2026-06-02-comhub-design-system.md`. Restyle
+Kalender/Kombox/Kontakte folgt in D2; Aufgaben/CardInbox in Phase 4 direkt im Look.
