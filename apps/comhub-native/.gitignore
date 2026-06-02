@@ -1,0 +1,5 @@
+*.xcodeproj
+.swiftpm/
+.DS_Store
+xcuserdata/
+*.bak
