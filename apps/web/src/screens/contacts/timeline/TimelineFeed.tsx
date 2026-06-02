@@ -92,6 +92,8 @@ export function TimelineFeed({ contactId }: Props) {
   const [subject, setSubject] = useState('')
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [quick, setQuick] = useState<QuickKind | null>(null)
+  const [taskTitle, setTaskTitle] = useState('')
+  const [confirmDel, setConfirmDel] = useState<string | null>(null)
   const [toast, setToast] = useState('')
 
   // ── Highlight via ?event=<id> (Activity-Feed-Navigation) ──────────────
@@ -155,8 +157,9 @@ export function TimelineFeed({ contactId }: Props) {
     )
   }
 
-  function doDelete(id: string) {
-    if (typeof window !== 'undefined' && window.confirm('Nachricht löschen?')) del.mutate(id)
+  function deleteConfirmed(id: string) {
+    del.mutate(id)
+    setConfirmDel(null)
   }
 
   function replyTo(e: TimelineEvent) {
@@ -167,7 +170,10 @@ export function TimelineFeed({ contactId }: Props) {
     setQuick(null)
   }
 
-  function quickTask() { setQuick('task') }
+  function quickTask(e?: TimelineEvent) {
+    setTaskTitle(e ? (e.event_type === 'email_external' ? mailSubject(e) : (e.body || e.summary || '').slice(0, 60)) : '')
+    setQuick('task')
+  }
 
   const TickOut = () => (
     <span className="mb-tick"><MIcon.doubleCheck size={15} /></span>
@@ -184,11 +190,18 @@ export function TimelineFeed({ contactId }: Props) {
             <span>{timeLabel(e.occurred_at)}</span>
             {out && <TickOut />}
           </div>
+          {confirmDel === e.event_id && (
+            <div className="mb-delconfirm">
+              <span>Löschen?</span>
+              <button className="yes" onClick={() => deleteConfirmed(e.event_id)} disabled={del.isPending}>Ja</button>
+              <button onClick={() => setConfirmDel(null)}>Abbrechen</button>
+            </div>
+          )}
         </div>
         <div className="mb-quick">
           <button title="Antworten" onClick={() => replyTo(e)}><MIcon.reply size={14} /></button>
-          <button title="Task erstellen" onClick={quickTask}><MIcon.task size={14} /></button>
-          <button className="danger" title="Löschen" onClick={() => doDelete(e.event_id)}><MIcon.trash size={14} /></button>
+          <button title="Task erstellen" onClick={() => quickTask(e)}><MIcon.task size={14} /></button>
+          <button className="danger" title="Löschen" onClick={() => setConfirmDel(e.event_id)}><MIcon.trash size={14} /></button>
         </div>
       </div>
     )
@@ -215,11 +228,19 @@ export function TimelineFeed({ contactId }: Props) {
         {open && (
           <div className="mb-mailbody">
             <div className="mb-bodytext">{hl(mailBody(e))}</div>
-            <div className="mb-mailactions">
-              <button className="primary" onClick={() => replyTo(e)}><MIcon.reply size={14} /> Antworten</button>
-              <button onClick={quickTask}><MIcon.task size={14} /> Task</button>
-              <button className="danger" onClick={() => doDelete(e.event_id)}><MIcon.trash size={14} /> Löschen</button>
-            </div>
+            {confirmDel === e.event_id ? (
+              <div className="mb-mailactions">
+                <span style={{ alignSelf: 'center', fontSize: 12.5, color: 'var(--text-secondary, #5a6478)' }}>Wirklich löschen?</span>
+                <button className="danger" onClick={() => deleteConfirmed(e.event_id)} disabled={del.isPending}><MIcon.trash size={14} /> Ja, löschen</button>
+                <button onClick={() => setConfirmDel(null)}>Abbrechen</button>
+              </div>
+            ) : (
+              <div className="mb-mailactions">
+                <button className="primary" onClick={() => replyTo(e)}><MIcon.reply size={14} /> Antworten</button>
+                <button onClick={() => quickTask(e)}><MIcon.task size={14} /> Task</button>
+                <button className="danger" onClick={() => setConfirmDel(e.event_id)}><MIcon.trash size={14} /> Löschen</button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -257,7 +278,7 @@ export function TimelineFeed({ contactId }: Props) {
             <button key={k} className={`mb-qlbtn ${on ? 'on' : ''}`} onClick={() => {
               if (k === 'mail') { setChannel('email'); setQuick(null) }
               else if (k === 'wa') { setChannel('whatsapp'); setQuick(null) }
-              else setQuick(cur => (cur === k ? null : (k as QuickKind)))
+              else { if (k === 'task') setTaskTitle(''); setQuick(cur => (cur === k ? null : (k as QuickKind))) }
             }}>
               <Ico size={15} />{label}
             </button>
@@ -269,7 +290,7 @@ export function TimelineFeed({ contactId }: Props) {
           {quick === 'note' && <NoteComposer contactId={contactId} onDone={() => setQuick(null)} />}
           {quick === 'call' && <CallComposer contactId={contactId} onDone={() => setQuick(null)} />}
           {quick === 'meet' && <MeetingComposer contactId={contactId} onDone={() => setQuick(null)} />}
-          {quick === 'task' && <TaskComposer contactId={contactId} onDone={() => setQuick(null)} />}
+          {quick === 'task' && <TaskComposer contactId={contactId} initialTitle={taskTitle} onDone={() => setQuick(null)} />}
         </div>
       )}
 

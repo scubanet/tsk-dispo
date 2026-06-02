@@ -1,17 +1,21 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useInsertContactEvent } from '@/hooks/useEventComposer'
 
 interface Props {
   contactId: string
   onDone: () => void
+  /** Vorbefüllter Titel (z.B. „Task aus Nachricht"). */
+  initialTitle?: string
 }
 
-export function TaskComposer({ contactId, onDone }: Props) {
-  const [summary, setSummary] = useState('')
+export function TaskComposer({ contactId, onDone, initialTitle }: Props) {
+  const [summary, setSummary] = useState(initialTitle ?? '')
   const [body, setBody] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [reminder, setReminder] = useState('')
   const insert = useInsertContactEvent(contactId)
+
+  useEffect(() => { if (initialTitle) setSummary(initialTitle) }, [initialTitle])
 
   function submit() {
     if (!summary.trim() || !dueDate) return
