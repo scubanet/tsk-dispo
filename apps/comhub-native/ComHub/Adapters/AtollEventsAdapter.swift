@@ -18,6 +18,7 @@ struct AtollEventsAdapter: CalendarProvider {
   func events(in interval: DateInterval) async throws -> [UnifiedEvent] {
     let df = DateFormatter()
     df.dateFormat = "yyyy-MM-dd"
+    df.locale = Locale(identifier: "en_US_POSIX")  // sonst falsches Jahr bei nicht-gregorianischem Nutzer-Kalender
     df.timeZone = TimeZone(identifier: "Europe/Zurich")
     let startStr = df.string(from: interval.start)
     let endStr = df.string(from: interval.end)
