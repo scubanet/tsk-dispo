@@ -14,9 +14,15 @@ let package = Package(
       targets: ["AtollHub"]
     ),
   ],
+  dependencies: [
+    .package(path: "../AtollCore"),
+  ],
   targets: [
     .target(
       name: "AtollHub",
+      dependencies: [
+        .product(name: "AtollCore", package: "AtollCore"),
+      ],
       swiftSettings: [
         .swiftLanguageMode(.v6),
       ]
