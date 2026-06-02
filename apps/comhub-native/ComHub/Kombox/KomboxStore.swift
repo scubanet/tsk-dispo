@@ -67,6 +67,7 @@ final class KomboxStore {
 
   func selectContact(_ contactId: String) async {
     selectedContactId = contactId
+    actionError = nil          // alte Fehlermeldung beim Konversationswechsel raeumen
     await reloadThread()
   }
 
@@ -159,6 +160,7 @@ final class KomboxStore {
 
   /// Loescht eine Nachricht (RLS: nur Owner). DELETE ist nicht im Realtime — manueller Refetch.
   func deleteEvent(id: String) async {
+    actionError = nil
     do {
       try await supabase.from("contact_events").delete().eq("id", value: id).execute()
       await reloadThread(); await reloadConversations()
