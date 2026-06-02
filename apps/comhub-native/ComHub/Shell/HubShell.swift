@@ -18,6 +18,11 @@ struct HubShell: View {
       #endif
     } content: {
       switch selectedModule {
+      case .heute:
+        CockpitView(onOpenModule: { selectedModule = $0 })
+          #if os(macOS)
+          .frame(minWidth: 360)
+          #endif
       case .kalender:
         CalendarModuleView()
           #if os(macOS)
@@ -38,9 +43,9 @@ struct HubShell: View {
       }
     } detail: {
       switch selectedModule {
-      case .kalender, .kontakte:
-        // Kalender/Kontakte rendern ihr Detail intern (NavigationSplitView-
-        // Detailspalte bleibt fuer diese Module leer/kontextuell).
+      case .heute, .kalender, .kontakte:
+        // Diese Module rendern ihr Detail intern (NavigationSplitView-
+        // Detailspalte bleibt fuer sie leer/kontextuell).
         Color.clear
       default:
         ModulePlaceholder(module: selectedModule, pane: "Detail")
