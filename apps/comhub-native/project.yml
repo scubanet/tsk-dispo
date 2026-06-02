@@ -31,7 +31,7 @@ packages:
 targets:
   ComHub:
     type: application
-    platform: [iOS, macOS]
+    supportedDestinations: [iOS, macOS]
     sources:
       - path: ComHub
     resources:
@@ -71,7 +71,7 @@ targets:
 
   ComHubTests:
     type: bundle.unit-test
-    platform: [iOS, macOS]
+    supportedDestinations: [iOS, macOS]
     sources:
       - path: ComHubTests
     dependencies:
