@@ -37,6 +37,30 @@ final class CalendarLayoutTests: XCTestCase {
     XCTAssertEqual(byDay[d10]?.map(\.id), ["allday", "timed"])
   }
 
+  func test_eventsByDay_overnightEventAppearsInBothDays() {
+    let overnight = UnifiedEvent(id: "night", source: AccountRef(accountId: "x", type: .apple),
+                                 title: "night", start: date("2026-06-10 22:00"),
+                                 end: date("2026-06-11 01:00"), isAllDay: false, location: nil)
+    let byDay = CalendarLayout.eventsByDay([overnight], calendar: cal)
+    let d10 = cal.startOfDay(for: date("2026-06-10 00:00"))
+    let d11 = cal.startOfDay(for: date("2026-06-11 00:00"))
+    XCTAssertEqual(byDay[d10]?.map(\.id), ["night"])
+    XCTAssertEqual(byDay[d11]?.map(\.id), ["night"])
+  }
+
+  func test_eventsByDay_multiDayAllDayAppearsInEachDay() {
+    let ferien = UnifiedEvent(id: "ferien", source: AccountRef(accountId: "x", type: .apple),
+                              title: "ferien", start: date("2026-06-10 00:00"),
+                              end: date("2026-06-13 00:00"), isAllDay: true, location: nil)
+    let byDay = CalendarLayout.eventsByDay([ferien], calendar: cal)
+    for d in ["2026-06-10", "2026-06-11", "2026-06-12"] {
+      let key = cal.startOfDay(for: date(d + " 00:00"))
+      XCTAssertEqual(byDay[key]?.map(\.id), ["ferien"], "missing on \(d)")
+    }
+    let after = cal.startOfDay(for: date("2026-06-13 00:00"))
+    XCTAssertNil(byDay[after])
+  }
+
   func test_weekDays_sevenDaysFromMonday() {
     let days = CalendarLayout.weekDays(of: date("2026-06-10 12:00"), calendar: cal)
     XCTAssertEqual(days.count, 7)

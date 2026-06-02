@@ -3,14 +3,17 @@ import Foundation
 /// Reine Layout-Helfer fuers Kalender-Modul. Keine SwiftUI-Abhaengigkeit —
 /// die Views konsumieren diese Strukturen.
 public enum CalendarLayout {
-  /// Buendelt Events nach lokalem Tag (Schluessel = `startOfDay`). Innerhalb
-  /// eines Tages: all-day zuerst, dann timed nach Startzeit.
+  /// Buendelt Events nach lokalem Tag (Schluessel = `startOfDay`). Ein Event
+  /// taucht in JEDEM Tag auf, den es beruehrt (uebernaechtig oder mehrtaegig),
+  /// nicht nur am Starttag. Innerhalb eines Tages: all-day zuerst, dann timed
+  /// nach Startzeit.
   public static func eventsByDay(_ events: [UnifiedEvent],
                                  calendar: Calendar) -> [Date: [UnifiedEvent]] {
     var buckets: [Date: [UnifiedEvent]] = [:]
     for e in events {
-      let day = calendar.startOfDay(for: e.start)
-      buckets[day, default: []].append(e)
+      for day in DayClip.overlappedDays(event: e, calendar: calendar) {
+        buckets[day, default: []].append(e)
+      }
     }
     for day in Array(buckets.keys) {
       buckets[day] = buckets[day]!.sorted { lhs, rhs in

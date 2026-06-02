@@ -9,8 +9,20 @@ struct DayGridView: View {
 
   private let pxPerMin: CGFloat = 0.9
 
+  /// Timed Events eines Tages, auf das Tagesfenster geclippt — uebernaechtige
+  /// Termine erscheinen am Start- wie am Folgetag mit korrektem Anteil.
+  private func timedEvents(_ day: Date) -> [UnifiedEvent] {
+    let key = store.calendar.startOfDay(for: day)
+    return (store.eventsByDay[key] ?? []).compactMap { ev -> UnifiedEvent? in
+      guard !ev.isAllDay,
+            let seg = DayClip.segment(event: ev, on: day, calendar: store.calendar)
+      else { return nil }
+      return ev.withTimes(start: seg.start, end: seg.end)
+    }
+  }
+
   private var allEvents: [UnifiedEvent] {
-    days.flatMap { store.eventsByDay[store.calendar.startOfDay(for: $0)] ?? [] }
+    days.flatMap { timedEvents($0) }
   }
   private var geo: CalendarGeometry {
     let w = DayWindow.hours(for: allEvents, calendar: store.calendar)
@@ -99,8 +111,7 @@ struct DayGridView: View {
   }
 
   private func dayColumn(_ day: Date) -> some View {
-    let dayKey = store.calendar.startOfDay(for: day)
-    let positioned = EventColumns.layout(store.eventsByDay[dayKey] ?? [])
+    let positioned = EventColumns.layout(timedEvents(day))
     return GeometryReader { proxy in
       ZStack(alignment: .topLeading) {
         ForEach(geo.startHour...geo.endHour, id: \.self) { h in
