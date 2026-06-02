@@ -65,9 +65,19 @@ public struct UnifiedTask: Sendable, Identifiable, Equatable, Hashable {
   public let title: String
   public let due: Date?
   public let isDone: Bool
-  public init(id: String, source: AccountRef, title: String, due: Date?, isDone: Bool) {
+  public let listName: String?
+  public let listColorHex: String?
+  public let isFlagged: Bool
+  public let priority: Int        // 0 = keine
+  public let notes: String?
+
+  public init(id: String, source: AccountRef, title: String, due: Date?, isDone: Bool,
+              listName: String? = nil, listColorHex: String? = nil,
+              isFlagged: Bool = false, priority: Int = 0, notes: String? = nil) {
     self.id = id; self.source = source; self.title = title
     self.due = due; self.isDone = isDone
+    self.listName = listName; self.listColorHex = listColorHex
+    self.isFlagged = isFlagged; self.priority = priority; self.notes = notes
   }
 }
 
