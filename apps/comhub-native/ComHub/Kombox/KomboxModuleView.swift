@@ -1,17 +1,23 @@
 import SwiftUI
 import AtollHub
 
-/// Kombox-Modul: links Konversationen, rechts Verlauf. Laedt beim Erscheinen
-/// und haelt via Realtime aktuell.
+/// Kombox-Modul (3-Pane): Kanal-Rail · Konversationsliste · Reader. Laedt beim
+/// Erscheinen und haelt via Realtime aktuell.
 struct KomboxModuleView: View {
   @State private var store = KomboxStore()
   @State private var selection: String?
 
   var body: some View {
+    @Bindable var store = store
     HStack(spacing: 0) {
+      KomboxRailView(channel: $store.channel)
+        #if os(macOS)
+        .frame(width: 180)
+        #endif
+      Divider()
       ConversationListView(store: store, selection: $selection)
         #if os(macOS)
-        .frame(minWidth: 260, maxWidth: 320)
+        .frame(width: 320)
         #endif
       Divider()
       ThreadView(store: store)

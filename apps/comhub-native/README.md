@@ -57,6 +57,12 @@ System-Marker, Tages-Trenner) mit **Live-Updates** über Supabase-Realtime
 (`KomboxEvent`/`KomboxMapper`/`KomboxDigest`). Senden/Antworten/Löschen/Filter
 folgen in Phase 3b, der Privat-WhatsApp-WebView-Tab in 3c.
 
+**Phase 3b** — **Kombox schreiben + 3-Pane** (CoHub-Look): Kanal-Rail
+(Alle/WhatsApp/Mail) · Konversationsliste mit Suche · Reader mit **Composer**
+(Senden via Edge Function `comms-outbound`) und **Löschen** (`contact_events`).
+Filter-Logik getestet in `AtollHub` (`KomboxFilter`). Senden braucht eine
+`messaging_accounts`-Zeile des Users. Privat-WhatsApp-WebView folgt in 3c.
+
 **Design D1** — CoHub-Mockup-Look: ComHub-lokale Design-Schicht (`ComHub/Design/`:
 `CoColor`/`CoTheme`/`CoCard`/`CoAvatar`/`CoChip`), Systemblau-Akzent (light/dark),
 restylte **Sidebar** (modul-farbige Icons, Count-Badges, User-Footer) und ein neu
