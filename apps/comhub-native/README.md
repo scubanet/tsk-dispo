@@ -64,3 +64,8 @@ gebautes **Heute** (Begrüssung + „Heutiger Tagesablauf"-Karte + Vorschau-Widg
 Reine Helfer getestet in `AtollHub` (`Initials`/`AvatarPalette`/`Greeting`).
 Referenz: `docs/superpowers/specs/2026-06-02-comhub-design-system.md`. Restyle
 Kalender/Kombox/Kontakte folgt in D2; Aufgaben/CardInbox in Phase 4 direkt im Look.
+
+**Design D2a** — **Kontakte** im CoHub-Look: 2-Pane (links A-Z-Liste mit Suche,
+Avatar, Quell-Chips, E-Mail; rechts Detail mit grossem Avatar, Mail/Anruf-Aktionen,
+Detail-Zeilen). A-Z-Gruppierung getestet in `AtollHub` (`ContactSections`).
+Kalender-Rebuild folgt in D2b; Kombox-Restyle in Phase 3b.

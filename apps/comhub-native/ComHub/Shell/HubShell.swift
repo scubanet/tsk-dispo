@@ -42,11 +42,9 @@ struct HubShell: View {
           .frame(minWidth: 480)
           #endif
       case .kontakte:
-        // NavigationStack, damit NavigationLink/navigationDestination in der
-        // Content-Spalte das Kontakt-Detail tatsaechlich pushen koennen.
-        NavigationStack { ContactsModuleView() }
+        ContactsModuleView()
           #if os(macOS)
-          .frame(minWidth: 320)
+          .frame(minWidth: 560)
           #endif
       case .kombox:
         KomboxModuleView()
