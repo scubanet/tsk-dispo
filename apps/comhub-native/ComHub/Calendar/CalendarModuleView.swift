@@ -1,11 +1,14 @@
 import SwiftUI
 import AtollHub
+import EventKit
 
 /// Kalender-Modul im CoHub-Look: Header (Segmented Tag/Woche/Monat · Titel ·
 /// ‹ Heute ›) ueber dem Zeitgitter bzw. Monatsraster.
 struct CalendarModuleView: View {
   @Environment(Hub.self) private var hub
   @State private var store = CalendarStore()
+  @State private var sources: CalendarSourcesStore?
+  @State private var showFilter = false
 
   private static let title: DateFormatter = {
     let f = DateFormatter(); f.dateFormat = "MMMM yyyy"
@@ -20,10 +23,19 @@ struct CalendarModuleView: View {
       Divider()
       content
     }
-    .task(id: reloadKey) { await store.reload(using: hub) }
+    .task(id: reloadKey) {
+      if sources == nil { sources = CalendarSourcesStore(store: EKEventStore()) }
+      store.enabledCalendarIds = sources?.enabledIds
+      await store.reload(using: hub)
+    }
   }
 
   private var reloadKey: String { "\(store.kind.rawValue)-\(store.anchor.timeIntervalSince1970)" }
+
+  private func applyFilter() {
+    store.enabledCalendarIds = sources?.enabledIds
+    Task { await store.reload(using: hub) }
+  }
 
   private func header(store: CalendarStore) -> some View {
     HStack(spacing: 12) {
@@ -41,6 +53,11 @@ struct CalendarModuleView: View {
         Button { store.step(1) } label: { Image(systemName: "chevron.right") }
       }
       .buttonStyle(.bordered)
+      Button { showFilter.toggle() } label: { Image(systemName: "line.3.horizontal.decrease.circle") }
+        .buttonStyle(.bordered)
+        .popover(isPresented: $showFilter) {
+          if let sources { CalendarFilterPopover(store: sources) { applyFilter() } }
+        }
       if store.loading { ProgressView().controlSize(.small) }
     }
     .padding(.horizontal, 16).frame(height: 52)
