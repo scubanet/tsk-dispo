@@ -28,8 +28,16 @@ struct AppleCalendarAdapter: CalendarProvider {
         identifier: e.eventIdentifier ?? "ts-\(e.startDate.timeIntervalSince1970)",
         title: e.title ?? "",
         start: e.startDate, end: e.endDate,
-        isAllDay: e.isAllDay, location: e.location
+        isAllDay: e.isAllDay, location: e.location,
+        calendarId: e.calendar?.calendarIdentifier,
+        colorHex: e.calendar?.cgColor.flatMap(Self.hex(from:))
       )
     }
+  }
+
+  private static func hex(from cg: CGColor) -> String? {
+    guard let c = cg.components, c.count >= 3 else { return nil }
+    let r = Int((c[0] * 255).rounded()), g = Int((c[1] * 255).rounded()), b = Int((c[2] * 255).rounded())
+    return String(format: "#%02X%02X%02X", r, g, b)
   }
 }
