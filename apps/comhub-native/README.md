@@ -68,4 +68,10 @@ Kalender/Kombox/Kontakte folgt in D2; Aufgaben/CardInbox in Phase 4 direkt im Lo
 **Design D2a** — **Kontakte** im CoHub-Look: 2-Pane (links A-Z-Liste mit Suche,
 Avatar, Quell-Chips, E-Mail; rechts Detail mit grossem Avatar, Mail/Anruf-Aktionen,
 Detail-Zeilen). A-Z-Gruppierung getestet in `AtollHub` (`ContactSections`).
-Kalender-Rebuild folgt in D2b; Kombox-Restyle in Phase 3b.
+Kombox-Restyle folgt in Phase 3b.
+
+**Design D2b** — **Kalender** als echtes Zeitgitter (CoHub-Look): Tag/Woche mit
+Stunden-Gutter, Gitterlinien, überlappenden Event-Blöcken (Spalten-Packing),
+Ganztags-Lane, roter Now-Linie und Heute-markiertem Tages-Header; Monat als
+7-Spalten-Raster mit Farb-Dots. Reine Layout-Logik getestet in `AtollHub`
+(`EventColumns`, `DayWindow`). Erstellen/Drag (Schreiben) folgt in Phase 5.
