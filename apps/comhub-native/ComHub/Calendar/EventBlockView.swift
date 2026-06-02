@@ -5,7 +5,10 @@ import AtollHub
 struct EventBlockView: View {
   let event: UnifiedEvent
 
-  private var tint: Color { event.source.type == .atoll ? CoColor.accent : Color.secondary }
+  private var tint: Color {
+    if let hex = event.colorHex, let c = Color(hex: hex) { return c }
+    return event.source.type == .atoll ? CoColor.accent : .secondary
+  }
 
   private static let time: DateFormatter = {
     let f = DateFormatter(); f.dateFormat = "HH:mm"

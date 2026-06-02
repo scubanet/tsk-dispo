@@ -43,7 +43,11 @@ struct MonthGridView: View {
     let inMonth = store.calendar.component(.month, from: day) == anchorMonth
     let isToday = store.calendar.isDate(day, inSameDayAs: Date())
     let events = store.eventsByDay[dayStart] ?? []
-    let dotColors = Array(Set(events.map { $0.source.type })).prefix(4)
+    let dotColors: [Color] = Array(
+      events.compactMap { $0.colorHex.flatMap(Color.init(hex:)) ?? ($0.source.type == .atoll ? CoColor.accent : Color.secondary) }
+        .reduce(into: [Color]()) { acc, c in if !acc.contains(c) { acc.append(c) } }
+        .prefix(4)
+    )
 
     VStack(alignment: .leading, spacing: 5) {
       Text("\(store.calendar.component(.day, from: day))")
@@ -52,8 +56,8 @@ struct MonthGridView: View {
         .frame(width: 22, height: 22)
         .background(isToday ? CoColor.module(.kalender) : .clear, in: Circle())
       HStack(spacing: 3) {
-        ForEach(Array(dotColors), id: \.self) { type in
-          Circle().fill(type == .atoll ? CoColor.accent : Color.secondary).frame(width: 6, height: 6)
+        ForEach(Array(dotColors.enumerated()), id: \.offset) { _, c in
+          Circle().fill(c).frame(width: 6, height: 6)
         }
       }
       Spacer(minLength: 0)

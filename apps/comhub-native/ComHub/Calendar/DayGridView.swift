@@ -61,7 +61,7 @@ struct DayGridView: View {
 
   private var headerRow: some View {
     HStack(spacing: 0) {
-      Color.clear.frame(width: 54)
+      Spacer().frame(width: 54)
       ForEach(days, id: \.self) { day in
         HStack(alignment: .firstTextBaseline, spacing: 7) {
           Text(Self.dayLabel.string(from: day))
@@ -80,6 +80,7 @@ struct DayGridView: View {
         Divider()
       }
     }
+    .fixedSize(horizontal: false, vertical: true)
   }
 
   @ViewBuilder
@@ -97,7 +98,7 @@ struct DayGridView: View {
               Text(ev.title).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white)
                 .lineLimit(1).padding(.horizontal, 7).padding(.vertical, 2)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ev.source.type == .atoll ? CoColor.accent : Color.secondary,
+                .background(ev.colorHex.flatMap(Color.init(hex:)) ?? (ev.source.type == .atoll ? CoColor.accent : .secondary),
                             in: RoundedRectangle(cornerRadius: 5))
             }
           }
