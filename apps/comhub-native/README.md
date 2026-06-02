@@ -87,6 +87,12 @@ Ganztags-Lane, roter Now-Linie und Heute-markiertem Tages-Header; Monat als
 7-Spalten-Raster mit Farb-Dots. Reine Layout-Logik getestet in `AtollHub`
 (`EventColumns`, `DayWindow`). Erstellen/Drag (Schreiben) folgt in Phase 5.
 
+**Design D2c** — **Kalender-Feinschliff**: Layout-Fix (Tag/Woche kompakt, keine
+Leerräume mehr), echte **Kalender-Farben** je Quelle (Apple-EKCalendar-Farbe,
+Atoll-Akzent) und ein **Kalender-Filter** (einzelne Kalender ein/ausschalten,
+persistent) — der zugleich Doppel-Events beseitigt (redundanten iCloud-Kalender
+aus). Filter-Logik getestet in `AtollHub` (`CalendarFilter`).
+
 **Design D3** — **Einstellungen** (`.einstellungen`-Modul) im CoHub-Look: Konto-Kopf,
 **Abmelden** (`auth.signOut`), Apple-Berechtigungs-Status (Kalender/Erinnerungen/
 Kontakte) mit „Erneut anfragen" + Systemeinstellungen-Deeplink, Atoll-Konto, Hinweis
