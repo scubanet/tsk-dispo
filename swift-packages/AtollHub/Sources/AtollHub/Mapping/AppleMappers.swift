@@ -5,8 +5,8 @@ import Foundation
 /// damit die Mapping-Regeln im Paket unit-getestet werden koennen.
 public enum AppleEventMapper {
   public static func event(accountId: String, identifier: String, title: String,
-                           start: Date, end: Date, isAllDay: Bool,
-                           location: String?) -> UnifiedEvent {
+                           start: Date, end: Date, isAllDay: Bool, location: String?,
+                           calendarId: String? = nil, colorHex: String? = nil) -> UnifiedEvent {
     let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
     let loc = location?.trimmingCharacters(in: .whitespacesAndNewlines)
     return UnifiedEvent(
@@ -14,7 +14,8 @@ public enum AppleEventMapper {
       source: AccountRef(accountId: accountId, type: .apple),
       title: cleanTitle.isEmpty ? "(Ohne Titel)" : cleanTitle,
       start: start, end: end, isAllDay: isAllDay,
-      location: (loc?.isEmpty ?? true) ? nil : loc
+      location: (loc?.isEmpty ?? true) ? nil : loc,
+      calendarId: calendarId, colorHex: colorHex
     )
   }
 }

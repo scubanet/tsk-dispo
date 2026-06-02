@@ -31,11 +31,15 @@ public struct UnifiedEvent: Sendable, Identifiable, Equatable, Hashable {
   public let end: Date
   public let isAllDay: Bool
   public let location: String?
+  public let calendarId: String?
+  public let colorHex: String?
+
   public init(id: String, source: AccountRef, title: String, start: Date,
-              end: Date, isAllDay: Bool, location: String?) {
+              end: Date, isAllDay: Bool, location: String?,
+              calendarId: String? = nil, colorHex: String? = nil) {
     self.id = id; self.source = source; self.title = title
     self.start = start; self.end = end; self.isAllDay = isAllDay
-    self.location = location
+    self.location = location; self.calendarId = calendarId; self.colorHex = colorHex
   }
 }
 

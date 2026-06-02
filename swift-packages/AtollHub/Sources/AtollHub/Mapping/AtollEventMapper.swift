@@ -29,7 +29,8 @@ public enum AtollEventMapper {
             start: startOfDay(dayDate),
             end: nextDay(dayDate),
             isAllDay: true,
-            location: course.location
+            location: course.location,
+            calendarId: "atoll", colorHex: "#0A84FF"
           ))
         } else {
           for m in modules {
@@ -40,7 +41,8 @@ public enum AtollEventMapper {
               start: m.start,
               end: m.end,
               isAllDay: false,
-              location: (m.location?.isEmpty == false) ? m.location : course.location
+              location: (m.location?.isEmpty == false) ? m.location : course.location,
+              calendarId: "atoll", colorHex: "#0A84FF"
             ))
           }
         }

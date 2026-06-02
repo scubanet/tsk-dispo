@@ -37,6 +37,7 @@ public extension UnifiedEvent {
   /// Kopie mit ersetzten Zeiten — fuer den auf einen Tag geclippten Anteil.
   func withTimes(start: Date, end: Date) -> UnifiedEvent {
     UnifiedEvent(id: id, source: source, title: title, start: start, end: end,
-                 isAllDay: isAllDay, location: location)
+                 isAllDay: isAllDay, location: location,
+                 calendarId: calendarId, colorHex: colorHex)
   }
 }
