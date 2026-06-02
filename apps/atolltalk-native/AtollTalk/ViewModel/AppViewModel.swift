@@ -89,4 +89,6 @@ final class AppViewModel {
     }
     return "Ein Fehler ist aufgetreten: \(error.localizedDescription)"
   }
+
+  func phaseResetToIdle() { if case .error = phase { phase = .idle } }
 }
