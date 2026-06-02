@@ -18,6 +18,16 @@ final class KomboxStore {
   private(set) var loadingThread = false
   var selectedContactId: String?
 
+  var channel: KomboxChannel = .all
+  var search: String = ""
+  private(set) var sending = false
+  private(set) var actionError: String?
+
+  /// Gefilterte Konversationen (Kanal + Suche) — die Liste rendert diese.
+  var visibleConversations: [KomboxConversation] {
+    KomboxFilter.apply(conversations, channel: channel, search: search)
+  }
+
   private let supabase = SupabaseClient.shared
   private let logger = Logger(subsystem: "swiss.atoll.hub", category: "kombox")
   private var realtimeTask: Task<Void, Never>?
@@ -113,5 +123,48 @@ final class KomboxStore {
   private func onRealtimeChange() async {
     await reloadConversations()
     if selectedContactId != nil { await reloadThread() }
+  }
+
+  // MARK: - Senden / Loeschen
+
+  private struct OutboundRequest: Encodable {
+    let contactId: String
+    let channel: String
+    let body: String
+    let subject: String?
+    enum CodingKeys: String, CodingKey { case contactId = "contact_id"; case channel, body, subject }
+  }
+  private struct OutboundResponse: Decodable { let ok: Bool? }
+
+  /// Sendet via Edge Function `comms-outbound`. `channel` = "whatsapp" | "email".
+  func send(channel: String, body: String, subject: String?) async -> Bool {
+    guard let contactId = selectedContactId else { return false }
+    let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !text.isEmpty else { return false }
+    sending = true; actionError = nil
+    defer { sending = false }
+    do {
+      let req = OutboundRequest(contactId: contactId, channel: channel, body: text,
+                                subject: (channel == "email") ? subject : nil)
+      let _: OutboundResponse = try await supabase.functions.invoke(
+        "comms-outbound", options: FunctionInvokeOptions(body: req))
+      await reloadThread(); await reloadConversations()
+      return true
+    } catch {
+      logger.error("send failed: \(error.localizedDescription, privacy: .public)")
+      actionError = "Senden fehlgeschlagen (Konto verbunden?)"
+      return false
+    }
+  }
+
+  /// Loescht eine Nachricht (RLS: nur Owner). DELETE ist nicht im Realtime — manueller Refetch.
+  func deleteEvent(id: String) async {
+    do {
+      try await supabase.from("contact_events").delete().eq("id", value: id).execute()
+      await reloadThread(); await reloadConversations()
+    } catch {
+      logger.error("delete failed: \(error.localizedDescription, privacy: .public)")
+      actionError = "Loeschen fehlgeschlagen."
+    }
   }
 }
