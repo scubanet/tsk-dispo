@@ -21,6 +21,12 @@ final class AufgabenStore {
     TaskDigest.filter(all, smart: list == nil ? smart : .all, list: list, now: Date(), calendar: calendar)
   }
 
+  /// Offene-Anzahl je Smart-Filter — nutzt denselben Kalender wie `result`
+  /// (sonst koennte „Heute" in der Rail vom Listen-Inhalt abweichen).
+  func smartOpenCount(_ smart: TaskSmartFilter) -> Int {
+    TaskDigest.filter(all, smart: smart, list: nil, now: Date(), calendar: calendar).open.count
+  }
+
   func reload(using hub: Hub) async {
     loading = true
     all = await hub.allTasks()

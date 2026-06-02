@@ -32,7 +32,7 @@ struct AufgabenModuleView: View {
                 HStack(alignment: .firstTextBaseline) {
                   Text(f.title).font(.system(size: 11.5, weight: .semibold))
                   Spacer()
-                  Text("\(count(f, store))").font(.system(size: 16, weight: .bold))
+                  Text("\(store.smartOpenCount(f))").font(.system(size: 16, weight: .bold))
                 }
                 .foregroundStyle(active ? .white : .primary)
               }
@@ -104,8 +104,5 @@ struct AufgabenModuleView: View {
   }
   private func smartColor(_ f: TaskSmartFilter) -> Color {
     switch f { case .all: return .secondary; case .today: return Color(red: 1, green: 0.62, blue: 0.04); case .flagged: return Color(red: 1, green: 0.27, blue: 0.23) }
-  }
-  private func count(_ f: TaskSmartFilter, _ store: AufgabenStore) -> Int {
-    TaskDigest.filter(store.all, smart: f, list: nil, now: Date(), calendar: .current).open.count
   }
 }
