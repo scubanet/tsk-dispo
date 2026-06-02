@@ -18,4 +18,11 @@ final class ComHubModuleTests: XCTestCase {
     XCTAssertEqual(ComHubModule.heute.title, "Heute")
     XCTAssertEqual(ComHubModule.kombox.title, "Kombox")
   }
+
+  func test_whatsappModuleExistsBeforeEinstellungen() {
+    XCTAssertTrue(ComHubModule.allCases.contains(.whatsapp))
+    XCTAssertEqual(ComHubModule.allCases.last, .einstellungen)
+    XCTAssertEqual(ComHubModule.whatsapp.title, "WhatsApp")
+    XCTAssertFalse(ComHubModule.whatsapp.systemImage.isEmpty)
+  }
 }

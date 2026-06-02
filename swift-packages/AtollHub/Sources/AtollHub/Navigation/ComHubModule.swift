@@ -8,6 +8,7 @@ public enum ComHubModule: String, Sendable, CaseIterable, Identifiable {
   case kontakte
   case tasks
   case cardInbox
+  case whatsapp
   case einstellungen
 
   public var id: String { rawValue }
@@ -20,6 +21,7 @@ public enum ComHubModule: String, Sendable, CaseIterable, Identifiable {
     case .kontakte:      return "Kontakte"
     case .tasks:         return "Aufgaben"
     case .cardInbox:     return "CardInbox"
+    case .whatsapp:      return "WhatsApp"
     case .einstellungen: return "Einstellungen"
     }
   }
@@ -32,6 +34,7 @@ public enum ComHubModule: String, Sendable, CaseIterable, Identifiable {
     case .kontakte:      return "person.2"
     case .tasks:         return "checklist"
     case .cardInbox:     return "tray.and.arrow.down"
+    case .whatsapp:      return "phone.bubble.fill"
     case .einstellungen: return "gearshape"
     }
   }
