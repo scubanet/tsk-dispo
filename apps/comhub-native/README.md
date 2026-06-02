@@ -92,3 +92,10 @@ Ganztags-Lane, roter Now-Linie und Heute-markiertem Tages-Header; Monat als
 Kontakte) mit „Erneut anfragen" + Systemeinstellungen-Deeplink, Atoll-Konto, Hinweis
 „Erscheinungsbild folgt System", Versions-Fusszeile. Push-Schalter folgt in Phase 5,
 Google/Microsoft-Konten in Phase 6.
+
+**Phase 4a** — **Aufgaben** (`.tasks`-Modul): Apple Erinnerungen + Atoll-Tasks
+(`contact_events` Typ `task`) **gemergt** über die Hub-`TodoProvider`
+(`AppleRemindersAdapter` + `AtollTasksAdapter`) — damit leuchtet auch das
+Heute-Cockpit-„Aufgaben"-Widget. Filter-Rail (Alle/Heute/Markiert + Apple-Listen),
+Liste mit offen/erledigt. Lese-only — Abhaken/Erstellen folgt in Phase 5.
+Filter-Logik getestet in `AtollHub` (`TaskDigest`). CardInbox folgt in Phase 4b.
