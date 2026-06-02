@@ -30,5 +30,6 @@ apps/Apple/
 
 # Xcode/SPM-Metadata in Local-Path-Packages (regeneriert beim Open)
 swift-packages/*/.swiftpm/
+swift-packages/*/.build/
 
 ~$*
