@@ -1,51 +1,67 @@
 import SwiftUI
 import AtollHub
 
-/// Monatsansicht: Wochen × 7 Tage. Jede Zelle zeigt die Tageszahl und bis zu
-/// drei Event-Titel (+ „n weitere").
+/// Monatsraster im CoHub-Look: 7 Spalten Mo–So, Tageszahlen (Heute markiert),
+/// bis zu 4 Event-Farb-Dots je Tag. Tippen → Tag-Ansicht.
 struct MonthGridView: View {
   let store: CalendarStore
+  let onPickDay: (Date) -> Void
 
-  private var weeks: [[Date]] {
-    CalendarLayout.monthGrid(of: store.anchor, calendar: store.calendar)
-  }
-  private var anchorMonth: Int {
-    store.calendar.component(.month, from: store.anchor)
-  }
+  private var weeks: [[Date]] { CalendarLayout.monthGrid(of: store.anchor, calendar: store.calendar) }
+  private var anchorMonth: Int { store.calendar.component(.month, from: store.anchor) }
+  private static let head = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 
   var body: some View {
     VStack(spacing: 0) {
-      ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
-        HStack(spacing: 0) {
-          ForEach(week, id: \.self) { day in
-            cell(for: day)
-            Divider()
-          }
+      HStack(spacing: 0) {
+        ForEach(Self.head, id: \.self) { d in
+          Text(d).font(.system(size: 11, weight: .semibold)).foregroundStyle(.tertiary)
+            .frame(maxWidth: .infinity, alignment: .leading).padding(.leading, 6)
         }
-        Divider()
       }
+      .padding(.vertical, 8)
+
+      VStack(spacing: 0) {
+        ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
+          HStack(spacing: 0) {
+            ForEach(week, id: \.self) { day in
+              cell(day); Divider()
+            }
+          }
+          Divider()
+        }
+      }
+      .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(CoTheme.separator, lineWidth: 1))
+      .clipShape(RoundedRectangle(cornerRadius: 10))
     }
+    .padding(.horizontal, 16).padding(.bottom, 16)
   }
 
   @ViewBuilder
-  private func cell(for day: Date) -> some View {
+  private func cell(_ day: Date) -> some View {
     let dayStart = store.calendar.startOfDay(for: day)
-    let events = store.eventsByDay[dayStart] ?? []
     let inMonth = store.calendar.component(.month, from: day) == anchorMonth
-    VStack(alignment: .leading, spacing: 2) {
+    let isToday = store.calendar.isDate(day, inSameDayAs: Date())
+    let events = store.eventsByDay[dayStart] ?? []
+    let dotColors = Array(Set(events.map { $0.source.type })).prefix(4)
+
+    VStack(alignment: .leading, spacing: 5) {
       Text("\(store.calendar.component(.day, from: day))")
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(inMonth ? .primary : .tertiary)
-      ForEach(events.prefix(3)) { e in
-        Text(e.title).font(.caption2).lineLimit(1)
-          .foregroundStyle(e.source.type == .atoll ? Color.accentColor : .secondary)
-      }
-      if events.count > 3 {
-        Text("+\(events.count - 3) weitere").font(.caption2).foregroundStyle(.tertiary)
+        .font(.system(size: 12.5, weight: isToday ? .bold : .medium))
+        .foregroundStyle(isToday ? AnyShapeStyle(.white) : (inMonth ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary)))
+        .frame(width: 22, height: 22)
+        .background(isToday ? CoColor.module(.kalender) : .clear, in: Circle())
+      HStack(spacing: 3) {
+        ForEach(Array(dotColors), id: \.self) { type in
+          Circle().fill(type == .atoll ? CoColor.accent : Color.secondary).frame(width: 6, height: 6)
+        }
       }
       Spacer(minLength: 0)
     }
-    .padding(4)
-    .frame(maxWidth: .infinity, minHeight: 80, alignment: .topLeading)
+    .padding(6)
+    .frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
+    .background(inMonth ? Color.clear : Color.primary.opacity(0.03))
+    .contentShape(Rectangle())
+    .onTapGesture { onPickDay(day) }
   }
 }
