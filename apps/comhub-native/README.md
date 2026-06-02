@@ -63,6 +63,11 @@ folgen in Phase 3b, der Privat-WhatsApp-WebView-Tab in 3c.
 Filter-Logik getestet in `AtollHub` (`KomboxFilter`). Senden braucht eine
 `messaging_accounts`-Zeile des Users. Privat-WhatsApp-WebView folgt in 3c.
 
+**Phase 3c** — **Privat-WhatsApp** als eigener Tab: WhatsApp Web (offizieller
+QR-Login) in einem `WKWebView` mit Desktop-User-Agent und persistentem Datastore
+(Login bleibt erhalten). Bewusst **getrennt** von der Atoll-Kombox. Damit ist die
+Kombox-Phase 3 abgeschlossen (lesen + senden + Privat-WhatsApp).
+
 **Design D1** — CoHub-Mockup-Look: ComHub-lokale Design-Schicht (`ComHub/Design/`:
 `CoColor`/`CoTheme`/`CoCard`/`CoAvatar`/`CoChip`), Systemblau-Akzent (light/dark),
 restylte **Sidebar** (modul-farbige Icons, Count-Badges, User-Footer) und ein neu
