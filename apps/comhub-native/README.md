@@ -47,5 +47,12 @@ Adapter im App-Target (`ComHub/Adapters/`), reine Mapper/Layout-Logik getestet i
 `Hub.allTasks()`, leer bis ein TodoProvider in Phase 4 dazukommt). Sektionen
 **Neue Nachrichten** und **Neue Leads** sind Empty-States, die Phase 3/4 befüllen.
 Jede Sektion navigiert ins zugehörige Modul. Reine Aggregations-Logik getestet in
-`AtollHub` (`CockpitDigest`). Kombox, Tasks, CardInbox, Push folgen in Phase 3+
-(siehe `docs/superpowers/plans/`).
+`AtollHub` (`CockpitDigest`).
+
+**Phase 3a** — **Kombox lesen + Realtime** (`.kombox`-Modul): Kontaktliste
+(Konversationen, neueste zuerst, client-seitig aus `contact_events` gruppiert) +
+**Verlauf** je Kontakt (WhatsApp-Bubbles in/out, aufklappbare Mail-Karten,
+System-Marker, Tages-Trenner) mit **Live-Updates** über Supabase-Realtime
+(`contact_events`, invalidate→refetch). Reine Logik getestet in `AtollHub`
+(`KomboxEvent`/`KomboxMapper`/`KomboxDigest`). Senden/Antworten/Löschen/Filter
+folgen in Phase 3b, der Privat-WhatsApp-WebView-Tab in 3c.

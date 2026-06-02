@@ -35,6 +35,11 @@ struct HubShell: View {
           #if os(macOS)
           .frame(minWidth: 320)
           #endif
+      case .kombox:
+        KomboxModuleView()
+          #if os(macOS)
+          .frame(minWidth: 560)
+          #endif
       default:
         ModulePlaceholder(module: selectedModule, pane: "Liste")
           #if os(macOS)
@@ -43,7 +48,7 @@ struct HubShell: View {
       }
     } detail: {
       switch selectedModule {
-      case .heute, .kalender, .kontakte:
+      case .heute, .kalender, .kontakte, .kombox:
         // Diese Module rendern ihr Detail intern (NavigationSplitView-
         // Detailspalte bleibt fuer sie leer/kontextuell).
         Color.clear
