@@ -48,6 +48,20 @@ public final class AuthState {
     await loadCurrentUser(authUserId: session.user.id)
   }
 
+  // MARK: – Sign in (OTP-Code, native — z.B. ComHub)
+
+  /// Schickt eine E-Mail mit 6-stelligem OTP-Code (kein Magic-Link-Redirect).
+  /// `shouldCreateUser: false` — nur bestehende Atoll-Accounts dürfen sich anmelden.
+  public func sendEmailCode(to email: String) async throws {
+    try await supabase.auth.signInWithOTP(email: email, shouldCreateUser: false)
+  }
+
+  /// Verifiziert den eingegebenen Code. Bei Erfolg feuert der
+  /// `authStateChanges`-Listener `.signedIn` und lädt den User.
+  public func verifyEmailCode(email: String, code: String) async throws {
+    _ = try await supabase.auth.verifyOTP(email: email, token: code, type: .email)
+  }
+
   // MARK: – Sign out
 
   public func signOut() async {
