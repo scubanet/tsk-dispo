@@ -4,6 +4,13 @@ import SwiftData
 @MainActor
 struct ConversationStore {
   let context: ModelContext
+  // Hold the container strongly so it outlives async suspension points in tests.
+  private let _container: ModelContainer
+
+  init(context: ModelContext) {
+    self.context = context
+    self._container = context.container
+  }
 
   func add(_ turn: Turn) {
     context.insert(turn)
