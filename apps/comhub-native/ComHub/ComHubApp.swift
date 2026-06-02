@@ -1,6 +1,7 @@
 import SwiftUI
 import AtollCore
 import AtollHub
+import EventKit
 import OSLog
 
 @main
@@ -11,6 +12,7 @@ struct ComHubApp: App {
   @State private var localeStore: LocaleStore
   @State private var hub: Hub
   @State private var appleAuth: AppleAuthorizationService
+  @State private var eventStore = EKEventStore()
 
   private static let logger = Logger(subsystem: "swiss.atoll.hub", category: "app")
 
@@ -52,6 +54,27 @@ struct ComHubApp: App {
         .onChange(of: scenePhase) { _, newPhase in
           if newPhase == .active { appleAuth.refreshStatus() }
         }
+        .onChange(of: authStatusKey) { _, _ in
+          if case .signedIn(let user) = auth.status {
+            HubWiring.connectAll(into: hub, currentUser: user, eventStore: eventStore)
+          } else {
+            hub.reset()
+          }
+        }
+        .task(id: authStatusKey) {
+          if case .signedIn(let user) = auth.status {
+            HubWiring.connectAll(into: hub, currentUser: user, eventStore: eventStore)
+          }
+        }
+    }
+  }
+
+  /// Stabiler Schluessel, der nur bei echtem Statuswechsel kippt (fuer `onChange`/`task(id:)`).
+  private var authStatusKey: String {
+    switch auth.status {
+    case .loading:   return "loading"
+    case .signedOut: return "signedOut"
+    case .signedIn(let u): return "signedIn:\(u.id.uuidString)"
     }
   }
 }

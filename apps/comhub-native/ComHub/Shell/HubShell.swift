@@ -17,12 +17,32 @@ struct HubShell: View {
       .frame(minWidth: 200)
       #endif
     } content: {
-      ModulePlaceholder(module: selectedModule, pane: "Liste")
-        #if os(macOS)
-        .frame(minWidth: 280)
-        #endif
+      switch selectedModule {
+      case .kalender:
+        CalendarModuleView()
+          #if os(macOS)
+          .frame(minWidth: 480)
+          #endif
+      case .kontakte:
+        ContactsModuleView()
+          #if os(macOS)
+          .frame(minWidth: 320)
+          #endif
+      default:
+        ModulePlaceholder(module: selectedModule, pane: "Liste")
+          #if os(macOS)
+          .frame(minWidth: 280)
+          #endif
+      }
     } detail: {
-      ModulePlaceholder(module: selectedModule, pane: "Detail")
+      switch selectedModule {
+      case .kalender, .kontakte:
+        // Kalender/Kontakte rendern ihr Detail intern (NavigationSplitView-
+        // Detailspalte bleibt fuer diese Module leer/kontextuell).
+        Color.clear
+      default:
+        ModulePlaceholder(module: selectedModule, pane: "Detail")
+      }
     }
   }
 }
