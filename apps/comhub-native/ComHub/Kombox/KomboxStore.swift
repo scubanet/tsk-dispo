@@ -21,6 +21,9 @@ final class KomboxStore {
   private let supabase = SupabaseClient.shared
   private let logger = Logger(subsystem: "swiss.atoll.hub", category: "kombox")
   private var realtimeTask: Task<Void, Never>?
+  /// Generations-Token: verwirft veraltete Thread-Antworten (last-write-wins
+  /// bei schnellem Konversationswechsel + langsamem Netz).
+  private var threadGeneration = 0
 
   private var calendar: Calendar {
     var c = Calendar(identifier: .gregorian)
@@ -59,6 +62,8 @@ final class KomboxStore {
 
   func reloadThread() async {
     guard let contactId = selectedContactId else { thread = []; return }
+    threadGeneration += 1
+    let gen = threadGeneration
     loadingThread = true
     do {
       let rows: [KomboxEventRow] = try await supabase
@@ -69,11 +74,14 @@ final class KomboxStore {
         .limit(500)
         .execute()
         .value
+      // Veraltete Antwort verwerfen, wenn inzwischen ein neuerer Reload lief
+      // (anderer Kontakt oder Realtime-Tick) — sonst falscher Verlauf.
+      guard gen == threadGeneration else { return }
       thread = KomboxDigest.threadSections(KomboxMapper.events(from: rows), calendar: calendar)
     } catch {
       logger.error("reloadThread failed: \(error.localizedDescription, privacy: .public)")
     }
-    loadingThread = false
+    if gen == threadGeneration { loadingThread = false }
   }
 
   // MARK: - Realtime (invalidate -> refetch)
