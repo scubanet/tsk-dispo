@@ -61,6 +61,11 @@ struct HubShell: View {
           #if os(macOS)
           .frame(minWidth: 480)
           #endif
+      case .tasks:
+        AufgabenModuleView()
+          #if os(macOS)
+          .frame(minWidth: 520)
+          #endif
       default:
         ModulePlaceholder(module: selectedModule, pane: "Liste")
           #if os(macOS)
@@ -69,7 +74,7 @@ struct HubShell: View {
       }
     } detail: {
       switch selectedModule {
-      case .heute, .kalender, .kontakte, .kombox, .whatsapp, .einstellungen:
+      case .heute, .kalender, .kontakte, .kombox, .whatsapp, .einstellungen, .tasks:
         // Diese Module rendern ihr Detail intern (NavigationSplitView-
         // Detailspalte bleibt fuer sie leer/kontextuell).
         Color.clear
