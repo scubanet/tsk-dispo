@@ -22,16 +22,22 @@ open ComHub.xcodeproj
 ## Build & Test
 
 ```bash
-# macOS
+# macOS-App: nur Build verifizieren (kein App-Test-Target — TEST_HOST-Quirk
+# auf macOS; testbare Logik liegt in den Paketen).
 xcodebuild -scheme ComHub -destination 'platform=macOS,arch=arm64' build
-xcodebuild test -scheme ComHub -destination 'platform=macOS,arch=arm64'
 
-# Kern-Logik (schnell, ohne Xcode)
+# Kern-Logik (schnell, ohne Xcode) — hier liegen die Unit-Tests.
 cd ../../swift-packages/AtollHub && swift test
 ```
 
-## Phase 0 (dieser Stand)
+## Phasen-Stand
 
-OTP-Login gegen Atoll-Supabase, leere 3-Spalten-Shell mit Modul-Leiste,
-getesteter Provider-Kern (`AtollHub`). **Keine** echten Daten-Adapter — die
-kommen in Phase 1+ (siehe `docs/superpowers/plans/`).
+**Phase 0** — OTP-Login, leere 3-Spalten-Shell, getesteter Provider-Kern (`AtollHub`).
+
+**Phase 1** — Gemergter, lese-only **Kalender** (Tag/Woche/Monat) aus Apple/iCloud
+(EventKit) + Atoll-Events (`course_assignments`) und ein **kombiniertes Adressbuch**
+(Apple-Kontakte + Atoll-`contacts`, gematcht/dedupliziert über `ContactMatcher`).
+Adapter im App-Target (`ComHub/Adapters/`), reine Mapper/Layout-Logik getestet in
+`AtollHub` (`AppleEventMapper`/`AppleContactMapper`/`AtollEventMapper`/`AtollContactMapper`,
+`MergedContact`, `CalendarWindow`/`CalendarLayout`). Schreiben (EventKit/Reminders),
+Kombox, Tasks, CardInbox, Push folgen in Phase 2+ (siehe `docs/superpowers/plans/`).
