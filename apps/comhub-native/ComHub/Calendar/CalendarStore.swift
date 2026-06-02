@@ -14,6 +14,9 @@ final class CalendarStore {
   private(set) var loading = false
   private(set) var errors: [String] = []
 
+  /// Aktive Kalender-Ids (vom CalendarSourcesStore gesetzt). nil = alle.
+  var enabledCalendarIds: Set<String>?
+
   /// Zuerich-Kalender mit Montag als Wochenstart — konsistent mit den
   /// `AtollHub`-Datumshelfern.
   var calendar: Calendar {
@@ -27,8 +30,9 @@ final class CalendarStore {
     loading = true
     let window = CalendarWindow.interval(for: anchor, kind: kind, calendar: calendar)
     let merged = await hub.allEvents(in: window)
-    events = merged
-    eventsByDay = CalendarLayout.eventsByDay(merged, calendar: calendar)
+    let filtered = CalendarFilter.apply(merged, enabledIds: enabledCalendarIds)
+    events = filtered
+    eventsByDay = CalendarLayout.eventsByDay(filtered, calendar: calendar)
     errors = hub.lastErrors
     loading = false
   }
