@@ -86,3 +86,9 @@ Stunden-Gutter, Gitterlinien, überlappenden Event-Blöcken (Spalten-Packing),
 Ganztags-Lane, roter Now-Linie und Heute-markiertem Tages-Header; Monat als
 7-Spalten-Raster mit Farb-Dots. Reine Layout-Logik getestet in `AtollHub`
 (`EventColumns`, `DayWindow`). Erstellen/Drag (Schreiben) folgt in Phase 5.
+
+**Design D3** — **Einstellungen** (`.einstellungen`-Modul) im CoHub-Look: Konto-Kopf,
+**Abmelden** (`auth.signOut`), Apple-Berechtigungs-Status (Kalender/Erinnerungen/
+Kontakte) mit „Erneut anfragen" + Systemeinstellungen-Deeplink, Atoll-Konto, Hinweis
+„Erscheinungsbild folgt System", Versions-Fusszeile. Push-Schalter folgt in Phase 5,
+Google/Microsoft-Konten in Phase 6.
