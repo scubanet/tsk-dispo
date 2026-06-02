@@ -1,0 +1,55 @@
+name: AtollTalk
+options:
+  bundleIdPrefix: swiss.atoll
+  deploymentTarget:
+    iOS: "26.0"
+  developmentLanguage: de
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: "XK8V89P2QV"
+    CODE_SIGN_STYLE: Automatic
+    SUPPORTS_MACCATALYST: NO
+packages:
+  AtollLLM:
+    path: ../../swift-packages/AtollLLM
+  AtollSpeech:
+    path: ../../swift-packages/AtollSpeech
+targets:
+  AtollTalk:
+    type: application
+    platform: iOS
+    sources:
+      - path: AtollTalk
+    resources:
+      - path: AtollTalk/Assets.xcassets
+    dependencies:
+      - package: AtollLLM
+        product: AtollLLM
+      - package: AtollSpeech
+        product: AtollSpeech
+    info:
+      path: AtollTalk/Info.plist
+      properties:
+        CFBundleDisplayName: AtollTalk
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen:
+          UIColorName: AccentColor
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        ITSAppUsesNonExemptEncryption: false
+        NSMicrophoneUsageDescription: "AtollTalk nimmt deine Stimme auf, um sie zu übersetzen."
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: swiss.atoll.talk
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "AtollTalk nimmt deine Stimme auf, um sie zu übersetzen."
+  AtollTalkTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: AtollTalkTests
+    dependencies:
+      - target: AtollTalk
