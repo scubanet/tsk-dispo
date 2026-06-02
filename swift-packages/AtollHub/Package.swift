@@ -29,7 +29,10 @@ let package = Package(
     ),
     .testTarget(
       name: "AtollHubTests",
-      dependencies: ["AtollHub"],
+      dependencies: [
+        "AtollHub",
+        .product(name: "AtollCore", package: "AtollCore"),
+      ],
       swiftSettings: [
         .swiftLanguageMode(.v6),
       ]
