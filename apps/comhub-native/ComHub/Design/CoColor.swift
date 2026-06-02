@@ -15,6 +15,7 @@ enum CoColor {
     case .kontakte:      return Color(red: 0.56, green: 0.56, blue: 0.58) // #8E8E93
     case .tasks:         return Color(red: 1.00, green: 0.62, blue: 0.04) // #FF9F0A
     case .cardInbox:     return Color(red: 0.75, green: 0.35, blue: 0.95) // #BF5AF2
+    case .whatsapp:      return Color(red: 0.15, green: 0.83, blue: 0.40) // #25D366 WhatsApp-Gruen
     case .einstellungen: return Color(red: 0.56, green: 0.56, blue: 0.58) // #8E8E93
     }
   }
