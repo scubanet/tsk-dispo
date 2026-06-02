@@ -19,9 +19,11 @@ public enum AtollEventMapper {
 
         if modules.isEmpty {
           // All-day Fallback: leerer Kurstag oder has_*-ohne-Zeit.
-          let dayStamp = Int(startOfDay(dayDate).timeIntervalSince1970)
+          // course_date-UUID statt Tagesstempel als Suffix — kollisionsfrei,
+          // konsistent mit dem timed-Zweig (zwei Rows am selben Tag wuerden
+          // sonst dieselbe id liefern und in einer SwiftUI-List eine Zeile schlucken).
           out.append(UnifiedEvent(
-            id: "atoll:\(a.id.uuidString):\(dayStamp)",
+            id: "atoll:\(a.id.uuidString):\(day.id.uuidString)",
             source: ref,
             title: "\(course.title) (\(a.role.rawValue))",
             start: startOfDay(dayDate),
