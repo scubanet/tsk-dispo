@@ -29,11 +29,12 @@ final class CockpitStore {
     let interval = DateInterval(start: start, end: end)
 
     let events = await hub.allEvents(in: interval)
+    let eventErrors = hub.lastErrors        // sichern: allTasks() setzt lastErrors zurueck
     let tasks = await hub.allTasks()
 
     todayEvents = CockpitDigest.todayEvents(from: events, now: now, calendar: calendar)
     openTasks = CockpitDigest.openTasks(from: tasks, limit: 8)
-    errors = hub.lastErrors
+    errors = eventErrors + hub.lastErrors
     loading = false
   }
 }
