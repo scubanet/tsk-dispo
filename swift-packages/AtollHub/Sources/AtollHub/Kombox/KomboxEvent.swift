@@ -5,6 +5,10 @@ public enum KomboxKind: String, Sendable, Equatable, Hashable {
   case whatsapp
   case email
   case system
+  case note
+  case call
+  case meeting
+  case task
 }
 
 /// Quellneutrales Kombox-Event (eine `contact_events`-Zeile, UI-fertig).

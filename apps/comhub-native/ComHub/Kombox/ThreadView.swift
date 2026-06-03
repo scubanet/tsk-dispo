@@ -3,9 +3,18 @@ import AtollHub
 
 /// Reader: Kopf (Kontakt) + Tages-Verlauf (Bubbles/Mail/System) + Composer.
 /// Pro Nachricht „Loeschen" via Kontextmenue.
+/// Eine protokollierbare Aktivitaet (Quick-Log) — Identifiable fuer `.sheet(item:)`.
+struct LogKind: Identifiable {
+  let id = UUID()
+  let eventType: String   // "note" | "call" | "meeting_past" | "task"
+  let title: String
+  let icon: String
+}
+
 struct ThreadView: View {
   let store: KomboxStore
   @Environment(Hub.self) private var hub
+  @State private var logKind: LogKind?
 
   private static let dayLabel: DateFormatter = {
     let f = DateFormatter(); f.dateFormat = "EEEE, d. MMMM"
@@ -29,6 +38,11 @@ struct ThreadView: View {
         Divider()
         KomboxComposer(store: store)
       }
+      .sheet(item: $logKind) { kind in
+        LogActivitySheet(kind: kind) { summary, body in
+          await store.logActivity(eventType: kind.eventType, summary: summary, body: body)
+        }
+      }
     }
   }
 
@@ -37,6 +51,26 @@ struct ThreadView: View {
       CoAvatar(name: contactName, size: 30)
       Text(contactName).font(.system(size: 14, weight: .semibold)).lineLimit(1)
       Spacer()
+      if store.selectedContactId != nil {
+        Menu {
+          Button { logKind = LogKind(eventType: "note", title: "Notiz", icon: "note.text") }
+            label: { Label("Notiz", systemImage: "note.text") }
+          Button { logKind = LogKind(eventType: "call", title: "Anruf", icon: "phone") }
+            label: { Label("Anruf", systemImage: "phone") }
+          Button { logKind = LogKind(eventType: "meeting_past", title: "Meeting", icon: "person.2") }
+            label: { Label("Meeting", systemImage: "person.2") }
+          Button { logKind = LogKind(eventType: "task", title: "Aufgabe", icon: "checklist") }
+            label: { Label("Aufgabe", systemImage: "checklist") }
+        } label: {
+          Label("Protokollieren", systemImage: "plus.circle")
+            .font(.system(size: 12, weight: .medium))
+        }
+        .menuStyle(.button)
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+        .tint(CoColor.module(.kombox))
+        .fixedSize()
+      }
     }
     .padding(.horizontal, 16).frame(height: 52)
   }
@@ -108,9 +142,12 @@ private struct ThreadMessageRow: View {
   private var alignTrailing: Bool { event.direction == .outbound }
 
   var body: some View {
-    if event.kind == .system {
+    switch event.kind {
+    case .system:
       KomboxSystemMarker(event: event)
-    } else {
+    case .note, .call, .meeting, .task:
+      KomboxLogMarker(event: event)
+    default:
       HStack(spacing: 0) {
         if alignTrailing { Spacer(minLength: 40) }
         // Pille als Overlay OBEN-RECHTS auf der Bubble — Cursor bleibt auf der
@@ -141,7 +178,7 @@ private struct ThreadMessageRow: View {
     switch event.kind {
     case .whatsapp: KomboxBubbleCard(event: event)
     case .email:    KomboxMailCard(event: event)
-    case .system:   EmptyView()
+    default:        EmptyView()
     }
   }
 
@@ -169,5 +206,40 @@ private struct ThreadMessageRow: View {
     }
     .buttonStyle(.plain)
     .help(help)
+  }
+}
+
+/// Eingabe-Sheet fuer einen Quick-Log-Eintrag (Titel Pflicht · Notiz optional).
+private struct LogActivitySheet: View {
+  let kind: LogKind
+  let onSave: (_ summary: String, _ body: String?) async -> Bool
+  @State private var summary = ""
+  @State private var note = ""
+
+  private var canSave: Bool {
+    !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+  }
+
+  var body: some View {
+    CoSheetScaffold(
+      icon: kind.icon,
+      tint: CoColor.module(.kombox),
+      title: kind.title,
+      saveTitle: "Speichern",
+      canSave: canSave,
+      onSave: {
+        let s = summary.trimmingCharacters(in: .whitespacesAndNewlines)
+        let b = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        return await onSave(s, b.isEmpty ? nil : b)
+      }
+    ) {
+      Section("Titel") {
+        TextField("Titel", text: $summary)
+      }
+      Section("Notiz") {
+        TextField("Notiz (optional)", text: $note, axis: .vertical)
+          .lineLimit(3...10)
+      }
+    }
   }
 }

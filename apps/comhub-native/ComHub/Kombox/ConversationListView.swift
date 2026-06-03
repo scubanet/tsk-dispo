@@ -80,10 +80,23 @@ private struct ConversationRow: View {
   }
 
   private var channelIcon: String {
-    switch conv.lastEvent.kind { case .whatsapp: return "bubble.left.fill"; case .email: return "envelope.fill"; case .system: return "info" }
+    switch conv.lastEvent.kind {
+    case .whatsapp: return "bubble.left.fill"
+    case .email:    return "envelope.fill"
+    case .note:     return "note.text"
+    case .call:     return "phone"
+    case .meeting:  return "person.2"
+    case .task:     return "checklist"
+    case .system:   return "info"
+    }
   }
   private var channelColor: Color {
-    switch conv.lastEvent.kind { case .whatsapp: return CoColor.module(.kombox); case .email: return CoColor.accent; case .system: return .secondary }
+    switch conv.lastEvent.kind {
+    case .whatsapp:                      return CoColor.module(.kombox)
+    case .email:                         return CoColor.accent
+    case .note, .call, .meeting, .task:  return CoColor.module(.kombox)
+    case .system:                        return .secondary
+    }
   }
   private var preview: String {
     let e = conv.lastEvent

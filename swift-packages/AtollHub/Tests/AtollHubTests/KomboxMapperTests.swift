@@ -48,7 +48,7 @@ final class KomboxMapperTests: XCTestCase {
   func test_unknownTypeBecomesSystemAndNilDirection() throws {
     let r = try rows("""
     [{
-      "id": "e3", "contact_id": "c3", "event_type": "note",
+      "id": "e3", "contact_id": "c3", "event_type": "irgendwas",
       "occurred_at": "2026-06-02T09:00:00+00:00",
       "summary": "Notiz", "body": null, "status": "open",
       "payload": null, "contacts": {"id":"c3","first_name":"Ben","last_name":"B"}
@@ -57,6 +57,30 @@ final class KomboxMapperTests: XCTestCase {
     let e = KomboxMapper.events(from: r)[0]
     XCTAssertEqual(e.kind, .system)
     XCTAssertNil(e.direction)
+  }
+
+  func test_mapsLogEventTypesToOwnKinds() throws {
+    let r = try rows("""
+    [
+      {"id":"n","contact_id":"c","event_type":"note","occurred_at":"2026-06-02T09:00:00+00:00",
+       "summary":"Notiz","body":null,"status":"open","payload":null,
+       "contacts":{"id":"c","first_name":"A","last_name":"B"}},
+      {"id":"a","contact_id":"c","event_type":"call","occurred_at":"2026-06-02T09:01:00+00:00",
+       "summary":"Anruf","body":null,"status":"open","payload":null,
+       "contacts":{"id":"c","first_name":"A","last_name":"B"}},
+      {"id":"m","contact_id":"c","event_type":"meeting_past","occurred_at":"2026-06-02T09:02:00+00:00",
+       "summary":"Meeting","body":null,"status":"open","payload":null,
+       "contacts":{"id":"c","first_name":"A","last_name":"B"}},
+      {"id":"t","contact_id":"c","event_type":"task","occurred_at":"2026-06-02T09:03:00+00:00",
+       "summary":"Aufgabe","body":null,"status":"open","payload":null,
+       "contacts":{"id":"c","first_name":"A","last_name":"B"}}
+    ]
+    """)
+    let kinds = Dictionary(uniqueKeysWithValues: KomboxMapper.events(from: r).map { ($0.id, $0.kind) })
+    XCTAssertEqual(kinds["n"], .note)
+    XCTAssertEqual(kinds["a"], .call)
+    XCTAssertEqual(kinds["m"], .meeting)
+    XCTAssertEqual(kinds["t"], .task)
   }
 
   func test_parsesFractionalSecondsTimestamp() throws {

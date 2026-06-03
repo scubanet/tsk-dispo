@@ -100,3 +100,50 @@ struct KomboxSystemMarker: View {
     }
   }
 }
+
+/// Log-Marker: zentrierter Eintrag fuer protokollierte Aktivitaeten
+/// (Notiz/Anruf/Meeting/Aufgabe) — Typ-Icon + Typ-Wort + Titel/Notiz.
+struct KomboxLogMarker: View {
+  let event: KomboxEvent
+
+  private var icon: String {
+    switch event.kind {
+    case .note:    return "note.text"
+    case .call:    return "phone"
+    case .meeting: return "person.2"
+    case .task:    return "checklist"
+    default:       return "info.circle"
+    }
+  }
+  private var typeWord: String {
+    switch event.kind {
+    case .note:    return "Notiz"
+    case .call:    return "Anruf"
+    case .meeting: return "Meeting"
+    case .task:    return "Aufgabe"
+    default:       return "Eintrag"
+    }
+  }
+  private var detail: String {
+    let s = event.summary.trimmingCharacters(in: .whitespacesAndNewlines)
+    if !s.isEmpty { return s }
+    return (event.body ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
+  var body: some View {
+    HStack {
+      Spacer()
+      HStack(spacing: 7) {
+        Image(systemName: icon).font(.caption2).foregroundStyle(CoColor.module(.kombox))
+        Text(typeWord).font(.caption.weight(.semibold)).foregroundStyle(CoColor.module(.kombox))
+        if !detail.isEmpty {
+          Text(detail).font(.caption).foregroundStyle(.primary).lineLimit(2)
+        }
+      }
+      .padding(.horizontal, 12).padding(.vertical, 6)
+      .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
+      .frame(maxWidth: 420)
+      Spacer()
+    }
+  }
+}

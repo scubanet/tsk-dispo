@@ -200,6 +200,32 @@ final class KomboxStore {
     }
   }
 
+  /// Loggt eine Aktivitaet (Notiz/Anruf/Meeting/Aufgabe) als contact_events-Zeile
+  /// am aktuell gewaehlten Kontakt. `eventType` = "note"|"call"|"meeting_past"|"task".
+  /// `status` wird bewusst weggelassen: die CHECK-Constraint erlaubt nur
+  /// open/resolved/archived (Migration 0110); der Spaltendefault ist 'open'.
+  @discardableResult
+  func logActivity(eventType: String, summary: String, body: String?) async -> Bool {
+    guard let contactId = selectedContactId else { return false }
+    struct Row: Encodable {
+      let contact_id: String; let event_type: String; let summary: String
+      let body: String?; let occurred_at: String
+    }
+    let iso = ISO8601DateFormatter(); iso.formatOptions = [.withInternetDateTime]
+    let row = Row(contact_id: contactId, event_type: eventType, summary: summary,
+                  body: (body?.isEmpty == false) ? body : nil,
+                  occurred_at: iso.string(from: Date()))
+    actionError = nil
+    do {
+      _ = try await supabase.from("contact_events").insert(row).execute()
+      await reloadThread(); await reloadConversations()
+      return true
+    } catch {
+      actionError = "Eintrag fehlgeschlagen: \(error.localizedDescription)"
+      return false
+    }
+  }
+
   /// Loescht eine Nachricht (RLS: nur Owner). DELETE ist nicht im Realtime — manueller Refetch.
   func deleteEvent(id: String) async {
     actionError = nil

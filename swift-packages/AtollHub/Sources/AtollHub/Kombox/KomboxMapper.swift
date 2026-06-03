@@ -9,6 +9,10 @@ public enum KomboxMapper {
       switch row.eventType {
       case "whatsapp_log":   kind = .whatsapp
       case "email_external": kind = .email
+      case "note":           kind = .note
+      case "call":           kind = .call
+      case "meeting_past":   kind = .meeting
+      case "task":           kind = .task
       default:               kind = .system
       }
       let direction: MessageDirection?
