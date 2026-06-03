@@ -36,6 +36,7 @@ public protocol ContactsProvider: Sendable {
   // damit der Hub ueber das Existential dynamisch auf die echte Impl dispatcht.
   func createContact(_ draft: ContactDraft) async throws -> UnifiedContact
   func updateContact(id: String, with draft: ContactDraft) async throws -> UnifiedContact
+  func deleteContact(id: String) async throws
 }
 
 // — Atoll-spezifische Capabilities —
@@ -86,6 +87,10 @@ public extension ContactsProvider {
   }
   /// Aktualisiert einen Kontakt (per UnifiedContact.id). Default: nicht unterstuetzt.
   func updateContact(id: String, with draft: ContactDraft) async throws -> UnifiedContact {
+    throw ProviderWriteError.unsupported
+  }
+  /// Loescht/archiviert einen Kontakt (per UnifiedContact.id). Default: nicht unterstuetzt.
+  func deleteContact(id: String) async throws {
     throw ProviderWriteError.unsupported
   }
 }

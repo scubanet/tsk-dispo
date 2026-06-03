@@ -116,4 +116,16 @@ struct AtollContactsAdapter: ContactsProvider {
     guard let row = rows.first else { throw ProviderWriteError.notFound }
     return AtollContactMapper.contacts(from: [row], accountId: accountId)[0]
   }
+
+  /// Soft-Archiv: setzt `archived_at = now()`. `contacts()` filtert auf
+  /// `archived_at IS NULL`, der Kontakt verschwindet so reversibel aus dem Adressbuch.
+  func deleteContact(id: String) async throws {
+    let rowId = SourceID.raw(from: id)
+    struct Archive: Encodable { let archived_at: String }
+    let iso = ISO8601DateFormatter(); iso.formatOptions = [.withInternetDateTime]
+    _ = try await supabase.from("contacts")
+      .update(Archive(archived_at: iso.string(from: Date())))
+      .eq("id", value: rowId)
+      .execute()
+  }
 }

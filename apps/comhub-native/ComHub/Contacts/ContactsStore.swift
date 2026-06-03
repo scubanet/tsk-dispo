@@ -56,4 +56,17 @@ final class ContactsStore {
       return false
     }
   }
+
+  /// Loescht/archiviert einen Kontakt (id-Praefix apple:/atoll: steuert das Routing) und laedt neu.
+  @discardableResult
+  func delete(id: String, using hub: Hub) async -> Bool {
+    do {
+      try await hub.deleteContact(id: id)
+      await reload(using: hub)
+      return true
+    } catch {
+      errors.append(String(describing: error))
+      return false
+    }
+  }
 }

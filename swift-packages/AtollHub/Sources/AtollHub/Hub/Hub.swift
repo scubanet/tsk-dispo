@@ -144,6 +144,14 @@ public final class Hub {
     }
     return try await prov.updateContact(id: id, with: draft)
   }
+  /// Loescht/archiviert einen Kontakt (Routing per id-Praefix apple:/atoll:).
+  public func deleteContact(id: String) async throws {
+    let type: AccountType = id.hasPrefix("apple:") ? .apple : .atoll
+    guard let prov = connections.first(where: { $0.account.type == type && $0.contacts != nil })?.contacts else {
+      throw ProviderWriteError.notFound
+    }
+    try await prov.deleteContact(id: id)
+  }
   /// Erstellt eine Aufgabe im ersten schreibfähigen Apple-Todo-Konto.
   public func createTask(title: String, due: Date?, listId: String?) async throws {
     guard let todo = connections.first(where: { $0.account.type == .apple && $0.todo != nil })?.todo else {

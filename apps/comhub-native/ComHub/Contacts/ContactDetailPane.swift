@@ -7,6 +7,8 @@ struct ContactDetailPane: View {
   let contact: MergedContact?
   /// Einstieg zum Bearbeiten (wird in einer spaeteren Task verdrahtet).
   var onEdit: (() -> Void)? = nil
+  /// Loesch-Einstieg: loescht NICHT direkt, sondern stoesst die Bestaetigung im Parent an.
+  var onDelete: (() -> Void)? = nil
   @Environment(\.openURL) private var openURL
 
   /// dd.MM.yyyy, de_CH / Europe/Zurich.
@@ -35,7 +37,7 @@ struct ContactDetailPane: View {
             actions(contact).padding(.top, 20)
           }
           .padding(.horizontal, 30).padding(.top, 36).padding(.bottom, 22)
-          .overlay(alignment: .topTrailing) { editButton }
+          .overlay(alignment: .topTrailing) { headerActions }
           Divider()
           VStack(spacing: 0) {
             detailRow("E-Mail", contact.emails, accent: true)
@@ -69,21 +71,27 @@ struct ContactDetailPane: View {
   }
 
   @ViewBuilder
-  private var editButton: some View {
-    if let onEdit {
-      Button(action: onEdit) {
-        Image(systemName: "square.and.pencil")
-          .font(.system(size: 16, weight: .medium))
-          .foregroundStyle(CoColor.accent)
-          .frame(width: 34, height: 34)
-          .background(CoColor.accent.opacity(0.12), in: Circle())
-          .contentShape(Rectangle())
+  private var headerActions: some View {
+    HStack(spacing: 8) {
+      if let onDelete {
+        IconButton(systemName: "trash", help: "Löschen", action: onDelete)
+          .foregroundStyle(.red)
       }
-      .buttonStyle(.plain)
-      .help("Bearbeiten")
-      .padding(.trailing, 22)
-      .padding(.top, 22)
+      if let onEdit {
+        Button(action: onEdit) {
+          Image(systemName: "square.and.pencil")
+            .font(.system(size: 16, weight: .medium))
+            .foregroundStyle(CoColor.accent)
+            .frame(width: 34, height: 34)
+            .background(CoColor.accent.opacity(0.12), in: Circle())
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Bearbeiten")
+      }
     }
+    .padding(.trailing, 22)
+    .padding(.top, 22)
   }
 
   @ViewBuilder

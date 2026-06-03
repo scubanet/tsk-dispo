@@ -7,6 +7,7 @@ struct ContactsModuleView: View {
   @State private var store = ContactsStore()
   @State private var selection: String?
   @State private var editing: MergedContact?
+  @State private var deleting: MergedContact?
   @State private var showCreate = false
 
   private var selectedContact: MergedContact? {
@@ -37,6 +38,22 @@ struct ContactsModuleView: View {
           return await store.update(id: memberId, with: draft, using: hub)
         }
       }
+      .confirmationDialog(
+        "Kontakt löschen?",
+        isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
+        presenting: deleting
+      ) { c in
+        Button("Löschen", role: .destructive) {
+          let memberId = (c.members.first { $0.source.type == .atoll } ?? c.members.first)?.id ?? c.id
+          Task {
+            _ = await store.delete(id: memberId, using: hub)
+            selection = nil
+          }
+        }
+        Button("Abbrechen", role: .cancel) { }
+      } message: { c in
+        Text("\(c.displayName) wird " + ((c.members.first { $0.source.type == .atoll } != nil) ? "archiviert." : "aus den Apple-Kontakten gelöscht."))
+      }
     }
   }
 
@@ -48,7 +65,8 @@ struct ContactsModuleView: View {
         #endif
       Divider()
       ContactDetailPane(contact: selectedContact,
-                        onEdit: selectedContact.map { c in { editing = c } })
+                        onEdit: selectedContact.map { c in { editing = c } },
+                        onDelete: selectedContact.map { c in { deleting = c } })
         .frame(maxWidth: .infinity)
     }
   }
@@ -57,7 +75,9 @@ struct ContactsModuleView: View {
     NavigationStack {
       ContactListPane(store: store, selection: $selection, onAdd: { showCreate = true })
         .navigationDestination(item: pushedContact) { contact in
-          ContactDetailPane(contact: contact, onEdit: { editing = contact })
+          ContactDetailPane(contact: contact,
+                            onEdit: { editing = contact },
+                            onDelete: { deleting = contact })
         }
     }
   }

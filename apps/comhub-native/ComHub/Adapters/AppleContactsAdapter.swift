@@ -108,6 +108,19 @@ struct AppleContactsAdapter: ContactsProvider {
     return Self.map(mutable, accountId: accountId)
   }
 
+  /// Hard-Delete via `CNSaveRequest.delete` — Apple-Kontakte werden endgueltig entfernt.
+  func deleteContact(id: String) async throws {
+    let identifier = SourceID.raw(from: id)
+    let keys = [CNContactIdentifierKey] as [CNKeyDescriptor]
+    guard let existing = try? store.unifiedContact(withIdentifier: identifier, keysToFetch: keys),
+          let mutable = existing.mutableCopy() as? CNMutableContact else {
+      throw ProviderWriteError.notFound
+    }
+    let req = CNSaveRequest()
+    req.delete(mutable)
+    try store.execute(req)
+  }
+
   private func apply(_ d: ContactDraft, to c: CNMutableContact) {
     c.contactType = d.kind == .organization ? .organization : .person
     c.givenName = d.firstName
