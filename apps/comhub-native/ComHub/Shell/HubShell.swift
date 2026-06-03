@@ -40,7 +40,7 @@ struct HubShell: View {
       }
     } detail: {
       switch selectedModule ?? .heute {
-      case .heute, .kalender, .kontakte, .kombox, .whatsapp, .einstellungen, .tasks:
+      case .heute, .kalender, .kontakte, .kombox, .whatsapp, .einstellungen, .tasks, .cardInbox:
         // Diese Module rendern ihr Detail intern (NavigationSplitView-
         // Detailspalte bleibt fuer sie leer/kontextuell).
         Color.clear
@@ -61,6 +61,7 @@ struct HubShell: View {
     case .whatsapp: WhatsAppModuleView()
     case .einstellungen: SettingsModuleView()
     case .tasks:    AufgabenModuleView()
+    case .cardInbox: CardInboxModuleView()
     default:        ModulePlaceholder(module: module, pane: "Liste")
     }
   }

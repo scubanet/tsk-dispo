@@ -8,6 +8,7 @@ struct CockpitView: View {
   @Environment(Hub.self) private var hub
   @Environment(AuthState.self) private var auth
   @State private var store = CockpitStore()
+  @State private var cardInbox = CardInboxStore()
 
   let onOpenModule: (ComHubModule) -> Void
 
@@ -41,7 +42,10 @@ struct CockpitView: View {
       .frame(maxWidth: 1080, alignment: .leading)
       .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .task(id: reloadKey) { await store.reload(using: hub) }
+    .task(id: reloadKey) {
+      await store.reload(using: hub)
+      await cardInbox.reload()
+    }
   }
 
   private var reloadKey: String {
@@ -223,8 +227,25 @@ struct CockpitView: View {
   }
 
   private var cardInboxWidget: some View {
-    widgetCard(.cardInbox, title: "CardInbox", icon: "tray.and.arrow.down", count: 0) {
-      Text("Noch keine neuen Leads").font(.system(size: 12.5)).foregroundStyle(.tertiary).padding(.vertical, 4)
+    widgetCard(.cardInbox, title: "CardInbox", icon: "tray.and.arrow.down",
+               count: cardInbox.newCount) {
+      if cardInbox.newCount == 0 {
+        Text("Noch keine neuen Leads").font(.system(size: 12.5)).foregroundStyle(.tertiary).padding(.vertical, 4)
+      } else {
+        ForEach(cardInbox.leads.filter { !$0.isImported }.prefix(3)) { lead in
+          HStack(spacing: 10) {
+            CoAvatar(name: lead.displayName, size: 30, color: CoColor.module(.cardInbox))
+            VStack(alignment: .leading, spacing: 1) {
+              Text(lead.displayName).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+              if let topic = lead.topic, !topic.isEmpty {
+                Text(topic).font(.system(size: 12)).foregroundStyle(.tertiary).lineLimit(1)
+              }
+            }
+            Spacer(minLength: 0)
+          }
+          .padding(.vertical, 7)
+        }
+      }
     }
   }
 }
