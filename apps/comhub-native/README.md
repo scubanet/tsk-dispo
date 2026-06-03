@@ -136,3 +136,10 @@ mit wählbarer Quelle (Atoll-CRM via Supabase **oder** Apple via `CNSaveRequest`
 um Rich-Felder erweitert; `ContactsProvider` schreibt jetzt; Hub routet
 `createContact`/`updateContact`/`createTask`. Reine Logik getestet in `AtollHub`
 (`ContactDraft`, `ContactSections`-Sort, Hub-Contact/Task-Routing).
+
+**Phase 5b (Teil)** — **Push-Registrierung**: Tabelle `comhub_device_tokens`
+(Migration 0131, RLS per `auth.uid()`), `PushService` (Permission +
+APNs-Registrierung + Token-Upsert), Push-Schalter in Einstellungen,
+Entitlement `aps-environment=development`. Edge-Function `comhub-push`
+(APNs HTTP/2 + ES256-JWT, Owner→Tokens) ist **codefertig, nicht deployed** —
+braucht APNs-`.p8`-Key + Deploy (siehe `supabase/functions/comhub-push/README.md`).
