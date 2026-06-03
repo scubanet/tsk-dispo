@@ -37,11 +37,16 @@ struct CalendarModuleView: View {
       }, onDelete: nil)
     }
     .sheet(item: $editingEvent) { ev in
-      EventEditSheet(existing: ev, sources: sources, onSave: { draft in
-        Task { await store.update(id: ev.id, with: draft, using: hub) }
-      }, onDelete: {
-        Task { await store.delete(id: ev.id, using: hub) }
-      })
+      // Atoll-Events sind CRM-Daten (nur Lesen); nur Apple-Termine sind editierbar.
+      if ev.source.type == .atoll {
+        EventReadOnlySheet(event: ev)
+      } else {
+        EventEditSheet(existing: ev, sources: sources, onSave: { draft in
+          Task { await store.update(id: ev.id, with: draft, using: hub) }
+        }, onDelete: {
+          Task { await store.delete(id: ev.id, using: hub) }
+        })
+      }
     }
   }
 
