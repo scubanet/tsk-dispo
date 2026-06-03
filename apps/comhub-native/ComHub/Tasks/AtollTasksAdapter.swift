@@ -42,6 +42,19 @@ struct AtollTasksAdapter: TodoProvider {
     }
   }
 
+  /// Schreibt den Erledigt-Status zurueck nach `contact_events`.
+  /// Aktualisiert nur `status` (open/resolved); die Done-Erkennung in `tasks()`
+  /// liest `status != "open"`, daher ist ein Status-Update ausreichend und konsistent.
+  func setDone(taskId: String, isDone: Bool) async throws {
+    let rowId = SourceID.raw(from: taskId)
+    let status = isDone ? "resolved" : "open"
+    _ = try await supabase
+      .from("contact_events")
+      .update(["status": status])
+      .eq("id", value: rowId)
+      .execute()
+  }
+
   private static func parseDate(_ s: String) -> Date? {
     let dayOnly = DateFormatter()
     dayOnly.dateFormat = "yyyy-MM-dd"; dayOnly.locale = Locale(identifier: "en_US_POSIX")
