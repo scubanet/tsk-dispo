@@ -39,6 +39,30 @@ struct AppleRemindersAdapter: TodoProvider {
     return mapped
   }
 
+  func setDone(taskId: String, isDone: Bool) async throws {
+    let identifier = SourceID.raw(from: taskId)
+    guard let item = store.calendarItem(withIdentifier: identifier) as? EKReminder else {
+      throw ProviderWriteError.notFound
+    }
+    item.isCompleted = isDone               // setzt/entfernt completionDate automatisch
+    try store.save(item, commit: true)
+  }
+
+  func createTask(title: String, due: Date?, listId: String?) async throws {
+    let reminder = EKReminder(eventStore: store)
+    reminder.title = title
+    if let listId, let cal = store.calendar(withIdentifier: listId) {
+      reminder.calendar = cal
+    } else {
+      reminder.calendar = store.defaultCalendarForNewReminders()
+    }
+    if let due {
+      reminder.dueDateComponents = Calendar.current.dateComponents(
+        [.year, .month, .day, .hour, .minute], from: due)
+    }
+    try store.save(reminder, commit: true)
+  }
+
   private static func hex(from cg: CGColor) -> String? {
     guard let c = cg.components, c.count >= 3 else { return nil }
     let r = Int((c[0] * 255).rounded()), g = Int((c[1] * 255).rounded()), b = Int((c[2] * 255).rounded())
