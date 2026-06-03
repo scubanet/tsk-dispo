@@ -24,7 +24,11 @@ public enum AppleEventMapper {
 public enum AppleContactMapper {
   public static func contact(accountId: String, identifier: String,
                              givenName: String, familyName: String,
-                             emails: [String], phones: [String]) -> UnifiedContact {
+                             emails: [String], phones: [String],
+                             kind: ContactKind = .person,
+                             organizationName: String? = nil,
+                             addresses: [PostalAddress] = [],
+                             birthday: Date? = nil) -> UnifiedContact {
     UnifiedContact(
       id: "apple:\(identifier)",
       source: AccountRef(accountId: accountId, type: .apple),
@@ -33,7 +37,9 @@ public enum AppleContactMapper {
       emails: emails.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         .filter { !$0.isEmpty },
       phones: phones.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-        .filter { !$0.isEmpty }
+        .filter { !$0.isEmpty },
+      kind: kind, organizationName: organizationName,
+      addresses: addresses, birthday: birthday
     )
   }
 }
