@@ -15,9 +15,9 @@ private struct WhatsAppTag: View {
   }
 }
 
-/// WhatsApp-Bubble: inbound links/hell, outbound rechts/gruen — WhatsApp-Marker
-/// (gruenes Icon + Label) auf beiden, wie in der Webversion.
-struct KomboxBubble: View {
+/// WhatsApp-Bubble (bare card, ohne Aussen-Spacer — Ausrichtung macht die Zeile).
+/// Inbound hell, outbound gruen; WhatsApp-Marker auf beiden (wie Webversion).
+struct KomboxBubbleCard: View {
   let event: KomboxEvent
   private var isOutbound: Bool { event.direction == .outbound }
 
@@ -27,27 +27,23 @@ struct KomboxBubble: View {
   }()
 
   var body: some View {
-    HStack {
-      if isOutbound { Spacer(minLength: 40) }
-      VStack(alignment: .leading, spacing: 3) {
-        WhatsAppTag()
-        Text(event.body ?? event.summary).font(.callout)
-        Text(Self.time.string(from: event.timestamp))
-          .font(.caption2).foregroundStyle(.secondary)
-          .frame(maxWidth: .infinity, alignment: .trailing)
-      }
-      .padding(9)
-      .frame(maxWidth: 360, alignment: .leading)
-      .background(isOutbound ? komboxWhatsAppGreen.opacity(0.18) : Color.secondary.opacity(0.12),
-                  in: RoundedRectangle(cornerRadius: 12))
-      .overlay(RoundedRectangle(cornerRadius: 12)
-        .strokeBorder(komboxWhatsAppGreen.opacity(isOutbound ? 0.35 : 0.18), lineWidth: 1))
-      if !isOutbound { Spacer(minLength: 40) }
+    VStack(alignment: .leading, spacing: 3) {
+      WhatsAppTag()
+      Text(event.body ?? event.summary).font(.callout)
+      Text(Self.time.string(from: event.timestamp))
+        .font(.caption2).foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity, alignment: .trailing)
     }
+    .padding(9)
+    .frame(maxWidth: 360, alignment: .leading)
+    .background(isOutbound ? komboxWhatsAppGreen.opacity(0.18) : Color.secondary.opacity(0.12),
+                in: RoundedRectangle(cornerRadius: 12))
+    .overlay(RoundedRectangle(cornerRadius: 12)
+      .strokeBorder(komboxWhatsAppGreen.opacity(isOutbound ? 0.35 : 0.18), lineWidth: 1))
   }
 }
 
-/// Mail-Karte: aufklappbar (Betreff -> Body).
+/// Mail-Karte (bare card): aufklappbar (Betreff -> Body).
 struct KomboxMailCard: View {
   let event: KomboxEvent
   @State private var expanded = false
@@ -59,8 +55,6 @@ struct KomboxMailCard: View {
   }()
 
   var body: some View {
-    HStack {
-      if isOutbound { Spacer(minLength: 40) }
       VStack(alignment: .leading, spacing: 6) {
         Button { expanded.toggle() } label: {
           HStack(spacing: 8) {
@@ -87,8 +81,6 @@ struct KomboxMailCard: View {
       .padding(10)
       .frame(maxWidth: 460, alignment: .leading)
       .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
-      if !isOutbound { Spacer(minLength: 40) }
-    }
   }
 }
 
@@ -105,18 +97,6 @@ struct KomboxSystemMarker: View {
       .padding(.horizontal, 10).padding(.vertical, 4)
       .background(.quaternary.opacity(0.5), in: Capsule())
       Spacer()
-    }
-  }
-}
-
-/// Waehlt die richtige Zeile je `KomboxKind`.
-struct KomboxRow: View {
-  let event: KomboxEvent
-  var body: some View {
-    switch event.kind {
-    case .whatsapp: KomboxBubble(event: event)
-    case .email:    KomboxMailCard(event: event)
-    case .system:   KomboxSystemMarker(event: event)
     }
   }
 }
