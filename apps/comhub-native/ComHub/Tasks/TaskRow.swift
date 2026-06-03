@@ -25,6 +25,8 @@ struct TaskRow: View {
             .frame(width: 20, height: 20)
           if task.isDone { Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(.white) }
         }
+        .frame(width: 30, height: 30)        // groessere, voll klickbare Treffer-Flaeche
+        .contentShape(Rectangle())           // ganzer Bereich klickbar (nicht nur der Ring)
       }
       .buttonStyle(.plain)
       VStack(alignment: .leading, spacing: 2) {
