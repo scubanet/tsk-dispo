@@ -47,7 +47,7 @@ struct EventEditSheet: View {
             onSave(EventDraft(title: title, start: start, end: end, isAllDay: isAllDay,
                               location: location.isEmpty ? nil : location, calendarId: calendarId))
             dismiss()
-          }.disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+          }.disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || end <= start)
         }
       }
       .onAppear {

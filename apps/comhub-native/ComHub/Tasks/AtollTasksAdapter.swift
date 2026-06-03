@@ -47,10 +47,28 @@ struct AtollTasksAdapter: TodoProvider {
   /// liest `status != "open"`, daher ist ein Status-Update ausreichend und konsistent.
   func setDone(taskId: String, isDone: Bool) async throws {
     let rowId = SourceID.raw(from: taskId)
-    let status = isDone ? "resolved" : "open"
+    let patch = AtollTaskDone.patch(isDone: isDone, now: Date())
+
+    // Bestehenden payload lesen, damit due_date u. a. erhalten bleiben.
+    struct PayloadRow: Decodable { let payload: [String: AnyJSON]? }
+    let existing: [PayloadRow] = try await supabase
+      .from("contact_events")
+      .select("payload")
+      .eq("id", value: rowId)
+      .limit(1)
+      .execute()
+      .value
+    var payload = existing.first?.payload ?? [:]
+    if let completedAt = patch.completedAt {
+      payload["completed_at"] = .string(completedAt)
+    } else {
+      payload["completed_at"] = nil          // Key entfernen
+    }
+
+    struct TaskUpdate: Encodable { let status: String; let payload: [String: AnyJSON] }
     _ = try await supabase
       .from("contact_events")
-      .update(["status": status])
+      .update(TaskUpdate(status: patch.status, payload: payload))
       .eq("id", value: rowId)
       .execute()
   }
