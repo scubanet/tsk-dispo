@@ -111,18 +111,27 @@ private struct ThreadMessageRow: View {
     if event.kind == .system {
       KomboxSystemMarker(event: event)
     } else {
-      // Pille direkt NEBEN der Bubble (gleiche HStack, kein Gap) — bleibt beim
-      // Hinfahren sichtbar. Immer praesent (opacity), damit kein Layout-Sprung.
-      HStack(alignment: .center, spacing: 6) {
-        if alignTrailing { Spacer(minLength: 40); actionBar }
+      HStack(spacing: 0) {
+        if alignTrailing { Spacer(minLength: 40) }
+        // Pille als Overlay OBEN-RECHTS auf der Bubble — Cursor bleibt auf der
+        // Bubble, daher kein Hover-Abbruch. Hover-Bereich um die Pille leicht
+        // erweitert (Top-Inset), damit sie bequem erreichbar ist.
         card
-        if !alignTrailing { actionBar; Spacer(minLength: 40) }
-      }
-      .onHover { hovering = $0 }
-      .contextMenu {
-        if canReply { Button { onReply() } label: { Label("Antworten", systemImage: "arrowshape.turn.up.left") } }
-        Button { onTask() } label: { Label("Als Aufgabe", systemImage: "checklist") }
-        Button(role: .destructive) { onDelete() } label: { Label("Löschen", systemImage: "trash") }
+          .overlay(alignment: .topTrailing) {
+            actionBar
+              .padding(6)
+              .opacity(hovering ? 1 : 0)
+              .allowsHitTesting(hovering)
+              .animation(.easeInOut(duration: 0.12), value: hovering)
+          }
+          .contentShape(Rectangle())
+          .onHover { hovering = $0 }
+          .contextMenu {
+            if canReply { Button { onReply() } label: { Label("Antworten", systemImage: "arrowshape.turn.up.left") } }
+            Button { onTask() } label: { Label("Als Aufgabe", systemImage: "checklist") }
+            Button(role: .destructive) { onDelete() } label: { Label("Löschen", systemImage: "trash") }
+          }
+        if !alignTrailing { Spacer(minLength: 40) }
       }
     }
   }
@@ -147,10 +156,7 @@ private struct ThreadMessageRow: View {
     .padding(3)
     .background(.regularMaterial, in: Capsule())
     .overlay(Capsule().strokeBorder(.quaternary, lineWidth: 0.5))
-    .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
-    .opacity(hovering ? 1 : 0)
-    .allowsHitTesting(hovering)
-    .animation(.easeInOut(duration: 0.12), value: hovering)
+    .shadow(color: .black.opacity(0.18), radius: 4, y: 1)
   }
 
   private func iconButton(_ symbol: String, _ help: String,
