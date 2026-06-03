@@ -126,3 +126,13 @@ Kombox) bzw. ein Filter-Menü + Liste (Aufgaben); auf macOS/iPad bleibt das
 Wide-Layout unverändert. Kalender-Filter als kompaktes Popover. `CompactWidthReader`
 (`horizontalSizeClass` auf iOS, `false` auf macOS) steuert die Umschaltung.
 Google/Microsoft-Konten folgen in Phase 6b.
+
+**Phase 7** — **Erfassen, Detail & Compose**: Adressliste sortiert nach
+**Nachname, Vorname**; **reiche Kontakt-Detailansicht** (Firma, Adressen,
+Geburtstag, Sprachen, Rollen, Tags, Notizen); **Kontakt erfassen/bearbeiten**
+mit wählbarer Quelle (Atoll-CRM via Supabase **oder** Apple via `CNSaveRequest`);
+**neue Todos** (Apple Erinnerungen, Liste wählbar); **neue Kombox-Nachricht**
+(Kontakt wählen → Mail/WhatsApp → `comms-outbound`). `UnifiedContact`/`MergedContact`
+um Rich-Felder erweitert; `ContactsProvider` schreibt jetzt; Hub routet
+`createContact`/`updateContact`/`createTask`. Reine Logik getestet in `AtollHub`
+(`ContactDraft`, `ContactSections`-Sort, Hub-Contact/Task-Routing).
