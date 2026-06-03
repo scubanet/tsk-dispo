@@ -41,11 +41,27 @@ struct AppleRemindersAdapter: TodoProvider {
 
   func setDone(taskId: String, isDone: Bool) async throws {
     let identifier = SourceID.raw(from: taskId)
-    guard let item = store.calendarItem(withIdentifier: identifier) as? EKReminder else {
-      throw ProviderWriteError.notFound
+    // 1) Schnellweg: direkter Lookup.
+    if let item = store.calendarItem(withIdentifier: identifier) as? EKReminder {
+      item.isCompleted = isDone               // setzt/entfernt completionDate automatisch
+      try store.save(item, commit: true)
+      return
     }
-    item.isCompleted = isDone               // setzt/entfernt completionDate automatisch
-    try store.save(item, commit: true)
+    // 2) Fallback: `calendarItem(withIdentifier:)` ist fuer EKReminder unzuverlaessig
+    //    (liefert oft nil). Per Predicate holen + im Closure mutieren/speichern, damit
+    //    kein nicht-Sendable EKReminder die Continuation-Grenze quert.
+    let store = self.store
+    let ok: Bool = await withCheckedContinuation { (cont: CheckedContinuation<Bool, Never>) in
+      store.fetchReminders(matching: store.predicateForReminders(in: nil)) { reminders in
+        guard let r = (reminders ?? []).first(where: { $0.calendarItemIdentifier == identifier }) else {
+          cont.resume(returning: false); return
+        }
+        r.isCompleted = isDone
+        do { try store.save(r, commit: true); cont.resume(returning: true) }
+        catch { cont.resume(returning: false) }
+      }
+    }
+    if !ok { throw ProviderWriteError.notFound }
   }
 
   func createTask(title: String, due: Date?, listId: String?) async throws {
