@@ -10,20 +10,32 @@ public struct ContactLetterSection: Sendable, Identifiable, Equatable {
   }
 }
 
-/// Gruppiert `MergedContact`s nach dem ersten Buchstaben des Anzeigenamens
-/// (Nicht-Buchstabe → „#"), Sektionen alphabetisch, Mitglieder nach Name.
+/// Gruppiert `MergedContact`s nach dem ersten Buchstaben des Nachnamens
+/// (Fallback Anzeigename; Nicht-Buchstabe → „#"), Sektionen alphabetisch,
+/// Mitglieder nach Nachname, dann Vorname.
 public enum ContactSections {
+  /// Sortierschluessel: „Nachname Vorname" (Nachname-Fallback Anzeigename).
+  private static func sortKey(_ c: MergedContact) -> String {
+    let last = (c.lastName?.isEmpty == false) ? c.lastName! : c.displayName
+    let first = c.firstName ?? ""
+    return "\(last) \(first)".localizedLowercase
+  }
+
+  /// Sektionsbuchstabe aus dem Nachnamen (Fallback Anzeigename).
+  private static func sectionLetter(_ c: MergedContact) -> String {
+    let base = (c.lastName?.isEmpty == false) ? c.lastName! : c.displayName
+    guard let ch = base.trimmingCharacters(in: .whitespaces).first else { return "#" }
+    return ch.isLetter ? String(ch).uppercased() : "#"
+  }
+
   public static func byLetter(_ contacts: [MergedContact]) -> [ContactLetterSection] {
     var buckets: [String: [MergedContact]] = [:]
     for c in contacts {
-      let first = c.displayName.trimmingCharacters(in: .whitespaces).first
-      let key: String
-      if let f = first, f.isLetter { key = String(f).uppercased() } else { key = "#" }
-      buckets[key, default: []].append(c)
+      buckets[sectionLetter(c), default: []].append(c)
     }
     return buckets.keys.sorted { $0.localizedCompare($1) == .orderedAscending }.map { letter in
       let sorted = buckets[letter]!.sorted {
-        $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
+        sortKey($0).localizedCompare(sortKey($1)) == .orderedAscending
       }
       return ContactLetterSection(letter: letter, contacts: sorted)
     }

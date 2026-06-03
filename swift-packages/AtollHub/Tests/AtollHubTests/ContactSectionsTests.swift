@@ -24,4 +24,20 @@ final class ContactSectionsTests: XCTestCase {
   func test_emptyInputEmptyOutput() {
     XCTAssertTrue(ContactSections.byLetter([]).isEmpty)
   }
+
+  private func person(_ id: String, first: String, last: String) -> MergedContact {
+    MergedContact(group: [UnifiedContact(
+      id: id, source: AccountRef(accountId: "x", type: .atoll),
+      firstName: first, lastName: last, emails: [], phones: [])])
+  }
+
+  func test_sortsByLastNameThenFirstName() {
+    let anna = person("1", first: "Anna", last: "Zueable")
+    let bob  = person("2", first: "Bob",  last: "Aebi")
+    let zora = person("3", first: "Zora", last: "Aebi")
+    let sections = ContactSections.byLetter([anna, bob, zora])
+    let flat = sections.flatMap { $0.contacts }
+    XCTAssertEqual(flat.map(\.id), ["2", "3", "1"]) // Aebi Bob, Aebi Zora, Zueable Anna
+    XCTAssertEqual(sections.first?.letter, "A")      // section by lastName
+  }
 }
