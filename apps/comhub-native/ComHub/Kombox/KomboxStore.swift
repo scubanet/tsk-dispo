@@ -71,6 +71,12 @@ final class KomboxStore {
     await reloadThread()
   }
 
+  func clearSelection() {
+    selectedContactId = nil
+    actionError = nil
+    thread = []
+  }
+
   func reloadThread() async {
     guard let contactId = selectedContactId else { thread = []; return }
     threadGeneration += 1

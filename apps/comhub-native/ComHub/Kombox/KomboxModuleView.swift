@@ -19,8 +19,11 @@ struct KomboxModuleView: View {
       }
       .onDisappear { store.stopRealtime() }
       .onChange(of: selection) { _, new in
-        guard let new else { return }
-        Task { await store.selectContact(new) }
+        if let new {
+          Task { await store.selectContact(new) }
+        } else {
+          store.clearSelection()
+        }
       }
     }
   }
