@@ -46,6 +46,10 @@ struct KomboxComposer: View {
     .onChange(of: store.pendingReplyChannel) { _, new in
       guard let new else { return }
       channel = new
+      if new == "email", let subj = store.pendingReplySubject {
+        subject = subj
+        store.pendingReplySubject = nil
+      }
       inputFocused = true
       store.pendingReplyChannel = nil
     }

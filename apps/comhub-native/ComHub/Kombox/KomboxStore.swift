@@ -23,6 +23,8 @@ final class KomboxStore {
   /// Vom „Antworten"-Befehl gesetzt: schaltet den Composer auf diesen Kanal
   /// ("whatsapp"/"email") und fokussiert ihn. Composer raeumt es nach Konsum.
   var pendingReplyChannel: String?
+  /// Betreff fuer eine Mail-Antwort („Re: …"), vom Composer uebernommen + geraeumt.
+  var pendingReplySubject: String?
   private(set) var sending = false
   private(set) var actionError: String?
 

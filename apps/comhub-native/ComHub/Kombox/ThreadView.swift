@@ -61,7 +61,14 @@ struct ThreadView: View {
             ForEach(section.events) { event in
               ThreadMessageRow(
                 event: event,
-                onReply: { store.pendingReplyChannel = (event.kind == .email ? "email" : "whatsapp") },
+                onReply: {
+                  if event.kind == .email {
+                    store.pendingReplySubject = reSubject(event.subject ?? event.summary)
+                    store.pendingReplyChannel = "email"
+                  } else {
+                    store.pendingReplyChannel = "whatsapp"
+                  }
+                },
                 onTask: { Task { try? await hub.createTask(title: taskTitle(event), due: nil, listId: nil) } },
                 onDelete: { Task { await store.deleteEvent(id: event.id) } }
               )
@@ -71,6 +78,13 @@ struct ThreadView: View {
         .padding(12)
       }
     }
+  }
+
+  /// Betreff fuer eine Antwort: „Re: …" voranstellen (nicht doppelt).
+  private func reSubject(_ s: String) -> String {
+    let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+    if t.lowercased().hasPrefix("re:") { return t }
+    return t.isEmpty ? "Re:" : "Re: \(t)"
   }
 
   /// Aufgaben-Titel aus einer Nachricht (Betreff bzw. Body, gekuerzt).
