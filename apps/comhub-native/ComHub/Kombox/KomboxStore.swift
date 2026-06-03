@@ -42,9 +42,12 @@ final class KomboxStore {
     return c
   }
 
+  // `contact_events` hat ZWEI FKs auf `contacts` (contact_id + actor_id), daher
+  // muss der Embed disambiguiert werden (`!contact_id`) — sonst antwortet PostgREST
+  // mit 400 „more than one relationship found" und die Liste bleibt leer.
   private static let selectColumns =
     "id, contact_id, event_type, occurred_at, summary, body, payload, status, " +
-    "contacts!inner(id, kind, first_name, last_name, trading_name, legal_name)"
+    "contacts!contact_id!inner(id, kind, first_name, last_name, trading_name, legal_name)"
 
   // MARK: - Laden
 

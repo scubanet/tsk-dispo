@@ -16,9 +16,11 @@ final class CockpitStore {
   private(set) var loading = false
   private(set) var errors: [String] = []
 
+  // `contact_events` hat zwei FKs auf `contacts` (contact_id + actor_id) → Embed
+  // disambiguieren (`!contact_id`), sonst PostgREST-400 und das Widget bleibt leer.
   private static let komboxSelect =
     "id, contact_id, event_type, occurred_at, summary, body, payload, status, " +
-    "contacts!inner(id, kind, first_name, last_name, trading_name, legal_name)"
+    "contacts!contact_id!inner(id, kind, first_name, last_name, trading_name, legal_name)"
 
   /// Zuerich-Kalender, konsistent mit den uebrigen ComHub-Datumshelfern.
   private var calendar: Calendar {
