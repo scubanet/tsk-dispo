@@ -29,7 +29,13 @@ struct ConversationListView: View {
         ConversationRow(conv: conv, timeText: Self.time.string(from: conv.lastEvent.timestamp))
           .tag(conv.id)
       }
-      .overlay { if store.loadingConversations && store.conversations.isEmpty { ProgressView() } }
+      .overlay {
+        if store.loadingConversations && store.conversations.isEmpty {
+          ProgressView()
+        } else if store.visibleConversations.isEmpty && !store.search.isEmpty {
+          ContentUnavailableView("Keine Treffer", systemImage: "magnifyingglass")
+        }
+      }
     }
   }
 

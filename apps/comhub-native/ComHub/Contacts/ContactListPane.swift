@@ -24,8 +24,11 @@ struct ContactListPane: View {
               Image(systemName: "plus")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(CoColor.accent)
-                .frame(width: 26, height: 26)
-                .background(CoColor.accent.opacity(0.12), in: Circle())
+                .frame(width: 30, height: 30)
+                .background(
+                  Circle().fill(CoColor.accent.opacity(0.12)).frame(width: 26, height: 26)
+                )
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .help("Neuer Kontakt")

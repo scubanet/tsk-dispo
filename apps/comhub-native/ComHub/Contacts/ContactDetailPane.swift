@@ -77,6 +77,7 @@ struct ContactDetailPane: View {
           .foregroundStyle(CoColor.accent)
           .frame(width: 34, height: 34)
           .background(CoColor.accent.opacity(0.12), in: Circle())
+          .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
       .help("Bearbeiten")
@@ -106,6 +107,7 @@ struct ContactDetailPane: View {
           .background(CoColor.accent.opacity(0.12), in: Circle())
         Text(label).font(.system(size: 11)).foregroundStyle(CoColor.accent)
       }
+      .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
   }

@@ -67,7 +67,7 @@ struct CalendarModuleView: View {
       Spacer()
       Text(Self.title.string(from: store.anchor)).font(.system(size: 16, weight: .bold))
       Spacer()
-      HStack(spacing: 2) {
+      HStack(spacing: 6) {
         Button { store.step(-1) } label: { Image(systemName: "chevron.left") }
         Button("Heute") { store.goToToday() }
           .font(.system(size: 12.5, weight: .semibold))

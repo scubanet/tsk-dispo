@@ -117,8 +117,7 @@ struct AufgabenModuleView: View {
         Text(headerTitle).font(.system(size: 20, weight: .bold))
         Spacer()
         if store.loading { ProgressView().controlSize(.small) }
-        Button { showNew = true } label: { Image(systemName: "plus") }
-          .buttonStyle(.plain)
+        IconButton(systemName: "plus", help: "Neue Aufgabe") { showNew = true }
       }
       .padding(.horizontal, 26).frame(height: 52)
       if let err = store.lastError {

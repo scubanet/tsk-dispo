@@ -41,9 +41,7 @@ struct KomboxModuleView: View {
 
   /// Knopf „Neue Nachricht" (oeffnet das Compose-Sheet) — auf Wide + Kompakt.
   private var newMessageButton: some View {
-    Button { showNew = true } label: {
-      Image(systemName: "square.and.pencil")
-    }
+    IconButton(systemName: "square.and.pencil", help: "Neue Nachricht") { showNew = true }
   }
 
   // MARK: Wide (macOS/iPad regular) — unveraendertes 3-Pane.
