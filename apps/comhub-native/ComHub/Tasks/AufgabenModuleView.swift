@@ -115,6 +115,10 @@ struct AufgabenModuleView: View {
           .buttonStyle(.plain)
       }
       .padding(.horizontal, 26).frame(height: 52)
+      if let err = store.lastError {
+        Text(err).font(.system(size: 12)).foregroundStyle(.red)
+          .padding(.horizontal, 26).padding(.bottom, 6).frame(maxWidth: .infinity, alignment: .leading)
+      }
       Divider()
       ScrollView {
         LazyVStack(alignment: .leading, spacing: 0) {

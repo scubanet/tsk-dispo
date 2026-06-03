@@ -8,6 +8,7 @@ import AtollHub
 final class AufgabenStore {
   private(set) var all: [UnifiedTask] = []
   private(set) var loading = false
+  private(set) var lastError: String?
   var smart: TaskSmartFilter = .all
   var list: String?
 
@@ -39,13 +40,19 @@ final class AufgabenStore {
     catch { /* optional: store an error if the store has an error property */ }
   }
 
-  /// Schaltet Erledigt optimistisch um, schreibt ueber den Hub, Rollback bei Fehler.
+  /// Schaltet Erledigt optimistisch um, schreibt ueber den Hub, laedt danach neu
+  /// (autoritativ). Fehler werden sichtbar gemacht.
   func toggleDone(_ task: UnifiedTask, using hub: Hub) async {
     let target = !task.isDone
+    lastError = nil
     if let i = all.firstIndex(where: { $0.id == task.id }) {
       all[i] = all[i].withDone(target)
     }
-    do { try await hub.setTaskDone(task, done: target) }
-    catch { await reload(using: hub) }
+    do {
+      try await hub.setTaskDone(task, done: target)
+    } catch {
+      lastError = "Abhaken fehlgeschlagen: \(error)"
+    }
+    await reload(using: hub)
   }
 }
