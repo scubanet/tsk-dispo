@@ -5,8 +5,11 @@ import AtollHub
 /// kompakt (iPhone) als Liste mit Kanal-Menue + Push auf den Reader. Laedt beim
 /// Erscheinen und haelt via Realtime aktuell.
 struct KomboxModuleView: View {
+  @Environment(Hub.self) private var hub
   @State private var store = KomboxStore()
+  @State private var contactsStore = ContactsStore()
   @State private var selection: String?
+  @State private var showNew = false
 
   var body: some View {
     CompactWidthReader { compact in
@@ -16,6 +19,9 @@ struct KomboxModuleView: View {
       .task {
         await store.reloadConversations()
         store.startRealtime()
+        // Kombiniertes Adressbuch fuer „Neue Nachricht" (gleiche Merge-Logik
+        // wie das Kontakte-Modul: ContactMatcher.group + MergedContact).
+        await contactsStore.reload(using: hub)
       }
       .onDisappear { store.stopRealtime() }
       .onChange(of: selection) { _, new in
@@ -25,6 +31,18 @@ struct KomboxModuleView: View {
           store.clearSelection()
         }
       }
+      .sheet(isPresented: $showNew) {
+        NewMessageSheet(contacts: contactsStore.merged) { contactId, channel, body, subject in
+          Task { _ = await store.sendNew(contactId: contactId, channel: channel, body: body, subject: subject) }
+        }
+      }
+    }
+  }
+
+  /// Knopf „Neue Nachricht" (oeffnet das Compose-Sheet) — auf Wide + Kompakt.
+  private var newMessageButton: some View {
+    Button { showNew = true } label: {
+      Image(systemName: "square.and.pencil")
     }
   }
 
@@ -33,10 +51,16 @@ struct KomboxModuleView: View {
   private var wideBody: some View {
     @Bindable var store = store
     return HStack(spacing: 0) {
-      KomboxRailView(channel: $store.channel)
-        #if os(macOS)
-        .frame(width: 180)
-        #endif
+      VStack(spacing: 0) {
+        HStack {
+          Spacer()
+          newMessageButton.padding(8)
+        }
+        KomboxRailView(channel: $store.channel)
+      }
+      #if os(macOS)
+      .frame(width: 180)
+      #endif
       Divider()
       ConversationListView(store: store, selection: $selection)
         #if os(macOS)
@@ -66,6 +90,7 @@ struct KomboxModuleView: View {
               Image(systemName: "line.3.horizontal.decrease.circle")
             }
           }
+          ToolbarItem(placement: .automatic) { newMessageButton }
         }
         .navigationDestination(isPresented: pushedReader) {
           ThreadView(store: store)

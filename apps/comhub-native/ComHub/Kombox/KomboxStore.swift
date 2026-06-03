@@ -150,12 +150,40 @@ final class KomboxStore {
     guard !text.isEmpty else { return false }
     sending = true; actionError = nil
     defer { sending = false }
+    guard await invokeOutbound(contactId: contactId, channel: channel, body: text, subject: subject)
+    else { return false }
+    await reloadThread(); await reloadConversations()
+    return true
+  }
+
+  /// Sendet eine neue Nachricht an einen gewaehlten Kontakt (fuer „Neue Nachricht").
+  /// `contactId` ist die rohe Atoll `contacts.id` (UUID); der Aufrufer reicht
+  /// `SourceID.raw(from: atollMember.id)` durch. `channel` = `.whatsapp` | `.mail`.
+  @discardableResult
+  func sendNew(contactId: String, channel: KomboxChannel, body: String, subject: String?) async -> Bool {
+    let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !text.isEmpty else { return false }
+    // Gleiches Kanal-Mapping wie der Composer: .mail → "email", .whatsapp → "whatsapp".
+    let channelString = (channel == .mail) ? "email" : "whatsapp"
+    sending = true; actionError = nil
+    defer { sending = false }
+    guard await invokeOutbound(contactId: contactId, channel: channelString, body: text, subject: subject)
+    else { return false }
+    // Auf den neuen Kontakt umschalten (reloadThread inklusive) + Liste mit realen
+    // Namen neu laden, damit die neue Konversation sichtbar wird.
+    await selectContact(contactId)
+    await reloadConversations()
+    return true
+  }
+
+  /// Gemeinsamer `comms-outbound`-Invoke fuer `send`/`sendNew`. `channel` = "whatsapp" | "email".
+  /// `subject` nur bei E-Mail; setzt bei Fehler `actionError`. Rueckgabe: Erfolg.
+  private func invokeOutbound(contactId: String, channel: String, body: String, subject: String?) async -> Bool {
     do {
-      let req = OutboundRequest(contactId: contactId, channel: channel, body: text,
+      let req = OutboundRequest(contactId: contactId, channel: channel, body: body,
                                 subject: (channel == "email") ? subject : nil)
       let _: OutboundResponse = try await supabase.functions.invoke(
         "comms-outbound", options: FunctionInvokeOptions(body: req))
-      await reloadThread(); await reloadConversations()
       return true
     } catch {
       logger.error("send failed: \(error.localizedDescription, privacy: .public)")
