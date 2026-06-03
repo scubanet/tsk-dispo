@@ -30,4 +30,24 @@ final class ContactsStore {
     errors = hub.lastErrors
     loading = false
   }
+
+  /// Legt einen Kontakt in der gewaehlten Quelle an und laedt neu.
+  func create(_ draft: ContactDraft, source: AccountType, using hub: Hub) async {
+    do {
+      _ = try await hub.createContact(draft, source: source)
+      await reload(using: hub)
+    } catch {
+      errors.append(String(describing: error))
+    }
+  }
+
+  /// Aktualisiert einen Kontakt (id-Praefix apple:/atoll: steuert das Routing) und laedt neu.
+  func update(id: String, with draft: ContactDraft, using hub: Hub) async {
+    do {
+      _ = try await hub.updateContact(id: id, with: draft)
+      await reload(using: hub)
+    } catch {
+      errors.append(String(describing: error))
+    }
+  }
 }

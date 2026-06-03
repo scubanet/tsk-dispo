@@ -6,6 +6,8 @@ struct ContactsModuleView: View {
   @Environment(Hub.self) private var hub
   @State private var store = ContactsStore()
   @State private var selection: String?
+  @State private var editing: MergedContact?
+  @State private var showCreate = false
 
   private var selectedContact: MergedContact? {
     store.merged.first { $0.id == selection }
@@ -24,26 +26,38 @@ struct ContactsModuleView: View {
           selection = ContactSections.byLetter(store.filtered).first?.contacts.first?.id
         }
       }
+      .sheet(isPresented: $showCreate) {
+        ContactEditSheet(existing: nil) { draft, src in
+          Task { await store.create(draft, source: src, using: hub) }
+        }
+      }
+      .sheet(item: $editing) { c in
+        ContactEditSheet(existing: c) { draft, _ in
+          let memberId = (c.members.first { $0.source.type == .atoll } ?? c.members.first)?.id ?? c.id
+          Task { await store.update(id: memberId, with: draft, using: hub) }
+        }
+      }
     }
   }
 
   private var wideBody: some View {
     HStack(spacing: 0) {
-      ContactListPane(store: store, selection: $selection)
+      ContactListPane(store: store, selection: $selection, onAdd: { showCreate = true })
         #if os(macOS)
         .frame(width: 330)
         #endif
       Divider()
-      ContactDetailPane(contact: selectedContact)
+      ContactDetailPane(contact: selectedContact,
+                        onEdit: selectedContact.map { c in { editing = c } })
         .frame(maxWidth: .infinity)
     }
   }
 
   private var compactBody: some View {
     NavigationStack {
-      ContactListPane(store: store, selection: $selection)
+      ContactListPane(store: store, selection: $selection, onAdd: { showCreate = true })
         .navigationDestination(item: pushedContact) { contact in
-          ContactDetailPane(contact: contact)
+          ContactDetailPane(contact: contact, onEdit: { editing = contact })
         }
     }
   }

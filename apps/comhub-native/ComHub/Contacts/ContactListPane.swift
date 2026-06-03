@@ -5,6 +5,8 @@ import AtollHub
 struct ContactListPane: View {
   let store: ContactsStore
   @Binding var selection: String?
+  /// Tippen auf „+" → neuen Kontakt erfassen.
+  var onAdd: (() -> Void)? = nil
 
   private var sections: [ContactLetterSection] {
     ContactSections.byLetter(store.filtered)
@@ -17,6 +19,17 @@ struct ContactListPane: View {
           Text("Kontakte").font(.system(size: 17, weight: .bold))
           Spacer()
           Text("\(store.filtered.count)").font(.system(size: 12)).foregroundStyle(.tertiary)
+          if let onAdd {
+            Button(action: onAdd) {
+              Image(systemName: "plus")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(CoColor.accent)
+                .frame(width: 26, height: 26)
+                .background(CoColor.accent.opacity(0.12), in: Circle())
+            }
+            .buttonStyle(.plain)
+            .help("Neuer Kontakt")
+          }
         }
         searchField
       }
