@@ -10,6 +10,15 @@ Geteilte Foundation-Module für die ATOLL App-Suite.
   (AvatarView, BrandHeader, RoleBadge, SkillChip, StatusChip, AtollLogo).
   Hängt von AtollCore ab (RoleBadge nutzt `AssignmentRole`, StatusChip nutzt `CourseStatus`).
   Konsumiert von: dieselben Apps wie AtollCore.
+- **AtollHub** — anbieter-offener Kern für ComHub: quellneutrale Modelle
+  (`UnifiedEvent/Message/Task/Contact`, `Lead`), Capability-Protokolle
+  (`CalendarProvider`/`MailProvider`/`TodoProvider`/`ContactsProvider` +
+  Atoll-spezifisch `CommsProvider`/`EventsProvider`/`CardInboxProvider`),
+  der `Hub`-Aggregator über `AccountConnection`, sowie reine Hilfen
+  (`ContactKey`, `ContactMatcher`, `ComHubModule`, `OTPCode`).
+  Dependency-leicht (keine Supabase-Abhängigkeit) — Adapter implementieren die
+  Protokolle in den Apps. Konsumiert von: `apps/comhub-native`.
+  Tests: `cd swift-packages/AtollHub && swift test`.
 
 ## Hinzufügen zu einer neuen App
 

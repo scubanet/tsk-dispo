@@ -1,0 +1,57 @@
+import Foundation
+import AVFoundation
+import AtollSpeech
+
+@MainActor
+final class SynthesisService {
+  private let composite: CompositeSynthesizer
+  private let elevenVoiceByLang: [AppLanguage: String]
+  /// Whether an ElevenLabs synthesizer is wired (a non-empty API key was given).
+  private let hasElevenLabs: Bool
+
+  /// - elevenLabsKey: ElevenLabs API key; empty/nil → Apple-only fallback.
+  /// - voices: ElevenLabs voice id per language (from Settings).
+  init(elevenLabsKey: String?, voices: [AppLanguage: String], session: URLSession = .shared) {
+    self.elevenVoiceByLang = voices
+    let apple = AppleSynthesizer()
+    if let key = elevenLabsKey, !key.isEmpty {
+      let client = ElevenLabsClient(apiKey: key, session: session)
+      // Seed with any configured voice; the actual voice is set per utterance.
+      let seed = voices.values.first { !$0.isEmpty } ?? ""
+      let eleven = ElevenLabsSynthesizer(client: client, defaultVoiceID: seed)
+      composite = CompositeSynthesizer(apple: apple, elevenLabs: eleven, provider: .apple)
+      hasElevenLabs = true
+    } else {
+      composite = CompositeSynthesizer(apple: apple, elevenLabs: nil, provider: .apple)
+      hasElevenLabs = false
+    }
+  }
+
+  /// Speak `text` in `lang`. Uses the ElevenLabs voice configured for that
+  /// language when available; otherwise falls back to an installed Apple voice
+  /// for that locale — chosen per utterance so each language reads in its own
+  /// voice (and a language without an ElevenLabs voice still speaks via Apple).
+  func speak(_ text: String, in lang: AppLanguage) {
+    if hasElevenLabs, let v = elevenVoiceByLang[lang], !v.isEmpty {
+      composite.setProvider(.elevenLabs)
+      composite.setVoice(identifier: v)
+    } else {
+      composite.setProvider(.apple)
+      if let id = Self.appleVoiceIdentifier(for: lang) {
+        composite.setVoice(identifier: id)
+      }
+    }
+    composite.speak(text)
+  }
+
+  func stop() { composite.stop() }
+
+  /// Resolve a concrete installed Apple voice for the language, if any.
+  /// Returns nil when no voice for that locale is installed (e.g. no
+  /// Ukrainian voice) — surfaced to the user in the final task's error handling.
+  static func appleVoiceIdentifier(for lang: AppLanguage) -> String? {
+    AVSpeechSynthesisVoice.speechVoices()
+      .first { $0.language.hasPrefix(lang.appleLocale) }?
+      .identifier
+  }
+}

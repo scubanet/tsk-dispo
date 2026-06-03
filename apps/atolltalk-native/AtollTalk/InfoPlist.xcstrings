@@ -1,0 +1,12 @@
+{
+  "sourceLanguage" : "de",
+  "version" : "1.0",
+  "strings" : {
+    "NSMicrophoneUsageDescription" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "AtollTalk nimmt deine Stimme auf, um sie zu übersetzen." } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "AtollTalk записує твій голос для перекладу." } }
+      }
+    }
+  }
+}
