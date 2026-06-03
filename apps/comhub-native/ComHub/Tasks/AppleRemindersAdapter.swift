@@ -64,6 +64,32 @@ struct AppleRemindersAdapter: TodoProvider {
     if !ok { throw ProviderWriteError.notFound }
   }
 
+  func updateTask(id: String, title: String, due: Date?, listId: String?) async throws {
+    let identifier = SourceID.raw(from: id)
+    let store = self.store
+    let dueComps = due.map { Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: $0) }
+    let targetCal = listId.flatMap { store.calendar(withIdentifier: $0) }
+    func apply(_ r: EKReminder) {
+      r.title = title
+      r.dueDateComponents = dueComps
+      if let targetCal { r.calendar = targetCal }
+    }
+    if let item = store.calendarItem(withIdentifier: identifier) as? EKReminder {
+      apply(item); try store.save(item, commit: true); return
+    }
+    let ok: Bool = await withCheckedContinuation { (cont: CheckedContinuation<Bool, Never>) in
+      store.fetchReminders(matching: store.predicateForReminders(in: nil)) { reminders in
+        guard let r = (reminders ?? []).first(where: { $0.calendarItemIdentifier == identifier }) else {
+          cont.resume(returning: false); return
+        }
+        apply(r)
+        do { try store.save(r, commit: true); cont.resume(returning: true) }
+        catch { cont.resume(returning: false) }
+      }
+    }
+    if !ok { throw ProviderWriteError.notFound }
+  }
+
   func createTask(title: String, due: Date?, listId: String?) async throws {
     let reminder = EKReminder(eventStore: store)
     reminder.title = title

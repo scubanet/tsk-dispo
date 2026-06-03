@@ -73,6 +73,28 @@ struct AtollTasksAdapter: TodoProvider {
       .execute()
   }
 
+  /// Aendert Titel (`summary`) + Faelligkeit (`payload.due_date`). Liste wird bei
+  /// Atoll-Tasks ignoriert (kein Listen-Konzept).
+  func updateTask(id: String, title: String, due: Date?, listId: String?) async throws {
+    let rowId = SourceID.raw(from: id)
+    struct PayloadRow: Decodable { let payload: [String: AnyJSON]? }
+    let existing: [PayloadRow] = try await supabase
+      .from("contact_events").select("payload").eq("id", value: rowId).limit(1).execute().value
+    var payload = existing.first?.payload ?? [:]
+    if let due {
+      let f = DateFormatter()
+      f.calendar = Calendar(identifier: .gregorian); f.locale = Locale(identifier: "en_US_POSIX")
+      f.timeZone = TimeZone(identifier: "Europe/Zurich"); f.dateFormat = "yyyy-MM-dd"
+      payload["due_date"] = .string(f.string(from: due))
+    } else {
+      payload["due_date"] = nil
+    }
+    struct TaskPatch: Encodable { let summary: String; let payload: [String: AnyJSON] }
+    _ = try await supabase
+      .from("contact_events").update(TaskPatch(summary: title, payload: payload))
+      .eq("id", value: rowId).execute()
+  }
+
   private static func parseDate(_ s: String) -> Date? {
     let dayOnly = DateFormatter()
     dayOnly.dateFormat = "yyyy-MM-dd"; dayOnly.locale = Locale(identifier: "en_US_POSIX")

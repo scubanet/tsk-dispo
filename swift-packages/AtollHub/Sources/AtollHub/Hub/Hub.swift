@@ -151,4 +151,13 @@ public final class Hub {
     }
     try await todo.createTask(title: title, due: due, listId: listId)
   }
+
+  /// Aendert eine Aufgabe — am Konto, das zum Id-Praefix (apple:/atoll:) passt.
+  public func updateTask(id: String, title: String, due: Date?, listId: String?) async throws {
+    let type: AccountType = id.hasPrefix("apple:") ? .apple : .atoll
+    guard let todo = connections.first(where: { $0.account.type == type && $0.todo != nil })?.todo else {
+      throw ProviderWriteError.notFound
+    }
+    try await todo.updateTask(id: id, title: title, due: due, listId: listId)
+  }
 }

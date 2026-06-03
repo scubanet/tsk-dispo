@@ -36,8 +36,16 @@ final class AufgabenStore {
 
   /// Legt eine neue Aufgabe ueber den Hub an (Apple Erinnerung), dann neu laden.
   func create(title: String, due: Date?, listId: String?, using hub: Hub) async {
+    lastError = nil
     do { try await hub.createTask(title: title, due: due, listId: listId); await reload(using: hub) }
-    catch { /* optional: store an error if the store has an error property */ }
+    catch { lastError = "Erstellen fehlgeschlagen: \(error)" }
+  }
+
+  /// Aendert eine bestehende Aufgabe (Titel/Faelligkeit/Liste), dann neu laden.
+  func update(id: String, title: String, due: Date?, listId: String?, using hub: Hub) async {
+    lastError = nil
+    do { try await hub.updateTask(id: id, title: title, due: due, listId: listId); await reload(using: hub) }
+    catch { lastError = "Aendern fehlgeschlagen: \(error)" }
   }
 
   /// Schaltet Erledigt optimistisch um, schreibt ueber den Hub, laedt danach neu

@@ -26,6 +26,7 @@ public protocol TodoProvider: Sendable {
   // damit der Hub ueber das Existential dynamisch auf die echte Impl dispatcht.
   func setDone(taskId: String, isDone: Bool) async throws
   func createTask(title: String, due: Date?, listId: String?) async throws
+  func updateTask(id: String, title: String, due: Date?, listId: String?) async throws
 }
 
 /// Liefert Kontakte.
@@ -70,6 +71,10 @@ public extension TodoProvider {
   }
   /// Legt eine neue Aufgabe an (Liste optional). Default: nicht unterstuetzt.
   func createTask(title: String, due: Date?, listId: String?) async throws {
+    throw ProviderWriteError.unsupported
+  }
+  /// Aendert Titel/Faelligkeit/Liste einer Aufgabe. Default: nicht unterstuetzt.
+  func updateTask(id: String, title: String, due: Date?, listId: String?) async throws {
     throw ProviderWriteError.unsupported
   }
 }

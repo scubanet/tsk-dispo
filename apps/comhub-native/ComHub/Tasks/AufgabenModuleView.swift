@@ -6,6 +6,7 @@ struct AufgabenModuleView: View {
   @Environment(Hub.self) private var hub
   @State private var store = AufgabenStore()
   @State private var showNew = false
+  @State private var editing: UnifiedTask?
 
   var body: some View {
     @Bindable var store = store
@@ -17,6 +18,11 @@ struct AufgabenModuleView: View {
       .sheet(isPresented: $showNew) {
         TaskEditSheet { title, due, listId in
           Task { await store.create(title: title, due: due, listId: listId, using: hub) }
+        }
+      }
+      .sheet(item: $editing) { t in
+        TaskEditSheet(existing: t) { title, due, listId in
+          Task { await store.update(id: t.id, title: title, due: due, listId: listId, using: hub) }
         }
       }
     }
@@ -127,18 +133,18 @@ struct AufgabenModuleView: View {
               .padding(.top, 40)
           } else {
             ForEach(r.open) { t in
-              TaskRow(task: t, showList: store.list == nil) {
-                Task { await store.toggleDone(t, using: hub) }
-              }
+              TaskRow(task: t, showList: store.list == nil,
+                      onToggle: { Task { await store.toggleDone(t, using: hub) } },
+                      onEdit: { editing = t })
               Divider()
             }
             if !r.done.isEmpty {
               Text("\(r.done.count) erledigt").font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(.tertiary).padding(.top, 16).padding(.bottom, 4)
               ForEach(r.done) { t in
-                TaskRow(task: t, showList: store.list == nil) {
-                  Task { await store.toggleDone(t, using: hub) }
-                }
+                TaskRow(task: t, showList: store.list == nil,
+                        onToggle: { Task { await store.toggleDone(t, using: hub) } },
+                        onEdit: { editing = t })
                 Divider()
               }
             }

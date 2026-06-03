@@ -6,6 +6,7 @@ struct TaskRow: View {
   let task: UnifiedTask
   var showList: Bool = true
   var onToggle: (() -> Void)? = nil
+  var onEdit: (() -> Void)? = nil
 
   private var listColor: Color {
     if let hex = task.listColorHex, let c = Color(hex: hex) { return c }
@@ -53,6 +54,8 @@ struct TaskRow: View {
           }
         }
       }
+      .contentShape(Rectangle())
+      .onTapGesture { onEdit?() }
       Spacer(minLength: 0)
     }
     .padding(.vertical, 9)
