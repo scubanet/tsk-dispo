@@ -128,8 +128,12 @@ struct AufgabenModuleView: View {
       ScrollView {
         LazyVStack(alignment: .leading, spacing: 0) {
           if r.open.isEmpty && r.done.isEmpty {
-            ContentUnavailableView("Keine Aufgaben", systemImage: "checklist")
-              .padding(.top, 40)
+            if store.loading && store.all.isEmpty {
+              CoSkeletonRows()
+            } else {
+              ContentUnavailableView("Keine Aufgaben", systemImage: "checklist")
+                .padding(.top, 40)
+            }
           } else {
             ForEach(r.open) { t in
               TaskRow(task: t, showList: store.list == nil,

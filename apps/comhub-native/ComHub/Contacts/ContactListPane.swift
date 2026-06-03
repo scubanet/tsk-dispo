@@ -39,6 +39,10 @@ struct ContactListPane: View {
       .padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 10)
       Divider()
 
+      if store.loading && sections.isEmpty {
+        CoSkeletonRows()
+          .frame(maxHeight: .infinity, alignment: .top)
+      } else {
       ScrollView {
         LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
           ForEach(sections) { section in
@@ -57,6 +61,7 @@ struct ContactListPane: View {
             }
           }
         }
+      }
       }
     }
   }

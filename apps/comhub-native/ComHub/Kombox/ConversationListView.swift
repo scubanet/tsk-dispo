@@ -31,7 +31,9 @@ struct ConversationListView: View {
       }
       .overlay {
         if store.loadingConversations && store.conversations.isEmpty {
-          ProgressView()
+          CoSkeletonRows()
+            .frame(maxHeight: .infinity, alignment: .top)
+            .background(.background)
         } else if store.visibleConversations.isEmpty && !store.search.isEmpty {
           ContentUnavailableView("Keine Treffer", systemImage: "magnifyingglass")
         }
