@@ -94,6 +94,28 @@ public extension UnifiedTask {
   }
 }
 
+/// Art eines Kontakts: natuerliche Person oder Organisation.
+public enum ContactKind: String, Sendable, Codable, Equatable { case person, organization }
+
+/// Quellneutrale Postanschrift.
+public struct PostalAddress: Sendable, Equatable, Hashable, Codable {
+  public var street: String?
+  public var postalCode: String?
+  public var city: String?
+  public var region: String?
+  public var country: String?
+  public var label: String?
+  public init(street: String? = nil, postalCode: String? = nil, city: String? = nil,
+              region: String? = nil, country: String? = nil, label: String? = nil) {
+    self.street = street; self.postalCode = postalCode; self.city = city
+    self.region = region; self.country = country; self.label = label
+  }
+  public var oneLine: String {
+    [street, [postalCode, city].compactMap { $0 }.joined(separator: " "), country]
+      .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+  }
+}
+
 /// Quellneutraler Kontakt (Atoll-CRM / Apple-Kontakte).
 public struct UnifiedContact: Sendable, Identifiable, Equatable, Hashable {
   public let id: String
@@ -102,10 +124,26 @@ public struct UnifiedContact: Sendable, Identifiable, Equatable, Hashable {
   public let lastName: String
   public let emails: [String]
   public let phones: [String]
+  public var kind: ContactKind
+  public var organizationName: String?
+  public var addresses: [PostalAddress]
+  public var birthday: Date?
+  public var languages: [String]
+  public var roles: [String]
+  public var tags: [String]
+  public var notes: String?
   public init(id: String, source: AccountRef, firstName: String, lastName: String,
-              emails: [String], phones: [String]) {
+              emails: [String], phones: [String],
+              kind: ContactKind = .person, organizationName: String? = nil,
+              addresses: [PostalAddress] = [], birthday: Date? = nil,
+              languages: [String] = [], roles: [String] = [],
+              tags: [String] = [], notes: String? = nil) {
     self.id = id; self.source = source; self.firstName = firstName
     self.lastName = lastName; self.emails = emails; self.phones = phones
+    self.kind = kind; self.organizationName = organizationName
+    self.addresses = addresses; self.birthday = birthday
+    self.languages = languages; self.roles = roles
+    self.tags = tags; self.notes = notes
   }
 }
 

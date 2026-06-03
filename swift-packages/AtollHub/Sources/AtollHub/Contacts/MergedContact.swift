@@ -12,6 +12,16 @@ public struct MergedContact: Identifiable, Equatable, Hashable, Sendable {
   public let sources: [AccountType]
   /// Die Roh-Mitglieder (fuer die Detailansicht — pro Quelle aufschluesselbar).
   public let members: [UnifiedContact]
+  public var firstName: String?
+  public var lastName: String?
+  public var kind: ContactKind
+  public var organizationName: String?
+  public var addresses: [PostalAddress]
+  public var birthday: Date?
+  public var languages: [String]
+  public var roles: [String]
+  public var tags: [String]
+  public var notes: String?
 
   public init(group: [UnifiedContact]) {
     precondition(!group.isEmpty, "MergedContact braucht mindestens ein Mitglied")
@@ -44,5 +54,18 @@ public struct MergedContact: Identifiable, Equatable, Hashable, Sendable {
 
     self.sources = Array(Set(group.map { $0.source.type }))
       .sorted { $0.rawValue < $1.rawValue }
+
+    // Rich-Felder aus den Mitgliedern ableiten (Atoll bevorzugt als Primaerquelle).
+    let primary = group.first { $0.source.type == .atoll } ?? group.first
+    self.firstName = group.compactMap { $0.firstName.isEmpty ? nil : $0.firstName }.first
+    self.lastName = group.compactMap { $0.lastName.isEmpty ? nil : $0.lastName }.first
+    self.kind = primary?.kind ?? .person
+    self.organizationName = group.compactMap { $0.organizationName }.first
+    self.addresses = group.flatMap { $0.addresses }
+    self.birthday = group.compactMap { $0.birthday }.first
+    self.languages = Array(Set(group.flatMap { $0.languages })).sorted()
+    self.roles = Array(Set(group.flatMap { $0.roles })).sorted()
+    self.tags = Array(Set(group.flatMap { $0.tags })).sorted()
+    self.notes = group.compactMap { ($0.notes?.isEmpty == false) ? $0.notes : nil }.first
   }
 }
