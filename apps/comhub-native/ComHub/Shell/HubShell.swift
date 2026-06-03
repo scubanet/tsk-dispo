@@ -5,7 +5,7 @@ import AtollCore
 /// Outlook-artige 3-Spalten-Shell: Modul-Leiste · Liste · Detail.
 /// Phase 0 zeigt Platzhalter pro Modul; echte Inhalte folgen in Phase 1+.
 struct HubShell: View {
-  @State private var selectedModule: ComHubModule = .heute
+  @State private var selectedModule: ComHubModule? = .heute
   @Environment(AuthState.self) private var auth
   /// Badge-Zahlen je Modul (von Phasen gespeist; vorerst leer).
   private let badges: [ComHubModule: Int] = [:]
@@ -30,57 +30,38 @@ struct HubShell: View {
       .frame(minWidth: 220)
       #endif
     } content: {
-      switch selectedModule {
-      case .heute:
-        CockpitView(onOpenModule: { selectedModule = $0 })
-          #if os(macOS)
-          .frame(minWidth: 360)
-          #endif
-      case .kalender:
-        CalendarModuleView()
-          #if os(macOS)
-          .frame(minWidth: 480)
-          #endif
-      case .kontakte:
-        ContactsModuleView()
-          #if os(macOS)
-          .frame(minWidth: 560)
-          #endif
-      case .kombox:
-        KomboxModuleView()
-          #if os(macOS)
-          .frame(minWidth: 560)
-          #endif
-      case .whatsapp:
-        WhatsAppModuleView()
-          #if os(macOS)
-          .frame(minWidth: 480)
-          #endif
-      case .einstellungen:
-        SettingsModuleView()
-          #if os(macOS)
-          .frame(minWidth: 480)
-          #endif
-      case .tasks:
-        AufgabenModuleView()
-          #if os(macOS)
-          .frame(minWidth: 520)
-          #endif
-      default:
-        ModulePlaceholder(module: selectedModule, pane: "Liste")
-          #if os(macOS)
-          .frame(minWidth: 280)
+      let module = selectedModule ?? .heute
+      NavigationStack {
+        moduleContent(module)
+          .navigationTitle(module.title)
+          #if os(iOS)
+          .navigationBarTitleDisplayMode(.inline)
           #endif
       }
     } detail: {
-      switch selectedModule {
+      switch selectedModule ?? .heute {
       case .heute, .kalender, .kontakte, .kombox, .whatsapp, .einstellungen, .tasks:
         // Diese Module rendern ihr Detail intern (NavigationSplitView-
         // Detailspalte bleibt fuer sie leer/kontextuell).
         Color.clear
       default:
-        ModulePlaceholder(module: selectedModule, pane: "Detail")
+        ModulePlaceholder(module: selectedModule ?? .heute, pane: "Detail")
       }
+    }
+    .navigationSplitViewStyle(.balanced)
+  }
+
+  @ViewBuilder
+  private func moduleContent(_ module: ComHubModule) -> some View {
+    switch module {
+    case .heute:    CockpitView(onOpenModule: { selectedModule = $0 })
+    case .kalender: CalendarModuleView()
+    case .kontakte: ContactsModuleView()
+    case .kombox:   KomboxModuleView()
+    case .whatsapp: WhatsAppModuleView()
+    case .einstellungen: SettingsModuleView()
+    case .tasks:    AufgabenModuleView()
+    default:        ModulePlaceholder(module: module, pane: "Liste")
     }
   }
 
