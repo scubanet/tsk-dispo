@@ -8,6 +8,8 @@ struct SettingsModuleView: View {
   @Environment(AppleAuthorizationService.self) private var appleAuth
   @Environment(\.openURL) private var openURL
 
+  @State private var push = PushService.shared
+
   private var user: CurrentUser? {
     if case .signedIn(let u) = auth.status { return u }
     return nil
@@ -24,6 +26,7 @@ struct SettingsModuleView: View {
         header
         accountGroup
         permissionsGroup
+        notificationsGroup
         appearanceGroup
         Text(appVersion).font(.system(size: 11.5)).foregroundStyle(.tertiary)
           .frame(maxWidth: .infinity, alignment: .center)
@@ -32,7 +35,10 @@ struct SettingsModuleView: View {
       .frame(maxWidth: 620, alignment: .leading)
       .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .onAppear { appleAuth.refreshStatus() }
+    .onAppear {
+      appleAuth.refreshStatus()
+      Task { await push.refreshStatus() }
+    }
   }
 
   private var header: some View {
@@ -76,6 +82,52 @@ struct SettingsModuleView: View {
         }
       }
     }
+  }
+
+  private var notificationsGroup: some View {
+    SettingsGroup(title: "Benachrichtigungen") {
+      SettingsRow(icon: "bell.badge", iconColor: Color(red: 1, green: 0.27, blue: 0.23),
+                  title: "Push-Benachrichtigungen", subtitle: pushSubtitle, showDivider: pushShowsAction) {
+        SettingsStatusDot(on: push.status == .authorized,
+                          onLabel: "Aktiviert", offLabel: pushOffLabel)
+      }
+      if pushShowsAction {
+        SettingsRow(icon: "gearshape", iconColor: .secondary, title: "Benachrichtigungen verwalten",
+                    subtitle: push.status == .denied ? "In den Systemeinstellungen erlauben" : "Aktivieren, um Hinweise zu erhalten",
+                    showDivider: false) {
+          if push.status == .denied {
+            Button("System") { openNotificationSettings() }.buttonStyle(.borderless)
+          } else {
+            Button("Push aktivieren") { Task { await push.enable() } }.buttonStyle(.borderless)
+          }
+        }
+      }
+    }
+  }
+
+  private var pushShowsAction: Bool { push.status != .authorized }
+
+  private var pushSubtitle: String {
+    switch push.status {
+    case .authorized:  return "Aktiviert"
+    case .denied:      return "Nicht erteilt"
+    case .registering: return "Wird registriert …"
+    case .unknown:     return "Deaktiviert"
+    }
+  }
+
+  private var pushOffLabel: String {
+    push.status == .denied ? "Nicht erteilt" : "Deaktiviert"
+  }
+
+  private func openNotificationSettings() {
+    #if os(macOS)
+    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.notifications") {
+      openURL(url)
+    }
+    #else
+    if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+    #endif
   }
 
   private var appearanceGroup: some View {

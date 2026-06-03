@@ -14,6 +14,12 @@ struct ComHubApp: App {
   @State private var appleAuth: AppleAuthorizationService
   @State private var eventStore = EKEventStore()
 
+  #if os(iOS)
+  @UIApplicationDelegateAdaptor(PushAppDelegate.self) private var pushDelegate
+  #elseif os(macOS)
+  @NSApplicationDelegateAdaptor(PushAppDelegate.self) private var pushDelegate
+  #endif
+
   private static let logger = Logger(subsystem: "swiss.atoll.hub", category: "app")
 
   /// Erzwingt `AtollCoreConfig.register(...)` vor jeder `State`-Initialisierung —
@@ -57,13 +63,16 @@ struct ComHubApp: App {
         .onChange(of: authStatusKey) { _, _ in
           if case .signedIn(let user) = auth.status {
             HubWiring.connectAll(into: hub, currentUser: user, eventStore: eventStore)
+            PushService.shared.authUserId = user.authUserId
           } else {
             hub.reset()
+            PushService.shared.authUserId = nil
           }
         }
         .task(id: authStatusKey) {
           if case .signedIn(let user) = auth.status {
             HubWiring.connectAll(into: hub, currentUser: user, eventStore: eventStore)
+            PushService.shared.authUserId = user.authUserId
           }
         }
     }

@@ -43,6 +43,7 @@ targets:
         com.apple.security.network.client: true
         com.apple.security.personal-information.calendars: true
         com.apple.security.personal-information.addressbook: true
+        aps-environment: development
     dependencies:
       - package: AtollCore
       - package: AtollDesign
