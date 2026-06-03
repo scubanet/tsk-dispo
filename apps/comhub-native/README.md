@@ -143,3 +143,9 @@ APNs-Registrierung + Token-Upsert), Push-Schalter in Einstellungen,
 Entitlement `aps-environment=development`. Edge-Function `comhub-push`
 (APNs HTTP/2 + ES256-JWT, Owner→Tokens) ist **codefertig, nicht deployed** —
 braucht APNs-`.p8`-Key + Deploy (siehe `supabase/functions/comhub-push/README.md`).
+
+**Phase 8** — **Funktionsluecken**: Kontakt **loeschen** (Atoll soft-archive via
+`archived_at`, Apple hard-delete, mit Bestaetigung); Kombox **Quick-Log**
+(Notiz/Anruf/Meeting/Aufgabe als `contact_events`, eigene Verlauf-Marker);
+**CardInbox**-Modul (AtollCard-Leads aus `v_card_leads_inbox`, Liste + Heute-Count).
+Atoll-Standalone-Tasks bleiben offen (`contact_events.contact_id NOT NULL`).
