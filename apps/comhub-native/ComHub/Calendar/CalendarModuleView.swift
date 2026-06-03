@@ -28,6 +28,7 @@ struct CalendarModuleView: View {
     .task(id: reloadKey) {
       if sources == nil { sources = CalendarSourcesStore(store: EKEventStore()) }
       store.enabledCalendarIds = sources?.enabledIds
+      hub.disabledCalendarIds = sources?.disabledIds ?? []
       await store.reload(using: hub)
     }
     .sheet(isPresented: $showCreate) {
@@ -48,6 +49,7 @@ struct CalendarModuleView: View {
 
   private func applyFilter() {
     store.enabledCalendarIds = sources?.enabledIds
+    hub.disabledCalendarIds = sources?.disabledIds ?? []
     Task { await store.reload(using: hub) }
   }
 

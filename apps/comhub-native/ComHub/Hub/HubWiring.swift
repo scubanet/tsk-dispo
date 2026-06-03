@@ -13,6 +13,10 @@ enum HubWiring {
                          eventStore: EKEventStore) {
     hub.reset()
 
+    // Appweiter Kalender-Filter: persistierte deaktivierte Kalender laden, damit
+    // er schon beim ersten Heute-/Kalender-Laden greift.
+    hub.disabledCalendarIds = CalendarSourcesStore.persistedDisabled
+
     // Apple/iCloud: Kalender + Erinnerungen + Kontakte.
     let apple = Account(id: "apple", type: .apple, displayName: "iCloud",
                         capabilities: [.calendar, .contacts, .todo])

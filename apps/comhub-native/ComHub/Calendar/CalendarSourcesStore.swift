@@ -46,6 +46,18 @@ final class CalendarSourcesStore {
 
   func isEnabled(_ id: String) -> Bool { enabledIds?.contains(id) ?? true }
 
+  /// Deaktivierte Ids (für den appweiten Hub-Filter). Leer = alle aktiv.
+  var disabledIds: Set<String> {
+    guard let enabledIds else { return [] }
+    return Set(sources.map(\.id)).subtracting(enabledIds)
+  }
+
+  /// Persistierte deaktivierte Ids — ohne EKEventStore lesbar (für den App-Start,
+  /// damit der Hub-Filter schon vor dem ersten Heute-Laden greift).
+  static var persistedDisabled: Set<String> {
+    Set((UserDefaults.standard.array(forKey: "comhub.calendar.disabledIds") as? [String]) ?? [])
+  }
+
   func toggle(_ id: String) {
     var enabled = enabledIds ?? Set(sources.map(\.id))
     if enabled.contains(id) { enabled.remove(id) } else { enabled.insert(id) }

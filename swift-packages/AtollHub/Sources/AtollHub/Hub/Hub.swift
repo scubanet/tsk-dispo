@@ -32,6 +32,10 @@ public final class Hub {
   public private(set) var connections: [AccountConnection] = []
   public private(set) var lastErrors: [String] = []
 
+  /// Appweit deaktivierte Kalender-Ids (vom Kalender-Filter gesetzt, persistiert).
+  /// Wirkt auf JEDE Event-Aggregation (Heute-Cockpit, Kalender, …). Leer = kein Filter.
+  public var disabledCalendarIds: Set<String> = []
+
   public init() {}
 
   public func connect(_ connection: AccountConnection) {
@@ -56,7 +60,8 @@ public final class Hub {
         lastErrors.append("calendar[\(connection.account.id)]: \(error)")
       }
     }
-    return out.sorted { $0.start < $1.start }
+    let filtered = CalendarFilter.apply(out, disabledIds: disabledCalendarIds)
+    return filtered.sorted { $0.start < $1.start }
   }
 
   public func allTasks() async -> [UnifiedTask] {
