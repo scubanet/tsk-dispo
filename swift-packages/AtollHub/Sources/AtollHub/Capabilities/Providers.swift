@@ -40,3 +40,38 @@ public protocol EventsProvider: Sendable {
 public protocol CardInboxProvider: Sendable {
   func newLeads(limit: Int) async throws -> [Lead]
 }
+
+// — Schreib-Oberflaeche (Phase-5a) —
+
+/// Fehler, wenn ein Provider eine Schreib-Operation nicht unterstuetzt.
+public enum ProviderWriteError: Error, Sendable, Equatable {
+  case unsupported            // dieser Provider kann das nicht (Default)
+  case notFound               // Ziel-Objekt (Task/Event) nicht gefunden
+  case invalid(String)        // ungueltige Eingabe
+}
+
+public extension TodoProvider {
+  /// Schaltet den Erledigt-Status einer Aufgabe um. Default: nicht unterstuetzt.
+  func setDone(taskId: String, isDone: Bool) async throws {
+    throw ProviderWriteError.unsupported
+  }
+  /// Legt eine neue Aufgabe an (Liste optional). Default: nicht unterstuetzt.
+  func createTask(title: String, due: Date?, listId: String?) async throws {
+    throw ProviderWriteError.unsupported
+  }
+}
+
+public extension CalendarProvider {
+  /// Erstellt einen Termin und liefert ihn quellneutral zurueck. Default: nicht unterstuetzt.
+  func createEvent(_ draft: EventDraft) async throws -> UnifiedEvent {
+    throw ProviderWriteError.unsupported
+  }
+  /// Aktualisiert einen Termin (per UnifiedEvent.id). Default: nicht unterstuetzt.
+  func updateEvent(id: String, with draft: EventDraft) async throws -> UnifiedEvent {
+    throw ProviderWriteError.unsupported
+  }
+  /// Loescht einen Termin (per UnifiedEvent.id). Default: nicht unterstuetzt.
+  func deleteEvent(id: String) async throws {
+    throw ProviderWriteError.unsupported
+  }
+}
