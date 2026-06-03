@@ -126,4 +126,29 @@ public final class Hub {
   private var appleCalendar: CalendarProvider? {
     connections.first(where: { $0.account.type == .apple && $0.calendar != nil })?.calendar
   }
+
+  /// Erstellt einen Kontakt im gewählten Konto (Apple oder Atoll).
+  @discardableResult
+  public func createContact(_ draft: ContactDraft, source: AccountType) async throws -> UnifiedContact {
+    guard let prov = connections.first(where: { $0.account.type == source && $0.contacts != nil })?.contacts else {
+      throw ProviderWriteError.notFound
+    }
+    return try await prov.createContact(draft)
+  }
+  /// Aktualisiert einen Kontakt (per id-Präfix apple:/atoll:).
+  @discardableResult
+  public func updateContact(id: String, with draft: ContactDraft) async throws -> UnifiedContact {
+    let type: AccountType = id.hasPrefix("apple:") ? .apple : .atoll
+    guard let prov = connections.first(where: { $0.account.type == type && $0.contacts != nil })?.contacts else {
+      throw ProviderWriteError.notFound
+    }
+    return try await prov.updateContact(id: id, with: draft)
+  }
+  /// Erstellt eine Aufgabe im ersten schreibfähigen Apple-Todo-Konto.
+  public func createTask(title: String, due: Date?, listId: String?) async throws {
+    guard let todo = connections.first(where: { $0.account.type == .apple && $0.todo != nil })?.todo else {
+      throw ProviderWriteError.notFound
+    }
+    try await todo.createTask(title: title, due: due, listId: listId)
+  }
 }

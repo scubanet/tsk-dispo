@@ -31,6 +31,10 @@ public protocol TodoProvider: Sendable {
 /// Liefert Kontakte.
 public protocol ContactsProvider: Sendable {
   func contacts() async throws -> [UnifiedContact]
+  // Schreib-Anforderungen (Default in Extension) — als Requirement deklariert,
+  // damit der Hub ueber das Existential dynamisch auf die echte Impl dispatcht.
+  func createContact(_ draft: ContactDraft) async throws -> UnifiedContact
+  func updateContact(id: String, with draft: ContactDraft) async throws -> UnifiedContact
 }
 
 // — Atoll-spezifische Capabilities —
@@ -66,6 +70,17 @@ public extension TodoProvider {
   }
   /// Legt eine neue Aufgabe an (Liste optional). Default: nicht unterstuetzt.
   func createTask(title: String, due: Date?, listId: String?) async throws {
+    throw ProviderWriteError.unsupported
+  }
+}
+
+public extension ContactsProvider {
+  /// Erstellt einen Kontakt und liefert ihn quellneutral zurueck. Default: nicht unterstuetzt.
+  func createContact(_ draft: ContactDraft) async throws -> UnifiedContact {
+    throw ProviderWriteError.unsupported
+  }
+  /// Aktualisiert einen Kontakt (per UnifiedContact.id). Default: nicht unterstuetzt.
+  func updateContact(id: String, with draft: ContactDraft) async throws -> UnifiedContact {
     throw ProviderWriteError.unsupported
   }
 }
