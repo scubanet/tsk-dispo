@@ -33,6 +33,12 @@ final class AufgabenStore {
     loading = false
   }
 
+  /// Legt eine neue Aufgabe ueber den Hub an (Apple Erinnerung), dann neu laden.
+  func create(title: String, due: Date?, listId: String?, using hub: Hub) async {
+    do { try await hub.createTask(title: title, due: due, listId: listId); await reload(using: hub) }
+    catch { /* optional: store an error if the store has an error property */ }
+  }
+
   /// Schaltet Erledigt optimistisch um, schreibt ueber den Hub, Rollback bei Fehler.
   func toggleDone(_ task: UnifiedTask, using hub: Hub) async {
     let target = !task.isDone

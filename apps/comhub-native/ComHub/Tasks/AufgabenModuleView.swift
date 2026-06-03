@@ -5,6 +5,7 @@ import AtollHub
 struct AufgabenModuleView: View {
   @Environment(Hub.self) private var hub
   @State private var store = AufgabenStore()
+  @State private var showNew = false
 
   var body: some View {
     @Bindable var store = store
@@ -13,6 +14,11 @@ struct AufgabenModuleView: View {
         if compact { compactBody(store) } else { wideBody(store) }
       }
       .task { await store.reload(using: hub) }
+      .sheet(isPresented: $showNew) {
+        TaskEditSheet { title, due, listId in
+          Task { await store.create(title: title, due: due, listId: listId, using: hub) }
+        }
+      }
     }
   }
 
@@ -43,6 +49,9 @@ struct AufgabenModuleView: View {
                 }
               }
             } label: { Image(systemName: "line.3.horizontal.decrease.circle") }
+          }
+          ToolbarItem(placement: .automatic) {
+            Button { showNew = true } label: { Image(systemName: "plus") }
           }
         }
     }
@@ -102,6 +111,8 @@ struct AufgabenModuleView: View {
         Text(headerTitle).font(.system(size: 20, weight: .bold))
         Spacer()
         if store.loading { ProgressView().controlSize(.small) }
+        Button { showNew = true } label: { Image(systemName: "plus") }
+          .buttonStyle(.plain)
       }
       .padding(.horizontal, 26).frame(height: 52)
       Divider()
