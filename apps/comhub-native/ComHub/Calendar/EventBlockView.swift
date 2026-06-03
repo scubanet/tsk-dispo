@@ -4,6 +4,7 @@ import AtollHub
 /// Ein positionierter Event-Block im Tagesgitter.
 struct EventBlockView: View {
   let event: UnifiedEvent
+  var onTap: (() -> Void)? = nil
 
   private var tint: Color {
     if let hex = event.colorHex, let c = Color(hex: hex) { return c }
@@ -28,5 +29,7 @@ struct EventBlockView: View {
       RoundedRectangle(cornerRadius: 2).fill(tint).frame(width: 3)
     }
     .clipShape(RoundedRectangle(cornerRadius: 6))
+    .contentShape(Rectangle())
+    .onTapGesture { onTap?() }
   }
 }

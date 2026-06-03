@@ -9,6 +9,8 @@ struct CalendarModuleView: View {
   @State private var store = CalendarStore()
   @State private var sources: CalendarSourcesStore?
   @State private var showFilter = false
+  @State private var editingEvent: UnifiedEvent?
+  @State private var showCreate = false
 
   private static let title: DateFormatter = {
     let f = DateFormatter(); f.dateFormat = "MMMM yyyy"
@@ -27,6 +29,18 @@ struct CalendarModuleView: View {
       if sources == nil { sources = CalendarSourcesStore(store: EKEventStore()) }
       store.enabledCalendarIds = sources?.enabledIds
       await store.reload(using: hub)
+    }
+    .sheet(isPresented: $showCreate) {
+      EventEditSheet(existing: nil, sources: sources, onSave: { draft in
+        Task { await store.create(draft, using: hub) }
+      }, onDelete: nil)
+    }
+    .sheet(item: $editingEvent) { ev in
+      EventEditSheet(existing: ev, sources: sources, onSave: { draft in
+        Task { await store.update(id: ev.id, with: draft, using: hub) }
+      }, onDelete: {
+        Task { await store.delete(id: ev.id, using: hub) }
+      })
     }
   }
 
@@ -58,6 +72,8 @@ struct CalendarModuleView: View {
         .popover(isPresented: $showFilter) {
           if let sources { CalendarFilterPopover(store: sources) { applyFilter() } }
         }
+      Button { showCreate = true } label: { Image(systemName: "plus") }
+        .buttonStyle(.bordered)
       if store.loading { ProgressView().controlSize(.small) }
     }
     .padding(.horizontal, 16).frame(height: 52)
@@ -67,9 +83,11 @@ struct CalendarModuleView: View {
   private var content: some View {
     switch store.kind {
     case .day:
-      DayGridView(store: store, days: [store.calendar.startOfDay(for: store.anchor)])
+      DayGridView(store: store, days: [store.calendar.startOfDay(for: store.anchor)],
+                  onEventTap: { editingEvent = $0 })
     case .week:
-      DayGridView(store: store, days: CalendarLayout.weekDays(of: store.anchor, calendar: store.calendar))
+      DayGridView(store: store, days: CalendarLayout.weekDays(of: store.anchor, calendar: store.calendar),
+                  onEventTap: { editingEvent = $0 })
     case .month:
       MonthGridView(store: store, onPickDay: { day in
         store.anchor = day

@@ -6,6 +6,13 @@ import AtollHub
 struct DayGridView: View {
   let store: CalendarStore
   let days: [Date]
+  var onEventTap: ((UnifiedEvent) -> Void)? = nil
+
+  /// Liefert den ungeschnittenen Original-Termin (volle Start/End-Zeiten) zur
+  /// Block-Id — fuer das Bearbeiten uebernaechtiger Termine.
+  private func original(of event: UnifiedEvent) -> UnifiedEvent {
+    store.events.first { $0.id == event.id } ?? event
+  }
 
   private let pxPerMin: CGFloat = 0.9
 
@@ -100,6 +107,8 @@ struct DayGridView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(ev.colorHex.flatMap(Color.init(hex:)) ?? (ev.source.type == .atoll ? CoColor.accent : .secondary),
                             in: RoundedRectangle(cornerRadius: 5))
+                .contentShape(Rectangle())
+                .onTapGesture { onEventTap?(ev) }
             }
           }
           .padding(4).frame(maxWidth: .infinity, alignment: .leading)
@@ -121,7 +130,7 @@ struct DayGridView: View {
         }
         ForEach(positioned) { slot in
           let colW = proxy.size.width / CGFloat(slot.columnCount)
-          EventBlockView(event: slot.event)
+          EventBlockView(event: slot.event, onTap: { onEventTap?(original(of: slot.event)) })
             .frame(width: colW - 3, height: geo.height(start: slot.event.start, end: slot.event.end))
             .offset(x: colW * CGFloat(slot.column) + 1, y: geo.y(slot.event.start))
         }

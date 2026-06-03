@@ -37,6 +37,23 @@ final class CalendarStore {
     loading = false
   }
 
+  // MARK: - Schreiben (Apple)
+
+  func create(_ draft: EventDraft, using hub: Hub) async {
+    do { _ = try await hub.createEvent(draft); await reload(using: hub) }
+    catch { errors.append("create: \(error)") }
+  }
+
+  func update(id: String, with draft: EventDraft, using hub: Hub) async {
+    do { _ = try await hub.updateEvent(id: id, with: draft); await reload(using: hub) }
+    catch { errors.append("update: \(error)") }
+  }
+
+  func delete(id: String, using hub: Hub) async {
+    do { try await hub.deleteEvent(id: id); await reload(using: hub) }
+    catch { errors.append("delete: \(error)") }
+  }
+
   // MARK: - Navigation
 
   func goToToday() { anchor = Date() }
