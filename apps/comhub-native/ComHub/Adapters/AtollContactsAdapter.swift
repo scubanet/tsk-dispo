@@ -58,8 +58,18 @@ struct AtollContactsAdapter: ContactsProvider {
     let languages: [String]
     let roles: [String]
     let tags: [String]
+    let birth_date: String?
     let notes: String?
   }
+
+  private static let birthFmt: DateFormatter = {
+    let f = DateFormatter()
+    f.calendar = Calendar(identifier: .gregorian)
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.timeZone = TimeZone(identifier: "Europe/Zurich")
+    f.dateFormat = "yyyy-MM-dd"
+    return f
+  }()
 
   private func write(from d: ContactDraft) -> ContactWrite {
     let isOrg = d.kind == .organization
@@ -77,6 +87,7 @@ struct AtollContactsAdapter: ContactsProvider {
                  city: $0.city, country: $0.country)
       },
       languages: d.languages, roles: d.roles, tags: d.tags,
+      birth_date: d.birthday.map { Self.birthFmt.string(from: $0) },
       notes: d.notes.isEmpty ? nil : d.notes)
   }
 
