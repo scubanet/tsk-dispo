@@ -85,6 +85,15 @@ public struct UnifiedTask: Sendable, Identifiable, Equatable, Hashable {
   }
 }
 
+public extension UnifiedTask {
+  /// Kopie mit geaendertem Erledigt-Status (fuer optimistische Updates).
+  func withDone(_ done: Bool) -> UnifiedTask {
+    UnifiedTask(id: id, source: source, title: title, due: due, isDone: done,
+                listName: listName, listColorHex: listColorHex, isFlagged: isFlagged,
+                priority: priority, notes: notes)
+  }
+}
+
 /// Quellneutraler Kontakt (Atoll-CRM / Apple-Kontakte).
 public struct UnifiedContact: Sendable, Identifiable, Equatable, Hashable {
   public let id: String

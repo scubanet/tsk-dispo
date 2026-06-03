@@ -5,6 +5,7 @@ import AtollHub
 struct TaskRow: View {
   let task: UnifiedTask
   var showList: Bool = true
+  var onToggle: (() -> Void)? = nil
 
   private var listColor: Color {
     if let hex = task.listColorHex, let c = Color(hex: hex) { return c }
@@ -17,12 +18,15 @@ struct TaskRow: View {
 
   var body: some View {
     HStack(alignment: .top, spacing: 11) {
-      ZStack {
-        Circle().strokeBorder(task.isDone ? Color.clear : .secondary, lineWidth: 1.8)
-          .background(Circle().fill(task.isDone ? listColor : Color.clear))
-          .frame(width: 20, height: 20)
-        if task.isDone { Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(.white) }
+      Button { onToggle?() } label: {
+        ZStack {
+          Circle().strokeBorder(task.isDone ? Color.clear : .secondary, lineWidth: 1.8)
+            .background(Circle().fill(task.isDone ? listColor : Color.clear))
+            .frame(width: 20, height: 20)
+          if task.isDone { Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(.white) }
+        }
       }
+      .buttonStyle(.plain)
       VStack(alignment: .leading, spacing: 2) {
         HStack(spacing: 7) {
           Text(task.title).font(.system(size: 13.5))

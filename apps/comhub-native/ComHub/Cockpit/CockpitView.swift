@@ -176,7 +176,10 @@ struct CockpitView: View {
       } else {
         ForEach(store.openTasks.prefix(4)) { task in
           HStack(spacing: 9) {
-            Circle().strokeBorder(.tertiary, lineWidth: 1.8).frame(width: 16, height: 16)
+            Button { Task { await cockpitToggle(task) } } label: {
+              Circle().strokeBorder(.tertiary, lineWidth: 1.8).frame(width: 16, height: 16)
+            }
+            .buttonStyle(.plain)
             Text(task.title).font(.system(size: 13)).lineLimit(1)
             Spacer(minLength: 0)
           }
@@ -184,6 +187,11 @@ struct CockpitView: View {
         }
       }
     }
+  }
+
+  private func cockpitToggle(_ t: UnifiedTask) async {
+    try? await hub.setTaskDone(t, done: !t.isDone)
+    await store.reload(using: hub)
   }
 
   private var komboxWidget: some View {

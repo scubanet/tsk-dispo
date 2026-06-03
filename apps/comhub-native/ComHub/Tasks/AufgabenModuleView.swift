@@ -82,11 +82,21 @@ struct AufgabenModuleView: View {
             ContentUnavailableView("Keine Aufgaben", systemImage: "checklist")
               .padding(.top, 40)
           } else {
-            ForEach(r.open) { TaskRow(task: $0, showList: store.list == nil); Divider() }
+            ForEach(r.open) { t in
+              TaskRow(task: t, showList: store.list == nil) {
+                Task { await store.toggleDone(t, using: hub) }
+              }
+              Divider()
+            }
             if !r.done.isEmpty {
               Text("\(r.done.count) erledigt").font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(.tertiary).padding(.top, 16).padding(.bottom, 4)
-              ForEach(r.done) { TaskRow(task: $0, showList: store.list == nil); Divider() }
+              ForEach(r.done) { t in
+                TaskRow(task: t, showList: store.list == nil) {
+                  Task { await store.toggleDone(t, using: hub) }
+                }
+                Divider()
+              }
             }
           }
         }

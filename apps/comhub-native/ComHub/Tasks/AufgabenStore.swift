@@ -32,4 +32,14 @@ final class AufgabenStore {
     all = await hub.allTasks()
     loading = false
   }
+
+  /// Schaltet Erledigt optimistisch um, schreibt ueber den Hub, Rollback bei Fehler.
+  func toggleDone(_ task: UnifiedTask, using hub: Hub) async {
+    let target = !task.isDone
+    if let i = all.firstIndex(where: { $0.id == task.id }) {
+      all[i] = all[i].withDone(target)
+    }
+    do { try await hub.setTaskDone(task, done: target) }
+    catch { await reload(using: hub) }
+  }
 }
