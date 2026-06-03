@@ -90,32 +90,50 @@ struct DayGridView: View {
     .fixedSize(horizontal: false, vertical: true)
   }
 
+  private static let allDayRowHeight: CGFloat = 19
+  private static let allDayRowGap: CGFloat = 3
+
+  private func allDayColor(_ ev: UnifiedEvent) -> Color {
+    ev.colorHex.flatMap(Color.init(hex:)) ?? (ev.source.type == .atoll ? CoColor.accent : .secondary)
+  }
+
+  /// Ganztags-Lane: durchgehende Balken (mehrtägige Events spannen über Spalten),
+  /// kompakt — nur so hoch wie die belegten Reihen.
   @ViewBuilder
   private var allDayLane: some View {
-    let lanes = days.map { day in
-      (day, (store.eventsByDay[store.calendar.startOfDay(for: day)] ?? []).filter(\.isAllDay))
-    }
-    if lanes.contains(where: { !$0.1.isEmpty }) {
-      HStack(spacing: 0) {
+    let rows = AllDaySpans.layout(store.events, days: days, calendar: store.calendar)
+    if !rows.isEmpty {
+      let laneHeight = CGFloat(rows.count) * Self.allDayRowHeight
+        + CGFloat(max(rows.count - 1, 0)) * Self.allDayRowGap
+      HStack(alignment: .top, spacing: 0) {
         Text("ganztägig").font(.system(size: 10)).foregroundStyle(.tertiary)
           .frame(width: 54, alignment: .trailing).padding(.trailing, 8)
-        ForEach(lanes, id: \.0) { _, evs in
-          VStack(alignment: .leading, spacing: 3) {
-            ForEach(evs) { ev in
-              Text(ev.title).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white)
-                .lineLimit(1).padding(.horizontal, 7).padding(.vertical, 2)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ev.colorHex.flatMap(Color.init(hex:)) ?? (ev.source.type == .atoll ? CoColor.accent : .secondary),
-                            in: RoundedRectangle(cornerRadius: 5))
-                .contentShape(Rectangle())
-                .onTapGesture { onEventTap?(ev) }
+        GeometryReader { proxy in
+          let colW = proxy.size.width / CGFloat(max(days.count, 1))
+          VStack(spacing: Self.allDayRowGap) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+              ZStack(alignment: .topLeading) {
+                ForEach(row) { bar in
+                  Text(bar.event.title).font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white).lineLimit(1)
+                    .padding(.horizontal, 7)
+                    .frame(width: max(colW * CGFloat(bar.span) - 4, 0),
+                           height: Self.allDayRowHeight, alignment: .leading)
+                    .background(allDayColor(bar.event), in: RoundedRectangle(cornerRadius: 5))
+                    .offset(x: colW * CGFloat(bar.startIndex) + 2)
+                    .contentShape(Rectangle())
+                    .onTapGesture { onEventTap?(bar.event) }
+                }
+              }
+              .frame(height: Self.allDayRowHeight, alignment: .leading)
+              .frame(maxWidth: .infinity, alignment: .leading)
             }
           }
-          .padding(4).frame(maxWidth: .infinity, alignment: .leading)
-          Divider()
         }
+        .frame(height: laneHeight)
       }
-      .padding(.vertical, 4)
+      .padding(.vertical, 5)
+      .fixedSize(horizontal: false, vertical: true)
       Divider()
     }
   }
