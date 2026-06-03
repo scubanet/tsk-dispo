@@ -114,15 +114,20 @@ struct DayGridView: View {
             ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
               ZStack(alignment: .topLeading) {
                 ForEach(row) { bar in
-                  Text(bar.event.title).font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.white).lineLimit(1)
-                    .padding(.horizontal, 7)
-                    .frame(width: max(colW * CGFloat(bar.span) - 4, 0),
-                           height: Self.allDayRowHeight, alignment: .leading)
-                    .background(allDayColor(bar.event), in: RoundedRectangle(cornerRadius: 5))
-                    .offset(x: colW * CGFloat(bar.startIndex) + 2)
-                    .contentShape(Rectangle())
-                    .onTapGesture { onEventTap?(bar.event) }
+                  Button { onEventTap?(bar.event) } label: {
+                    Text(bar.event.title).font(.system(size: 11, weight: .semibold))
+                      .foregroundStyle(.white).lineLimit(1)
+                      .padding(.horizontal, 7)
+                      .frame(width: max(colW * CGFloat(bar.span) - 4, 0),
+                             height: Self.allDayRowHeight, alignment: .leading)
+                      .background(allDayColor(bar.event), in: RoundedRectangle(cornerRadius: 5))
+                      .contentShape(Rectangle())
+                  }
+                  .buttonStyle(.plain)
+                  // Positionierung ueber Leading-Padding (nicht .offset) — sonst liegt
+                  // die Trefferflaeche ausserhalb der ZStack-Bounds (nicht klickbar).
+                  .padding(.leading, colW * CGFloat(bar.startIndex) + 2)
+                  .frame(maxWidth: .infinity, alignment: .leading)
                 }
               }
               .frame(height: Self.allDayRowHeight, alignment: .leading)
