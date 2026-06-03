@@ -6,7 +6,7 @@ import AtollHub
 /// damit Kanal/Betreff/Text immer sichtbar bleiben.
 struct NewMessageSheet: View {
   let contacts: [MergedContact]
-  let onSend: (_ atollContactId: String, _ channel: KomboxChannel, _ body: String, _ subject: String?) -> Void
+  let onSend: (_ atollContactId: String, _ channel: KomboxChannel, _ body: String, _ subject: String?) async -> Bool
   @Environment(\.dismiss) private var dismiss
 
   @State private var selected: MergedContact?
@@ -47,9 +47,8 @@ struct NewMessageSheet: View {
       saveTitle: "Senden",
       canSave: canSend,
       onSave: {
-        if let s = selected, let id = Self.atollId(s) {
-          onSend(id, channel, messageText, channel == .mail ? (subject.isEmpty ? nil : subject) : nil)
-        }
+        guard let s = selected, let id = Self.atollId(s) else { return false }
+        return await onSend(id, channel, messageText, channel == .mail ? (subject.isEmpty ? nil : subject) : nil)
       }
     ) {
       Section("Kanal") {

@@ -35,17 +35,19 @@ final class AufgabenStore {
   }
 
   /// Legt eine neue Aufgabe ueber den Hub an (Apple Erinnerung), dann neu laden.
-  func create(title: String, due: Date?, listId: String?, using hub: Hub) async {
+  @discardableResult
+  func create(title: String, due: Date?, listId: String?, using hub: Hub) async -> Bool {
     lastError = nil
-    do { try await hub.createTask(title: title, due: due, listId: listId); await reload(using: hub) }
-    catch { lastError = "Erstellen fehlgeschlagen: \(error)" }
+    do { try await hub.createTask(title: title, due: due, listId: listId); await reload(using: hub); return true }
+    catch { lastError = "Erstellen fehlgeschlagen: \(error)"; return false }
   }
 
   /// Aendert eine bestehende Aufgabe (Titel/Faelligkeit/Liste), dann neu laden.
-  func update(id: String, title: String, due: Date?, listId: String?, using hub: Hub) async {
+  @discardableResult
+  func update(id: String, title: String, due: Date?, listId: String?, using hub: Hub) async -> Bool {
     lastError = nil
-    do { try await hub.updateTask(id: id, title: title, due: due, listId: listId); await reload(using: hub) }
-    catch { lastError = "Aendern fehlgeschlagen: \(error)" }
+    do { try await hub.updateTask(id: id, title: title, due: due, listId: listId); await reload(using: hub); return true }
+    catch { lastError = "Aendern fehlgeschlagen: \(error)"; return false }
   }
 
   /// Schaltet Erledigt optimistisch um, schreibt ueber den Hub, laedt danach neu

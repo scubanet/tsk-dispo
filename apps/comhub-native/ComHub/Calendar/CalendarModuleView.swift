@@ -33,7 +33,7 @@ struct CalendarModuleView: View {
     }
     .sheet(isPresented: $showCreate) {
       EventEditSheet(existing: nil, sources: sources, onSave: { draft in
-        Task { await store.create(draft, using: hub) }
+        await store.create(draft, using: hub)
       }, onDelete: nil)
     }
     .sheet(item: $editingEvent) { ev in
@@ -42,7 +42,7 @@ struct CalendarModuleView: View {
         EventReadOnlySheet(event: ev)
       } else {
         EventEditSheet(existing: ev, sources: sources, onSave: { draft in
-          Task { await store.update(id: ev.id, with: draft, using: hub) }
+          await store.update(id: ev.id, with: draft, using: hub)
         }, onDelete: {
           Task { await store.delete(id: ev.id, using: hub) }
         })

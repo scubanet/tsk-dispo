@@ -33,7 +33,7 @@ struct KomboxModuleView: View {
       }
       .sheet(isPresented: $showNew) {
         NewMessageSheet(contacts: contactsStore.merged) { contactId, channel, body, subject in
-          Task { _ = await store.sendNew(contactId: contactId, channel: channel, body: body, subject: subject) }
+          await store.sendNew(contactId: contactId, channel: channel, body: body, subject: subject)
         }
       }
     }

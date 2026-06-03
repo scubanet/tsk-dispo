@@ -5,7 +5,7 @@ import AtollHub
 /// aus lokalem State und liefert ihn samt gewaehlter Quelle ueber `onSave`.
 struct ContactEditSheet: View {
   let existing: MergedContact?         // nil → erstellen
-  let onSave: (ContactDraft, AccountType) -> Void
+  let onSave: (ContactDraft, AccountType) async -> Bool
   @Environment(\.dismiss) private var dismiss
 
   @State private var kind: ContactKind = .person
@@ -42,7 +42,7 @@ struct ContactEditSheet: View {
       tint: CoColor.accent,
       title: existing == nil ? "Neuer Kontakt" : "Kontakt bearbeiten",
       canSave: draft.isValid,
-      onSave: { onSave(draft, source) }
+      onSave: { await onSave(draft, source) }
     ) {
       if existing == nil {
         Section("Quelle") {

@@ -28,13 +28,13 @@ struct ContactsModuleView: View {
       }
       .sheet(isPresented: $showCreate) {
         ContactEditSheet(existing: nil) { draft, src in
-          Task { await store.create(draft, source: src, using: hub) }
+          await store.create(draft, source: src, using: hub)
         }
       }
       .sheet(item: $editing) { c in
         ContactEditSheet(existing: c) { draft, _ in
           let memberId = (c.members.first { $0.source.type == .atoll } ?? c.members.first)?.id ?? c.id
-          Task { await store.update(id: memberId, with: draft, using: hub) }
+          return await store.update(id: memberId, with: draft, using: hub)
         }
       }
     }

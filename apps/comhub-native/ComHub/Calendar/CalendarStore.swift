@@ -39,14 +39,16 @@ final class CalendarStore {
 
   // MARK: - Schreiben (Apple)
 
-  func create(_ draft: EventDraft, using hub: Hub) async {
-    do { _ = try await hub.createEvent(draft); await reload(using: hub) }
-    catch { errors.append("create: \(error)") }
+  @discardableResult
+  func create(_ draft: EventDraft, using hub: Hub) async -> Bool {
+    do { _ = try await hub.createEvent(draft); await reload(using: hub); return true }
+    catch { errors.append("create: \(error)"); return false }
   }
 
-  func update(id: String, with draft: EventDraft, using hub: Hub) async {
-    do { _ = try await hub.updateEvent(id: id, with: draft); await reload(using: hub) }
-    catch { errors.append("update: \(error)") }
+  @discardableResult
+  func update(id: String, with draft: EventDraft, using hub: Hub) async -> Bool {
+    do { _ = try await hub.updateEvent(id: id, with: draft); await reload(using: hub); return true }
+    catch { errors.append("update: \(error)"); return false }
   }
 
   func delete(id: String, using hub: Hub) async {

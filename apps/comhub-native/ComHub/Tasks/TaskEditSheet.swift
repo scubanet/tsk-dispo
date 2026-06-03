@@ -6,7 +6,7 @@ import AtollHub
 /// → Erstellen. Titel Pflicht; Faelligkeit + Liste optional.
 struct TaskEditSheet: View {
   var existing: UnifiedTask? = nil
-  let onSave: (_ title: String, _ due: Date?, _ listId: String?) -> Void
+  let onSave: (_ title: String, _ due: Date?, _ listId: String?) async -> Bool
   @Environment(\.dismiss) private var dismiss
   @State private var title = ""
   @State private var hasDue = false
@@ -26,7 +26,7 @@ struct TaskEditSheet: View {
       tint: CoColor.accent,
       title: existing == nil ? "Neue Aufgabe" : "Aufgabe bearbeiten",
       canSave: !title.trimmingCharacters(in: .whitespaces).isEmpty,
-      onSave: { onSave(title, hasDue ? due : nil, listId) }
+      onSave: { await onSave(title, hasDue ? due : nil, listId) }
     ) {
       Section("Titel") {
         TextField("Titel", text: $title)

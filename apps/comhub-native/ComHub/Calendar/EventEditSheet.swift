@@ -5,7 +5,7 @@ import AtollHub
 struct EventEditSheet: View {
   let existing: UnifiedEvent?
   let sources: CalendarSourcesStore?
-  let onSave: (EventDraft) -> Void
+  let onSave: (EventDraft) async -> Bool
   let onDelete: (() -> Void)?
   @Environment(\.dismiss) private var dismiss
 
@@ -23,8 +23,8 @@ struct EventEditSheet: View {
       title: existing == nil ? "Neuer Termin" : "Termin bearbeiten",
       canSave: !title.trimmingCharacters(in: .whitespaces).isEmpty && end > start,
       onSave: {
-        onSave(EventDraft(title: title, start: start, end: end, isAllDay: isAllDay,
-                          location: location.isEmpty ? nil : location, calendarId: calendarId))
+        await onSave(EventDraft(title: title, start: start, end: end, isAllDay: isAllDay,
+                                location: location.isEmpty ? nil : location, calendarId: calendarId))
       },
       onDelete: onDelete
     ) {

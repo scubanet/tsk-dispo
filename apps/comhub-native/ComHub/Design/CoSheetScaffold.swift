@@ -10,10 +10,12 @@ struct CoSheetScaffold<Content: View>: View {
   var subtitle: String? = nil
   var saveTitle: String = "Sichern"
   let canSave: Bool
-  let onSave: () -> Void
+  let onSave: () async -> Bool      // true = erfolgreich -> Sheet schliesst
   var onDelete: (() -> Void)? = nil
   @ViewBuilder var content: () -> Content
   @Environment(\.dismiss) private var dismiss
+  @State private var saving = false
+  @State private var failed = false
 
   var body: some View {
     VStack(spacing: 0) {
@@ -40,6 +42,13 @@ struct CoSheetScaffold<Content: View>: View {
 
       Divider()
 
+      if failed {
+        Text("Speichern fehlgeschlagen. Bitte erneut versuchen.")
+          .font(.system(size: 12)).foregroundStyle(.red)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(.horizontal, 18).padding(.bottom, 4)
+      }
+
       // Fussleiste
       HStack(spacing: 10) {
         if let onDelete {
@@ -52,10 +61,22 @@ struct CoSheetScaffold<Content: View>: View {
         Button("Abbrechen") { dismiss() }
           .buttonStyle(.bordered)
           .keyboardShortcut(.cancelAction)
-        Button(saveTitle) { onSave(); dismiss() }
-          .buttonStyle(.borderedProminent)
-          .keyboardShortcut(.defaultAction)
-          .disabled(!canSave)
+        Button {
+          saving = true; failed = false
+          Task {
+            let ok = await onSave()
+            saving = false
+            if ok { dismiss() } else { failed = true }
+          }
+        } label: {
+          HStack(spacing: 6) {
+            if saving { ProgressView().controlSize(.small) }
+            Text(saveTitle)
+          }
+        }
+        .buttonStyle(.borderedProminent)
+        .keyboardShortcut(.defaultAction)
+        .disabled(!canSave || saving)
       }
       .padding(.horizontal, 18).padding(.vertical, 12)
     }

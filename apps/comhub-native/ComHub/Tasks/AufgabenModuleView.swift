@@ -17,12 +17,12 @@ struct AufgabenModuleView: View {
       .task { await store.reload(using: hub) }
       .sheet(isPresented: $showNew) {
         TaskEditSheet { title, due, listId in
-          Task { await store.create(title: title, due: due, listId: listId, using: hub) }
+          await store.create(title: title, due: due, listId: listId, using: hub)
         }
       }
       .sheet(item: $editing) { t in
         TaskEditSheet(existing: t) { title, due, listId in
-          Task { await store.update(id: t.id, title: title, due: due, listId: listId, using: hub) }
+          await store.update(id: t.id, title: title, due: due, listId: listId, using: hub)
         }
       }
     }
