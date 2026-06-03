@@ -149,3 +149,8 @@ braucht APNs-`.p8`-Key + Deploy (siehe `supabase/functions/comhub-push/README.md
 (Notiz/Anruf/Meeting/Aufgabe als `contact_events`, eigene Verlauf-Marker);
 **CardInbox**-Modul (AtollCard-Leads aus `v_card_leads_inbox`, Liste + Heute-Count).
 Atoll-Standalone-Tasks bleiben offen (`contact_events.contact_id NOT NULL`).
+
+**Phase 8b** — **Globale Suche**: Lupe in der Sidebar + ⌘F oeffnen ein Such-Overlay
+ueber **Kontakte / Termine / Aufgaben** (gruppierte, gerankte Treffer, Tap springt
+ins Modul). Reiner Scorer getestet in `AtollHub` (`SearchRank`: diakritik-/
+gross-klein-unempfindlich, Prefix > Wortanfang > Contains).
