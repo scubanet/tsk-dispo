@@ -19,7 +19,7 @@ struct AtollContactsAdapter: ContactsProvider {
   func contacts() async throws -> [UnifiedContact] {
     let rows: [AtollContactRow] = try await SupabaseClient.shared
       .from("contacts")
-      .select("id, kind, first_name, last_name, trading_name, legal_name, primary_email, emails, phones")
+      .select("id, kind, first_name, last_name, trading_name, legal_name, primary_email, emails, phones, birth_date, addresses, languages, roles, tags, notes")
       .is("archived_at", value: nil as Bool?)
       .is("merged_into_id", value: nil as Bool?)
       .order("last_name", ascending: true)
