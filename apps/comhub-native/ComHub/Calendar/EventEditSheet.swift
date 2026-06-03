@@ -17,48 +17,37 @@ struct EventEditSheet: View {
   @State private var calendarId: String?
 
   var body: some View {
-    NavigationStack {
-      Form {
-        Section {
-          TextField("Titel", text: $title)
-          Toggle("Ganztägig", isOn: $isAllDay)
-          DatePicker("Beginn", selection: $start)
-          DatePicker("Ende", selection: $end)
-          TextField("Ort", text: $location)
-        }
-        if let appleSources = sources?.sources.filter({ $0.id != "atoll" }), !appleSources.isEmpty {
-          Section("Kalender") {
-            Picker("Kalender", selection: $calendarId) {
-              ForEach(appleSources) { s in Text(s.title).tag(Optional(s.id)) }
-            }
-          }
-        }
-        if let onDelete {
-          Section {
-            Button("Termin löschen", role: .destructive) { onDelete(); dismiss() }
-          }
-        }
+    CoSheetScaffold(
+      icon: "calendar",
+      tint: CoColor.module(.kalender),
+      title: existing == nil ? "Neuer Termin" : "Termin bearbeiten",
+      canSave: !title.trimmingCharacters(in: .whitespaces).isEmpty && end > start,
+      onSave: {
+        onSave(EventDraft(title: title, start: start, end: end, isAllDay: isAllDay,
+                          location: location.isEmpty ? nil : location, calendarId: calendarId))
+      },
+      onDelete: onDelete
+    ) {
+      Section("Termin") {
+        TextField("Titel", text: $title)
+        Toggle("Ganztägig", isOn: $isAllDay)
+        DatePicker("Beginn", selection: $start)
+        DatePicker("Ende", selection: $end)
+        TextField("Ort", text: $location)
       }
-      .navigationTitle(existing == nil ? "Neuer Termin" : "Termin bearbeiten")
-      .toolbar {
-        ToolbarItem(placement: .cancellationAction) { Button("Abbrechen") { dismiss() } }
-        ToolbarItem(placement: .confirmationAction) {
-          Button("Sichern") {
-            onSave(EventDraft(title: title, start: start, end: end, isAllDay: isAllDay,
-                              location: location.isEmpty ? nil : location, calendarId: calendarId))
-            dismiss()
-          }.disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || end <= start)
-        }
-      }
-      .onAppear {
-        if let e = existing {
-          title = e.title; start = e.start; end = e.end
-          isAllDay = e.isAllDay; location = e.location ?? ""; calendarId = e.calendarId
+      if let appleSources = sources?.sources.filter({ $0.id != "atoll" }), !appleSources.isEmpty {
+        Section("Kalender") {
+          Picker("Kalender", selection: $calendarId) {
+            ForEach(appleSources) { s in Text(s.title).tag(Optional(s.id)) }
+          }
         }
       }
     }
-    #if os(macOS)
-    .frame(minWidth: 420, minHeight: 420)
-    #endif
+    .onAppear {
+      if let e = existing {
+        title = e.title; start = e.start; end = e.end
+        isAllDay = e.isAllDay; location = e.location ?? ""; calendarId = e.calendarId
+      }
+    }
   }
 }

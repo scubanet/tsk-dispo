@@ -40,66 +40,61 @@ struct NewMessageSheet: View {
   }
 
   var body: some View {
-    NavigationStack {
-      Form {
+    CoSheetScaffold(
+      icon: "square.and.pencil",
+      tint: CoColor.module(.kombox),
+      title: "Neue Nachricht",
+      saveTitle: "Senden",
+      canSave: canSend,
+      onSave: {
+        if let s = selected, let id = Self.atollId(s) {
+          onSend(id, channel, messageText, channel == .mail ? (subject.isEmpty ? nil : subject) : nil)
+        }
+      }
+    ) {
+      Section("Kanal") {
         Picker("Kanal", selection: $channel) {
           Text("WhatsApp").tag(KomboxChannel.whatsapp)
           Text("Mail").tag(KomboxChannel.mail)
         }
         .pickerStyle(.segmented)
+      }
 
-        Section("Empfänger") {
-          Button { showPicker = true } label: {
-            HStack {
-              if let s = selected {
-                VStack(alignment: .leading, spacing: 2) {
-                  Text(s.displayName).foregroundStyle(.primary)
-                  if let d = recipientDetail { Text(d).font(.caption).foregroundStyle(.secondary) }
-                }
-              } else {
-                Text("Empfänger wählen").foregroundStyle(.secondary)
+      Section("Empfänger") {
+        Button { showPicker = true } label: {
+          HStack {
+            if let s = selected {
+              VStack(alignment: .leading, spacing: 2) {
+                Text(s.displayName).foregroundStyle(.primary)
+                if let d = recipientDetail { Text(d).font(.caption).foregroundStyle(.secondary) }
               }
-              Spacer()
-              Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+            } else {
+              Text("Empfänger wählen").foregroundStyle(.secondary)
             }
-            .contentShape(Rectangle())
+            Spacer()
+            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
           }
-          .buttonStyle(.plain)
-          if selected != nil, !recipientValid {
-            Text(channel == .mail ? "Keine E-Mail hinterlegt." : "Keine Telefonnummer hinterlegt.")
-              .font(.caption).foregroundStyle(.red)
-          }
+          .contentShape(Rectangle())
         }
-
-        if channel == .mail {
-          Section("Betreff") { TextField("Betreff", text: $subject) }
-        }
-
-        Section("Nachricht") {
-          TextField("Text", text: $messageText, axis: .vertical)
-            .lineLimit(4...12)
+        .buttonStyle(.plain)
+        if selected != nil, !recipientValid {
+          Text(channel == .mail ? "Keine E-Mail hinterlegt." : "Keine Telefonnummer hinterlegt.")
+            .font(.caption).foregroundStyle(.red)
         }
       }
-      .navigationTitle("Neue Nachricht")
-      .toolbar {
-        ToolbarItem(placement: .cancellationAction) { Button("Abbrechen") { dismiss() } }
-        ToolbarItem(placement: .confirmationAction) {
-          Button("Senden") {
-            if let s = selected, let id = Self.atollId(s) {
-              onSend(id, channel, messageText, channel == .mail ? (subject.isEmpty ? nil : subject) : nil)
-              dismiss()
-            }
-          }
-          .disabled(!canSend)
-        }
+
+      if channel == .mail {
+        Section("Betreff") { TextField("Betreff", text: $subject) }
       }
-      .sheet(isPresented: $showPicker) {
-        RecipientPicker(contacts: eligible(for: channel), selected: $selected)
+
+      Section("Nachricht") {
+        TextField("Text", text: $messageText, axis: .vertical)
+          .lineLimit(4...12)
       }
     }
-    #if os(macOS)
-    .frame(minWidth: 460, minHeight: 540)
-    #endif
+    .sheet(isPresented: $showPicker) {
+      RecipientPicker(contacts: eligible(for: channel), selected: $selected)
+    }
   }
 }
 

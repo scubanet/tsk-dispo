@@ -37,14 +37,22 @@ struct ContactEditSheet: View {
   }
 
   var body: some View {
-    NavigationStack {
-      Form {
-        if existing == nil {
+    CoSheetScaffold(
+      icon: "person.crop.circle",
+      tint: CoColor.accent,
+      title: existing == nil ? "Neuer Kontakt" : "Kontakt bearbeiten",
+      canSave: draft.isValid,
+      onSave: { onSave(draft, source) }
+    ) {
+      if existing == nil {
+        Section("Quelle") {
           Picker("Quelle", selection: $source) {
             Text("Atoll").tag(AccountType.atoll)
             Text("Apple").tag(AccountType.apple)
           }
         }
+      }
+      Section("Name") {
         Picker("Typ", selection: $kind) {
           Text("Person").tag(ContactKind.person)
           Text("Firma").tag(ContactKind.organization)
@@ -55,49 +63,36 @@ struct ContactEditSheet: View {
         } else {
           TextField("Firmenname", text: $organizationName)
         }
-        Section("E-Mail") {
-          ForEach(emails.indices, id: \.self) { i in
-            TextField("E-Mail", text: $emails[i])
-          }
-          Button("E-Mail hinzufügen") { emails.append("") }
+      }
+      Section("E-Mail") {
+        ForEach(emails.indices, id: \.self) { i in
+          TextField("E-Mail", text: $emails[i])
         }
-        Section("Telefon") {
-          ForEach(phones.indices, id: \.self) { i in
-            TextField("Telefon", text: $phones[i])
-          }
-          Button("Telefon hinzufügen") { phones.append("") }
+        Button("E-Mail hinzufügen") { emails.append("") }
+      }
+      Section("Telefon") {
+        ForEach(phones.indices, id: \.self) { i in
+          TextField("Telefon", text: $phones[i])
         }
-        Section("Adresse") {
-          TextField("Strasse", text: $street)
-          TextField("PLZ", text: $postalCode)
-          TextField("Ort", text: $city)
-          TextField("Land", text: $country)
-        }
-        Section {
-          Toggle("Geburtstag", isOn: $hasBirthday)
-          if hasBirthday {
-            DatePicker("Datum", selection: $birthday, displayedComponents: .date)
-          }
-        }
-        Section("Notizen") {
-          TextField("Notizen", text: $notes, axis: .vertical)
+        Button("Telefon hinzufügen") { phones.append("") }
+      }
+      Section("Adresse") {
+        TextField("Strasse", text: $street)
+        TextField("PLZ", text: $postalCode)
+        TextField("Ort", text: $city)
+        TextField("Land", text: $country)
+      }
+      Section("Geburtstag") {
+        Toggle("Geburtstag", isOn: $hasBirthday)
+        if hasBirthday {
+          DatePicker("Datum", selection: $birthday, displayedComponents: .date)
         }
       }
-      .navigationTitle(existing == nil ? "Neuer Kontakt" : "Kontakt bearbeiten")
-      .toolbar {
-        ToolbarItem(placement: .cancellationAction) {
-          Button("Abbrechen") { dismiss() }
-        }
-        ToolbarItem(placement: .confirmationAction) {
-          Button("Sichern") { onSave(draft, source); dismiss() }
-            .disabled(!draft.isValid)
-        }
+      Section("Notizen") {
+        TextField("Notizen", text: $notes, axis: .vertical)
       }
-      .onAppear(perform: prefill)
     }
-    #if os(macOS)
-    .frame(minWidth: 480, minHeight: 560)
-    #endif
+    .onAppear { prefill() }
   }
 
   private func prefill() {

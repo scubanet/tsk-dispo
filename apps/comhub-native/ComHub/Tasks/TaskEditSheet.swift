@@ -21,33 +21,30 @@ struct TaskEditSheet: View {
   }()
 
   var body: some View {
-    NavigationStack {
-      Form {
+    CoSheetScaffold(
+      icon: "checklist",
+      tint: CoColor.accent,
+      title: existing == nil ? "Neue Aufgabe" : "Aufgabe bearbeiten",
+      canSave: !title.trimmingCharacters(in: .whitespaces).isEmpty,
+      onSave: { onSave(title, hasDue ? due : nil, listId) }
+    ) {
+      Section("Titel") {
         TextField("Titel", text: $title)
-        Section {
-          Toggle("Fällig", isOn: $hasDue)
-          if hasDue { DatePicker("Datum", selection: $due, displayedComponents: [.date, .hourAndMinute]) }
-        }
-        if !lists.isEmpty && !isAtoll {
+      }
+      Section("Fälligkeit") {
+        Toggle("Fällig", isOn: $hasDue)
+        if hasDue { DatePicker("Datum", selection: $due, displayedComponents: [.date, .hourAndMinute]) }
+      }
+      if !lists.isEmpty && !isAtoll {
+        Section("Liste") {
           Picker("Liste", selection: $listId) {
             Text("Standard").tag(String?.none)
             ForEach(lists, id: \.id) { l in Text(l.title).tag(Optional(l.id)) }
           }
         }
       }
-      .navigationTitle(existing == nil ? "Neue Aufgabe" : "Aufgabe bearbeiten")
-      .toolbar {
-        ToolbarItem(placement: .cancellationAction) { Button("Abbrechen") { dismiss() } }
-        ToolbarItem(placement: .confirmationAction) {
-          Button("Sichern") { onSave(title, hasDue ? due : nil, listId); dismiss() }
-            .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
-        }
-      }
-      .onAppear(perform: prefill)
     }
-    #if os(macOS)
-    .frame(minWidth: 380, minHeight: 320)
-    #endif
+    .onAppear { prefill() }
   }
 
   private func prefill() {
