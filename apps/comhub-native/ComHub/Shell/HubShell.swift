@@ -6,13 +6,24 @@ import AtollCore
 /// Phase 0 zeigt Platzhalter pro Modul; echte Inhalte folgen in Phase 1+.
 struct HubShell: View {
   @State private var selectedModule: ComHubModule? = .heute
+  @State private var showSearch = false
+  @State private var search = SearchStore()
   @Environment(AuthState.self) private var auth
+  @Environment(Hub.self) private var hub
   /// Badge-Zahlen je Modul (von Phasen gespeist; vorerst leer).
   private let badges: [ComHubModule: Int] = [:]
 
   var body: some View {
     NavigationSplitView {
       VStack(spacing: 0) {
+        HStack(spacing: 6) {
+          Text("ComHub").font(.system(size: 15, weight: .bold))
+          Spacer(minLength: 0)
+          IconButton(systemName: "magnifyingglass", help: "Suchen (⌘F)") { showSearch = true }
+            .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 14).padding(.top, 8).padding(.bottom, 2)
+
         List(selection: $selectedModule) {
           ForEach(ComHubModule.allCases.filter { $0 != .einstellungen }) { module in
             sidebarRow(module).tag(module)
@@ -49,6 +60,19 @@ struct HubShell: View {
       }
     }
     .navigationSplitViewStyle(.balanced)
+    .background(
+      // Unsichtbarer Cmd-F-Ausloeser (cross-platform).
+      Button("") { showSearch = true }
+        .keyboardShortcut("f", modifiers: .command)
+        .opacity(0).frame(width: 0, height: 0)
+    )
+    .sheet(isPresented: $showSearch) {
+      SearchOverlay(store: search, onOpen: { module in
+        selectedModule = module
+        showSearch = false
+      })
+      .task { await search.reload(using: hub) }
+    }
   }
 
   @ViewBuilder
