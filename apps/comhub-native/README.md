@@ -26,6 +26,9 @@ open ComHub.xcodeproj
 # auf macOS; testbare Logik liegt in den Paketen).
 xcodebuild -scheme ComHub -destination 'platform=macOS,arch=arm64' build
 
+# iOS-Simulator: Build verifizieren (gleiche Codebasis, adaptive Layouts).
+xcodebuild -scheme ComHub -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2' build
+
 # Kern-Logik (schnell, ohne Xcode) — hier liegen die Unit-Tests.
 cd ../../swift-packages/AtollHub && swift test
 ```
@@ -114,3 +117,12 @@ löschen** im Apple-Kalender (EventKit, Zielkalender wählbar) über ein
 über den Hub geroutet (`setTaskDone`/`createEvent`/`updateEvent`/`deleteEvent`,
 nach `source.type`). Reine Logik getestet in `AtollHub` (`SourceID`, `AtollTaskDone`,
 Hub-Routing mit Fake-Providern). Push/APNs folgt in Phase 5b.
+
+**Phase 6a** — **iOS-Feinschliff**: dieselbe Codebasis läuft jetzt auf iPhone/iPad.
+Shell cross-platform (optionale `List`-Selection, `NavigationStack`-Content,
+`.balanced`-Split). Die Multi-Pane-Module sind **adaptiv**: auf iPhone (kompakte
+Breite) wird aus dem Nebeneinander eine Master-Liste mit Push ins Detail (Kontakte,
+Kombox) bzw. ein Filter-Menü + Liste (Aufgaben); auf macOS/iPad bleibt das
+Wide-Layout unverändert. Kalender-Filter als kompaktes Popover. `CompactWidthReader`
+(`horizontalSizeClass` auf iOS, `false` auf macOS) steuert die Umschaltung.
+Google/Microsoft-Konten folgen in Phase 6b.
