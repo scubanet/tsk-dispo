@@ -5,6 +5,7 @@ import AtollHub
 /// Pro Nachricht „Loeschen" via Kontextmenue.
 struct ThreadView: View {
   let store: KomboxStore
+  @Environment(Hub.self) private var hub
 
   private static let dayLabel: DateFormatter = {
     let f = DateFormatter(); f.dateFormat = "EEEE, d. MMMM"
@@ -58,17 +59,80 @@ struct ThreadView: View {
             }
             .padding(.top, 6)
             ForEach(section.events) { event in
-              KomboxRow(event: event)
-                .contextMenu {
-                  Button("Löschen", role: .destructive) {
-                    Task { await store.deleteEvent(id: event.id) }
-                  }
-                }
+              ThreadMessageRow(
+                event: event,
+                onReply: { store.pendingReplyChannel = (event.kind == .email ? "email" : "whatsapp") },
+                onTask: { Task { try? await hub.createTask(title: taskTitle(event), due: nil, listId: nil) } },
+                onDelete: { Task { await store.deleteEvent(id: event.id) } }
+              )
             }
           }
         }
         .padding(12)
       }
     }
+  }
+
+  /// Aufgaben-Titel aus einer Nachricht (Betreff bzw. Body, gekuerzt).
+  private func taskTitle(_ event: KomboxEvent) -> String {
+    let raw = (event.subject ?? event.body ?? event.summary).trimmingCharacters(in: .whitespacesAndNewlines)
+    let oneLine = raw.replacingOccurrences(of: "\n", with: " ")
+    return oneLine.count > 120 ? String(oneLine.prefix(120)) + "…" : (oneLine.isEmpty ? "Aufgabe" : oneLine)
+  }
+}
+
+/// Eine Nachricht im Verlauf + Hover-Aktionsleiste (macOS) und Kontextmenue
+/// (iOS Long-Press / macOS Rechtsklick): Antworten · Task · Loeschen.
+private struct ThreadMessageRow: View {
+  let event: KomboxEvent
+  let onReply: () -> Void
+  let onTask: () -> Void
+  let onDelete: () -> Void
+  @State private var hovering = false
+
+  private var canReply: Bool { event.kind == .whatsapp || event.kind == .email }
+  private var alignTrailing: Bool { event.direction == .outbound }
+
+  var body: some View {
+    KomboxRow(event: event)
+      .overlay(alignment: alignTrailing ? .topLeading : .topTrailing) {
+        if hovering && event.kind != .system {
+          actionBar
+            .padding(.horizontal, 6)
+            .transition(.opacity)
+        }
+      }
+      .onHover { hovering = $0 }
+      .contextMenu {
+        if canReply { Button { onReply() } label: { Label("Antworten", systemImage: "arrowshape.turn.up.left") } }
+        Button { onTask() } label: { Label("Als Aufgabe", systemImage: "checklist") }
+        Button(role: .destructive) { onDelete() } label: { Label("Löschen", systemImage: "trash") }
+      }
+  }
+
+  private var actionBar: some View {
+    HStack(spacing: 2) {
+      if canReply {
+        iconButton("arrowshape.turn.up.left", "Antworten", action: onReply)
+      }
+      iconButton("checklist", "Als Aufgabe", action: onTask)
+      iconButton("trash", "Löschen", role: .destructive, action: onDelete)
+    }
+    .padding(3)
+    .background(.regularMaterial, in: Capsule())
+    .overlay(Capsule().strokeBorder(.quaternary, lineWidth: 0.5))
+    .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+  }
+
+  private func iconButton(_ symbol: String, _ help: String,
+                          role: ButtonRole? = nil, action: @escaping () -> Void) -> some View {
+    Button(role: role, action: action) {
+      Image(systemName: symbol).font(.system(size: 11))
+        .foregroundStyle(role == .destructive ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
+        .frame(width: 24, height: 22)
+        .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .help(help)
   }
 }

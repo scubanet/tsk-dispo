@@ -8,6 +8,7 @@ struct KomboxComposer: View {
   @State private var channel = "whatsapp"   // "whatsapp" | "email"
   @State private var subject = ""
   @State private var draft = ""
+  @FocusState private var inputFocused: Bool
 
   var body: some View {
     VStack(spacing: 8) {
@@ -28,6 +29,7 @@ struct KomboxComposer: View {
       HStack(spacing: 8) {
         TextField(channel == "email" ? "Antworten…" : "Nachricht…", text: $draft, axis: .vertical)
           .textFieldStyle(.plain).font(.system(size: 13.5)).lineLimit(1...4)
+          .focused($inputFocused)
           .padding(.horizontal, 12).padding(.vertical, 7)
           .background(.quaternary, in: RoundedRectangle(cornerRadius: 18))
         Button(action: sendNow) {
@@ -41,6 +43,12 @@ struct KomboxComposer: View {
       }
     }
     .padding(12)
+    .onChange(of: store.pendingReplyChannel) { _, new in
+      guard let new else { return }
+      channel = new
+      inputFocused = true
+      store.pendingReplyChannel = nil
+    }
   }
 
   private func channelButton(_ label: String, _ value: String, _ color: Color) -> some View {

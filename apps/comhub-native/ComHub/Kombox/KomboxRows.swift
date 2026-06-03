@@ -1,7 +1,22 @@
 import SwiftUI
 import AtollHub
 
-/// WhatsApp-Bubble: inbound links/grau, outbound rechts/gruen.
+/// WhatsApp-Markenfarbe (#25D366) — fuer Icon/Label aller WhatsApp-Nachrichten.
+let komboxWhatsAppGreen = Color(red: 0.145, green: 0.827, blue: 0.4)
+
+/// WhatsApp-Marker: gruenes Logo-Symbol + „WhatsApp" gruen (in/out gleich).
+private struct WhatsAppTag: View {
+  var body: some View {
+    HStack(spacing: 4) {
+      Image(systemName: "message.fill").font(.system(size: 9))
+      Text("WhatsApp").font(.system(size: 10, weight: .semibold))
+    }
+    .foregroundStyle(komboxWhatsAppGreen)
+  }
+}
+
+/// WhatsApp-Bubble: inbound links/hell, outbound rechts/gruen — WhatsApp-Marker
+/// (gruenes Icon + Label) auf beiden, wie in der Webversion.
 struct KomboxBubble: View {
   let event: KomboxEvent
   private var isOutbound: Bool { event.direction == .outbound }
@@ -14,17 +29,19 @@ struct KomboxBubble: View {
   var body: some View {
     HStack {
       if isOutbound { Spacer(minLength: 40) }
-      VStack(alignment: .leading, spacing: 2) {
-        Text("WhatsApp").font(.caption2).foregroundStyle(.secondary)
+      VStack(alignment: .leading, spacing: 3) {
+        WhatsAppTag()
         Text(event.body ?? event.summary).font(.callout)
         Text(Self.time.string(from: event.timestamp))
           .font(.caption2).foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .trailing)
       }
-      .padding(8)
+      .padding(9)
       .frame(maxWidth: 360, alignment: .leading)
-      .background(isOutbound ? Color.green.opacity(0.25) : Color.secondary.opacity(0.15),
+      .background(isOutbound ? komboxWhatsAppGreen.opacity(0.18) : Color.secondary.opacity(0.12),
                   in: RoundedRectangle(cornerRadius: 12))
+      .overlay(RoundedRectangle(cornerRadius: 12)
+        .strokeBorder(komboxWhatsAppGreen.opacity(isOutbound ? 0.35 : 0.18), lineWidth: 1))
       if !isOutbound { Spacer(minLength: 40) }
     }
   }
@@ -47,10 +64,10 @@ struct KomboxMailCard: View {
       VStack(alignment: .leading, spacing: 6) {
         Button { expanded.toggle() } label: {
           HStack(spacing: 8) {
-            Image(systemName: "envelope")
+            Image(systemName: "envelope.fill").foregroundStyle(CoColor.accent)
             VStack(alignment: .leading, spacing: 1) {
               Text(isOutbound ? "Gesendet · E-Mail" : "Empfangen · E-Mail")
-                .font(.caption2).foregroundStyle(.secondary)
+                .font(.system(size: 10, weight: .semibold)).foregroundStyle(CoColor.accent)
               Text(event.subject ?? event.summary).font(.callout.weight(.medium)).lineLimit(1)
               if !expanded, let body = event.body, !body.isEmpty {
                 Text(body).font(.caption).foregroundStyle(.secondary).lineLimit(1)
