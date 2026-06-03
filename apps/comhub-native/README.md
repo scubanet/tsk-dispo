@@ -105,3 +105,12 @@ Google/Microsoft-Konten in Phase 6.
 Heute-Cockpit-„Aufgaben"-Widget. Filter-Rail (Alle/Heute/Markiert + Apple-Listen),
 Liste mit offen/erledigt. Lese-only — Abhaken/Erstellen folgt in Phase 5.
 Filter-Logik getestet in `AtollHub` (`TaskDigest`). CardInbox folgt in Phase 4b.
+
+**Phase 5a** — **Schreiben (Write-back)**: Aufgaben **abhaken** (Apple Erinnerungen
+via EventKit + Atoll-Tasks via `contact_events`-Status) direkt in Liste und
+Heute-Cockpit (optimistisch, Rollback bei Fehler); **Termine erstellen/bearbeiten/
+löschen** im Apple-Kalender (EventKit, Zielkalender wählbar) über ein
+`EventEditSheet` (++-Button + Event-Tap); neue **Erinnerungen** anlegen. Quellneutral
+über den Hub geroutet (`setTaskDone`/`createEvent`/`updateEvent`/`deleteEvent`,
+nach `source.type`). Reine Logik getestet in `AtollHub` (`SourceID`, `AtollTaskDone`,
+Hub-Routing mit Fake-Providern). Push/APNs folgt in Phase 5b.
