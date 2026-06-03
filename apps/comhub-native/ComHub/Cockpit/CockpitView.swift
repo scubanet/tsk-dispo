@@ -178,6 +178,8 @@ struct CockpitView: View {
           HStack(spacing: 9) {
             Button { Task { await cockpitToggle(task) } } label: {
               Circle().strokeBorder(.tertiary, lineWidth: 1.8).frame(width: 16, height: 16)
+                .frame(width: 28, height: 28)        // volle Treffer-Flaeche
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             Text(task.title).font(.system(size: 13)).lineLimit(1)
