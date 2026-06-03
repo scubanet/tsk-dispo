@@ -8,6 +8,15 @@ struct AufgabenModuleView: View {
 
   var body: some View {
     @Bindable var store = store
+    CompactWidthReader { compact in
+      Group {
+        if compact { compactBody(store) } else { wideBody(store) }
+      }
+      .task { await store.reload(using: hub) }
+    }
+  }
+
+  private func wideBody(_ store: AufgabenStore) -> some View {
     HStack(spacing: 0) {
       rail(store: store)
         #if os(macOS)
@@ -16,7 +25,27 @@ struct AufgabenModuleView: View {
       Divider()
       list
     }
-    .task { await store.reload(using: hub) }
+  }
+
+  private func compactBody(_ store: AufgabenStore) -> some View {
+    NavigationStack {
+      list
+        .toolbar {
+          ToolbarItem(placement: .automatic) {
+            Menu {
+              ForEach(TaskSmartFilter.allCases) { f in
+                Button { store.list = nil; store.smart = f } label: { Label(f.title, systemImage: icon(f)) }
+              }
+              if !store.lists.isEmpty {
+                Divider()
+                ForEach(store.lists) { l in
+                  Button { store.list = l.name } label: { Text(l.name) }
+                }
+              }
+            } label: { Image(systemName: "line.3.horizontal.decrease.circle") }
+          }
+        }
+    }
   }
 
   private func rail(store: AufgabenStore) -> some View {
