@@ -70,7 +70,12 @@ struct CalendarModuleView: View {
       Button { showFilter.toggle() } label: { Image(systemName: "line.3.horizontal.decrease.circle") }
         .buttonStyle(.bordered)
         .popover(isPresented: $showFilter) {
-          if let sources { CalendarFilterPopover(store: sources) { applyFilter() } }
+          Group {
+            if let sources { CalendarFilterPopover(store: sources) { applyFilter() } }
+          }
+          #if os(iOS)
+          .presentationCompactAdaptation(.popover)
+          #endif
         }
       Button { showCreate = true } label: { Image(systemName: "plus") }
         .buttonStyle(.bordered)
