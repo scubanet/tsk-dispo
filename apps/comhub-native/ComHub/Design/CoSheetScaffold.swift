@@ -59,7 +59,9 @@ struct CoSheetScaffold<Content: View>: View {
       }
       .padding(.horizontal, 18).padding(.vertical, 12)
     }
-    .tint(tint)
+    // Header-Tile traegt die Modulfarbe; Controls + primärer CTA bleiben Accent
+    // (sonst wirkt z. B. ein roter „Sichern"-Knopf wie eine destruktive Aktion).
+    .tint(CoColor.accent)
     #if os(macOS)
     .frame(minWidth: 480, idealWidth: 520, minHeight: 520)
     #endif
