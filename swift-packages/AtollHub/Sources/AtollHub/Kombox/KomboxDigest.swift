@@ -17,8 +17,8 @@ public enum KomboxDigest {
       .map { KomboxConversation(id: $0.contactId, contactName: $0.contactName, lastEvent: $0) }
   }
 
-  /// Events eines Verlaufs nach Tag gruppiert (Sektionen aufsteigend,
-  /// Events innerhalb aufsteigend nach Zeit) — fuer Tages-Trenner.
+  /// Events eines Verlaufs nach Tag gruppiert (Sektionen absteigend,
+  /// Events innerhalb absteigend nach Zeit) — neueste zuerst (oben).
   public static func threadSections(_ events: [KomboxEvent],
                                     calendar: Calendar) -> [KomboxDaySection] {
     var byDay: [Date: [KomboxEvent]] = [:]
@@ -26,9 +26,9 @@ public enum KomboxDigest {
       let day = calendar.startOfDay(for: e.timestamp)
       byDay[day, default: []].append(e)
     }
-    return byDay.keys.sorted().map { day in
+    return byDay.keys.sorted(by: >).map { day in
       KomboxDaySection(day: day,
-                       events: byDay[day]!.sorted { $0.timestamp < $1.timestamp })
+                       events: byDay[day]!.sorted { $0.timestamp > $1.timestamp })
     }
   }
 }

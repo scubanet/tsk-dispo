@@ -32,7 +32,7 @@ final class KomboxDigestTests: XCTestCase {
     XCTAssertEqual(convs[0].contactName, "Anna")
   }
 
-  func test_threadSections_groupedByDayAscendingWithEventsAscending() {
+  func test_threadSections_groupedByDayDescendingWithEventsDescending() {
     let events = [
       ev("d2", contact: "A", name: "Anna", "2026-06-02 15:00"),
       ev("d1b", contact: "A", name: "Anna", "2026-06-01 18:00"),
@@ -40,8 +40,10 @@ final class KomboxDigestTests: XCTestCase {
     ]
     let sections = KomboxDigest.threadSections(events, calendar: cal)
     XCTAssertEqual(sections.count, 2)
-    XCTAssertEqual(sections[0].day, cal.startOfDay(for: ts("2026-06-01 00:00")))
-    XCTAssertEqual(sections[0].events.map(\.id), ["d1a", "d1b"])
-    XCTAssertEqual(sections[1].events.map(\.id), ["d2"])
+    // Neueste zuerst (oben): 2. Juni vor 1. Juni; Events innerhalb absteigend.
+    XCTAssertEqual(sections[0].day, cal.startOfDay(for: ts("2026-06-02 00:00")))
+    XCTAssertEqual(sections[0].events.map(\.id), ["d2"])
+    XCTAssertEqual(sections[1].day, cal.startOfDay(for: ts("2026-06-01 00:00")))
+    XCTAssertEqual(sections[1].events.map(\.id), ["d1b", "d1a"])
   }
 }
