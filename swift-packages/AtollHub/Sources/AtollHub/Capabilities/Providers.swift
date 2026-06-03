@@ -7,6 +7,11 @@ import Foundation
 /// Liefert Kalendertermine in einem Zeitfenster.
 public protocol CalendarProvider: Sendable {
   func events(in interval: DateInterval) async throws -> [UnifiedEvent]
+  // Schreib-Anforderungen (Default in Extension) — als Requirement deklariert,
+  // damit der Hub ueber das Existential dynamisch auf die echte Impl dispatcht.
+  func createEvent(_ draft: EventDraft) async throws -> UnifiedEvent
+  func updateEvent(id: String, with draft: EventDraft) async throws -> UnifiedEvent
+  func deleteEvent(id: String) async throws
 }
 
 /// Liefert E-Mails (jüngste zuerst), begrenzt auf `limit`.
@@ -17,6 +22,10 @@ public protocol MailProvider: Sendable {
 /// Liefert offene/erledigte Aufgaben.
 public protocol TodoProvider: Sendable {
   func tasks() async throws -> [UnifiedTask]
+  // Schreib-Anforderungen (Default in Extension) — als Requirement deklariert,
+  // damit der Hub ueber das Existential dynamisch auf die echte Impl dispatcht.
+  func setDone(taskId: String, isDone: Bool) async throws
+  func createTask(title: String, due: Date?, listId: String?) async throws
 }
 
 /// Liefert Kontakte.

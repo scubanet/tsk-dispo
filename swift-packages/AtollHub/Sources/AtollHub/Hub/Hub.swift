@@ -86,4 +86,39 @@ public final class Hub {
     }
     return out
   }
+
+  // MARK: - Schreiben (Routing an die passende Verbindung)
+
+  /// Schaltet den Erledigt-Status eines Tasks um — am Konto, das zur Quelle passt.
+  public func setTaskDone(_ task: UnifiedTask, done: Bool) async throws {
+    guard let conn = connections.first(where: {
+      $0.account.type == task.source.type && $0.todo != nil
+    }), let todo = conn.todo else {
+      throw ProviderWriteError.notFound
+    }
+    try await todo.setDone(taskId: task.id, isDone: done)
+  }
+
+  /// Erstellt einen Termin im ersten schreibfaehigen Apple-Kalender-Konto.
+  @discardableResult
+  public func createEvent(_ draft: EventDraft) async throws -> UnifiedEvent {
+    guard let cal = appleCalendar else { throw ProviderWriteError.notFound }
+    return try await cal.createEvent(draft)
+  }
+
+  @discardableResult
+  public func updateEvent(id: String, with draft: EventDraft) async throws -> UnifiedEvent {
+    guard let cal = appleCalendar else { throw ProviderWriteError.notFound }
+    return try await cal.updateEvent(id: id, with: draft)
+  }
+
+  public func deleteEvent(id: String) async throws {
+    guard let cal = appleCalendar else { throw ProviderWriteError.notFound }
+    try await cal.deleteEvent(id: id)
+  }
+
+  /// Der Apple-Kalender-Provider (Schreiben geht nur nach Apple; Atoll-Events sind read-only).
+  private var appleCalendar: CalendarProvider? {
+    connections.first(where: { $0.account.type == .apple && $0.calendar != nil })?.calendar
+  }
 }
