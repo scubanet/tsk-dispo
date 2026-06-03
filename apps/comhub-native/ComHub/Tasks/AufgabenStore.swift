@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import EventKit
 import AtollHub
 
 /// Lade-Zustand fuers Aufgaben-Modul: alle Tasks via Hub, Smart/Listen-Filter.
@@ -26,6 +27,22 @@ final class AufgabenStore {
   /// (sonst koennte „Heute" in der Rail vom Listen-Inhalt abweichen).
   func smartOpenCount(_ smart: TaskSmartFilter) -> Int {
     TaskDigest.filter(all, smart: smart, list: nil, now: Date(), calendar: calendar).open.count
+  }
+
+  private nonisolated(unsafe) var changeObserver: NSObjectProtocol?
+
+  /// Reagiert auf System-Aenderungen (EventKit/Erinnerungen) und laedt neu. Idempotent.
+  func startObservingChanges(using hub: Hub) {
+    guard changeObserver == nil else { return }
+    changeObserver = NotificationCenter.default.addObserver(
+      forName: .EKEventStoreChanged, object: nil, queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor in await self?.reload(using: hub) }
+    }
+  }
+
+  deinit {
+    if let changeObserver { NotificationCenter.default.removeObserver(changeObserver) }
   }
 
   func reload(using hub: Hub) async {

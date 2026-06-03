@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import EventKit
 import AtollHub
 
 /// Steuert das Kalender-Modul: aktuelle Ansicht (`kind`), Anker-Datum und die
@@ -24,6 +25,22 @@ final class CalendarStore {
     c.timeZone = TimeZone(identifier: "Europe/Zurich") ?? .current
     c.firstWeekday = 2
     return c
+  }
+
+  private nonisolated(unsafe) var changeObserver: NSObjectProtocol?
+
+  /// Reagiert auf System-Aenderungen (EventKit) und laedt neu. Idempotent.
+  func startObservingChanges(using hub: Hub) {
+    guard changeObserver == nil else { return }
+    changeObserver = NotificationCenter.default.addObserver(
+      forName: .EKEventStoreChanged, object: nil, queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor in await self?.reload(using: hub) }
+    }
+  }
+
+  deinit {
+    if let changeObserver { NotificationCenter.default.removeObserver(changeObserver) }
   }
 
   func reload(using hub: Hub) async {

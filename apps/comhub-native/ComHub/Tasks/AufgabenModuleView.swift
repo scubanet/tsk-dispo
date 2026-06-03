@@ -14,7 +14,10 @@ struct AufgabenModuleView: View {
       Group {
         if compact { compactBody(store) } else { wideBody(store) }
       }
-      .task { await store.reload(using: hub) }
+      .task {
+        store.startObservingChanges(using: hub)
+        await store.reload(using: hub)
+      }
       .sheet(isPresented: $showNew) {
         TaskEditSheet { title, due, listId in
           await store.create(title: title, due: due, listId: listId, using: hub)

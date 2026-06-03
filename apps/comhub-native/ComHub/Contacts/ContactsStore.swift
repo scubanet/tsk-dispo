@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import Contacts
 import AtollHub
 
 /// Laedt + matcht das kombinierte Adressbuch (Apple + Atoll) ueber den Hub.
@@ -19,6 +20,22 @@ final class ContactsStore {
         || c.emails.contains { $0.lowercased().contains(q) }
         || c.phones.contains { $0.contains(q) }
     }
+  }
+
+  private nonisolated(unsafe) var changeObserver: NSObjectProtocol?
+
+  /// Reagiert auf System-Aenderungen (Contacts) und laedt neu. Idempotent.
+  func startObservingChanges(using hub: Hub) {
+    guard changeObserver == nil else { return }
+    changeObserver = NotificationCenter.default.addObserver(
+      forName: .CNContactStoreDidChange, object: nil, queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor in await self?.reload(using: hub) }
+    }
+  }
+
+  deinit {
+    if let changeObserver { NotificationCenter.default.removeObserver(changeObserver) }
   }
 
   func reload(using hub: Hub) async {

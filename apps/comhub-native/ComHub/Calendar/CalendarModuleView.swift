@@ -29,6 +29,7 @@ struct CalendarModuleView: View {
       if sources == nil { sources = CalendarSourcesStore(store: EKEventStore()) }
       store.enabledCalendarIds = sources?.enabledIds
       hub.disabledCalendarIds = sources?.disabledIds ?? []
+      store.startObservingChanges(using: hub)
       await store.reload(using: hub)
     }
     .sheet(isPresented: $showCreate) {

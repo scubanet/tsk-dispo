@@ -20,6 +20,7 @@ struct ContactsModuleView: View {
         if compact { compactBody } else { wideBody }
       }
       .task {
+        store.startObservingChanges(using: hub)
         await store.reload(using: hub)
         // Auf Wide eine Default-Auswahl setzen (rechte Spalte nicht leer).
         // Auf Kompakt NICHT vorauswaehlen, sonst pusht das Detail sofort.
