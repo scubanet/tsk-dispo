@@ -110,6 +110,14 @@ final class AppViewModel {
       case .inputUnavailable: return String(localized: "Mikrofon ist nicht verfügbar.")
       }
     }
+    if let e = error as? AppleTranslator.MTError {
+      switch e {
+      case .packNotInstalled:
+        return String(localized: "Sprachpaket nicht installiert. In iOS ▸ Einstellungen ▸ Apps ▸ Übersetzen ▸ Heruntergeladene Sprachen laden.")
+      case .unsupported:
+        return String(localized: "Diese Sprache wird für die On-Device-Übersetzung nicht unterstützt.")
+      }
+    }
     return String(localized: "Ein Fehler ist aufgetreten: \(error.localizedDescription)")
   }
 

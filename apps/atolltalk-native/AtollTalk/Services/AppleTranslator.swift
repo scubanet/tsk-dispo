@@ -8,8 +8,16 @@ import Translation
 /// The language pack must already be installed; if it isn't, `translate` throws
 /// and the caller surfaces an error. Pack download is handled separately.
 struct AppleTranslator: Translator {
+  enum MTError: Error { case packNotInstalled, unsupported }
+
   func translate(_ text: String, from source: AppLanguage, to target: AppLanguage,
                  context: String, glossary: String) async throws -> String {
+    let status = await LanguageAvailability().status(from: locale(source), to: locale(target))
+    switch status {
+    case .installed: break
+    case .supported: throw MTError.packNotInstalled   // ConversationView prepares it
+    default:         throw MTError.unsupported
+    }
     let session = TranslationSession(installedSource: locale(source), target: locale(target))
     return try await session.translate(text).targetText
   }
