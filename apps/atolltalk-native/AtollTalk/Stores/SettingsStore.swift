@@ -9,6 +9,8 @@ final class SettingsStore {
     model    = defaults.string(forKey: "model") ?? Config.defaultModel
     context  = defaults.string(forKey: "context") ?? Config.defaultContext
     hasConsented = defaults.bool(forKey: "hasConsented")
+    basicUsageDay   = defaults.string(forKey: "basicUsageDay") ?? ""
+    basicUsageCount = defaults.integer(forKey: "basicUsageCount")
     langA    = AppLanguage(rawValue: defaults.string(forKey: "lang.a") ?? "") ?? .de
     langB    = AppLanguage(rawValue: defaults.string(forKey: "lang.b") ?? "") ?? .uk
 
@@ -31,6 +33,24 @@ final class SettingsStore {
   /// User agreed to cloud processing (Scribe STT, Claude, ElevenLabs). Required
   /// before any cloud call (App Review policy, since 2025-11-13).
   var hasConsented: Bool { didSet { defaults.set(hasConsented, forKey: "hasConsented") } }
+
+  private var basicUsageDay: String   { didSet { defaults.set(basicUsageDay, forKey: "basicUsageDay") } }
+  private var basicUsageCount: Int    { didSet { defaults.set(basicUsageCount, forKey: "basicUsageCount") } }
+
+  private static func todayKey() -> String {
+    let c = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+    return "\(c.year ?? 0)-\(c.month ?? 0)-\(c.day ?? 0)"
+  }
+
+  /// Basic translations used today (auto-resets on a new day).
+  func basicUsageToday() -> Int { basicUsageDay == Self.todayKey() ? basicUsageCount : 0 }
+
+  /// Count one Basic translation against today's fair-use quota.
+  func bumpBasicUsage() {
+    let today = Self.todayKey()
+    if basicUsageDay != today { basicUsageDay = today; basicUsageCount = 0 }
+    basicUsageCount += 1
+  }
   // Auto-swap: picking a language already on the other side swaps the two,
   // so the pair is never A==B (which would be a pointless self-translation).
   var langA: AppLanguage {

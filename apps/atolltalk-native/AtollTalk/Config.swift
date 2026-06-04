@@ -7,6 +7,9 @@ enum Config {
   static let defaultModel = "claude-sonnet-4-6"
   static let fastModel    = "claude-haiku-4-5-20251001"
 
+  /// Free-tier fair-use: max Basic translations per day before the paywall.
+  static let basicDailyLimit = 20
+
   // ElevenLabs
   static let scribeModelID = "scribe_v1"            // open point #1: confirm Scribe v2 id
   static let ttsModelID    = "eleven_multilingual_v2"

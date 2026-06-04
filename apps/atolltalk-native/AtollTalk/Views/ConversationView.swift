@@ -25,7 +25,7 @@ struct ConversationView: View {
         .padding(20)
       }
       .overlay { if turns.isEmpty { hint } }
-      RecordButton(phase: vm.phase) { Task { await vm.toggleRecording() } }
+      RecordButton(phase: vm.phase) { onRecordTap() }
         .padding(20)
     }
     .background(Color(hex: 0xFAF9F4))
@@ -44,6 +44,16 @@ struct ConversationView: View {
     .sheet(isPresented: $showPaywall, onDismiss: applyPendingIfPro) {
       PaywallView(subscription: subscription)
     }
+  }
+
+  /// Starting a Basic recording consumes one fair-use unit; at the daily limit
+  /// the paywall opens instead.
+  private func onRecordTap() {
+    if vm.phase == .idle && !subscription.isPro {
+      if settings.basicUsageToday() >= Config.basicDailyLimit { showPaywall = true; return }
+      settings.bumpBasicUsage()
+    }
+    Task { await vm.toggleRecording() }
   }
 
   /// Apply a pending Pro-language selection once the user actually upgraded.

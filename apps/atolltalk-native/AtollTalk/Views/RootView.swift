@@ -29,7 +29,7 @@ struct RootView: View {
       ConsentView { settings.hasConsented = true }
     }
     .sheet(isPresented: $showSettings, onDismiss: rebuild) {
-      SettingsView(secrets: secrets, settings: settings, glossary: glossary)
+      SettingsView(secrets: secrets, settings: settings, glossary: glossary, subscription: subscription)
     }
     .overlay(alignment: .top) {
       if !hasKeys { keyBanner }

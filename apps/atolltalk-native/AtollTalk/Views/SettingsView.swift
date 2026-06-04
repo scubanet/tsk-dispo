@@ -1,12 +1,16 @@
 import SwiftUI
+import StoreKit
 
 struct SettingsView: View {
   @Environment(\.dismiss) private var dismiss
   let secrets: SecretStore
   @Bindable var settings: SettingsStore
   let glossary: GlossaryStore
+  let subscription: SubscriptionStore
 
   @State private var elevenKey = ""
+  @State private var showPaywall = false
+  @State private var showManage = false
   @State private var newA = ""
   @State private var newB = ""
 
@@ -18,6 +22,23 @@ struct SettingsView: View {
   var body: some View {
     NavigationStack {
       Form {
+        Section {
+          HStack {
+            Text("Tarif")
+            Spacer()
+            Text(subscription.isPro ? "Pro" : "Basic").foregroundStyle(.secondary)
+          }
+          if !subscription.isPro {
+            Button("Auf Pro upgraden") { showPaywall = true }
+          }
+          Button("Abo verwalten") { showManage = true }
+        } header: {
+          Text("Abo")
+        } footer: {
+          Text(subscription.isPro
+            ? "Pro: Premium-Übersetzung (Claude) + natürliche Stimmen, alle Sprachen."
+            : "Basic: Standard-Übersetzung (on-device), \(Config.basicDailyLimit) Übersetzungen/Tag.")
+        }
         Section("API-Schlüssel") {
           SecureField("ElevenLabs API-Key", text: $elevenKey)
             .textInputAutocapitalization(.never)
@@ -89,6 +110,8 @@ struct SettingsView: View {
       .onAppear {
         elevenKey = secrets.value(for: .elevenLabsAPIKey) ?? ""
       }
+      .sheet(isPresented: $showPaywall) { PaywallView(subscription: subscription) }
+      .manageSubscriptionsSheet(isPresented: $showManage)
     }
   }
 }
