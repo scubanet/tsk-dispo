@@ -24,10 +24,10 @@ schemes:
       targets:
         AtollTalk: all
         AtollTalkTests: [test]
-    run:
-      storeKitConfiguration: apps/atolltalk-native/AtollTalkTests/AtollTalk.storekit
+    # No StoreKit configuration: device/Sandbox runs use the real App Store so
+    # purchases yield Apple-signed JWS (required by the translate proxy). For
+    # local sim UI testing, select AtollTalk.storekit via Edit Scheme manually.
     test:
-      storeKitConfiguration: apps/atolltalk-native/AtollTalkTests/AtollTalk.storekit
       targets:
         - AtollTalkTests
 targets:
