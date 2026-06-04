@@ -12,25 +12,38 @@ struct PaywallView: View {
         .multilineTextAlignment(.center)
         .foregroundStyle(.secondary)
 
-      ForEach(subscription.products.sorted { $0.price < $1.price }, id: \.id) { product in
-        Button {
-          Task {
-            try? await subscription.purchase(product)
-            if subscription.isPro { dismiss() }
-          }
-        } label: {
-          HStack {
-            Text(product.displayName)
-            Spacer()
-            Text(product.displayPrice)
-          }
-          .font(.headline)
-          .padding()
-          .frame(maxWidth: .infinity)
-          .background(Color.brandBlue50)
-          .clipShape(.rect(cornerRadius: 12))
+      if subscription.products.isEmpty {
+        VStack(spacing: 8) {
+          ProgressView()
+          Text("Abos konnten nicht geladen werden. Prüfe die Verbindung — oder die Produkte sind in App Store Connect noch nicht freigegeben.")
+            .font(.footnote)
+            .multilineTextAlignment(.center)
+            .foregroundStyle(Color.textSecondary)
+          Button("Erneut laden") { Task { await subscription.load() } }
+            .font(.footnote)
         }
-        .buttonStyle(.plain)
+        .padding(.vertical, 8)
+      } else {
+        ForEach(subscription.products.sorted { $0.price < $1.price }, id: \.id) { product in
+          Button {
+            Task {
+              try? await subscription.purchase(product)
+              if subscription.isPro { dismiss() }
+            }
+          } label: {
+            HStack {
+              Text(product.displayName)
+              Spacer()
+              Text(product.displayPrice)
+            }
+            .font(.headline)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.brandBlue50)
+            .clipShape(.rect(cornerRadius: 12))
+          }
+          .buttonStyle(.plain)
+        }
       }
 
       Button("Käufe wiederherstellen") {
@@ -46,5 +59,6 @@ struct PaywallView: View {
       .foregroundStyle(.secondary)
     }
     .padding()
+    .task { await subscription.load() }   // retry load when the paywall appears
   }
 }
