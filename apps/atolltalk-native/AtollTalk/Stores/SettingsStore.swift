@@ -8,6 +8,7 @@ final class SettingsStore {
     self.defaults = defaults
     model    = defaults.string(forKey: "model") ?? Config.defaultModel
     context  = defaults.string(forKey: "context") ?? Config.defaultContext
+    hasConsented = defaults.bool(forKey: "hasConsented")
     langA    = AppLanguage(rawValue: defaults.string(forKey: "lang.a") ?? "") ?? .de
     langB    = AppLanguage(rawValue: defaults.string(forKey: "lang.b") ?? "") ?? .uk
 
@@ -27,6 +28,9 @@ final class SettingsStore {
 
   var model: String   { didSet { defaults.set(model, forKey: "model") } }
   var context: String { didSet { defaults.set(context, forKey: "context") } }
+  /// User agreed to cloud processing (Scribe STT, Claude, ElevenLabs). Required
+  /// before any cloud call (App Review policy, since 2025-11-13).
+  var hasConsented: Bool { didSet { defaults.set(hasConsented, forKey: "hasConsented") } }
   // Auto-swap: picking a language already on the other side swaps the two,
   // so the pair is never A==B (which would be a pointless self-translation).
   var langA: AppLanguage {

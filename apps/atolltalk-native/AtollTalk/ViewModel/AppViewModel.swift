@@ -15,6 +15,7 @@ final class AppViewModel {
   private let context: String
   private let glossaryLines: () -> String
   private let pairProvider: () -> LanguagePair
+  private let consent: () -> Bool
 
   /// The active language pair, read live (so header changes take effect
   /// without rebuilding the view model).
@@ -28,7 +29,8 @@ final class AppViewModel {
     store: ConversationStore,
     context: String,
     glossaryLines: @escaping () -> String,
-    pair: @escaping () -> LanguagePair
+    pair: @escaping () -> LanguagePair,
+    consent: @escaping () -> Bool = { true }
   ) {
     self.recorder = recorder
     self.speech = speech
@@ -38,6 +40,7 @@ final class AppViewModel {
     self.context = context
     self.glossaryLines = glossaryLines
     self.pairProvider = pair
+    self.consent = consent
   }
 
   func toggleRecording() async {
@@ -62,6 +65,10 @@ final class AppViewModel {
 
   /// Testable core: transcribe → route → translate → persist.
   func process(wav: Data) async {
+    guard consent() else {
+      phase = .error(String(localized: "Bitte zuerst der Datenverarbeitung zustimmen."))
+      return
+    }
     phase = .transcribing
     do {
       let result = try await speech.transcribe(wav: wav)

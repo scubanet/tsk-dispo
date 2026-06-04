@@ -24,6 +24,10 @@ struct RootView: View {
     }
     .task { rebuild() }
     .onChange(of: subscription.isPro) { rebuild() }
+    .fullScreenCover(isPresented: Binding(
+      get: { !settings.hasConsented }, set: { _ in })) {
+      ConsentView { settings.hasConsented = true }
+    }
     .sheet(isPresented: $showSettings, onDismiss: rebuild) {
       SettingsView(secrets: secrets, settings: settings, glossary: glossary)
     }
@@ -63,7 +67,8 @@ struct RootView: View {
       store: ConversationStore(context: modelContext),
       context: settings.context,
       glossaryLines: { glossary.promptLines(for: settings.pair) },
-      pair: { settings.pair }
+      pair: { settings.pair },
+      consent: { settings.hasConsented }
     )
   }
 
