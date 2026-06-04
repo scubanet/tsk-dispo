@@ -9,7 +9,7 @@ final class AppViewModel {
 
   private let recorder: AudioRecorder
   private let speech: SpeechService
-  private let translator: TranslationService
+  private let translator: any Translator
   private let synthesis: SynthesisService
   private let store: ConversationStore
   private let context: String
@@ -23,7 +23,7 @@ final class AppViewModel {
   init(
     recorder: AudioRecorder,
     speech: SpeechService,
-    translator: TranslationService,
+    translator: any Translator,
     synthesis: SynthesisService,
     store: ConversationStore,
     context: String,
