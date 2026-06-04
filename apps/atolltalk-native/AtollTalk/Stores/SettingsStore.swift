@@ -45,10 +45,21 @@ final class SettingsStore {
   var voiceIDs: [AppLanguage: String] { didSet { persistVoices() } }
 
   var pair: LanguagePair { LanguagePair(a: langA, b: langB) }
-  var voices: [AppLanguage: String] { voiceIDs }
   var modelOptions: [String] { [Config.defaultModel, Config.fastModel] }
 
+  /// Effective voices for synthesis: per-language override, else hardwired default.
+  var voices: [AppLanguage: String] {
+    Dictionary(uniqueKeysWithValues: AppLanguage.allCases.map { ($0, effectiveVoiceID(for: $0)) })
+  }
+
+  /// The override the user typed (empty when none) — for the editable field.
   func voiceID(for lang: AppLanguage) -> String { voiceIDs[lang] ?? "" }
+
+  /// Override if set, otherwise the hardwired default.
+  func effectiveVoiceID(for lang: AppLanguage) -> String {
+    let override = voiceIDs[lang] ?? ""
+    return override.isEmpty ? lang.defaultElevenVoiceID : override
+  }
   func setVoiceID(_ id: String, for lang: AppLanguage) {
     if id.isEmpty { voiceIDs[lang] = nil } else { voiceIDs[lang] = id }
   }

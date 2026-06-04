@@ -53,6 +53,16 @@ enum AppLanguage: String, CaseIterable, Sendable, Codable, Identifiable {
     }
   }
 
+  /// Hardwired default ElevenLabs voice (Pro TTS). With `eleven_multilingual_v2`
+  /// one voice covers every language; French uses a distinct one. These are
+  /// public voice IDs, not secrets — overridable per language in Settings.
+  var defaultElevenVoiceID: String {
+    switch self {
+    case .fr: "O31r762Gb3WFygrEOGh0"
+    default:  "7eVMgwCnXydb3CikjV7a"
+    }
+  }
+
   /// Map a Scribe language code (ISO 639-1/-3, sometimes a name) to a language.
   init?(scribeCode raw: String) {
     let c = raw.lowercased()

@@ -32,16 +32,25 @@ struct SettingsView: View {
             ForEach(settings.modelOptions, id: \.self) { Text($0).tag($0) }
           }
         }
-        Section("Stimmen (ElevenLabs Voice-IDs)") {
+        Section {
           ForEach(AppLanguage.allCases) { lang in
-            TextField(
-              "\(lang.flag) Voice-ID \(lang.displayName)",
-              text: Binding(
-                get: { settings.voiceID(for: lang) },
-                set: { settings.setVoiceID($0, for: lang) }))
-              .textInputAutocapitalization(.never)
-              .autocorrectionDisabled()
+            HStack {
+              Text("\(lang.flag) \(lang.displayName)").foregroundStyle(.secondary)
+              Spacer()
+              TextField(
+                lang.defaultElevenVoiceID,   // placeholder = active default
+                text: Binding(
+                  get: { settings.voiceID(for: lang) },
+                  set: { settings.setVoiceID($0, for: lang) }))
+                .multilineTextAlignment(.trailing)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            }
           }
+        } header: {
+          Text("Stimmen (ElevenLabs Voice-IDs)")
+        } footer: {
+          Text("Leer = hinterlegte Standardstimme. Eintrag überschreibt pro Sprache.")
         }
         Section {
           ForEach(glossary.entries(for: settings.pair)) { e in
