@@ -74,7 +74,8 @@ final class AppViewModel {
       }
       phase = .translating
       let translated = try await translator.translate(
-        result.text, to: route.target, context: context, glossary: glossaryLines())
+        result.text, from: route.source, to: route.target,
+        context: context, glossary: glossaryLines())
       store.add(Turn(
         sourceText: result.text, sourceLang: route.source,
         targetText: translated, targetLang: route.target))

@@ -2,7 +2,7 @@ import Testing
 @testable import AtollTalk
 
 private struct EchoTranslator: Translator {
-  func translate(_ text: String, to: AppLanguage, context: String, glossary: String) async throws -> String { "echo:\(text)" }
+  func translate(_ text: String, from: AppLanguage, to: AppLanguage, context: String, glossary: String) async throws -> String { "echo:\(text)" }
 }
 
 @Suite struct TranslatorTests {
@@ -12,7 +12,7 @@ private struct EchoTranslator: Translator {
     #expect(Bool(true))
   }
   @Test func echoTranslatorReturnsExpected() async throws {
-    let out = try await EchoTranslator().translate("hi", to: .uk, context: "", glossary: "")
+    let out = try await EchoTranslator().translate("hi", from: .de, to: .uk, context: "", glossary: "")
     #expect(out == "echo:hi")
   }
 }

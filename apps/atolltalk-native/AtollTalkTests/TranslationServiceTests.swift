@@ -26,7 +26,7 @@ private struct MockLLMProvider: LLMProvider {
   @Test func translateAccumulatesTextChunks() async throws {
     let provider = MockLLMProvider(chunks: [.text("При"), .text("віт"), .done])
     let service = TranslationService(provider: provider)
-    let out = try await service.translate("Hallo", to: .uk, context: "x", glossary: "")
+    let out = try await service.translate("Hallo", from: .de, to: .uk, context: "x", glossary: "")
     #expect(out == "Привіт")
   }
 }
