@@ -25,9 +25,9 @@ schemes:
         AtollTalk: all
         AtollTalkTests: [test]
     run:
-      storeKitConfiguration: AtollTalkTests/AtollTalk.storekit
+      storeKitConfiguration: apps/atolltalk-native/AtollTalkTests/AtollTalk.storekit
     test:
-      storeKitConfiguration: AtollTalkTests/AtollTalk.storekit
+      storeKitConfiguration: apps/atolltalk-native/AtollTalkTests/AtollTalk.storekit
       targets:
         - AtollTalkTests
 targets:
