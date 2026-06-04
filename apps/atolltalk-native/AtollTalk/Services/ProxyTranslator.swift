@@ -4,7 +4,20 @@ import Foundation
 /// calling Anthropic directly — so the Claude key never ships in the app. Sends
 /// the StoreKit 2 signed transaction (`jws`) for server-side entitlement check.
 struct ProxyTranslator: Translator {
-  enum ProxyError: Error { case notEntitled, http(Int), badResponse }
+  enum ProxyError: LocalizedError {
+    case notEntitled, http(Int), badResponse
+
+    var errorDescription: String? {
+      switch self {
+      case .notEntitled:
+        return String(localized: "Kein gültiges Pro-Abo gefunden. Für echte Pro-Übersetzung ist ein Sandbox-/App-Store-Kauf nötig (lokales StoreKit-Testing wird vom Server nicht akzeptiert).")
+      case let .http(code):
+        return String(localized: "Übersetzungs-Server antwortete mit Fehler \(code).")
+      case .badResponse:
+        return String(localized: "Unerwartete Antwort vom Übersetzungs-Server.")
+      }
+    }
+  }
 
   let endpoint: URL
   let model: String
