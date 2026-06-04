@@ -138,8 +138,17 @@ async function sendEmail(to: string, subject: string, html: string) {
   return await res.json()
 }
 
+// Shared secret — this is a DB-webhook target running with service_role. The
+// webhook (configured in the Supabase dashboard) must send the secret as an
+// `x-edge-secret` header. Without this gate the function trusts an arbitrary,
+// attacker-shaped request body and sends email under our domain.
+const EDGE_SECRET = Deno.env.get('EDGE_SHARED_SECRET')
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (!EDGE_SECRET || req.headers.get('x-edge-secret') !== EDGE_SECRET) {
+    return new Response('unauthorized', { status: 401, headers: corsHeaders })
+  }
 
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,

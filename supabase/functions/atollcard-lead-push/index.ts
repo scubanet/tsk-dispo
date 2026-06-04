@@ -41,8 +41,17 @@ interface CardOwnerLookup {
 
 const APNS_HOST = Deno.env.get('APNS_HOST') ?? 'api.push.apple.com'  // sandbox: api.sandbox.push.apple.com
 
+// Shared secret — this function is deployed with --no-verify-jwt and is only
+// meant to be invoked by the `notify_lead_push()` DB trigger, which sends the
+// secret as an `x-edge-secret` header (sourced from Supabase Vault). Without
+// this gate anyone who knows the URL could fan out APNs pushes to real devices.
+const EDGE_SECRET = Deno.env.get('EDGE_SHARED_SECRET')
+
 serve(async (req) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 })
+  if (!EDGE_SECRET || req.headers.get('x-edge-secret') !== EDGE_SECRET) {
+    return new Response('unauthorized', { status: 401 })
+  }
 
   const { record } = (await req.json()) as InboundPayload
   if (!record?.card_id) return new Response('Missing card_id', { status: 400 })

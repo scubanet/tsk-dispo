@@ -18,7 +18,17 @@ const corsHeaders = {
  * Or: manually by Dominik via the SettingsScreen "Export jetzt" button.
  */
 
-serve(async (_req) => {
+// Shared secret — invoked by the weekly pg_cron job, which sends the secret as
+// an `x-edge-secret` header (sourced from Supabase Vault). This function dumps
+// all financials/PII to a 7-day signed URL, so it must never be open.
+const EDGE_SECRET = Deno.env.get('EDGE_SHARED_SECRET')
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (!EDGE_SECRET || req.headers.get('x-edge-secret') !== EDGE_SECRET) {
+    return new Response('unauthorized', { status: 401, headers: corsHeaders })
+  }
+
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
