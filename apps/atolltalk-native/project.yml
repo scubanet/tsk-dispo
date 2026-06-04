@@ -18,6 +18,18 @@ packages:
     path: ../../swift-packages/AtollLLM
   AtollSpeech:
     path: ../../swift-packages/AtollSpeech
+schemes:
+  AtollTalk:
+    build:
+      targets:
+        AtollTalk: all
+        AtollTalkTests: [test]
+    run:
+      storeKitConfiguration: AtollTalkTests/AtollTalk.storekit
+    test:
+      storeKitConfiguration: AtollTalkTests/AtollTalk.storekit
+      targets:
+        - AtollTalkTests
 targets:
   AtollTalk:
     type: application
@@ -53,3 +65,9 @@ targets:
     sources: AtollTalkTests
     dependencies:
       - target: AtollTalk
+    settings:
+      base:
+        # Host tests in the app so StoreKitTest (SKTestSession) is entitled.
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AtollTalk.app/AtollTalk"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        GENERATE_INFOPLIST_FILE: "YES"

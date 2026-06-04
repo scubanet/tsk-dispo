@@ -1,0 +1,82 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "A1B2C3D4",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "de_CH",
+    "_storefront" : "CHE",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21500001",
+      "localizations" : [],
+      "name" : "AtollTalk Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "4.90",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "21510001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Premium-Uebersetzung und Stimmen, monatlich",
+              "displayName" : "AtollTalk Pro Monatlich",
+              "locale" : "de_CH"
+            }
+          ],
+          "productID" : "swiss.atoll.talk.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Pro Monthly",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : []
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "34.90",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "21510002",
+          "introductoryOffer" : {
+            "internalID" : "21510003",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Premium-Uebersetzung und Stimmen, jaehrlich, 7 Tage gratis",
+              "displayName" : "AtollTalk Pro Jaehrlich",
+              "locale" : "de_CH"
+            }
+          ],
+          "productID" : "swiss.atoll.talk.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Pro Yearly",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : []
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
