@@ -33,10 +33,9 @@ struct RootView: View {
   }
 
   private var hasKeys: Bool {
-    let hasEleven = secrets.value(for: .elevenLabsAPIKey)?.isEmpty == false
-    let hasAnthropic = secrets.value(for: .anthropicAPIKey)?.isEmpty == false
-    // ElevenLabs is always needed (Scribe STT). Anthropic only for Pro (Claude).
-    return hasEleven && (hasAnthropic || !subscription.isPro)
+    // ElevenLabs is the only in-app key (Scribe STT, both tiers). The Claude key
+    // lives server-side behind the translate proxy (Pro), never in the app.
+    secrets.value(for: .elevenLabsAPIKey)?.isEmpty == false
   }
 
   private var keyBanner: some View {
@@ -52,12 +51,13 @@ struct RootView: View {
 
   private func rebuild() {
     let el = secrets.value(for: .elevenLabsAPIKey) ?? ""
-    let an = secrets.value(for: .anthropicAPIKey) ?? ""
     let isPro = subscription.isPro
+    let sub = subscription
     vm = AppViewModel(
       recorder: AudioRecorder(),
       speech: SpeechService(apiKey: el),
-      translator: ServiceFactory.translator(isPro: isPro, anthropicKey: an, model: settings.model),
+      translator: ServiceFactory.translator(
+        isPro: isPro, model: settings.model, jws: { await sub.currentJWS() }),
       synthesis: SynthesisService(elevenLabsKey: el, voices: settings.voices,
                                   tier: isPro ? .pro : .basic),
       store: ConversationStore(context: modelContext),

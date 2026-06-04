@@ -7,7 +7,6 @@ struct SettingsView: View {
   let glossary: GlossaryStore
 
   @State private var elevenKey = ""
-  @State private var anthropicKey = ""
   @State private var newA = ""
   @State private var newB = ""
 
@@ -21,9 +20,6 @@ struct SettingsView: View {
       Form {
         Section("API-Schlüssel") {
           SecureField("ElevenLabs API-Key", text: $elevenKey)
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
-          SecureField("Anthropic API-Key", text: $anthropicKey)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
         }
@@ -86,14 +82,12 @@ struct SettingsView: View {
         ToolbarItem(placement: .confirmationAction) {
           Button("Fertig") {
             secrets.set(elevenKey.isEmpty ? nil : elevenKey, for: .elevenLabsAPIKey)
-            secrets.set(anthropicKey.isEmpty ? nil : anthropicKey, for: .anthropicAPIKey)
             dismiss()
           }
         }
       }
       .onAppear {
         elevenKey = secrets.value(for: .elevenLabsAPIKey) ?? ""
-        anthropicKey = secrets.value(for: .anthropicAPIKey) ?? ""
       }
     }
   }

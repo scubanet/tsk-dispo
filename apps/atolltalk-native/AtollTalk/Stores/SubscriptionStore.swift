@@ -35,6 +35,18 @@ final class SubscriptionStore {
 
   func restore() async { try? await AppStore.sync(); await refreshEntitlements() }
 
+  /// The signed transaction (JWS) for the active Pro entitlement, for the
+  /// translate proxy to verify server-side. Nil when not Pro.
+  func currentJWS() async -> String? {
+    for await result in Transaction.currentEntitlements {
+      if case let .verified(t) = result, productIDs.contains(t.productID),
+         t.revocationDate == nil {
+        return result.jwsRepresentation
+      }
+    }
+    return nil
+  }
+
   func refreshEntitlements() async {
     var active = false
     for await result in Transaction.currentEntitlements {

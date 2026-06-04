@@ -3,7 +3,7 @@ import Security
 
 enum SecretKey: String, CaseIterable, Sendable {
   case elevenLabsAPIKey = "swiss.atoll.talk.elevenLabsAPIKey"
-  case anthropicAPIKey  = "swiss.atoll.talk.anthropicAPIKey"
+  // Anthropic key removed: Pro translation goes through the server-side proxy.
 }
 
 protocol SecretStore: Sendable {
