@@ -5,8 +5,12 @@ struct ConversationView: View {
   @Query(sort: \Turn.createdAt, order: .reverse) private var turns: [Turn]
   let vm: AppViewModel
   @Bindable var settings: SettingsStore
+  let subscription: SubscriptionStore
   let onSettings: () -> Void
   @State private var showClearConfirm = false
+  @State private var showPaywall = false
+  @State private var pendingLang: AppLanguage?
+  @State private var pendingSide: ReferenceWritableKeyPath<SettingsStore, AppLanguage>?
 
   var body: some View {
     VStack(spacing: 0) {
@@ -37,15 +41,36 @@ struct ConversationView: View {
     } message: {
       Text("Diese Aktion kann nicht rückgängig gemacht werden.")
     }
+    .sheet(isPresented: $showPaywall, onDismiss: applyPendingIfPro) {
+      PaywallView(subscription: subscription)
+    }
+  }
+
+  /// Apply a pending Pro-language selection once the user actually upgraded.
+  private func applyPendingIfPro() {
+    if subscription.isPro, let lang = pendingLang, let side = pendingSide {
+      settings[keyPath: side] = lang
+    }
+    pendingLang = nil; pendingSide = nil
+  }
+
+  /// Commit a language choice, or open the paywall if it's a Pro language and
+  /// the user isn't Pro yet.
+  private func choose(_ lang: AppLanguage, into side: ReferenceWritableKeyPath<SettingsStore, AppLanguage>) {
+    if lang.tier == .pro && !subscription.isPro {
+      pendingLang = lang; pendingSide = side; showPaywall = true
+    } else {
+      settings[keyPath: side] = lang
+    }
   }
 
   private var header: some View {
     HStack(spacing: 8) {
-      languagePicker(selection: $settings.langA, label: "Sprache A")
+      languagePicker(current: settings.langA, label: "Sprache A") { choose($0, into: \.langA) }
       Image(systemName: "arrow.left.arrow.right")
         .foregroundStyle(Color.textTertiary)
         .accessibilityHidden(true)
-      languagePicker(selection: $settings.langB, label: "Sprache B")
+      languagePicker(current: settings.langB, label: "Sprache B") { choose($0, into: \.langB) }
       Spacer()
       Button("Verlauf löschen", systemImage: "trash") { showClearConfirm = true }
         .labelStyle(.iconOnly)
@@ -61,18 +86,20 @@ struct ConversationView: View {
   }
 
   /// Compact menu trigger: flag only in the header, flag + name in the dropdown.
-  private func languagePicker(selection: Binding<AppLanguage>, label: String) -> some View {
+  /// Pro languages show a lock when the user isn't Pro.
+  private func languagePicker(
+    current: AppLanguage, label: String, select: @escaping (AppLanguage) -> Void
+  ) -> some View {
     Menu {
       ForEach(AppLanguage.allCases) { lang in
-        Button {
-          selection.wrappedValue = lang
-        } label: {
-          Text("\(lang.flag) \(lang.displayName)")
+        let locked = lang.tier == .pro && !subscription.isPro
+        Button { select(lang) } label: {
+          Text("\(lang.flag) \(lang.displayName)\(locked ? "  🔒 Pro" : "")")
         }
       }
     } label: {
       HStack(spacing: 2) {
-        Text(selection.wrappedValue.flag).font(.title3)
+        Text(current.flag).font(.title3)
         Image(systemName: "chevron.up.chevron.down")
           .font(.caption2)
           .foregroundStyle(Color.textTertiary)
@@ -81,7 +108,7 @@ struct ConversationView: View {
       .contentShape(Rectangle())
     }
     .accessibilityLabel(Text(label))
-    .accessibilityValue(Text(selection.wrappedValue.displayName))
+    .accessibilityValue(Text(current.displayName))
   }
 
   private var hint: some View {

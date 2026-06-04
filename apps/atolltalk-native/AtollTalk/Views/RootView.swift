@@ -14,7 +14,7 @@ struct RootView: View {
   var body: some View {
     Group {
       if let vm {
-        ConversationView(vm: vm, settings: settings) { showSettings = true }
+        ConversationView(vm: vm, settings: settings, subscription: subscription) { showSettings = true }
           .alert("Hinweis", isPresented: errorBinding(vm)) {
             Button("OK", role: .cancel) {}
           } message: { Text(errorText(vm)) }
