@@ -1,7 +1,7 @@
 import Foundation
 import AtollLLM
 
-struct TranslationService: Sendable {
+struct TranslationService: Translator {
   let provider: any LLMProvider
   let model: String
 
