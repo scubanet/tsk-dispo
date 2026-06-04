@@ -1,604 +1,585 @@
 {
-  "sourceLanguage" : "de",
-  "strings" : {
-    "%@ %@" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ %2$@"
+  "sourceLanguage": "de",
+  "strings": {
+    "%@ %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ %2$@"
           }
         }
       }
     },
-    "Abbrechen" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abbrechen"
+    "Abbrechen": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Скасувати"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скасувати"
           }
         }
       }
     },
-    "Alle Texte und Übersetzungen löschen" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alle Texte und Übersetzungen löschen"
+    "Alle Texte und Übersetzungen löschen": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Texte und Übersetzungen löschen"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Видалити всі тексти та переклади"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити всі тексти та переклади"
           }
         }
       }
     },
-    "Anthropic API-Key" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anthropic API-Key"
+    "API-Schlüssel": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API-Schlüssel"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anthropic API-ключ"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API-ключі"
           }
         }
       }
     },
-    "API-Schlüssel" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "API-Schlüssel"
+    "API-Schlüssel fehlen — hier eintragen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API-Schlüssel fehlen — hier eintragen"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "API-ключі"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відсутні API-ключі — додати тут"
           }
         }
       }
     },
-    "API-Schlüssel fehlen — hier eintragen" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "API-Schlüssel fehlen — hier eintragen"
+    "Automatisch": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Відсутні API-ключі — додати тут"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматично"
           }
         }
       }
     },
-    "Automatisch" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatisch"
+    "Begriffe für das aktuelle Sprach-Paar — wird beim Übersetzen fix angewendet.": {},
+    "Claude-Modell": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude-Modell"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Автоматично"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модель Claude"
           }
         }
       }
     },
-    "Begriffe für das aktuelle Sprach-Paar — wird beim Übersetzen fix angewendet." : {
-
-    },
-    "Claude-Modell" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Claude-Modell"
+    "Deutsch": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Модель Claude"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Німецька"
           }
         }
       }
     },
-    "Deutsch" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deutsch"
+    "Diese Aktion kann nicht rückgängig gemacht werden.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Aktion kann nicht rückgängig gemacht werden."
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Німецька"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цю дію не можна скасувати."
           }
         }
       }
     },
-    "Diese Aktion kann nicht rückgängig gemacht werden." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diese Aktion kann nicht rückgängig gemacht werden."
+    "Ein Fehler ist aufgetreten: %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Fehler ist aufgetreten: %@"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Цю дію не можна скасувати."
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сталася помилка: %@"
           }
         }
       }
     },
-    "Ein Fehler ist aufgetreten: %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ein Fehler ist aufgetreten: %@"
+    "Einstellungen": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сталася помилка: %@"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Налаштування"
           }
         }
       }
     },
-    "Einstellungen" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einstellungen"
+    "ElevenLabs API-Key": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ElevenLabs API-Key"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Налаштування"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ElevenLabs API-ключ"
           }
         }
       }
     },
-    "ElevenLabs API-Key" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ElevenLabs API-Key"
+    "Fertig": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ElevenLabs API-ключ"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово"
           }
         }
       }
     },
-    "Fertig" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fertig"
+    "Glossar": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glossar"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Готово"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Глосарій"
           }
         }
       }
     },
-    "Glossar" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Glossar"
+    "Glossar %@ %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Glossar %1$@ %2$@"
+          }
+        }
+      }
+    },
+    "Hinweis": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinweis"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Глосарій"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повідомлення"
           }
         }
       }
     },
-    "Glossar %@ %@" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Glossar %1$@ %2$@"
-          }
-        }
-      }
-    },
-    "Hinweis" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hinweis"
+    "Höre zu…": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Höre zu…"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Повідомлення"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слухаю…"
           }
         }
       }
     },
-    "Höre zu…" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Höre zu…"
+    "Keine Aufnahme erkannt — bitte nochmal.": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Aufnahme erkannt — bitte nochmal."
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Слухаю…"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запис не виявлено — спробуй ще раз."
           }
         }
       }
     },
-    "Keine Aufnahme erkannt — bitte nochmal." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine Aufnahme erkannt — bitte nochmal."
+    "Kontext": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontext"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Запис не виявлено — спробуй ще раз."
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Контекст"
           }
         }
       }
     },
-    "Kontext" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kontext"
+    "Mikrofon ist nicht verfügbar.": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon ist nicht verfügbar."
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Контекст"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мікрофон недоступний."
           }
         }
       }
     },
-    "Mikrofon ist nicht verfügbar." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mikrofon ist nicht verfügbar."
+    "Mikrofon-Zugriff fehlt. Bitte in den iOS-Einstellungen erlauben.": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon-Zugriff fehlt. Bitte in den iOS-Einstellungen erlauben."
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Мікрофон недоступний."
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає доступу до мікрофона. Дозволь у налаштуваннях iOS."
           }
         }
       }
     },
-    "Mikrofon-Zugriff fehlt. Bitte in den iOS-Einstellungen erlauben." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mikrofon-Zugriff fehlt. Bitte in den iOS-Einstellungen erlauben."
+    "Nichts verstanden — bitte nochmal sprechen.": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts verstanden — bitte nochmal sprechen."
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Немає доступу до мікрофона. Дозволь у налаштуваннях iOS."
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нічого не розпізнано — повтори, будь ласка."
           }
         }
       }
     },
-    "Nichts verstanden — bitte nochmal sprechen." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nichts verstanden — bitte nochmal sprechen."
+    "OK": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нічого не розпізнано — повтори, будь ласка."
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
           }
         }
       }
     },
-    "OK" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OK"
+    "Sprache nicht erkannt oder nicht im Paar.": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache nicht erkannt oder nicht im Paar."
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OK"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мова не розпізнана або не з пари."
           }
         }
       }
     },
-    "Sprache nicht erkannt oder nicht im Paar." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sprache nicht erkannt oder nicht im Paar."
+    "Sprechen": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprechen"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Мова не розпізнана або не з пари."
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Говорити"
           }
         }
       }
     },
-    "Sprechen" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sprechen"
+    "Stimmen (ElevenLabs Voice-IDs)": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stimmen (ElevenLabs Voice-IDs)"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Говорити"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Голоси (ElevenLabs Voice-IDs)"
           }
         }
       }
     },
-    "Stimmen (ElevenLabs Voice-IDs)" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stimmen (ElevenLabs Voice-IDs)"
+    "Stopp": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopp"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Голоси (ElevenLabs Voice-IDs)"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Стоп"
           }
         }
       }
     },
-    "Stopp" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stopp"
+    "Tippe auf „Sprechen“ und leg los.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippe auf „Sprechen“ und leg los."
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Стоп"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Натисни «Говорити» і починай."
           }
         }
       }
     },
-    "Tippe auf „Sprechen“ und leg los." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tippe auf „Sprechen“ und leg los."
+    "Übersetze…": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersetze…"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Натисни «Говорити» і починай."
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перекладаю…"
           }
         }
       }
     },
-    "Übersetze…" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Übersetze…"
+    "Übersetzungsmodell": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersetzungsmodell"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Перекладаю…"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модель перекладу"
           }
         }
       }
     },
-    "Übersetzungsmodell" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Übersetzungsmodell"
+    "Verlauf löschen?": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf löschen?"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Модель перекладу"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити історію?"
           }
         }
       }
     },
-    "Verlauf löschen?" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verlauf löschen?"
+    "Voice-ID Deutsch": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice-ID Deutsch"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Видалити історію?"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice-ID німецька"
           }
         }
       }
     },
-    "Voice-ID Deutsch" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voice-ID Deutsch"
+    "Voice-ID Ukrainisch": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice-ID Ukrainisch"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voice-ID німецька"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice-ID українська"
           }
         }
       }
     },
-    "Voice-ID Ukrainisch" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voice-ID Ukrainisch"
+    "Vorlesen": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorlesen"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voice-ID українська"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Озвучити"
           }
         }
       }
     },
-    "Vorlesen" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vorlesen"
+    "Українська": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Українська"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Озвучити"
-          }
-        }
-      }
-    },
-    "Українська" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Українська"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Українська"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Українська"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }
