@@ -3,49 +3,72 @@ import SwiftUI
 struct SettingsView: View {
   @Environment(\.dismiss) private var dismiss
   let secrets: SecretStore
-  let settings: SettingsStore
+  @Bindable var settings: SettingsStore
   let glossary: GlossaryStore
 
   @State private var elevenKey = ""
   @State private var anthropicKey = ""
-  @State private var newDE = ""
-  @State private var newUK = ""
+  @State private var newA = ""
+  @State private var newB = ""
+
+  /// The active pair's two languages in stable order (matches GlossaryEntry.a/.b).
+  private var glossaryLangs: (AppLanguage, AppLanguage) {
+    GlossaryStore.sortedLangs(settings.pair)
+  }
 
   var body: some View {
     NavigationStack {
       Form {
         Section("API-Schlüssel") {
           SecureField("ElevenLabs API-Key", text: $elevenKey)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
           SecureField("Anthropic API-Key", text: $anthropicKey)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
         }
         Section("Übersetzungsmodell") {
-          Picker("Claude-Modell", selection: Binding(
-            get: { settings.model }, set: { settings.model = $0 })) {
+          Picker("Claude-Modell", selection: $settings.model) {
             ForEach(settings.modelOptions, id: \.self) { Text($0).tag($0) }
           }
         }
         Section("Stimmen (ElevenLabs Voice-IDs)") {
-          TextField("Voice-ID Deutsch", text: Binding(
-            get: { settings.voiceDE }, set: { settings.voiceDE = $0 }))
-          TextField("Voice-ID Ukrainisch", text: Binding(
-            get: { settings.voiceUK }, set: { settings.voiceUK = $0 }))
+          ForEach(AppLanguage.allCases) { lang in
+            TextField(
+              "\(lang.flag) Voice-ID \(lang.displayName)",
+              text: Binding(
+                get: { settings.voiceID(for: lang) },
+                set: { settings.setVoiceID($0, for: lang) }))
+              .textInputAutocapitalization(.never)
+              .autocorrectionDisabled()
+          }
         }
-        Section("Glossar") {
-          ForEach(glossary.entries) { e in
-            HStack { Text(e.de); Spacer(); Text(e.uk).foregroundStyle(.secondary) }
+        Section {
+          ForEach(glossary.entries(for: settings.pair)) { e in
+            HStack { Text(e.a); Spacer(); Text(e.b).foregroundStyle(.secondary) }
           }
-          .onDelete { idx in idx.map { glossary.entries[$0] }.forEach(glossary.remove) }
+          .onDelete { idx in
+            idx.map { glossary.entries(for: settings.pair)[$0] }
+              .forEach { glossary.remove($0, for: settings.pair) }
+          }
           HStack {
-            TextField("Deutsch", text: $newDE)
-            TextField("Українська", text: $newUK)
-            Button("＋") {
-              guard !newDE.isEmpty, !newUK.isEmpty else { return }
-              glossary.add(de: newDE, uk: newUK); newDE = ""; newUK = ""
+            TextField(glossaryLangs.0.displayName, text: $newA)
+            TextField(glossaryLangs.1.displayName, text: $newB)
+            Button("Begriff hinzufügen", systemImage: "plus") {
+              guard !newA.isEmpty, !newB.isEmpty else { return }
+              glossary.add(for: settings.pair) { $0 == glossaryLangs.0 ? newA : newB }
+              newA = ""; newB = ""
             }
+            .labelStyle(.iconOnly)
+            .disabled(newA.isEmpty || newB.isEmpty)
           }
+        } header: {
+          Text("Glossar \(glossaryLangs.0.flag) \(glossaryLangs.1.flag)")
+        } footer: {
+          Text("Begriffe für das aktuelle Sprach-Paar — wird beim Übersetzen fix angewendet.")
         }
         Section("Kontext") {
-          TextEditor(text: Binding(get: { settings.context }, set: { settings.context = $0 }))
+          TextEditor(text: $settings.context)
             .frame(minHeight: 100)
         }
       }

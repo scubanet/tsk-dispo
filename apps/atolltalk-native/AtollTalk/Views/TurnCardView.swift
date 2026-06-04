@@ -7,11 +7,12 @@ struct TurnCardView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      HStack(spacing: 6) {
+      HStack(alignment: .top, spacing: 6) {
         Text(turn.sourceLang.flag)
         Text(turn.sourceText)
           .foregroundStyle(Color.textTertiary)
-          .lineLimit(prominent ? 3 : 1)
+          .lineLimit(prominent ? nil : 1)
+          .fixedSize(horizontal: false, vertical: prominent)
       }
       .font(prominent ? .body : .footnote)
 
@@ -20,7 +21,7 @@ struct TurnCardView: View {
         .foregroundStyle(Color.brandBlue)
 
       Text(turn.targetText)
-        .font(prominent ? .system(size: 30, weight: .bold) : .headline)
+        .font(prominent ? .system(.largeTitle, weight: .bold) : .headline)
         .foregroundStyle(Color.textPrimary)
         .fixedSize(horizontal: false, vertical: true)
 
@@ -35,6 +36,6 @@ struct TurnCardView: View {
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .opacity(prominent ? 1 : 0.55)
+    .opacity(prominent ? 1 : 0.7)
   }
 }

@@ -23,7 +23,7 @@ final class AudioRecorder {
 
     let session = AVAudioSession.sharedInstance()
     try session.setCategory(.playAndRecord, mode: .spokenAudio,
-                            options: [.defaultToSpeaker, .allowBluetooth])
+                            options: [.defaultToSpeaker, .allowBluetoothHFP])
     try session.setActive(true)
 
     accumulator.reset()

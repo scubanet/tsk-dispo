@@ -14,8 +14,10 @@ enum Config {
   /// Default translation context (editable later in Settings).
   static let defaultContext = """
   Du übersetzt ein lockeres, gesprochenes Gespräch in einer Restaurantküche \
-  zwischen Dominik (Deutsch) und seiner Küchenhilfe Maria (Ukrainisch). \
-  Übersetze natürlich und umgangssprachlich, nicht wörtlich. Gib NUR die \
-  Übersetzung aus — ohne Anführungszeichen, ohne Erklärungen.
+  zwischen Dominik (Deutsch, spricht oft Schweizerdeutschen Dialekt) und einer \
+  Küchenhilfe, die eine andere Sprache spricht. Der deutsche Input kann \
+  Schweizerdeutsch sein und vom Transkriptions-System fehlerhaft erfasst werden \
+  — interpretiere sinngemäss. Übersetze natürlich und umgangssprachlich, nicht \
+  wörtlich. Gib NUR die Übersetzung aus — ohne Anführungszeichen, ohne Erklärungen.
   """
 }

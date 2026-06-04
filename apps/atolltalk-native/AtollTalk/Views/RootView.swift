@@ -13,7 +13,7 @@ struct RootView: View {
   var body: some View {
     Group {
       if let vm {
-        ConversationView(vm: vm) { showSettings = true }
+        ConversationView(vm: vm, settings: settings) { showSettings = true }
           .alert("Hinweis", isPresented: errorBinding(vm)) {
             Button("OK", role: .cancel) {}
           } message: { Text(errorText(vm)) }
@@ -56,7 +56,8 @@ struct RootView: View {
       synthesis: SynthesisService(elevenLabsKey: el, voices: settings.voices),
       store: ConversationStore(context: modelContext),
       context: settings.context,
-      glossaryLines: { glossary.promptLines() }
+      glossaryLines: { glossary.promptLines(for: settings.pair) },
+      pair: { settings.pair }
     )
   }
 

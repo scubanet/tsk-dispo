@@ -19,7 +19,7 @@ struct RecordButton: View {
     .disabled(isBusy)
   }
 
-  private var label: String {
+  private var label: LocalizedStringKey {
     switch phase {
     case .recording:    "Stopp"
     case .transcribing: "Höre zu…"

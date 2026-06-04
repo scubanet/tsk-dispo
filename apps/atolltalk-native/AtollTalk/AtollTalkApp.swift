@@ -8,7 +8,15 @@ struct AtollTalkApp: App {
   let container: ModelContainer
 
   init() {
-    container = try! ModelContainer(for: Turn.self)
+    do {
+      container = try ModelContainer(for: Turn.self)
+    } catch {
+      // Last-resort in-memory store so the app still launches and can surface
+      // the problem instead of hard-crashing on a migration/disk error.
+      container = try! ModelContainer(
+        for: Turn.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    }
   }
 
   var body: some Scene {

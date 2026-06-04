@@ -27,7 +27,8 @@ private struct StubLLM: LLMProvider {
       synthesis: SynthesisService(elevenLabsKey: nil, voices: [:]),
       store: store,
       context: "ctx",
-      glossaryLines: { "" }
+      glossaryLines: { "" },
+      pair: { LanguagePair(a: .de, b: .uk) }
     )
     return (vm, store)
   }

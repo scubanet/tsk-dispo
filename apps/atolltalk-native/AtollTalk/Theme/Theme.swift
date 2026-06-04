@@ -13,5 +13,5 @@ extension Color {
   static let brandBlue50   = Color(hex: 0xE6F1FB)
   static let textPrimary   = Color(hex: 0x1A1A1A)
   static let textSecondary = Color(hex: 0x4A4A4A)
-  static let textTertiary  = Color(hex: 0x888780)
+  static let textTertiary  = Color(hex: 0x6B6A63)  // ~4.6:1 on 0xFAF9F4 (AA body)
 }
