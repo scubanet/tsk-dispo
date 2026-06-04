@@ -6,15 +6,19 @@ import AtollSpeech
 final class SynthesisService {
   private let composite: CompositeSynthesizer
   private let elevenVoiceByLang: [AppLanguage: String]
-  /// Whether an ElevenLabs synthesizer is wired (a non-empty API key was given).
+  /// Whether an ElevenLabs synthesizer is wired (Pro tier + non-empty API key).
   private let hasElevenLabs: Bool
+  /// True when ElevenLabs voices are active (Pro). Basic is always false.
+  var isElevenLabsActive: Bool { hasElevenLabs }
 
   /// - elevenLabsKey: ElevenLabs API key; empty/nil → Apple-only fallback.
   /// - voices: ElevenLabs voice id per language (from Settings).
-  init(elevenLabsKey: String?, voices: [AppLanguage: String], session: URLSession = .shared) {
+  /// - tier: `.basic` never wires ElevenLabs (Pro-only feature) — Apple voices only.
+  init(elevenLabsKey: String?, voices: [AppLanguage: String], tier: Tier = .pro,
+       session: URLSession = .shared) {
     self.elevenVoiceByLang = voices
     let apple = AppleSynthesizer()
-    if let key = elevenLabsKey, !key.isEmpty {
+    if tier == .pro, let key = elevenLabsKey, !key.isEmpty {
       let client = ElevenLabsClient(apiKey: key, session: session)
       // Seed with any configured voice; the actual voice is set per utterance.
       let seed = voices.values.first { !$0.isEmpty } ?? ""
