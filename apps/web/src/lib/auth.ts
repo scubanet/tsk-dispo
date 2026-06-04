@@ -33,14 +33,12 @@ export async function fetchCurrentUser(): Promise<CurrentUser | null> {
     .maybeSingle()
 
   if (error) {
+    // A transient failure (network blip, RLS error, timeout) must NOT be
+    // silently treated as "instructor" — that would demote a dispatcher/cd/owner
+    // and hide their menus with no indication why. Surface it so the caller can
+    // retry or show an error instead of fabricating a role.
     console.error('[auth] fetchCurrentUser failed:', error)
-    return {
-      authUserId: sess.user.id,
-      instructorId: null,
-      name: sess.user.email ?? 'Unbekannt',
-      role: 'instructor',
-      email: sess.user.email ?? '',
-    }
+    throw error
   }
 
   if (!data) {

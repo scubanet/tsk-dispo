@@ -18,6 +18,8 @@ export function AppShell() {
   const { t } = useTranslation()
   const [user, setUser] = useState<CurrentUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
   const [tweaks] = useTweaks()
   const navigate = useNavigate()
 
@@ -25,11 +27,32 @@ export function AppShell() {
   useSyncRemoteLanguage(user?.authUserId ?? null)
 
   useEffect(() => {
-    fetchCurrentUser().then((u) => {
-      setUser(u)
-      setLoading(false)
-    })
-  }, [])
+    let cancelled = false
+    setLoading(true)
+    setError(false)
+    fetchCurrentUser()
+      .then((u) => {
+        if (cancelled) return
+        setUser(u)
+        setLoading(false)
+      })
+      .catch(() => {
+        // Transient failure resolving the current user — show a retry instead
+        // of silently demoting the role or logging the user out.
+        if (cancelled) return
+        setError(true)
+        setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [reloadKey])
+
+  // Redirect happens in an effect, not during render (a render-time navigate
+  // warns under StrictMode/concurrent and is order-dependent).
+  useEffect(() => {
+    if (!loading && !error && !user) navigate('/login', { replace: true })
+  }, [loading, error, user, navigate])
 
   async function logout() {
     await supabase.auth.signOut()
@@ -37,10 +60,15 @@ export function AppShell() {
   }
 
   if (loading) return <div style={{ padding: 40 }}>{t('common.loading')}</div>
-  if (!user) {
-    navigate('/login', { replace: true })
-    return null
+  if (error) {
+    return (
+      <div style={{ padding: 40, display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+        <span>{t('common.error')}</span>
+        <button onClick={() => setReloadKey((k) => k + 1)}>{t('common.retry')}</button>
+      </div>
+    )
   }
+  if (!user) return null
 
   const isSidebar = tweaks.layout === 'sidebar'
 

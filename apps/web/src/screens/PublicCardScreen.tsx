@@ -143,7 +143,7 @@ export function PublicCardScreen() {
     })()
   }, [slug])
 
-  if (state.kind === 'loading') return <CenteredMessage>Lade Karte …</CenteredMessage>
+  if (state.kind === 'loading') return <CenteredMessage>{t.loading}</CenteredMessage>
   if (state.kind === 'notfound')
     return (
       <CenteredMessage>
@@ -155,7 +155,7 @@ export function PublicCardScreen() {
       </CenteredMessage>
     )
   if (state.kind === 'error')
-    return <CenteredMessage>Fehler beim Laden: {state.message}</CenteredMessage>
+    return <CenteredMessage>{t.errorLoading}</CenteredMessage>
 
   return <CardView card={state.card} contact={state.contact} lang={lang} t={t} />
 }
@@ -320,8 +320,8 @@ function CardView({ card, contact, lang, t }: { card: CardRow; contact: ContactR
           <div style={{ fontSize: 12, color: '#5A6478', lineHeight: 1.4 }}>
             <div style={{
               fontSize: 10, fontWeight: 700, letterSpacing: .8,
-              color: '#9AA3B5', textTransform: 'uppercase', marginBottom: 2,
-            }}>Spricht</div>
+              color: '#6B7488', textTransform: 'uppercase', marginBottom: 2,
+            }}>{t.speaks}</div>
             {contact.languages.join(' · ')}
           </div>
         )}
@@ -350,13 +350,13 @@ function CardView({ card, contact, lang, t }: { card: CardRow; contact: ContactR
           borderBottom: '1px solid #E3E8F2',
         }}>
           {card.dive_profile.total_dives !== undefined && (
-            <Stat label="Dives" value={card.dive_profile.total_dives.toLocaleString('de-CH')} />
+            <Stat label={t.statDives} value={card.dive_profile.total_dives.toLocaleString('de-CH')} />
           )}
           {card.dive_profile.since_year !== undefined && (
-            <Stat label="Taucht seit" value={String(card.dive_profile.since_year)} />
+            <Stat label={t.statDivingSince} value={String(card.dive_profile.since_year)} />
           )}
           {card.dive_profile.instructor_level && (
-            <Stat label="Level" value={card.dive_profile.instructor_level} />
+            <Stat label={t.statLevel} value={card.dive_profile.instructor_level} />
           )}
         </div>
       )}
@@ -399,13 +399,13 @@ function CardView({ card, contact, lang, t }: { card: CardRow; contact: ContactR
       </div>
 
       <a href="https://atoll-os.com" style={{
-        marginTop: 40, textDecoration: 'none', color: '#9AA3B5',
+        marginTop: 40, textDecoration: 'none', color: '#6B7488',
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         // Extra bottom-padding so the sticky CTA never covers the footer.
         paddingBottom: 80,
       }}>
         <img src="/atollcard-logo.png" alt="" style={{ width: 22, height: 22, opacity: 0.85 }}/>
-        <span style={{ fontSize: 11, fontWeight: 500 }}>Erstellt mit AtollCard</span>
+        <span style={{ fontSize: 11, fontWeight: 500 }}>{t.createdWith}</span>
       </a>
 
       {/* Sticky mobile CTA — hidden ≥640px via the inline @media rule below. */}
@@ -434,7 +434,7 @@ function CardView({ card, contact, lang, t }: { card: CardRow; contact: ContactR
             boxShadow: '0 8px 24px rgba(0,0,0,.22), 0 2px 6px rgba(0,0,0,.12)',
             zIndex: 50,
           }}>
-          Verbinden
+          {t.connect}
         </button>
       )}
     </div>
@@ -445,7 +445,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: -.4, lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#9AA3B5', textTransform: 'uppercase', marginTop: 4 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: '#6B7488', textTransform: 'uppercase', marginTop: 4 }}>
         {label}
       </div>
     </div>
@@ -467,14 +467,14 @@ function ActionButton({
   if (href) {
     return (
       <a href={href} onClick={onClick} style={base}>
-        <span style={{ fontSize: 20 }}>{icon}</span>
+        <span style={{ fontSize: 20 }} aria-hidden="true">{icon}</span>
         <span>{label}</span>
       </a>
     )
   }
   return (
     <button onClick={onClick} style={{ ...base, font: 'inherit' }}>
-      <span style={{ fontSize: 20 }}>{icon}</span>
+      <span style={{ fontSize: 20 }} aria-hidden="true">{icon}</span>
       <span>{label}</span>
     </button>
   )
@@ -495,7 +495,6 @@ function LeadForm({ card, onTap, t }: { card: CardRow; onTap: () => void; t: Tra
   const [topic, setTopic] = useState('')
   const [message, setMessage] = useState('')
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -513,15 +512,14 @@ function LeadForm({ card, onTap, t }: { card: CardRow; onTap: () => void; t: Tra
       })
       if (error) throw error
       setStatus('success')
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : String(err))
+    } catch {
       setStatus('error')
     }
   }
 
   if (status === 'success') {
     return (
-      <div style={{
+      <div role="status" style={{
         marginTop: 32, padding: 20, borderRadius: 18,
         background: '#D8EBD9', color: '#2D5A3A', textAlign: 'center',
       }}>
@@ -537,9 +535,9 @@ function LeadForm({ card, onTap, t }: { card: CardRow; onTap: () => void; t: Tra
       boxShadow: '0 2px 8px rgba(0,0,0,.03)',
     }}>
       <div style={{
-        fontSize: 11, fontWeight: 800, letterSpacing: .8, color: '#9AA3B5',
+        fontSize: 11, fontWeight: 800, letterSpacing: .8, color: '#6B7488',
         textTransform: 'uppercase', marginBottom: 12,
-      }}>Verbinden</div>
+      }}>{t.connect}</div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
         <Field placeholder={`${t.leadFormFirstName} *`} value={firstName} onChange={setFirstName} required />
@@ -550,6 +548,7 @@ function LeadForm({ card, onTap, t }: { card: CardRow; onTap: () => void; t: Tra
       <Field placeholder={t.leadFormTopic} value={topic} onChange={setTopic} style={{ marginBottom: 8 }} />
       <textarea
         placeholder={t.leadFormMessage}
+        aria-label={t.leadFormMessage}
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         style={{
@@ -570,8 +569,8 @@ function LeadForm({ card, onTap, t }: { card: CardRow; onTap: () => void; t: Tra
       </button>
 
       {status === 'error' && (
-        <div style={{ marginTop: 10, fontSize: 12, color: '#8C2B3A' }}>
-          {t.leadFormError}{errorMsg ? ` (${errorMsg})` : ''}
+        <div role="alert" style={{ marginTop: 10, fontSize: 12, color: '#8C2B3A' }}>
+          {t.leadFormError}
         </div>
       )}
     </form>
@@ -586,7 +585,7 @@ function Field({
 }) {
   return (
     <input
-      type={type} placeholder={placeholder} value={value} required={required}
+      type={type} placeholder={placeholder} aria-label={placeholder.replace(/\s*\*$/, '')} value={value} required={required}
       onChange={(e) => onChange(e.target.value)}
       style={{
         width: '100%', padding: '10px 12px', borderRadius: 10,

@@ -13,10 +13,13 @@ interface Props<T extends string> {
 
 export function SegmentedControl<T extends string>({ value, options, onChange }: Props<T>) {
   return (
-    <div className="seg">
+    <div className="seg" role="tablist">
       {options.map((o) => (
         <button
           key={o.value}
+          type="button"
+          role="tab"
+          aria-selected={value === o.value}
           className={clsx(value === o.value && 'active')}
           onClick={() => onChange(o.value)}
         >

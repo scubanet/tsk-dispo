@@ -27,6 +27,14 @@ export interface Translations {
   notFoundTitle:      string
   notFoundMessage:    string
   languageLabel:      string
+  loading:            string
+  errorLoading:       string
+  speaks:             string
+  statDives:          string
+  statDivingSince:    string
+  statLevel:          string
+  connect:            string
+  createdWith:        string
 }
 
 export const translations: Record<Lang, Translations> = {
@@ -49,6 +57,14 @@ export const translations: Record<Lang, Translations> = {
     notFoundTitle:      'Karte nicht gefunden',
     notFoundMessage:    'Diese Karte existiert nicht (mehr).',
     languageLabel:      'Sprache',
+    loading:            'Lade Karte …',
+    errorLoading:       'Karte konnte nicht geladen werden.',
+    speaks:             'Spricht',
+    statDives:          'Tauchgänge',
+    statDivingSince:    'Taucht seit',
+    statLevel:          'Level',
+    connect:            'Verbinden',
+    createdWith:        'Erstellt mit AtollCard',
   },
   en: {
     addToContacts:      'Save as contact',
@@ -69,6 +85,14 @@ export const translations: Record<Lang, Translations> = {
     notFoundTitle:      'Card not found',
     notFoundMessage:    'This card does not exist (anymore).',
     languageLabel:      'Language',
+    loading:            'Loading card …',
+    errorLoading:       'Could not load the card.',
+    speaks:             'Speaks',
+    statDives:          'Dives',
+    statDivingSince:    'Diving since',
+    statLevel:          'Level',
+    connect:            'Connect',
+    createdWith:        'Made with AtollCard',
   },
   fr: {
     addToContacts:      'Enregistrer comme contact',
@@ -89,6 +113,14 @@ export const translations: Record<Lang, Translations> = {
     notFoundTitle:      'Carte introuvable',
     notFoundMessage:    "Cette carte n'existe pas (plus).",
     languageLabel:      'Langue',
+    loading:            'Chargement de la carte …',
+    errorLoading:       'Impossible de charger la carte.',
+    speaks:             'Parle',
+    statDives:          'Plongées',
+    statDivingSince:    'Plonge depuis',
+    statLevel:          'Niveau',
+    connect:            'Contact',
+    createdWith:        'Créé avec AtollCard',
   },
 }
 
