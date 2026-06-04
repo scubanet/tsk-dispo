@@ -5,6 +5,7 @@ import SwiftData
 struct AtollTalkApp: App {
   @State private var settings = SettingsStore()
   @State private var glossary = GlossaryStore()
+  @State private var subscription = SubscriptionStore()
   let container: ModelContainer
 
   init() {
@@ -21,8 +22,9 @@ struct AtollTalkApp: App {
 
   var body: some Scene {
     WindowGroup {
-      RootView(settings: settings, glossary: glossary)
+      RootView(settings: settings, glossary: glossary, subscription: subscription)
         .modelContainer(container)
+        .task { await subscription.load() }
     }
   }
 }

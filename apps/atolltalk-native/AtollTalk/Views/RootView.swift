@@ -5,6 +5,7 @@ struct RootView: View {
   @Environment(\.modelContext) private var modelContext
   let settings: SettingsStore
   let glossary: GlossaryStore
+  let subscription: SubscriptionStore
 
   private let secrets: SecretStore = KeychainSecretStore()
   @State private var vm: AppViewModel?
