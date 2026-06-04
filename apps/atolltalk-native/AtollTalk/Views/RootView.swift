@@ -23,6 +23,7 @@ struct RootView: View {
       }
     }
     .task { rebuild() }
+    .onChange(of: subscription.isPro) { rebuild() }
     .sheet(isPresented: $showSettings, onDismiss: rebuild) {
       SettingsView(secrets: secrets, settings: settings, glossary: glossary)
     }
@@ -32,8 +33,10 @@ struct RootView: View {
   }
 
   private var hasKeys: Bool {
-    (secrets.value(for: .elevenLabsAPIKey)?.isEmpty == false) &&
-    (secrets.value(for: .anthropicAPIKey)?.isEmpty == false)
+    let hasEleven = secrets.value(for: .elevenLabsAPIKey)?.isEmpty == false
+    let hasAnthropic = secrets.value(for: .anthropicAPIKey)?.isEmpty == false
+    // ElevenLabs is always needed (Scribe STT). Anthropic only for Pro (Claude).
+    return hasEleven && (hasAnthropic || !subscription.isPro)
   }
 
   private var keyBanner: some View {
@@ -50,11 +53,13 @@ struct RootView: View {
   private func rebuild() {
     let el = secrets.value(for: .elevenLabsAPIKey) ?? ""
     let an = secrets.value(for: .anthropicAPIKey) ?? ""
+    let isPro = subscription.isPro
     vm = AppViewModel(
       recorder: AudioRecorder(),
       speech: SpeechService(apiKey: el),
-      translator: TranslationService(apiKey: an, model: settings.model),
-      synthesis: SynthesisService(elevenLabsKey: el, voices: settings.voices),
+      translator: ServiceFactory.translator(isPro: isPro, anthropicKey: an, model: settings.model),
+      synthesis: SynthesisService(elevenLabsKey: el, voices: settings.voices,
+                                  tier: isPro ? .pro : .basic),
       store: ConversationStore(context: modelContext),
       context: settings.context,
       glossaryLines: { glossary.promptLines(for: settings.pair) },
