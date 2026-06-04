@@ -5,7 +5,7 @@ import AtollSpeech
 import AtollLLM
 @testable import AtollTalk
 
-private struct StubLLM: LLMProvider {
+struct StubLLM: LLMProvider {
   let chunks: [LLMChunk]
   func streamChat(messages: [LLMMessage], tools: [LLMTool], model: String, systemPrompt: String?)
     -> AsyncThrowingStream<LLMChunk, Error> {

@@ -86,9 +86,9 @@ final class AppViewModel {
   }
 
   func speak(_ turn: Turn) {
-    if !synthesis.speak(turn.targetText, in: turn.targetLang) {
-      phase = .error(String(localized: "Keine Stimme für \(turn.targetLang.displayName) verfügbar. In den Einstellungen eine ElevenLabs-Stimme hinterlegen oder eine Apple-Stimme für diese Sprache installieren."))
-    }
+    // No voice for the target language → stay silent (text-only). Not an error:
+    // a missing TTS voice (e.g. Bisaya) shouldn't block the translation result.
+    _ = synthesis.speak(turn.targetText, in: turn.targetLang)
   }
 
   func clearConversation() {
