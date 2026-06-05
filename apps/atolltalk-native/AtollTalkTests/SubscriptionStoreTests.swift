@@ -21,4 +21,20 @@ import StoreKitTest
       throw error
     }
   }
+
+  @Test func purchasingLifetimeSetsPro() async throws {
+    do {
+      let session = try SKTestSession(configurationFileNamed: "AtollTalk")
+      session.clearTransactions()
+      let store = SubscriptionStore(productIDs: ["swiss.atoll.talk.pro.lifetime"])
+      await store.load()
+      #expect(store.isPro == false)
+      try await session.buyProduct(identifier: "swiss.atoll.talk.pro.lifetime")
+      await store.refreshEntitlements()
+      #expect(store.isPro == true)   // Non-Consumable → permanent Pro
+    } catch {
+      if String(describing: error).contains("notEntitled") { return }
+      throw error
+    }
+  }
 }

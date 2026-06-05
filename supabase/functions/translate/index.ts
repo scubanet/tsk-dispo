@@ -28,6 +28,7 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const PRODUCT_IDS = new Set([
   "swiss.atoll.talk.pro.monthly",
   "swiss.atoll.talk.pro.yearly",
+  "swiss.atoll.talk.pro.lifetime", // Non-Consumable: permanent Pro
 ]);
 const ALLOWED_MODELS = new Set([
   "claude-sonnet-4-6",

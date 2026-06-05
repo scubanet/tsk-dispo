@@ -13,7 +13,8 @@ final class SubscriptionStore {
   @ObservationIgnored private nonisolated(unsafe) var updates: Task<Void, Never>?
 
   init(productIDs: Set<String> = ["swiss.atoll.talk.pro.monthly",
-                                  "swiss.atoll.talk.pro.yearly"]) {
+                                  "swiss.atoll.talk.pro.yearly",
+                                  "swiss.atoll.talk.pro.lifetime"]) {  // Lifetime = Non-Consumable
     self.productIDs = productIDs
     updates = observeTransactions()
   }

@@ -32,7 +32,13 @@ struct PaywallView: View {
             }
           } label: {
             HStack {
-              Text(product.displayName)
+              VStack(alignment: .leading, spacing: 2) {
+                Text(product.displayName)
+                if product.type == .nonConsumable {
+                  Text("Einmalig — lebenslang")
+                    .font(.caption).foregroundStyle(Color.textSecondary)
+                }
+              }
               Spacer()
               Text(product.displayPrice)
             }

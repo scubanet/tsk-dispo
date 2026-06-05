@@ -11,7 +11,23 @@
   },
   "identifier" : "A1B2C3D4",
   "nonRenewingSubscriptions" : [],
-  "products" : [],
+  "products" : [
+    {
+      "displayPrice" : "199.00",
+      "familyShareable" : false,
+      "internalID" : "21510010",
+      "localizations" : [
+        {
+          "description" : "Einmalkauf — lebenslang Pro",
+          "displayName" : "AtollTalk Pro Lifetime",
+          "locale" : "de_CH"
+        }
+      ],
+      "productID" : "swiss.atoll.talk.pro.lifetime",
+      "referenceName" : "Pro Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
   "settings" : {
     "_failTransactionsEnabled" : false,
     "_locale" : "de_CH",
