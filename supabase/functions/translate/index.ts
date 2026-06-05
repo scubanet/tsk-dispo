@@ -66,14 +66,14 @@ async function verifyTransaction(jws: string) {
     try {
       const verifier = new SignedDataVerifier(
         roots,
-        true, // enableOnlineChecks (OCSP)
+        false, // enableOnlineChecks off — avoids Sandbox OCSP flakiness
         env,
         BUNDLE_ID,
         APP_APPLE_ID,
       );
       return await verifier.verifyAndDecodeTransaction(jws);
-    } catch (_) {
-      // try next environment
+    } catch (e) {
+      console.error(`verify failed env=${env}:`, (e as Error)?.message ?? e);
     }
   }
   return null;
@@ -98,8 +98,13 @@ Deno.serve(async (req) => {
 
   // 1. Entitlement: verify the StoreKit 2 signed transaction.
   const tx = await verifyTransaction(jws);
-  if (!tx || !PRODUCT_IDS.has(tx.productId)) {
-    return json(403, { error: "not_entitled" });
+  if (!tx) {
+    console.error("entitlement: verify returned null (JWS not Apple-verifiable)");
+    return json(403, { error: "verify_failed" });
+  }
+  console.log("entitlement: verified productId=", tx.productId, "env ok");
+  if (!PRODUCT_IDS.has(tx.productId)) {
+    return json(403, { error: "wrong_product", productId: tx.productId });
   }
   if (tx.revocationDate) return json(403, { error: "revoked" });
   if (tx.expiresDate && tx.expiresDate < Date.now()) {
