@@ -11,6 +11,7 @@ struct SettingsView: View {
   @State private var elevenKey = ""
   @State private var showPaywall = false
   @State private var showManage = false
+  @State private var showOfferCode = false
   @State private var newA = ""
   @State private var newB = ""
 
@@ -32,6 +33,7 @@ struct SettingsView: View {
             Button("Auf Pro upgraden") { showPaywall = true }
           }
           Button("Abo verwalten") { showManage = true }
+          Button("Einlösecode eingeben") { showOfferCode = true }
         } header: {
           Text("Abo")
         } footer: {
@@ -112,6 +114,7 @@ struct SettingsView: View {
       }
       .sheet(isPresented: $showPaywall) { PaywallView(subscription: subscription) }
       .manageSubscriptionsSheet(isPresented: $showManage)
+      .offerCodeRedemption(isPresented: $showOfferCode)
     }
   }
 }
