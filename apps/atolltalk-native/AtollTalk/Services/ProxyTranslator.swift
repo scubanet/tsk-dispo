@@ -5,14 +5,14 @@ import Foundation
 /// the StoreKit 2 signed transaction (`jws`) for server-side entitlement check.
 struct ProxyTranslator: Translator {
   enum ProxyError: LocalizedError {
-    case notEntitled, http(Int), badResponse
+    case notEntitled, http(Int, String), badResponse
 
     var errorDescription: String? {
       switch self {
       case .notEntitled:
         return String(localized: "Kein gültiges Pro-Abo gefunden. Für echte Pro-Übersetzung ist ein Sandbox-/App-Store-Kauf nötig (lokales StoreKit-Testing wird vom Server nicht akzeptiert).")
-      case let .http(code):
-        return String(localized: "Übersetzungs-Server antwortete mit Fehler \(code).")
+      case let .http(code, body):
+        return String(localized: "Übersetzungs-Server-Fehler \(code): \(body)")
       case .badResponse:
         return String(localized: "Unerwartete Antwort vom Übersetzungs-Server.")
       }
@@ -52,7 +52,9 @@ struct ProxyTranslator: Translator {
 
     let (data, response) = try await session.data(for: req)
     guard let http = response as? HTTPURLResponse else { throw ProxyError.badResponse }
-    guard http.statusCode == 200 else { throw ProxyError.http(http.statusCode) }
+    guard http.statusCode == 200 else {
+      throw ProxyError.http(http.statusCode, String(data: data, encoding: .utf8) ?? "")
+    }
     guard let obj = try JSONSerialization.jsonObject(with: data) as? [String: Any],
           let out = obj["text"] as? String else { throw ProxyError.badResponse }
     return out.trimmingCharacters(in: .whitespacesAndNewlines)
