@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { queryClient } from '@/lib/queryClient'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AppShell } from '@/layout/AppShell'
 import { Loader } from '@/foundation/primitives/Loader'
@@ -58,7 +59,10 @@ function App() {
       setSession(data.session)
       setLoading(false)
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      // Drop all cached query data when the session ends so the next user on a
+      // shared machine never sees the previous user's contacts/movements.
+      if (event === 'SIGNED_OUT') queryClient.clear()
       setSession(s)
     })
     return () => sub.subscription.unsubscribe()

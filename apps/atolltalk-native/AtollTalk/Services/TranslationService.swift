@@ -1,7 +1,7 @@
 import Foundation
 import AtollLLM
 
-struct TranslationService: Sendable {
+struct TranslationService: Translator {
   let provider: any LLMProvider
   let model: String
 
@@ -26,8 +26,10 @@ struct TranslationService: Sendable {
   }
 
   func translate(
-    _ text: String, to target: AppLanguage, context: String, glossary: String
+    _ text: String, from source: AppLanguage, to target: AppLanguage,
+    context: String, glossary: String
   ) async throws -> String {
+    // `source` is unused: Claude detects the source language from the text.
     let system = Self.systemPrompt(context: context, glossary: glossary, target: target)
     let stream = provider.streamChat(
       messages: [LLMMessage(role: .user, content: text)],

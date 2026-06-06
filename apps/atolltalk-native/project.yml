@@ -18,6 +18,18 @@ packages:
     path: ../../swift-packages/AtollLLM
   AtollSpeech:
     path: ../../swift-packages/AtollSpeech
+schemes:
+  AtollTalk:
+    build:
+      targets:
+        AtollTalk: all
+        AtollTalkTests: [test]
+    # No StoreKit configuration: device/Sandbox runs use the real App Store so
+    # purchases yield Apple-signed JWS (required by the translate proxy). For
+    # local sim UI testing, select AtollTalk.storekit via Edit Scheme manually.
+    test:
+      targets:
+        - AtollTalkTests
 targets:
   AtollTalk:
     type: application
@@ -53,3 +65,9 @@ targets:
     sources: AtollTalkTests
     dependencies:
       - target: AtollTalk
+    settings:
+      base:
+        # Host tests in the app so StoreKitTest (SKTestSession) is entitled.
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AtollTalk.app/AtollTalk"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        GENERATE_INFOPLIST_FILE: "YES"

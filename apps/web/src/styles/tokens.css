@@ -73,7 +73,10 @@
 
   --text-primary: #1A1A1A;
   --text-secondary: #4A4A4A;
-  --text-tertiary: var(--brand-gray-60);
+  /* Darker than the brand-gray-60 swatch (#888780, 3.6:1) so secondary text
+     meets WCAG AA (4.5:1) on white/sand. The palette swatch is unchanged for
+     non-text use (level dots, REAC/CXL chips). */
+  --text-tertiary: #6E6D67;
   --text-disabled: #B4B2A9;
 
   --border-tertiary: rgba(0, 0, 0, 0.045);   /* hairlines — barely visible */

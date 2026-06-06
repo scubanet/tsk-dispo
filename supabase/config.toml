@@ -1,0 +1,41 @@
+project_id = "axnrilhdokkfujzjifhj"
+
+# Edge function JWT policy.
+#
+# Functions invoked by DB triggers / cron / external webhooks cannot carry a
+# Supabase user JWT, so the Supabase gateway must NOT require one
+# (verify_jwt = false). These functions authenticate themselves via a shared
+# secret (`x-edge-secret`) or a provider signature / store token in code.
+#
+# Functions invoked by the web app with a logged-in user keep verify_jwt = true
+# so the gateway enforces a valid session before the code runs.
+
+[functions.atollcard-lead-push]
+verify_jwt = false  # called by notify_lead_push() trigger; gated by x-edge-secret
+
+[functions.send-notification]
+verify_jwt = false  # DB webhook; gated by x-edge-secret
+
+[functions.send-assignment-notification]
+verify_jwt = false  # DB webhook; gated by x-edge-secret
+
+[functions.weekly-export]
+verify_jwt = false  # pg_cron; gated by x-edge-secret
+
+[functions.comms-inbound]
+verify_jwt = false  # external provider webhook; gated by ?token (TODO: signature)
+
+[functions.comhub-push]
+verify_jwt = false  # gated by x-comhub-push-secret
+
+[functions.translate]
+verify_jwt = false  # gated by verified StoreKit JWS
+
+[functions.atollcard-wallet-pass]
+verify_jwt = true   # called by the app with a user JWT (RLS-scoped)
+
+[functions.comms-outbound]
+verify_jwt = true   # called by the app; verifies the user via auth.getUser()
+
+[functions.excel-import]
+verify_jwt = true   # called by the app; checks dispatcher role

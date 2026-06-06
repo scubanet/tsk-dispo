@@ -1,12 +1,47 @@
 {
   "sourceLanguage" : "de",
-  "version" : "1.0",
   "strings" : {
-    "NSMicrophoneUsageDescription" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
       "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "AtollTalk nimmt deine Stimme auf, um sie zu übersetzen." } },
-        "uk" : { "stringUnit" : { "state" : "translated", "value" : "AtollTalk записує твій голос для перекладу." } }
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "AtollTalk"
+          }
+        }
+      }
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "AtollTalk"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "comment" : "Privacy - Microphone Usage Description",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AtollTalk nimmt deine Stimme auf, um sie zu übersetzen."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AtollTalk записує твій голос для перекладу."
+          }
+        }
       }
     }
-  }
+  },
+  "version" : "1.0"
 }

@@ -30,7 +30,15 @@ interface DatabaseWebhookPayload {
   old_record?: unknown
 }
 
+// Shared secret — DB-webhook target running with service_role. The webhook
+// (configured in the Supabase dashboard) must send the secret as an
+// `x-edge-secret` header, else anyone hitting the URL can drive APNs pushes.
+const EDGE_SECRET = Deno.env.get("EDGE_SHARED_SECRET")
+
 serve(async (req) => {
+  if (!EDGE_SECRET || req.headers.get("x-edge-secret") !== EDGE_SECRET) {
+    return new Response("unauthorized", { status: 401 })
+  }
   try {
     const payload = (await req.json()) as DatabaseWebhookPayload
 
@@ -53,7 +61,8 @@ serve(async (req) => {
       .eq("id", course_id)
       .single()
     if (courseErr || !course) {
-      return jsonResponse({ error: "course not found", details: courseErr }, 404)
+      console.error("[send-assignment-notification] course lookup failed", courseErr)
+      return jsonResponse({ error: "course not found" }, 404)
     }
 
     // Sprache des Instructors laden
@@ -71,7 +80,8 @@ serve(async (req) => {
       .eq("instructor_id", instructor_id)
       .eq("platform", "ios")
     if (tokenErr) {
-      return jsonResponse({ error: "token query failed", details: tokenErr }, 500)
+      console.error("[send-assignment-notification] token query failed", tokenErr)
+      return jsonResponse({ error: "token query failed" }, 500)
     }
     if (!tokens || tokens.length === 0) {
       return jsonResponse({ sent: 0, reason: "no devices registered" })

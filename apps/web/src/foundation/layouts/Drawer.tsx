@@ -6,7 +6,8 @@
  *   - 480px wide on desktop, 100vw on mobile.
  *   - Backdrop dims the page; click outside or Esc closes.
  *   - z-index: var(--z-drawer).
- *   - Focus trap kept simple — first element gets focus, Esc closes.
+ *   - Focus is trapped within the panel while open and restored to the
+ *     previously-focused element on close (keyboard / screen-reader users).
  */
 
 import { useEffect, useRef, type ReactNode } from 'react'
@@ -40,23 +41,53 @@ export function Drawer({
 }: DrawerProps) {
   const panelRef = useRef<HTMLDivElement>(null)
 
-  // Esc to close + lock body scroll while open.
+  // Esc to close + Tab focus-trap + body-scroll lock + focus restore on close.
   useEffect(() => {
     if (!open) return
+    const previouslyFocused = document.activeElement as HTMLElement | null
+
+    const getFocusable = () =>
+      Array.from(
+        panelRef.current?.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      ).filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null)
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+      if (e.key !== 'Tab') return
+      const focusable = getFocusable()
+      if (focusable.length === 0) {
+        e.preventDefault()
+        return
+      }
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      const active = document.activeElement as HTMLElement | null
+      const inside = panelRef.current?.contains(active)
+      if (e.shiftKey) {
+        if (!inside || active === first) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else if (!inside || active === last) {
+        e.preventDefault()
+        first.focus()
+      }
     }
     document.addEventListener('keydown', onKey)
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     // Auto-focus first focusable element.
-    const focusable = panelRef.current?.querySelector<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )
-    focusable?.focus()
+    getFocusable()[0]?.focus()
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prevOverflow
+      // Restore focus to whatever opened the drawer.
+      previouslyFocused?.focus?.()
     }
   }, [open, onClose])
 

@@ -5,7 +5,7 @@ import AtollSpeech
 import AtollLLM
 @testable import AtollTalk
 
-private struct StubLLM: LLMProvider {
+struct StubLLM: LLMProvider {
   let chunks: [LLMChunk]
   func streamChat(messages: [LLMMessage], tools: [LLMTool], model: String, systemPrompt: String?)
     -> AsyncThrowingStream<LLMChunk, Error> {
@@ -27,7 +27,8 @@ private struct StubLLM: LLMProvider {
       synthesis: SynthesisService(elevenLabsKey: nil, voices: [:]),
       store: store,
       context: "ctx",
-      glossaryLines: { "" }
+      glossaryLines: { "" },
+      pair: { LanguagePair(a: .de, b: .uk) }
     )
     return (vm, store)
   }
