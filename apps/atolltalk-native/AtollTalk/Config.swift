@@ -10,9 +10,11 @@ enum Config {
   /// Free-tier fair-use: max Basic translations per day before the paywall.
   static let basicDailyLimit = 20
 
-  // ElevenLabs
-  static let scribeModelID = "scribe_v1"            // open point #1: confirm Scribe v2 id
-  static let ttsModelID    = "eleven_multilingual_v2"
+  // ElevenLabs — key baked in (rate-limit in ElevenLabs dashboard as mitigation).
+  // TODO before public launch: proxy STT+TTS through Supabase like translate.
+  static let elevenLabsAPIKey = "sk_ed54b69b6f7e8ddd7434f87940769f2f17dd88b65944ef5e"
+  static let scribeModelID    = "scribe_v1"
+  static let ttsModelID       = "eleven_multilingual_v2"
 
   /// Pro translation proxy (Supabase Edge Function). Holds the Claude key
   /// server-side; the app never ships it. Replace <project-ref> after deploy.

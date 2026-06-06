@@ -7,7 +7,6 @@ struct RootView: View {
   let glossary: GlossaryStore
   let subscription: SubscriptionStore
 
-  private let secrets: SecretStore = KeychainSecretStore()
   @State private var vm: AppViewModel?
   @State private var showSettings = false
 
@@ -29,32 +28,12 @@ struct RootView: View {
       ConsentView { settings.hasConsented = true }
     }
     .sheet(isPresented: $showSettings, onDismiss: rebuild) {
-      SettingsView(secrets: secrets, settings: settings, glossary: glossary, subscription: subscription)
+      SettingsView(settings: settings, glossary: glossary, subscription: subscription)
     }
-    .overlay(alignment: .top) {
-      if !hasKeys { keyBanner }
-    }
-  }
-
-  private var hasKeys: Bool {
-    // ElevenLabs is the only in-app key (Scribe STT, both tiers). The Claude key
-    // lives server-side behind the translate proxy (Pro), never in the app.
-    secrets.value(for: .elevenLabsAPIKey)?.isEmpty == false
-  }
-
-  private var keyBanner: some View {
-    Button { showSettings = true } label: {
-      Text("API-Schlüssel fehlen — hier eintragen")
-        .font(.footnote.weight(.medium))
-        .padding(8).frame(maxWidth: .infinity)
-        .background(Color.brandBlue50)
-        .foregroundStyle(Color.brandBlue)
-    }
-    .buttonStyle(.plain)
   }
 
   private func rebuild() {
-    let el = secrets.value(for: .elevenLabsAPIKey) ?? ""
+    let el = Config.elevenLabsAPIKey
     let isPro = subscription.isPro
     let sub = subscription
     vm = AppViewModel(

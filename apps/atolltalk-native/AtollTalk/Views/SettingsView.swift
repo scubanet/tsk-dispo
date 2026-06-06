@@ -3,12 +3,10 @@ import StoreKit
 
 struct SettingsView: View {
   @Environment(\.dismiss) private var dismiss
-  let secrets: SecretStore
   @Bindable var settings: SettingsStore
   let glossary: GlossaryStore
   let subscription: SubscriptionStore
 
-  @State private var elevenKey = ""
   @State private var showPaywall = false
   @State private var showManage = false
   @State private var showOfferCode = false
@@ -40,11 +38,6 @@ struct SettingsView: View {
           Text(subscription.isPro
             ? "Pro: Premium-Übersetzung (Claude) + natürliche Stimmen, alle Sprachen."
             : "Basic: Standard-Übersetzung (on-device), \(Config.basicDailyLimit) Übersetzungen/Tag.")
-        }
-        Section("API-Schlüssel") {
-          SecureField("ElevenLabs API-Key", text: $elevenKey)
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
         }
         Section("Übersetzungsmodell") {
           Picker("Claude-Modell", selection: $settings.model) {
@@ -103,14 +96,8 @@ struct SettingsView: View {
       .navigationTitle("Einstellungen")
       .toolbar {
         ToolbarItem(placement: .confirmationAction) {
-          Button("Fertig") {
-            secrets.set(elevenKey.isEmpty ? nil : elevenKey, for: .elevenLabsAPIKey)
-            dismiss()
-          }
+          Button("Fertig") { dismiss() }
         }
-      }
-      .onAppear {
-        elevenKey = secrets.value(for: .elevenLabsAPIKey) ?? ""
       }
       .sheet(isPresented: $showPaywall) { PaywallView(subscription: subscription) }
       .manageSubscriptionsSheet(isPresented: $showManage)
