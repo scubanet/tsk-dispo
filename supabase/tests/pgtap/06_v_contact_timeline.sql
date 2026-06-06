@@ -27,14 +27,14 @@ SET LOCAL request.jwt.claims = '{"sub":"cccccccc-cccc-cccc-cccc-cccccccccccc","r
 -- Test 1: View liefert nur eigene Events (security_invoker erbt contact_events RLS)
 SELECT is(
   (SELECT count(*) FROM public.v_contact_timeline
-   WHERE contact_id = '33333333-3333-3333-3333-333333333333')::int,
+   WHERE contact_id = '33333333-3333-3333-3333-333333333333' AND source_table = 'contact_events')::int,
   2, 'two events visible for owner'
 );
 
 -- Test 2: ORDER BY occurred_at DESC am Call-Site liefert "newer" zuerst
 SELECT is(
   (SELECT summary FROM public.v_contact_timeline
-   WHERE contact_id = '33333333-3333-3333-3333-333333333333'
+   WHERE contact_id = '33333333-3333-3333-3333-333333333333' AND source_table = 'contact_events'
    ORDER BY occurred_at DESC LIMIT 1),
   'newer', 'newer event sorted first when caller orders by occurred_at DESC'
 );
@@ -53,7 +53,7 @@ SET LOCAL request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000099","r
 
 SELECT is(
   (SELECT count(*) FROM public.v_contact_timeline
-   WHERE contact_id = '33333333-3333-3333-3333-333333333333')::int,
+   WHERE contact_id = '33333333-3333-3333-3333-333333333333' AND source_table = 'contact_events')::int,
   0, 'non-owner sees nothing (security_invoker enforces contact_events RLS)'
 );
 

@@ -10,6 +10,10 @@
 -- rotation: when iOS gives us a new token, we upsert and refresh
 -- last_seen_at.
 
+-- FIX (db reset): 0043 legt eine ältere (instructor-keyed) device_tokens an;
+-- 0099 ersetzt sie durch die auth.users-keyed Version. Auf einem frischen Reset
+-- existiert die alte noch → vor dem CREATE droppen. Prod-sicher (0099 dort angewandt).
+DROP TABLE IF EXISTS public.device_tokens CASCADE;
 CREATE TABLE public.device_tokens (
   auth_user_id   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   device_token   TEXT NOT NULL,

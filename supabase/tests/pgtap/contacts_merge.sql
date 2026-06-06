@@ -18,6 +18,21 @@ SELECT set_has(
 INSERT INTO contact_instructor (contact_id) VALUES
   ('a0000000-0000-0000-0000-000000000002');
 
+-- course_assignments.instructor_id hat einen FK auf instructors (Phase J behält
+-- die Tabelle vorerst). Beide Contacts brauchen daher eine instructors-Zeile mit
+-- derselben id (unified ID space); calendar_token kommt per Default (20260606000100).
+INSERT INTO instructors (id, name, padi_level, initials) VALUES
+  ('a0000000-0000-0000-0000-000000000001', 'Merge Win',  'Instructor', 'MW'),
+  ('a0000000-0000-0000-0000-000000000002', 'Merge Lose', 'Instructor', 'ML');
+
+-- Dispatcher für die guarded RPCs: merge_contacts UND gdpr_anonymize_contact haben
+-- seit dem Security-Lockdown (20260604130000) einen is_dispatcher()/is_owner()-Guard.
+INSERT INTO auth.users (id, email) VALUES
+  ('d0000000-0000-0000-0000-000000000001', 'disp-merge@test.dev');
+INSERT INTO instructors (id, name, padi_level, initials, role, auth_user_id) VALUES
+  ('d0000000-0000-0000-0000-000000000001', 'Merge Disp', 'Instructor', 'MD', 'dispatcher',
+   'd0000000-0000-0000-0000-000000000001');
+
 -- Add a course referencing the loser
 INSERT INTO courses (id, title, start_date, status, type_id)
 VALUES (
@@ -34,11 +49,15 @@ VALUES (
   'haupt'
 );
 
--- 2. Execute merge
+-- 2. Execute merge — als Dispatcher (Guard seit 20260604130000), danach RESET ROLE
+--    für die Assertions (superuser umgeht RLS).
+SET LOCAL ROLE authenticated;
+SET LOCAL request.jwt.claims TO '{"sub":"d0000000-0000-0000-0000-000000000001","role":"authenticated"}';
 SELECT merge_contacts(
   'a0000000-0000-0000-0000-000000000001'::uuid,
   'a0000000-0000-0000-0000-000000000002'::uuid
 );
+RESET ROLE;
 
 -- 3. assignment FK migrated
 SELECT is(
@@ -60,8 +79,11 @@ SELECT ok(
    WHERE id = 'a0000000-0000-0000-0000-000000000002'),
   'loser archived');
 
--- 6. GDPR anonymize keeps id but clears PII
+-- 6. GDPR anonymize keeps id but clears PII — ebenfalls als Dispatcher
+--    (request.jwt.claims aus dem SET LOCAL oben gilt noch in dieser Transaktion).
+SET LOCAL ROLE authenticated;
 SELECT gdpr_anonymize_contact('a0000000-0000-0000-0000-000000000001'::uuid);
+RESET ROLE;
 SELECT is(
   (SELECT primary_email FROM contacts
    WHERE id = 'a0000000-0000-0000-0000-000000000001'),

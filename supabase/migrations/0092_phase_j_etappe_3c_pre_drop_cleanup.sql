@@ -175,8 +175,12 @@ $function$;
 
 -- Orphan'd Forward-Sync-Functions aus 0083 (Triggers waren bereits gedroppt;
 -- bestätigt durch Pre-Flight in Etappe 3a)
-DROP FUNCTION IF EXISTS public.sync_people_to_contacts();
-DROP FUNCTION IF EXISTS public.sync_instructors_to_contacts();
+-- FIX (db reset): Auf einem frischen Reset hängen die Forward-Sync-Trigger
+-- (trg_sync_people_to_contacts auf people, trg_sync_instructors_to_contacts auf
+-- instructors) noch an diesen Functions (0091 hat sie hier nicht gedroppt).
+-- CASCADE entfernt die Trigger gleich mit — entspricht der Phase-J-Absicht.
+DROP FUNCTION IF EXISTS public.sync_people_to_contacts() CASCADE;
+DROP FUNCTION IF EXISTS public.sync_instructors_to_contacts() CASCADE;
 
 -- Partial-sync trigger functions auf people — die Triggers selbst gehen mit
 -- der Tabelle in 0093 weg, aber die Functions würden als Leichen bleiben.

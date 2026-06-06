@@ -26,10 +26,11 @@ SELECT is(
   (SELECT relrowsecurity FROM pg_class WHERE relname = 'contact_audit_log'),
   true, 'RLS enabled on contact_audit_log');
 
--- contacts should have 4 policies (select/insert/update/delete)
+-- contacts should have 5 policies: select/insert/update/delete (0084) +
+-- contacts_public_read_for_card_owners (0098, AtollCard anon-Read für aktive Karten).
 SELECT is(
   (SELECT count(*)::int FROM pg_policies WHERE tablename = 'contacts'),
-  4, 'contacts has 4 RLS policies');
+  5, 'contacts has 5 RLS policies');
 
 SELECT * FROM finish();
 ROLLBACK;

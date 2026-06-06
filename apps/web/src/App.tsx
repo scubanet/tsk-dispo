@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { queryClient } from '@/lib/queryClient'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AppShell } from '@/layout/AppShell'
 import { Loader } from '@/foundation/primitives/Loader'
@@ -20,6 +21,10 @@ const InstructorsScreen     = lazy(() => import('@/screens/InstructorsScreen').t
 const SkillMatrixScreen     = lazy(() => import('@/screens/SkillMatrixScreen').then(m => ({ default: m.SkillMatrixScreen })))
 const PoolScreen            = lazy(() => import('@/screens/PoolScreen').then(m => ({ default: m.PoolScreen })))
 const SaldiScreen           = lazy(() => import('@/screens/SaldiScreen').then(m => ({ default: m.SaldiScreen })))
+const ProductsScreen        = lazy(() => import('@/screens/ProductsScreen').then(m => ({ default: m.ProductsScreen })))
+const PosScreen             = lazy(() => import('@/screens/pos/PosScreen').then((m) => ({ default: m.PosScreen })))
+const RentalServiceScreen   = lazy(() => import('@/screens/rental/RentalServiceScreen').then(m => ({ default: m.RentalServiceScreen })))
+const TripsScreen           = lazy(() => import('@/screens/trips/TripsScreen').then(m => ({ default: m.TripsScreen })))
 const CalendarScreen        = lazy(() => import('@/screens/CalendarScreen').then(m => ({ default: m.CalendarScreen })))
 const SettingsScreen        = lazy(() => import('@/screens/SettingsScreen').then(m => ({ default: m.SettingsScreen })))
 const StudentsScreen        = lazy(() => import('@/screens/StudentsScreen').then(m => ({ default: m.StudentsScreen })))
@@ -58,7 +63,10 @@ function App() {
       setSession(data.session)
       setLoading(false)
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      // Drop all cached query data when the session ends so the next user on a
+      // shared machine never sees the previous user's contacts/movements.
+      if (event === 'SIGNED_OUT') queryClient.clear()
       setSession(s)
     })
     return () => sub.subscription.unsubscribe()
@@ -94,6 +102,10 @@ function App() {
               <Route path="/skills"                 element={<SkillMatrixScreen />} />
               <Route path="/pool"                   element={<PoolScreen />} />
               <Route path="/saldi"                  element={<SaldiScreen />} />
+              <Route path="/shop"                   element={<ProductsScreen />} />
+              <Route path="/kasse"                  element={<PosScreen />} />
+              <Route path="/verleih"                element={<RentalServiceScreen />} />
+              <Route path="/trips"                  element={<TripsScreen />} />
               <Route path="/einstellungen"          element={<SettingsScreen />} />
               <Route path="/einstellungen/import"   element={<ImportWizard />} />
               <Route path="/einsaetze"              element={<MyAssignmentsScreen />} />

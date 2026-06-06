@@ -1,9 +1,13 @@
 BEGIN;
 SELECT plan(6);
 
--- Setup: create a contact row
-INSERT INTO contacts (id, kind, first_name, last_name)
-VALUES ('11111111-1111-1111-1111-111111111111', 'person', 'Test', 'User');
+-- Setup: create a contact row. created_at/updated_at bewusst 1s in der
+-- Vergangenheit — der BEFORE-UPDATE-Trigger setzt updated_at = now()
+-- (Transaktionszeit) und schiebt es so messbar nach vorn. pg_sleep brächte
+-- nichts, weil now() je Transaktion eingefroren ist.
+INSERT INTO contacts (id, kind, first_name, last_name, created_at, updated_at)
+VALUES ('11111111-1111-1111-1111-111111111111', 'person', 'Test', 'User',
+        now() - interval '1 second', now() - interval '1 second');
 
 -- 1. Audit on INSERT into contacts
 SELECT is(
@@ -12,8 +16,8 @@ SELECT is(
      AND operation = 'INSERT' AND table_name = 'contacts'),
   1, 'INSERT logged');
 
--- 2. updated_at advances on UPDATE (must be > created_at after a slight delay)
-PERFORM pg_sleep(0.01);
+-- 2. updated_at advances on UPDATE: Trigger setzt updated_at = now() (jetzt),
+--    created_at liegt 1s in der Vergangenheit → strikt größer.
 UPDATE contacts SET notes = 'foo'
  WHERE id = '11111111-1111-1111-1111-111111111111';
 SELECT ok(
