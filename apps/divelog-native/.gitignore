@@ -1,0 +1,39 @@
+# Xcode
+## User-specific (per-developer IDE state)
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+## Build products
+build/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Swift Package Manager
+.build/
+Packages/
+Package.resolved
+
+## CocoaPods (not used, but guard just in case)
+Pods/
+
+## Carthage (not used)
+Carthage/Build/
+
+## macOS
+.DS_Store
+
+## Misc
+*.swp
+*.log
+.env
+.env.*
+*.pem
+*.p8
+*.p12
+*.mobileprovision
+
+## Git worktrees (for parallel feature work)
+.worktrees/

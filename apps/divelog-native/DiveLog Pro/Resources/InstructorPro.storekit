@@ -1,0 +1,40 @@
+{
+  "identifier" : "C9A1B2D3-E4F5-6789-ABCD-EF0123456789",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+      "localizations" : [
+        {
+          "description" : "Manage students, track skills & document courses",
+          "displayName" : "Instructor Pro",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "Schüler verwalten, Skills tracken & Kurse dokumentieren",
+          "displayName" : "Instructor Pro",
+          "locale" : "de"
+        }
+      ],
+      "productID" : "com.weckherlin.DiveLogPro.instructorPro",
+      "referenceName" : "Instructor Pro",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "1234567890",
+    "_developerTeamID" : "XXXXXXXXXX",
+    "_lastSynchronizedDate" : 1714300000
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
