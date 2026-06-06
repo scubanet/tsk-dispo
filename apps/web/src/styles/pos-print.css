@@ -1,0 +1,6 @@
+@media print {
+  body * { visibility: hidden; }
+  .pos-receipt, .pos-receipt * { visibility: visible; }
+  .pos-receipt { position: absolute; inset: 0; margin: 0; padding: 16px; width: 80mm; }
+  .pos-receipt__noprint { display: none !important; }
+}
