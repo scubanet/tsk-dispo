@@ -637,6 +637,8 @@ struct DiveFormView: View {
         let container = ctx.container
         Task { @MainActor in
             await DiveLogBridgePublisher(container: container, bridge: bridge).publish()
+            // Atoll-Backend-Spiegel (Phase 4) — non-fatal, idempotent.
+            await SupabaseLogbookPublisher(container: container).publishAll()
         }
     }
 

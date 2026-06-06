@@ -11,6 +11,12 @@ final class Dive {
     var date: Date = Date.now
     var diveType: String = "fun"       // fun, training, night, drift, deep, wreck, cave, photo
 
+    // ─── Atoll-Spiegel (Phase 4) ─────────
+    // Stabile ID für idempotente Upserts nach Supabase (unique pro Owner).
+    // Optional + Backfill im SupabaseLogbookPublisher: CloudKit-sichere
+    // Schema-Evolution; einmal gesetzt, synct der Wert über CloudKit mit.
+    var clientID: UUID?
+
     // ─── Ort ─────────────────────────────
     var siteName: String = ""
     var siteLocation: String = ""      // Stadt/Land

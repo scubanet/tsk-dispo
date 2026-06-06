@@ -150,6 +150,7 @@ struct DiveLogProApp: App {
                 #endif
                 await appleSignIn.refreshCredentialState()
                 await AtollSessionService.shared.bootstrap()
+                await SupabaseLogbookPublisher(container: sharedModelContainer).publishAll()
                 migratePhotosToCloudKit()
                 if renumberCoordinator == nil {
                     renumberCoordinator = CloudKitRenumberCoordinator(container: sharedModelContainer)
