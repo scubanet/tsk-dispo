@@ -147,6 +147,9 @@ function DispatcherToday() {
         })}
         actions={
           <>
+            <button type="button" className="btn" onClick={() => navigate('/kasse')}>
+              {t('pos.open_till')}
+            </button>
             <WhatsAppButton url={digestUrl} label={t('today.daily_digest')} />
             <button
               type="button"

@@ -30,14 +30,10 @@ WHERE role = 'dmt';
 -- =============================================================
 -- 3. comp_units für Opfer in Rescue-Kursen
 -- =============================================================
--- Opfer kriegt 1.5 Punkte pro Rescue-Kurs (in der See-Phase, da dort
--- die Szenarios mit Opfer-Spielenden stattfinden).
---
--- ON CONFLICT: falls schon vorhanden (idempotent).
-
-INSERT INTO comp_units (course_type_id, role, theory_h, pool_h, lake_h)
-SELECT id, 'opfer'::assignment_role, 0, 0, 1.5
-FROM course_types
-WHERE code = 'RESC'
-ON CONFLICT (course_type_id, role) DO UPDATE
-  SET theory_h = 0, pool_h = 0, lake_h = 1.5;
+-- VERSCHOBEN (2026-06-06): Der Seed nutzt den oben frisch hinzugefügten
+-- ENUM-Wert 'opfer'. Postgres verbietet die Verwendung eines neuen Enum-Werts
+-- in derselben Transaction (SQLSTATE 55P04), weshalb diese Migration früher nur
+-- manuell im SQL-Editor lief. Damit `supabase db reset` (transaktional, je
+-- Datei) sauber durchläuft, liegt der Seed jetzt in der Folgemigration
+-- 20260606000000_seed_opfer_comp_units.sql, die nach dem Commit dieses ALTER
+-- TYPE ausgeführt wird. Inhalt unverändert + idempotent.

@@ -2,6 +2,11 @@
 BEGIN;
 SELECT plan(2);
 
+-- auth.users müssen existieren (FK instructors.auth_user_id → auth.users).
+INSERT INTO auth.users (id, email) VALUES
+  ('99999999-9999-9999-9999-999999999991', 'lukas@test.dev'),
+  ('99999999-9999-9999-9999-999999999992', 'annick@test.dev');
+
 INSERT INTO instructors (id, name, padi_level, initials, role, auth_user_id)
 VALUES
   ('cccc1111-1111-1111-1111-111111111111', 'Lukas',  'Instructor', 'LB', 'instructor',

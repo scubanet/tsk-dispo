@@ -17,6 +17,14 @@ ALTER TYPE app_role ADD VALUE IF NOT EXISTS 'cd';
 -- Teil B: Helper-Functions, students-Erweiterung, organizations
 -- ============================================================
 
+-- FIX (db reset): Die folgenden SQL-Helper referenzieren den oben frisch
+-- hinzugefügten ENUM-Wert 'cd'. Postgres validiert SQL-Funktionsrümpfe beim
+-- Anlegen (check_function_bodies) und wirft dabei 55P04 ("unsafe use of new
+-- value of enum type"), wenn der Wert in derselben Transaction hinzugefügt
+-- wurde. check_function_bodies für diese Transaction abschalten — der Rumpf
+-- wird erst zur Laufzeit aufgelöst, dann existiert 'cd' längst.
+SET LOCAL check_function_bodies = off;
+
 -- Helper: ist die Person aktuell als CD eingeloggt?
 CREATE OR REPLACE FUNCTION is_cd()
 RETURNS BOOLEAN

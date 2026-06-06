@@ -3,8 +3,9 @@
 BEGIN;
 SELECT plan(2);
 
+-- 'OWSI' = der heute aktive 28-CHF/h-Satz (0030: 'Instructor'-Satz → 'OWSI').
 INSERT INTO instructors (id, name, padi_level, initials)
-  VALUES ('aaaa1111-1111-1111-1111-111111111111', 'Marjanka', 'Instructor', 'MA');
+  VALUES ('aaaa1111-1111-1111-1111-111111111111', 'Marjanka', 'OWSI', 'MA');
 
 INSERT INTO courses (id, type_id, title, status, start_date, additional_dates)
 SELECT 'bbbb2222-2222-2222-2222-222222222222',

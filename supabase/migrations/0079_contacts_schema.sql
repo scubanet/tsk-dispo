@@ -148,6 +148,11 @@ CREATE INDEX idx_contact_org_kind   ON public.contact_organization(org_kind);
 CREATE INDEX idx_contact_org_parent ON public.contact_organization(parent_org_id);
 
 -- contact_relationships: n:m relationships between contacts (Hybrid model)
+-- FIX (db reset): 0049 legt eine ältere, people-basierte contact_relationships an;
+-- die Contacts-Unifizierung ersetzt sie hier. Auf einem frischen Reset existiert
+-- die alte noch → vor dem CREATE droppen (CASCADE entfernt alte Policies/Indizes).
+-- Prod-sicher: 0079 ist dort längst angewandt und läuft nicht erneut.
+DROP TABLE IF EXISTS public.contact_relationships CASCADE;
 CREATE TABLE public.contact_relationships (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   from_contact_id UUID NOT NULL REFERENCES public.contacts(id) ON DELETE CASCADE,

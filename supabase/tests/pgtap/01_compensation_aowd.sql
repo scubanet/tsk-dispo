@@ -2,8 +2,11 @@
 BEGIN;
 SELECT plan(3);
 
+-- 'OWSI' = der heute aktive 28-CHF/h-Satz. Migration 0030 hat den ursprünglichen
+-- 'Instructor'-comp_rate nach 'OWSI' migriert; ein Instructor mit padi_level
+-- 'Instructor' hätte heute KEINEN aktiven Satz → calc_compensation gäbe NULL.
 INSERT INTO instructors (id, name, padi_level, initials)
-VALUES ('11111111-1111-1111-1111-111111111111', 'Test Inst', 'Instructor', 'TI');
+VALUES ('11111111-1111-1111-1111-111111111111', 'Test Inst', 'OWSI', 'TI');
 
 INSERT INTO courses (id, type_id, title, status, start_date)
 SELECT '22222222-2222-2222-2222-222222222222', id, 'AOWD Test', 'confirmed', '2026-05-01'
