@@ -49,6 +49,11 @@ struct ProfileEditView: View {
     @State private var useMetric: Bool = true
     @AppStorage("appLanguage") private var language: String = "en"
 
+    // Atoll-Konto (Phase 2)
+    @State private var atollSession = AtollSessionService.shared
+    @State private var appleSignIn = AppleSignInService.shared
+    @State private var isLinkingAtoll = false
+
     // Pickers
     @State private var profilePickerItem: PhotosPickerItem?
     @State private var profilePickerShown = false
@@ -84,6 +89,7 @@ struct ProfileEditView: View {
                         smartDefaultsSection
                         logbookSection
                         preferencesSection
+                        atollSection
                     }
                     .padding(20)
                     .padding(.bottom, 60)
@@ -466,6 +472,72 @@ struct ProfileEditView: View {
                 }
             }
             .tint(.seafoam)
+        }
+        .padding(18)
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color.cardBg))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.cardBorder, lineWidth: 1))
+    }
+
+    // ═══════════════════════════════════════
+    // MARK: - Atoll-Konto (Supabase-Session)
+    // ═══════════════════════════════════════
+
+    private var atollSection: some View {
+        VStack(spacing: 14) {
+            SectionTitle(title: L10n.currentLanguage == "de" ? "Atoll-Konto" : "Atoll Account")
+
+            HStack(spacing: 8) {
+                Image(systemName: atollSession.isLinked ? "checkmark.icloud.fill" : "icloud.slash")
+                    .foregroundColor(atollSession.isLinked ? .seafoam : .white.opacity(0.45))
+                Text(atollSession.isLinked
+                     ? (L10n.currentLanguage == "de" ? "Mit Atoll verbunden" : "Connected to Atoll")
+                     : (L10n.currentLanguage == "de" ? "Nicht verbunden" : "Not connected"))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
+                Spacer()
+            }
+
+            Text(L10n.currentLanguage == "de"
+                 ? "Verbindet dein Logbuch mit der Atoll-Welt (gleiche Apple-ID). Dein privates Logbuch bleibt in iCloud."
+                 : "Links your logbook to the Atoll world (same Apple ID). Your private logbook stays in iCloud.")
+                .font(.system(size: 11))
+                .foregroundColor(.textDim)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            if let err = atollSession.lastLinkError, !atollSession.isLinked {
+                Text(err)
+                    .font(.system(size: 11))
+                    .foregroundColor(.red.opacity(0.8))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            Button {
+                if atollSession.isLinked {
+                    Task { await atollSession.unlink() }
+                } else {
+                    isLinkingAtoll = true
+                    Task {
+                        defer { isLinkingAtoll = false }
+                        _ = try? await appleSignIn.signIn()
+                    }
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    if isLinkingAtoll {
+                        ProgressView().tint(.deepOcean)
+                    }
+                    Text(atollSession.isLinked
+                         ? (L10n.currentLanguage == "de" ? "Verbindung trennen" : "Disconnect")
+                         : (L10n.currentLanguage == "de" ? "Mit Atoll verbinden" : "Connect to Atoll"))
+                        .font(.system(size: 14, weight: .bold))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(RoundedRectangle(cornerRadius: 12).fill(atollSession.isLinked ? Color.cardBg : Color.seafoam))
+                .foregroundColor(atollSession.isLinked ? .white.opacity(0.7) : .deepOcean)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.cardBorder, lineWidth: atollSession.isLinked ? 1 : 0))
+            }
+            .disabled(isLinkingAtoll)
         }
         .padding(18)
         .background(RoundedRectangle(cornerRadius: 18).fill(Color.cardBg))

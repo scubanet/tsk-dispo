@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AtollCore
 import os
 
 private let logger = Logger(subsystem: "com.weckherlin.DiveLogPro", category: "CloudKit")
@@ -42,6 +43,12 @@ struct DiveLogProApp: App {
     // Atoll Hub bridge — writes our profile/activity snapshot into the
     // shared App Group container so Atoll Hub can read it offline.
     private let atollBridge = DiveLogBridge()
+
+    // Atoll-Backend (Phase 2): Supabase-Config muss vor dem ersten Zugriff
+    // auf SupabaseClient.shared registriert sein.
+    init() {
+        AtollCoreConfig.register(DiveLogSupabaseConfig())
+    }
 
     // ═══════════════════════════════════════
     // MARK: - ModelContainer (SwiftData + CloudKit)
@@ -142,6 +149,7 @@ struct DiveLogProApp: App {
                 DiveLogBridge.runRoundTripSelfCheck()
                 #endif
                 await appleSignIn.refreshCredentialState()
+                await AtollSessionService.shared.bootstrap()
                 migratePhotosToCloudKit()
                 if renumberCoordinator == nil {
                     renumberCoordinator = CloudKitRenumberCoordinator(container: sharedModelContainer)

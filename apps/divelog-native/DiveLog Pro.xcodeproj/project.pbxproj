@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B43303872FD440F900E26B79 /* AtollCore in Frameworks */ = {isa = PBXBuildFile; productRef = B43303862FD440F900E26B79 /* AtollCore */; };
+		B43303892FD4411300E26B79 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = B43303882FD4411300E26B79 /* Auth */; };
+		B433038B2FD4411300E26B79 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = B433038A2FD4411300E26B79 /* Functions */; };
+		B433038D2FD4411300E26B79 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = B433038C2FD4411300E26B79 /* PostgREST */; };
+		B433038F2FD4411300E26B79 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = B433038E2FD4411300E26B79 /* Realtime */; };
+		B43303912FD4411300E26B79 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = B43303902FD4411300E26B79 /* Storage */; };
+		B43303932FD4411300E26B79 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = B43303922FD4411300E26B79 /* Supabase */; };
 		B49A3FBA2FB12BBC0017D0F8 /* FITSwiftSDK in Frameworks */ = {isa = PBXBuildFile; productRef = B49A3FB92FB12BBC0017D0F8 /* FITSwiftSDK */; };
 /* End PBXBuildFile section */
 
@@ -69,7 +76,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B43303872FD440F900E26B79 /* AtollCore in Frameworks */,
 				B49A3FBA2FB12BBC0017D0F8 /* FITSwiftSDK in Frameworks */,
+				B43303912FD4411300E26B79 /* Storage in Frameworks */,
+				B433038B2FD4411300E26B79 /* Functions in Frameworks */,
+				B43303932FD4411300E26B79 /* Supabase in Frameworks */,
+				B433038F2FD4411300E26B79 /* Realtime in Frameworks */,
+				B43303892FD4411300E26B79 /* Auth in Frameworks */,
+				B433038D2FD4411300E26B79 /* PostgREST in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -96,6 +110,7 @@
 				B40CF1862F97A2D4005D221C /* DiveLog Pro */,
 				B40CF1982F97A2D5005D221C /* DiveLog ProTests */,
 				B40CF1A22F97A2D5005D221C /* DiveLog ProUITests */,
+				B43303852FD440F900E26B79 /* Frameworks */,
 				B40CF1852F97A2D4005D221C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -108,6 +123,13 @@
 				B40CF19F2F97A2D5005D221C /* DiveLog ProUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B43303852FD440F900E26B79 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -131,6 +153,13 @@
 			name = "DiveLog Pro";
 			packageProductDependencies = (
 				B49A3FB92FB12BBC0017D0F8 /* FITSwiftSDK */,
+				B43303862FD440F900E26B79 /* AtollCore */,
+				B43303882FD4411300E26B79 /* Auth */,
+				B433038A2FD4411300E26B79 /* Functions */,
+				B433038C2FD4411300E26B79 /* PostgREST */,
+				B433038E2FD4411300E26B79 /* Realtime */,
+				B43303902FD4411300E26B79 /* Storage */,
+				B43303922FD4411300E26B79 /* Supabase */,
 			);
 			productName = "DiveLog Pro";
 			productReference = B40CF1842F97A2D4005D221C /* DiveLog Pro.app */;
@@ -217,6 +246,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				B49A3FB82FB12BBC0017D0F8 /* XCRemoteSwiftPackageReference "fit-swift-sdk" */,
+				B433028D2FD43EE700E26B79 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				B43303842FD43FAD00E26B79 /* XCLocalSwiftPackageReference "../../swift-packages/AtollCore" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B40CF1852F97A2D4005D221C /* Products */;
@@ -613,7 +644,22 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		B43303842FD43FAD00E26B79 /* XCLocalSwiftPackageReference "../../swift-packages/AtollCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../../swift-packages/AtollCore";
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
+		B433028D2FD43EE700E26B79 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
 		B49A3FB82FB12BBC0017D0F8 /* XCRemoteSwiftPackageReference "fit-swift-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/garmin/fit-swift-sdk.git";
@@ -625,6 +671,41 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		B43303862FD440F900E26B79 /* AtollCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B43303842FD43FAD00E26B79 /* XCLocalSwiftPackageReference "../../swift-packages/AtollCore" */;
+			productName = AtollCore;
+		};
+		B43303882FD4411300E26B79 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B433028D2FD43EE700E26B79 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		B433038A2FD4411300E26B79 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B433028D2FD43EE700E26B79 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		B433038C2FD4411300E26B79 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B433028D2FD43EE700E26B79 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		B433038E2FD4411300E26B79 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B433028D2FD43EE700E26B79 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		B43303902FD4411300E26B79 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B433028D2FD43EE700E26B79 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		B43303922FD4411300E26B79 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B433028D2FD43EE700E26B79 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
 		B49A3FB92FB12BBC0017D0F8 /* FITSwiftSDK */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B49A3FB82FB12BBC0017D0F8 /* XCRemoteSwiftPackageReference "fit-swift-sdk" */;

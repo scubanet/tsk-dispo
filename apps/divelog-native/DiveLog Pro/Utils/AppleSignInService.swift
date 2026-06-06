@@ -1,5 +1,6 @@
 import Foundation
 import AuthenticationServices
+import CryptoKit
 import SwiftUI
 
 // ═══════════════════════════════════════
@@ -45,12 +46,17 @@ final class AppleSignInService: NSObject {
     /// Kick off the Apple Sign-In flow. Resolves once Apple's sheet closes.
     /// The completion closure receives the persisted credential on success.
     func signIn() async throws -> AppleCredential {
+        // Crypto-Nonce gegen Replay — der SHA256-Hash geht zu Apple, der
+        // Rohwert später an Supabase (signInWithIdToken prüft beide).
+        let rawNonce = Self.randomNonce()
+
         let request = ASAuthorizationAppleIDProvider().createRequest()
         request.requestedScopes = [.fullName, .email]
+        request.nonce = Self.sha256Hex(rawNonce)
 
         let controller = ASAuthorizationController(authorizationRequests: [request])
 
-        return try await withCheckedThrowingContinuation { cont in
+        let credential: AppleCredential = try await withCheckedThrowingContinuation { cont in
             let delegate = SignInDelegate { result in
                 switch result {
                 case .success(let cred):
@@ -67,6 +73,12 @@ final class AppleSignInService: NSObject {
             controller.presentationContextProvider = delegate
             controller.performRequests()
         }
+
+        // Atoll-Backend: Apple-id_token gegen eine Supabase-Session tauschen.
+        // Non-fatal — schlägt das fehl, läuft die App lokal normal weiter.
+        await AtollSessionService.shared.link(credential: credential, rawNonce: rawNonce)
+
+        return credential
     }
 
     /// Check with Apple whether our stored credential is still valid. Call
@@ -126,6 +138,27 @@ final class AppleSignInService: NSObject {
             KeychainHelper.save(name, forKey: .appleUserFullName)
             currentFullName = name
         }
+    }
+
+    // ═══════════════════════════════════════
+    // MARK: - Nonce helpers (SIWA × Supabase)
+    // ═══════════════════════════════════════
+
+    private static func randomNonce(length: Int = 32) -> String {
+        var bytes = [UInt8](repeating: 0, count: length)
+        let status = SecRandomCopyBytes(kSecRandomDefault, length, &bytes)
+        guard status == errSecSuccess else {
+            // Fallback, damit der Flow nie blockiert.
+            return UUID().uuidString.replacingOccurrences(of: "-", with: "")
+        }
+        let charset = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._")
+        return String(bytes.map { charset[Int($0) % charset.count] })
+    }
+
+    private static func sha256Hex(_ input: String) -> String {
+        SHA256.hash(data: Data(input.utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
     }
 
     // ── Delegate retention ───────────────────
