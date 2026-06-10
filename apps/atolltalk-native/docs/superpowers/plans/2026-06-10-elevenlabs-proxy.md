@@ -18,10 +18,12 @@
 - **Secrets:** `ELEVENLABS_API_KEY` neu setzen (`supabase secrets set`); `ATOLLTALK_BUNDLE_ID`/`APP_APPLE_ID` existieren von `translate`.
 
 ## Tasks
-- [ ] 1. `supabase/functions/speech/index.ts` (Verify-Code von `translate` übernommen; `translate` selbst unangetastet)
-- [ ] 2. AtollSpeech: Protokolle + `ProxySpeechClient` + `ElevenLabsSynthesizer`-Umbau
-- [ ] 3. App: Config/DeviceID/SpeechService/SynthesisService/RootView
-- [ ] 4. Tests: ProxySpeechClient (MockURLProtocol: Header, Pfade, Fehler-Mapping), bestehende Suiten anpassen
-- [ ] 5. Build + 42+-Tests grün; `grep -r sk_ AtollTalk/` leer
-- [ ] 6. Deploy `speech` (`--no-verify-jwt`), Secret setzen, Smoke-Test (curl: stt ohne device → 400, tts ohne jws → 403)
-- [ ] 7. Commit(s); **Dominik: ElevenLabs-Key rotieren** → neuer Key nur als Supabase-Secret
+- [x] 1. `supabase/functions/speech/index.ts` (Verify-Code von `translate` übernommen; `translate` selbst unangetastet)
+- [x] 2. AtollSpeech: Protokolle + `ProxySpeechClient` + `ElevenLabsSynthesizer`-Umbau
+- [x] 3. App: Config/DeviceID/SpeechService/SynthesisService/RootView
+- [x] 4. Tests: ProxySpeechClient (MockURLProtocol: Header, Pfade, Fehler-Mapping), bestehende Suiten anpassen
+- [x] 5. Build + Tests grün (48/48); `grep -r sk_` leer (2026-06-10)
+- [x] 6. Deploy `speech` v1 + Secret gesetzt; Smoke verifiziert: stt ohne device→400, stt+WAV→200 (Scribe end-to-end), tts ohne jws→403, fake jws→403 (2026-06-10)
+- [x] 7. Commits `1e0239a` + `eebd646`
+- [ ] 8. **Dominik: ElevenLabs-Key rotieren** (alter Key in Git-History 542d7dd) → neuen Key als Secret setzen (gleicher Einzeiler) — danach ist der alte wertlos
+- [ ] 9. Real-Device-Test: 1 Satz Free (Apple-Stimme, Proxy-STT) + 1 Satz Pro (ElevenLabs-Stimme via Proxy)
