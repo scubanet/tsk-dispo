@@ -4,7 +4,7 @@
   gap: 6px;
   padding: 14px 16px;
   background: var(--bg-card);
-  border: 1px solid var(--border-tertiary);
+  border: 0.5px solid var(--border-tertiary);
   border-radius: var(--radius-md);
   text-align: left;
   font-family: var(--font-sans);
@@ -46,7 +46,7 @@
 
 /* ───────── Hero ───────── */
 .atoll-kpi--hero {
-  background: var(--brand-deep);
+  background: linear-gradient(135deg, var(--brand-blue-900) 0%, var(--brand-blue-800) 100%);
   border-radius: var(--radius-lg);
   border-color: transparent;
   padding: 18px 20px;
@@ -86,11 +86,12 @@
 /* ───────── Interactive ───────── */
 .atoll-kpi--clickable {
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
 }
 .atoll-kpi--clickable:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-popover);
+  border-color: var(--brand-blue-100);
 }
 .atoll-kpi--clickable:active {
   transform: translateY(0);

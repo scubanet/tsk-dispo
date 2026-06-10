@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   gap: 0;
-  border-bottom: 1px solid var(--border-tertiary);
+  border-bottom: 0.5px solid var(--border-tertiary);
   padding: 0;
   /* In narrow containers (e.g. 320px ListPane), overflow scrolls horizontally
      instead of pushing tabs out of the box. The scrollbar is hidden — the

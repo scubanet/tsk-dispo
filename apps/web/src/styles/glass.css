@@ -1,10 +1,10 @@
 .wallpaper {
   position: fixed; inset: 0; z-index: 0;
   background:
-    radial-gradient(1200px 800px at 18% 10%, rgba(10,132,255,.18), transparent 60%),
-    radial-gradient(900px 700px at 92% 8%, rgba(48,176,199,.20), transparent 65%),
-    radial-gradient(1000px 800px at 80% 92%, rgba(120,150,200,.16), transparent 60%),
-    radial-gradient(800px 700px at 12% 95%, rgba(150,175,210,.12), transparent 65%),
+    radial-gradient(1200px 800px at 18% 10%, rgba(10,132,255,.22), transparent 60%),
+    radial-gradient(900px 700px at 92% 8%, rgba(48,176,199,.24), transparent 65%),
+    radial-gradient(1000px 800px at 80% 92%, rgba(120,150,200,.20), transparent 60%),
+    radial-gradient(800px 700px at 12% 95%, rgba(150,175,210,.15), transparent 65%),
     linear-gradient(180deg, var(--brand-sand) 0%, var(--brand-sand-200) 100%);
 }
 .dark .wallpaper {

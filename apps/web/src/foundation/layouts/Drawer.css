@@ -8,19 +8,25 @@
 .atoll-drawer__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(4, 44, 83, 0.32);    /* brand-deep at 32% */
+  background: rgba(4, 44, 83, 0.28);    /* brand-deep tint */
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  backdrop-filter: blur(6px) saturate(120%);
   animation: atoll-drawer-fade 160ms ease-out;
 }
 
+/* Premium-Look v2: the drawer is floating chrome → glass panel.
+ * Content cards inside stay solid (.glass.card / .atoll-card). */
 .atoll-drawer {
   position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   max-width: 100%;
-  background: var(--bg-card);
-  border-left: 1px solid var(--border-tertiary);
-  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.08);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(48px) saturate(180%);
+  backdrop-filter: blur(48px) saturate(180%);
+  border-left: 0.5px solid var(--hairline-strong);
+  box-shadow: var(--shadow-popover);
   animation: atoll-drawer-slide-right 200ms ease-out;
 }
 
@@ -31,7 +37,7 @@
 .atoll-drawer--left {
   margin-right: auto;
   border-left: none;
-  border-right: 1px solid var(--border-tertiary);
+  border-right: 0.5px solid var(--border-tertiary);
   box-shadow: 8px 0 24px rgba(0, 0, 0, 0.08);
   animation-name: atoll-drawer-slide-left;
 }
@@ -41,7 +47,7 @@
   align-items: center;
   gap: 8px;
   padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--border-tertiary);
+  border-bottom: 0.5px solid var(--border-tertiary);
   flex-shrink: 0;
 }
 
@@ -92,9 +98,9 @@
   justify-content: flex-end;
   gap: 8px;
   padding: var(--space-3) var(--space-6);
-  border-top: 1px solid var(--border-tertiary);
+  border-top: 0.5px solid var(--border-tertiary);
   flex-shrink: 0;
-  background: var(--bg-card);
+  background: transparent;   /* glass panel shows through */
 }
 
 @keyframes atoll-drawer-slide-right {

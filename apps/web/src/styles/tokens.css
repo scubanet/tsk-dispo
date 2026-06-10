@@ -80,6 +80,16 @@
   --border-secondary: rgba(0, 0, 0, 0.10);
   --border-primary: rgba(0, 0, 0, 0.18);
 
+  /* ──────────────── Glass surfaces (Premium-Look v2) ─────────────────
+   * Cards stay solid (--bg-card / --surface-strong). Glass is reserved
+   * for chrome: Sidebar, StatusBar, FloatingTabBar, Drawer, sticky
+   * panels (POS-Cart). Pair with .glass / .glass-thin / .glass-strong
+   * from glass.css — they need the wallpaper behind them to read. */
+  --surface: rgba(255, 255, 255, 0.62);
+  --surface-thin: rgba(255, 255, 255, 0.48);
+  --surface-selected: var(--brand-blue-50);
+  --hairline-strong: rgba(0, 0, 0, 0.08);
+
   /* Backwards-compat aliases for legacy components during migration.
      New components must use the semantic token names above. */
   --accent: var(--brand-blue);
@@ -135,6 +145,36 @@
   --z-drawer: 50;
   --z-modal: 60;
   --z-toast: 70;
+}
+
+/* ─────────────────────────── Dark mode ──────────────────────────────── */
+/* Toggled via `.dark` on <html>/<body>. Brand colors stay; semantic
+   surfaces, text and hairlines flip. Chips with *-50/*-800 pairs are
+   handled in legacy-overrides.css. */
+
+.dark {
+  --bg-page: #0B0F14;
+  --bg-card: #151A21;
+  --bg-sand: #10151B;
+  --bg-tertiary: #1A2028;
+  --bg-today-tint: #122030;
+
+  --text-primary: #F2F4F7;
+  --text-secondary: #C3C9D2;
+  --text-tertiary: #8A919C;
+  --text-disabled: #5A616B;
+
+  --border-tertiary: rgba(255, 255, 255, 0.06);
+  --border-secondary: rgba(255, 255, 255, 0.12);
+  --border-primary: rgba(255, 255, 255, 0.22);
+
+  --surface: rgba(21, 26, 33, 0.62);
+  --surface-thin: rgba(21, 26, 33, 0.48);
+  --surface-selected: rgba(24, 95, 165, 0.30);
+  --hairline-strong: rgba(255, 255, 255, 0.10);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.50), 0 1px 1px rgba(0, 0, 0, 0.40);
+  --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 /* ───────────────────────── Utility classes ──────────────────────────── */

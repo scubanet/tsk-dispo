@@ -7,7 +7,7 @@
   padding: 8px 12px;
   background: var(--bg-card);
   border: none;
-  border-bottom: 1px solid var(--border-tertiary);
+  border-bottom: 0.5px solid var(--border-tertiary);
   font-family: var(--font-sans);
   color: var(--text-primary);
   text-align: left;

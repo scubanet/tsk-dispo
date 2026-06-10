@@ -1,7 +1,8 @@
 .atoll-pageheader {
   padding: var(--space-6) var(--space-6) var(--space-4);
-  /* Subtle fade-out instead of a hard border line */
-  background: var(--bg-page);
+  /* Premium-Look v2: transparent over the wallpaper canvas.
+   * Subtle fade-out instead of a hard border line. */
+  background: transparent;
   position: relative;
 }
 
