@@ -7,16 +7,12 @@ struct SpeechResult: Equatable, Sendable {
 }
 
 struct SpeechService: Sendable {
-  let client: ElevenLabsClient
+  let client: any SpeechBackend
   let modelID: String
 
-  init(apiKey: String, modelID: String = Config.scribeModelID, session: URLSession = .shared) {
-    self.client = ElevenLabsClient(apiKey: apiKey, session: session)
-    self.modelID = modelID
-  }
-
-  /// Test seam — inject a client wired to a mocked URLSession.
-  init(client: ElevenLabsClient, modelID: String = Config.scribeModelID) {
+  /// Production wiring passes a `ProxySpeechClient`; tests inject an
+  /// `ElevenLabsClient` on a mocked URLSession (both are `SpeechBackend`).
+  init(client: any SpeechBackend, modelID: String = Config.scribeModelID) {
     self.client = client
     self.modelID = modelID
   }

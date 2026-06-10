@@ -23,6 +23,11 @@ struct ConversationStore {
     )
   }
 
+  func delete(_ turn: Turn) throws {
+    context.delete(turn)
+    try context.save()
+  }
+
   func clear() throws {
     try context.delete(model: Turn.self)
     try context.save()

@@ -11,18 +11,17 @@ final class SynthesisService {
   /// True when ElevenLabs voices are active (Pro). Basic is always false.
   var isElevenLabsActive: Bool { hasElevenLabs }
 
-  /// - elevenLabsKey: ElevenLabs API key; empty/nil → Apple-only fallback.
+  /// - backend: speech backend for ElevenLabs voices (production: the proxy);
+  ///   nil → Apple-only fallback.
   /// - voices: ElevenLabs voice id per language (from Settings).
   /// - tier: `.basic` never wires ElevenLabs (Pro-only feature) — Apple voices only.
-  init(elevenLabsKey: String?, voices: [AppLanguage: String], tier: Tier = .pro,
-       session: URLSession = .shared) {
+  init(backend: (any SpeechBackend)?, voices: [AppLanguage: String], tier: Tier = .pro) {
     self.elevenVoiceByLang = voices
     let apple = AppleSynthesizer()
-    if tier == .pro, let key = elevenLabsKey, !key.isEmpty {
-      let client = ElevenLabsClient(apiKey: key, session: session)
+    if tier == .pro, let backend {
       // Seed with any configured voice; the actual voice is set per utterance.
       let seed = voices.values.first { !$0.isEmpty } ?? ""
-      let eleven = ElevenLabsSynthesizer(client: client, defaultVoiceID: seed)
+      let eleven = ElevenLabsSynthesizer(client: backend, defaultVoiceID: seed)
       composite = CompositeSynthesizer(apple: apple, elevenLabs: eleven, provider: .apple)
       hasElevenLabs = true
     } else {

@@ -20,10 +20,12 @@ struct ConversationView: View {
         LazyVStack(alignment: .leading, spacing: 26) {
           ForEach(Array(turns.enumerated()), id: \.element.id) { idx, turn in
             TurnCardView(turn: turn, prominent: idx == 0) { vm.speak(turn) }
+              .modifier(DeleteSwipeAction { vm.deleteTurn(turn) })
           }
         }
         .padding(20)
       }
+      .modifier(SwipeActionsContainerIfAvailable())
       .overlay { if turns.isEmpty { hint } }
       RecordButton(phase: vm.phase) { onRecordTap() }
         .padding(20)
@@ -125,6 +127,36 @@ struct ConversationView: View {
     VStack(spacing: 8) {
       Image(systemName: "mic.circle").font(.system(size: 44)).foregroundStyle(Color.brandBlue)
       Text("Tippe auf \u{201E}Sprechen\u{201C} und leg los.").foregroundStyle(Color.textSecondary)
+    }
+  }
+}
+
+/// Per-row swipe-to-delete. The `swipeActionsContainer()` host is iOS 27+; on
+/// iOS 26 the row is returned unchanged (bulk "Verlauf löschen" stays the path).
+private struct DeleteSwipeAction: ViewModifier {
+  let action: () -> Void
+
+  func body(content: Content) -> some View {
+    if #available(iOS 27, *) {
+      content.swipeActions {
+        Button(role: .destructive, action: action) {
+          Label("Löschen", systemImage: "trash")
+        }
+      }
+    } else {
+      content
+    }
+  }
+}
+
+/// Enables swipe actions for a `ScrollView`-based container on iOS 27+; no-op on
+/// iOS 26 where `swipeActionsContainer()` doesn't exist.
+private struct SwipeActionsContainerIfAvailable: ViewModifier {
+  func body(content: Content) -> some View {
+    if #available(iOS 27, *) {
+      content.swipeActionsContainer()
+    } else {
+      content
     }
   }
 }

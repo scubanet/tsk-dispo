@@ -98,6 +98,11 @@ final class AppViewModel {
     _ = synthesis.speak(turn.targetText, in: turn.targetLang)
   }
 
+  func deleteTurn(_ turn: Turn) {
+    do { try store.delete(turn) }
+    catch { phase = .error(Self.message(for: error)) }
+  }
+
   func clearConversation() {
     do { try store.clear() }
     catch { phase = .error(Self.message(for: error)) }

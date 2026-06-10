@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AtollSpeech
 
 struct RootView: View {
   @Environment(\.modelContext) private var modelContext
@@ -33,15 +34,25 @@ struct RootView: View {
   }
 
   private func rebuild() {
-    let el = Config.elevenLabsAPIKey
     let isPro = subscription.isPro
     let sub = subscription
+    // Speech proxy: ElevenLabs key lives server-side. Free authenticates with
+    // the anonymous install id; Pro additionally sends the StoreKit JWS.
+    let speechBackend = ProxySpeechClient(
+      baseURL: Config.speechProxyURL,
+      deviceID: DeviceID.current,
+      jws: {
+        guard isPro else { return nil }
+        return await sub.currentJWS()
+      }
+    )
     vm = AppViewModel(
       recorder: AudioRecorder(),
-      speech: SpeechService(apiKey: el),
+      speech: SpeechService(client: speechBackend),
       translator: ServiceFactory.translator(
         isPro: isPro, model: settings.model, jws: { await sub.currentJWS() }),
-      synthesis: SynthesisService(elevenLabsKey: el, voices: settings.voices,
+      synthesis: SynthesisService(backend: isPro ? speechBackend : nil,
+                                  voices: settings.voices,
                                   tier: isPro ? .pro : .basic),
       store: ConversationStore(context: modelContext),
       context: settings.context,

@@ -24,7 +24,7 @@ struct StubLLM: LLMProvider {
       recorder: AudioRecorder(),
       speech: SpeechService(client: client),
       translator: TranslationService(provider: StubLLM(chunks: llm)),
-      synthesis: SynthesisService(elevenLabsKey: nil, voices: [:]),
+      synthesis: SynthesisService(backend: nil, voices: [:]),
       store: store,
       context: "ctx",
       glossaryLines: { "" },

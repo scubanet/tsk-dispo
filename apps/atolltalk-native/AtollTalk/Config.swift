@@ -10,11 +10,19 @@ enum Config {
   /// Free-tier fair-use: max Basic translations per day before the paywall.
   static let basicDailyLimit = 20
 
-  // ElevenLabs — key baked in (rate-limit in ElevenLabs dashboard as mitigation).
-  // TODO before public launch: proxy STT+TTS through Supabase like translate.
-  static let elevenLabsAPIKey = "sk_ed54b69b6f7e8ddd7434f87940769f2f17dd88b65944ef5e"
+  /// On-device glossary post-processing of the Basic (Apple MT) translation via
+  /// FoundationModels. Off by default until verified on an Apple Intelligence device.
+  static let glossaryRefinementEnabled = false
+
+  // ElevenLabs — no key in the app. STT/TTS go through the `speech` Edge
+  // Function (key server-side). Model ids are pinned there too; the client
+  // constants remain only as protocol-default mirrors.
   static let scribeModelID    = "scribe_v1"
   static let ttsModelID       = "eleven_multilingual_v2"
+
+  /// Speech proxy (Supabase Edge Function `speech`): /stt + /tts/<voiceID>.
+  static let speechProxyURL = URL(string:
+    "https://axnrilhdokkfujzjifhj.supabase.co/functions/v1/speech")!
 
   /// Pro translation proxy (Supabase Edge Function). Holds the Claude key
   /// server-side; the app never ships it. Replace <project-ref> after deploy.

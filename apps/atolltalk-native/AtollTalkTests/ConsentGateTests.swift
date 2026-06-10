@@ -17,7 +17,7 @@ import AtollSpeech
       recorder: AudioRecorder(),
       speech: SpeechService(client: client),
       translator: TranslationService(provider: StubLLM(chunks: [.text("Guten Tag"), .done])),
-      synthesis: SynthesisService(elevenLabsKey: nil, voices: [:]),
+      synthesis: SynthesisService(backend: nil, voices: [:]),
       store: store,
       context: "", glossaryLines: { "" },
       pair: { LanguagePair(a: .de, b: .uk) },

@@ -2,9 +2,10 @@ import Testing
 @testable import AtollTalk
 
 @Suite struct ServiceFactoryTests {
-  @Test func basicReturnsAppleTranslator() {
+  @Test func basicReturnsRefinedAppleTranslator() throws {
     let t = ServiceFactory.translator(isPro: false, model: "m", jws: { nil })
-    #expect(t is AppleTranslator)
+    let refiner = try #require(t as? GlossaryRefiner)
+    #expect(refiner.base is AppleTranslator)
   }
   @Test func proReturnsProxyTranslator() {
     let t = ServiceFactory.translator(isPro: true, model: "m", jws: { "fake" })

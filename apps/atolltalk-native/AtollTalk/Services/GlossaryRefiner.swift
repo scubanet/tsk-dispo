@@ -21,16 +21,17 @@ struct GlossaryRefiner: Translator {
                  context: String, glossary: String) async throws -> String {
     let mt = try await base.translate(text, from: source, to: target,
                                       context: context, glossary: glossary)
-    guard Config.glossaryRefinementEnabled,
-          !glossary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    guard !glossary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     else { return mt }
     return await refine(mt, target, glossary)
   }
 
-  /// Real on-device refinement. Skips when the model is unavailable or the target
-  /// language isn't supported; any thrown error falls back to `mt`.
+  /// Real on-device refinement. Skips when the feature flag is off, the model is
+  /// unavailable, or the target language isn't supported; any thrown error falls
+  /// back to `mt`.
   @Sendable static func modelRefine(_ mt: String, target: AppLanguage,
                                     glossary: String) async -> String {
+    guard Config.glossaryRefinementEnabled else { return mt }
     let model = SystemLanguageModel.default
     guard case .available = model.availability,
           model.supportsLocale(Locale(identifier: target.appleLocale))

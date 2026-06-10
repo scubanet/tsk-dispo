@@ -1,6 +1,7 @@
 import Testing
 import Foundation
 import SwiftData
+import AtollSpeech
 @testable import AtollTalk
 
 @MainActor @Suite(.serialized) struct SpeakFallbackTests {
@@ -9,9 +10,9 @@ import SwiftData
       configurations: ModelConfiguration(isStoredInMemoryOnly: true))
     let vm = AppViewModel(
       recorder: AudioRecorder(),
-      speech: SpeechService(apiKey: ""),
+      speech: SpeechService(client: ElevenLabsClient(apiKey: "")),
       translator: TranslationService(provider: StubLLM(chunks: [.done])),
-      synthesis: SynthesisService(elevenLabsKey: nil, voices: [:]),
+      synthesis: SynthesisService(backend: nil, voices: [:]),
       store: ConversationStore(context: container.mainContext),
       context: "", glossaryLines: { "" }, pair: { LanguagePair(a: .de, b: .ceb) })
     vm.speak(Turn(sourceText: "hi", sourceLang: .de, targetText: "uy", targetLang: .ceb))
