@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PageHeader, Loader } from '@/foundation'
 import { useCatalog } from '@/hooks/useRetail'
@@ -13,11 +13,7 @@ import { ReceiptView, type ReceiptData } from '@/screens/pos/ReceiptView'
 import { type CartLine, lineNet } from '@/screens/pos/types'
 import type { CatalogItem } from '@/lib/retailQueries'
 import type { CheckoutLine } from '@/lib/financeQueries'
-
-const inputStyle: CSSProperties = {
-  padding: '8px 10px', borderRadius: 8, border: '0.5px solid var(--hairline)',
-  background: 'var(--surface-strong)', color: 'var(--ink)', font: 'inherit', fontSize: 13.5, width: '100%',
-}
+import './pos.css'
 
 export function PosScreen() {
   const { t } = useTranslation()
@@ -99,10 +95,21 @@ export function PosScreen() {
   return (
     <div className="screen" style={{ padding: 'var(--space-4)', display: 'grid', gap: 'var(--space-3)' }}>
       <PageHeader title={t('pos.title')} subtitle={t('pos.subtitle')} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.4fr) minmax(300px,1fr)', gap: 'var(--space-4)', alignItems: 'start' }}>
-        <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
-          <BarcodeInput catalog={catalog} onScan={addToCart} />
-          <input style={inputStyle} placeholder={t('pos.search')} value={q} onChange={(e) => setQ(e.target.value)} />
+      <div className="pos-grid">
+        <div className="pos-catalogue">
+          <div className="pos-toolbar">
+            <BarcodeInput catalog={catalog} onScan={addToCart} />
+            <div className="pos-field">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
+              </svg>
+              <input placeholder={t('pos.search')} aria-label={t('pos.search')} value={q} onChange={(e) => setQ(e.target.value)} />
+            </div>
+          </div>
+          <div className="pos-cathead">
+            <span className="pos-cathead__t">{t('pos.products')}</span>
+            <span className="caption-2 tabular-nums">{filtered.length}</span>
+          </div>
           <ProductGrid items={filtered} onAdd={addToCart} />
         </div>
         <CartPanel

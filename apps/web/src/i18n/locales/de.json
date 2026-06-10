@@ -843,7 +843,14 @@
     "print": "Drucken",
     "unpaid": "Offen (nicht bezahlt)",
     "not_allowed": "Kein Zugriff auf die Kasse",
-    "no_walk_in": "Laufkundschaft-Kontakt fehlt — Seed-Migration anwenden"
+    "no_walk_in": "Laufkundschaft-Kontakt fehlt — Seed-Migration anwenden",
+    "to_pay": "Zu zahlen",
+    "cart_summary": "{{items}} Artikel · {{units}} Stück",
+    "products": "Produkte",
+    "charge_label": "Kassieren",
+    "exact": "Passend",
+    "change": "Rückgeld",
+    "payment_method": "Zahlungsart"
   },
   "pool": {
     "title": "Pool",

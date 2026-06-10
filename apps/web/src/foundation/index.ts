@@ -21,6 +21,7 @@ export { Avatar, type AvatarProps, type AvatarSize } from './primitives/Avatar'
 export { AvatarStack, type AvatarStackProps, type AvatarStackPerson } from './primitives/AvatarStack'
 export { Pill, type PillProps, type PillTone, type PillSize } from './primitives/Pill'
 export { SearchInput, type SearchInputProps, type SearchInputSize } from './primitives/SearchInput'
+export { Stepper, type StepperProps } from './primitives/Stepper'
 
 // ─────────── Primitives — molecules ───────────
 export { KpiCard, type KpiCardProps, type KpiVariant } from './primitives/KpiCard'

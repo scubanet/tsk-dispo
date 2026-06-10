@@ -843,7 +843,14 @@
     "print": "Print",
     "unpaid": "Open (unpaid)",
     "not_allowed": "No access to the till",
-    "no_walk_in": "Walk-in contact missing — apply the seed migration"
+    "no_walk_in": "Walk-in contact missing — apply the seed migration",
+    "to_pay": "To pay",
+    "cart_summary": "{{items}} items · {{units}} pcs",
+    "products": "Products",
+    "charge_label": "Charge",
+    "exact": "Exact",
+    "change": "Change",
+    "payment_method": "Payment method"
   },
   "pool": {
     "title": "Pool",
