@@ -102,6 +102,12 @@ public extension ElevenLabsClient {
     public let languageCode: String?
     public let languageProbability: Double?
 
+    public init(text: String, languageCode: String?, languageProbability: Double?) {
+      self.text = text
+      self.languageCode = languageCode
+      self.languageProbability = languageProbability
+    }
+
     enum CodingKeys: String, CodingKey {
       case text
       case languageCode = "language_code"

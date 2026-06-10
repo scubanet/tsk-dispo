@@ -12,7 +12,7 @@ private let log = Logger(subsystem: "swiss.weckherlin.tide", category: "tts.elev
 /// This matches `AppleSynthesizer`'s queue semantics so the rest of the
 /// app doesn't need to care which provider is active.
 public final class ElevenLabsSynthesizer: NSObject, Synthesizer, @unchecked Sendable {
-  private let client: ElevenLabsClient
+  private let client: any SpeechBackend
   private let lock = NSLock()
   private var voiceID: String
   // Ordered playback queue — audio clips ready to play, in original speak() order.
@@ -26,7 +26,7 @@ public final class ElevenLabsSynthesizer: NSObject, Synthesizer, @unchecked Send
   private var nextToEnqueue: Int = 0
   private var currentPlayer: AVAudioPlayer?
 
-  public init(client: ElevenLabsClient, defaultVoiceID: String) {
+  public init(client: any SpeechBackend, defaultVoiceID: String) {
     self.client = client
     self.voiceID = defaultVoiceID
     super.init()
