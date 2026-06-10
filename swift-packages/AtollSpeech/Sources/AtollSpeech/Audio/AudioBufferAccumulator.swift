@@ -1,5 +1,5 @@
 import Foundation
-import AVFoundation
+@preconcurrency import AVFoundation
 import OSLog
 
 /// Accumulates AVAudioPCMBuffer chunks during a recording session.
@@ -99,13 +99,14 @@ extension AudioBufferAccumulator {
     ) else { return nil }
 
     var error: NSError?
-    var didConsume = false
+    final class Flag: @unchecked Sendable { var value = false }
+    let didConsume = Flag()
     let status = converter.convert(to: outputBuffer, error: &error) { _, outStatus in
-      if didConsume {
+      if didConsume.value {
         outStatus.pointee = .endOfStream
         return nil
       }
-      didConsume = true
+      didConsume.value = true
       outStatus.pointee = .haveData
       return inputBuffer
     }
