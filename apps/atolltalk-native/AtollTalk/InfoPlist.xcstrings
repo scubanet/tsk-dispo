@@ -34,6 +34,12 @@
             "value" : "AtollTalk nimmt deine Stimme auf, um sie zu übersetzen."
           }
         },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AtollTalk records your voice in order to translate it."
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
