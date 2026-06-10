@@ -20,6 +20,12 @@
     "no": "Nein",
     "of": "von"
   },
+  "notfound": {
+    "title": "Nicht gefunden",
+    "heading": "Diese Seite gibt es nicht",
+    "body": "Die Adresse ist ungültig oder die Seite wurde verschoben.",
+    "back": "Zur Heute-Ansicht"
+  },
   "nav": {
     "cockpit": "Cockpit",
     "today": "Heute",

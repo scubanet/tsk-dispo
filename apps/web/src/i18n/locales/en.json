@@ -20,6 +20,12 @@
     "no": "No",
     "of": "of"
   },
+  "notfound": {
+    "title": "Not found",
+    "heading": "This page does not exist",
+    "body": "The address is invalid or the page has moved.",
+    "back": "Back to Today"
+  },
   "nav": {
     "cockpit": "Cockpit",
     "today": "Today",

@@ -40,6 +40,7 @@ const AddressbookScreen     = lazy(() => import('@/screens/contacts/AddressbookS
 const ActivityScreen        = lazy(() => import('@/screens/contacts/activity/ActivityScreen').then(m => ({ default: m.ActivityScreen })))
 const CardInboxScreen       = lazy(() => import('@/screens/contacts/CardInboxScreen').then(m => ({ default: m.CardInboxScreen })))
 const PublicCardScreen      = lazy(() => import('@/screens/PublicCardScreen').then(m => ({ default: m.PublicCardScreen })))
+const NotFoundScreen        = lazy(() => import('@/screens/NotFoundScreen').then(m => ({ default: m.NotFoundScreen })))
 
 /**
  * Suspense fallback for code-split routes. Wraps the shared `<Loader>`
@@ -119,7 +120,8 @@ function App() {
               <Route path="/communication"          element={<Navigate to="/aktivitaet" replace />} />
               <Route path="/contacts"               element={<AddressbookScreen />} />
               <Route path="/contacts/card-inbox"    element={<CardInboxScreen />} />
-              <Route path="*"                       element={<Navigate to="/heute" replace />} />
+              {/* 404 statt Silent-Redirect (Status-Review 2026-06-10, Bug #2) */}
+              <Route path="*"                       element={<NotFoundScreen />} />
             </Route>
           </Routes>
         </Suspense>

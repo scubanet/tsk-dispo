@@ -66,7 +66,8 @@ const ADRESSEN_ITEMS: NavItem[] = [
 const TEAM_ITEMS: NavItem[] = [
   { to: '/contacts?view=team', icon: 'users', i18nKey: 'team_tldm',     roles: ['dispatcher', 'owner', 'cd'] },
   { to: '/skills',             icon: 'grid',  i18nKey: 'skills_matrix',  roles: ['dispatcher', 'owner', 'cd'] },
-  { to: '/availability',       icon: 'calendar', i18nKey: 'availability', roles: ['dispatcher', 'owner', 'cd'] },
+  // '/availability' entfernt (Status-Review 2026-06-10, Bug #1): Route existiert
+  // noch nicht — Nav-Item kommt zurück, sobald der Availability-Screen gebaut ist.
 ]
 
 // CD module: CD + owner only — Pipeline lebt nur hier.
