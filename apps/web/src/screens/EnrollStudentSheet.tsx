@@ -51,16 +51,6 @@ function isInstructorLevelCourse(code: string | null | undefined): boolean {
   return code === 'IDC' || code.startsWith('SPEI')
 }
 
-const inputStyle = {
-  padding: '8px 10px',
-  borderRadius: 8,
-  border: '0.5px solid var(--hairline)',
-  background: 'var(--surface-strong)',
-  color: 'var(--ink)',
-  font: 'inherit',
-  fontSize: 13.5,
-  width: '100%',
-}
 
 export function EnrollStudentSheet({
   open, onClose, onSaved, courseId, existingParticipation, alreadyEnrolledStudentIds = [],
@@ -206,7 +196,7 @@ export function EnrollStudentSheet({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('people.search_placeholder')}
-                style={inputStyle}
+                className="atoll-form-field"
               />
             </div>
 
@@ -274,7 +264,7 @@ export function EnrollStudentSheet({
                 value={certNr}
                 onChange={(e) => setCertNr(e.target.value)}
                 placeholder="e.g. PADI 1234567890"
-                style={inputStyle}
+                className="atoll-form-field"
               />
             </div>
 
@@ -284,7 +274,7 @@ export function EnrollStudentSheet({
                 <select
                   value={certifiedById}
                   onChange={(e) => setCertifiedById(e.target.value)}
-                  style={inputStyle}
+                  className="atoll-form-field"
                 >
                   <option value="">— {t('enroll.please_choose')} —</option>
                   {instructors.map((i) => (
@@ -298,7 +288,7 @@ export function EnrollStudentSheet({
                   type="date"
                   value={certifiedOn}
                   onChange={(e) => setCertifiedOn(e.target.value)}
-                  style={inputStyle}
+                  className="atoll-form-field"
                 />
               </div>
             </div>
@@ -314,7 +304,7 @@ export function EnrollStudentSheet({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
-            style={{ ...inputStyle, resize: 'vertical' }}
+            className="atoll-form-field"
           />
         </div>
 

@@ -32,16 +32,6 @@ interface Props {
   existingAssignment?: ExistingAssignment | null
 }
 
-const inputStyle = {
-  padding: '8px 10px',
-  borderRadius: 8,
-  border: '0.5px solid var(--hairline)',
-  background: 'var(--surface-strong)',
-  color: 'var(--ink)',
-  font: 'inherit',
-  fontSize: 13.5,
-  width: '100%',
-}
 
 export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates, existingAssignment }: Props) {
   const { t, i18n } = useTranslation()
@@ -167,7 +157,7 @@ export function AssignmentEditSheet({ open, onClose, onSaved, courseId, allDates
           <select
             value={instructorId}
             onChange={(e) => setInstructorId(e.target.value)}
-            style={inputStyle}
+            className="atoll-form-field"
           >
             <option value="">— {t('course_edit.choose')} —</option>
             {instructors.map((i) => (

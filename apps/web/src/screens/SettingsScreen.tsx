@@ -35,6 +35,7 @@ import {
 } from '@/hooks/useSettings'
 import { useLanguage } from '@/i18n/useLanguage'
 import type { Lang } from '@/i18n'
+import { useTweaks, type ThemeMode } from '@/lib/tweaks'
 import type { OutletCtx } from '@/layout/AppShell'
 
 export function SettingsScreen() {
@@ -132,6 +133,7 @@ export function SettingsScreen() {
 
       <div className="atoll-screen__body">
         <LanguageCard />
+        <AppearanceCard />
 
         {/* Excel import */}
         <section className="atoll-cockpit__card">
@@ -445,6 +447,40 @@ function fmtPoints(n: number | string): string {
 }
 
 // ──────────────────────── Language card ────────────────────────
+
+function AppearanceCard() {
+  const { t } = useTranslation()
+  const [tweaks, set] = useTweaks()
+
+  const options: { mode: ThemeMode; label: string }[] = [
+    { mode: 'auto', label: t('settings.appearance.auto') },
+    { mode: 'light', label: t('settings.appearance.light') },
+    { mode: 'dark', label: t('settings.appearance.dark') },
+  ]
+
+  return (
+    <section className="atoll-cockpit__card">
+      <h2 className="atoll-cockpit__card-title">{t('settings.appearance.title')}</h2>
+      <p className="atoll-cockpit__card-sub">{t('settings.appearance.subtitle')}</p>
+      <div className="atoll-settings__lang-row">
+        {options.map((opt) => {
+          const active = tweaks.theme === opt.mode
+          return (
+            <button
+              key={opt.mode}
+              type="button"
+              onClick={() => set('theme', opt.mode)}
+              className={`atoll-settings__lang${active ? ' atoll-settings__lang--active' : ''}`}
+            >
+              <span>{opt.label}</span>
+              {active && <Icon.Check size={12} aria-hidden />}
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
 
 function LanguageCard() {
   const { t } = useTranslation()

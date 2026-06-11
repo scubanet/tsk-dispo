@@ -90,6 +90,10 @@
   --surface-selected: var(--brand-blue-50);
   --hairline-strong: rgba(0, 0, 0, 0.08);
 
+  /* Hero-Gradient als festes Token — absichtlich NICHT von den
+   * Dark-Mode-Tint-Overrides der brand-*-Stufen betroffen. */
+  --gradient-hero: linear-gradient(135deg, #042C53 0%, #0C447C 100%);
+
   /* Backwards-compat aliases for legacy components during migration.
      New components must use the semantic token names above. */
   --accent: var(--brand-blue);
@@ -175,6 +179,37 @@
 
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.50), 0 1px 1px rgba(0, 0, 0, 0.40);
   --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+
+  /* Pastell-Stufen → dunkle Tints. Chips, Pills, Banner und Alert-KPIs
+   * erben damit automatisch ein stimmiges Dark-Treatment:
+   * *-50 = Flächen-Tint, *-100 = Border/Hover, *-800/900 = Textfarbe (hell). */
+  --brand-blue-50: rgba(24, 95, 165, 0.28);
+  --brand-blue-100: rgba(24, 95, 165, 0.50);
+  --brand-blue-800: #9CC6EE;
+
+  --brand-teal-50: rgba(29, 158, 117, 0.24);
+  --brand-teal-100: rgba(29, 158, 117, 0.45);
+  --brand-teal-800: #8FD9C0;
+
+  --brand-amber-50: rgba(186, 117, 23, 0.26);
+  --brand-amber-100: rgba(186, 117, 23, 0.48);
+  --brand-amber-800: #E8B36A;
+  --brand-amber-900: #F0C98A;
+
+  --brand-red-50: rgba(163, 45, 45, 0.28);
+  --brand-red-100: rgba(163, 45, 45, 0.50);
+  --brand-red-200: rgba(163, 45, 45, 0.62);
+  --brand-red-800: #E89C9C;
+  --brand-red-900: #F0B5B5;
+
+  --brand-purple-50: rgba(83, 74, 183, 0.30);
+  --brand-purple-800: #B9B3EC;
+
+  --brand-pink-50: rgba(212, 83, 126, 0.26);
+  --brand-pink-800: #E8A8C0;
+
+  --brand-whatsapp-50: rgba(37, 211, 102, 0.18);
+  --brand-whatsapp-800: #7FE0A8;
 }
 
 /* ───────────────────────── Utility classes ──────────────────────────── */

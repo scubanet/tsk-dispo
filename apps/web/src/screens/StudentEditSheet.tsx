@@ -79,16 +79,6 @@ interface Props {
   defaultPipelineStage?: string
 }
 
-const inputStyle = {
-  padding: '8px 10px',
-  borderRadius: 8,
-  border: '0.5px solid var(--hairline)',
-  background: 'var(--surface-strong)',
-  color: 'var(--ink)',
-  font: 'inherit',
-  fontSize: 13.5,
-  width: '100%',
-}
 
 const EMPTY: Form = {
   first_name: '',
@@ -272,28 +262,28 @@ export function StudentEditSheet({
         <Section title={t('student_edit.section_master')}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
             <Field label={t('student_edit.label_first_name')}>
-              <input value={form.first_name} onChange={(e) => set('first_name', e.target.value)} style={inputStyle} />
+              <input value={form.first_name} onChange={(e) => set('first_name', e.target.value)} className="atoll-form-field" />
             </Field>
             <Field label={t('student_edit.label_last_name')}>
-              <input value={form.last_name} onChange={(e) => set('last_name', e.target.value)} style={inputStyle} />
+              <input value={form.last_name} onChange={(e) => set('last_name', e.target.value)} className="atoll-form-field" />
             </Field>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
             <Field label={t('student_edit.label_email')}>
-              <input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="name@example.ch" style={inputStyle} />
+              <input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="name@example.ch" className="atoll-form-field" />
             </Field>
             <Field label={t('student_edit.label_phone')}>
-              <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="+41 …" style={inputStyle} />
+              <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="+41 …" className="atoll-form-field" />
             </Field>
           </div>
 
           <Field label={t('student_edit.label_birthday')}>
-            <input type="date" value={form.birthday} onChange={(e) => set('birthday', e.target.value)} style={inputStyle} />
+            <input type="date" value={form.birthday} onChange={(e) => set('birthday', e.target.value)} className="atoll-form-field" />
           </Field>
 
           <Field label={t('student_edit.label_level')}>
-            <select value={form.level} onChange={(e) => set('level', e.target.value)} style={inputStyle}>
+            <select value={form.level} onChange={(e) => set('level', e.target.value)} className="atoll-form-field">
               {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
             <div className="caption-2" style={{ marginTop: 'var(--space-1)' }}>
@@ -306,7 +296,7 @@ export function StudentEditSheet({
               value={form.notes}
               onChange={(e) => set('notes', e.target.value)}
               rows={3}
-              style={{ ...inputStyle, resize: 'vertical' }}
+              className="atoll-form-field"
             />
           </Field>
 
@@ -316,38 +306,38 @@ export function StudentEditSheet({
           <>
             <Section title={t('student_edit.section_address')}>
               <Field label={t('student_edit.label_street')}>
-                <input value={form.address} onChange={(e) => set('address', e.target.value)} style={inputStyle} />
+                <input value={form.address} onChange={(e) => set('address', e.target.value)} className="atoll-form-field" />
               </Field>
               <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 'var(--space-3)' }}>
                 <Field label={t('student_edit.label_zip')}>
-                  <input value={form.postal_code} onChange={(e) => set('postal_code', e.target.value)} style={inputStyle} />
+                  <input value={form.postal_code} onChange={(e) => set('postal_code', e.target.value)} className="atoll-form-field" />
                 </Field>
                 <Field label={t('student_edit.label_city')}>
-                  <input value={form.city} onChange={(e) => set('city', e.target.value)} style={inputStyle} />
+                  <input value={form.city} onChange={(e) => set('city', e.target.value)} className="atoll-form-field" />
                 </Field>
               </div>
               <Field label={t('student_edit.label_country')}>
-                <input value={form.country} onChange={(e) => set('country', e.target.value)} style={inputStyle} />
+                <input value={form.country} onChange={(e) => set('country', e.target.value)} className="atoll-form-field" />
               </Field>
               <Field label={t('student_edit.label_photo_url')}>
-                <input value={form.photo_url} onChange={(e) => set('photo_url', e.target.value)} placeholder="https://…" style={inputStyle} />
+                <input value={form.photo_url} onChange={(e) => set('photo_url', e.target.value)} placeholder="https://…" className="atoll-form-field" />
               </Field>
             </Section>
 
             <Section title={t('student_edit.section_crm')}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
                 <Field label={t('student_edit.label_pipeline_stage')}>
-                  <select value={form.pipeline_stage} onChange={(e) => set('pipeline_stage', e.target.value)} style={inputStyle}>
+                  <select value={form.pipeline_stage} onChange={(e) => set('pipeline_stage', e.target.value)} className="atoll-form-field">
                     {STAGES.map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
                   </select>
                 </Field>
                 <Field label={t('student_edit.label_lead_source')}>
-                  <input value={form.lead_source} onChange={(e) => set('lead_source', e.target.value)} placeholder={t('student_edit.lead_source_placeholder')} style={inputStyle} />
+                  <input value={form.lead_source} onChange={(e) => set('lead_source', e.target.value)} placeholder={t('student_edit.lead_source_placeholder')} className="atoll-form-field" />
                 </Field>
               </div>
 
               <Field label={t('student_edit.label_tags')}>
-                <input value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder={t('student_edit.tags_placeholder')} style={inputStyle} />
+                <input value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder={t('student_edit.tags_placeholder')} className="atoll-form-field" />
               </Field>
 
               <Field label={t('student_edit.label_languages')}>
@@ -391,13 +381,13 @@ export function StudentEditSheet({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
                 <Field label={t('student_edit.label_organization')}>
-                  <select value={form.organization_id} onChange={(e) => set('organization_id', e.target.value)} style={inputStyle}>
+                  <select value={form.organization_id} onChange={(e) => set('organization_id', e.target.value)} className="atoll-form-field">
                     <option value="">— {t('student_edit.org_none')} —</option>
                     {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
                   </select>
                 </Field>
                 <Field label={t('student_edit.label_org_role')}>
-                  <input value={form.organization_role} onChange={(e) => set('organization_role', e.target.value)} placeholder={t('student_edit.org_role_placeholder')} style={inputStyle} />
+                  <input value={form.organization_role} onChange={(e) => set('organization_role', e.target.value)} placeholder={t('student_edit.org_role_placeholder')} className="atoll-form-field" />
                 </Field>
               </div>
 

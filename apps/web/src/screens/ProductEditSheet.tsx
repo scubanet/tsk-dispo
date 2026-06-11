@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { useProductCategories, useSaveProduct, useAdjustStock, useCurrentTenant } from '@/hooks/useRetail'
@@ -11,10 +11,6 @@ interface Props {
   item: CatalogItem | null
 }
 
-const inputStyle: CSSProperties = {
-  padding: '8px 10px', borderRadius: 8, border: '0.5px solid var(--hairline)',
-  background: 'var(--surface-strong)', color: 'var(--ink)', font: 'inherit', fontSize: 13.5, width: '100%',
-}
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -106,25 +102,25 @@ export function ProductEditSheet({ open, onClose, onSaved, item }: Props) {
     <Sheet open={open} onClose={onClose} title={isEdit ? t('shop.edit_product') : t('shop.new_product')} width={540}>
       <div style={{ display: 'grid', gap: 12 }}>
         <Field label={t('shop.name')}>
-          <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} />
+          <input className="atoll-form-field" value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
         <Field label={t('shop.category')}>
-          <select style={inputStyle} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+          <select className="atoll-form-field" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
             <option value="">—</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </Field>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <Field label={t('shop.brand')}><input style={inputStyle} value={brand} onChange={(e) => setBrand(e.target.value)} /></Field>
-          <Field label={t('shop.model')}><input style={inputStyle} value={model} onChange={(e) => setModel(e.target.value)} /></Field>
+          <Field label={t('shop.brand')}><input className="atoll-form-field" value={brand} onChange={(e) => setBrand(e.target.value)} /></Field>
+          <Field label={t('shop.model')}><input className="atoll-form-field" value={model} onChange={(e) => setModel(e.target.value)} /></Field>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-          <Field label={t('shop.sku')}><input style={inputStyle} value={sku} onChange={(e) => setSku(e.target.value)} /></Field>
-          <Field label={t('shop.price')}><input style={inputStyle} type="number" min="0" step="0.05" value={price} onChange={(e) => setPrice(e.target.value)} /></Field>
-          <Field label={t('shop.cost')}><input style={inputStyle} type="number" min="0" step="0.05" value={cost} onChange={(e) => setCost(e.target.value)} /></Field>
+          <Field label={t('shop.sku')}><input className="atoll-form-field" value={sku} onChange={(e) => setSku(e.target.value)} /></Field>
+          <Field label={t('shop.price')}><input className="atoll-form-field" type="number" min="0" step="0.05" value={price} onChange={(e) => setPrice(e.target.value)} /></Field>
+          <Field label={t('shop.cost')}><input className="atoll-form-field" type="number" min="0" step="0.05" value={cost} onChange={(e) => setCost(e.target.value)} /></Field>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'end' }}>
-          <Field label={t('shop.reorder_point')}><input style={inputStyle} type="number" min="0" step="1" value={reorder} onChange={(e) => setReorder(e.target.value)} /></Field>
+          <Field label={t('shop.reorder_point')}><input className="atoll-form-field" type="number" min="0" step="1" value={reorder} onChange={(e) => setReorder(e.target.value)} /></Field>
           <label style={{ display: 'flex', gap: 6, alignItems: 'center', paddingBottom: 8 }}>
             <input type="checkbox" checked={serialized} onChange={(e) => setSerialized(e.target.checked)} /> {t('shop.serialized')}
           </label>
@@ -134,7 +130,7 @@ export function ProductEditSheet({ open, onClose, onSaved, item }: Props) {
           <div style={{ display: 'grid', gap: 6, borderTop: '0.5px solid var(--hairline)', paddingTop: 10 }}>
             <div className="caption-2">{t('shop.adjust_stock')} · {t('shop.on_hand')}: {item?.on_hand}</div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <input style={inputStyle} type="number" step="1" placeholder="+/−" value={adjustQty} onChange={(e) => setAdjustQty(e.target.value)} />
+              <input className="atoll-form-field" type="number" step="1" placeholder="+/−" value={adjustQty} onChange={(e) => setAdjustQty(e.target.value)} />
               <button className="btn-secondary btn" disabled={adjust.isPending || !adjustQty} onClick={doAdjust}>{t('shop.apply')}</button>
             </div>
           </div>

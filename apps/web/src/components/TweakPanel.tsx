@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Icon } from './Icon'
-import { useTweaks, type AccentHex, type Layout } from '@/lib/tweaks'
+import { useTweaks, type AccentHex, type Layout, type ThemeMode } from '@/lib/tweaks'
 
 const ACCENTS: { value: AccentHex; name: string }[] = [
   { value: '#0A84FF', name: 'Ocean Blue' },
@@ -34,12 +34,16 @@ export function TweakPanel() {
           <div className="tweak-section">Erscheinungsbild</div>
 
           <div className="tweak-row">
-            <span>Dark Mode</span>
-            <input
-              type="checkbox"
-              checked={tweaks.dark}
-              onChange={(e) => set('dark', e.target.checked)}
-            />
+            <span>Theme</span>
+            <select
+              value={tweaks.theme}
+              onChange={(e) => set('theme', e.target.value as ThemeMode)}
+              style={{ padding: '4px 8px', borderRadius: 6 }}
+            >
+              <option value="auto">Auto (System)</option>
+              <option value="light">Hell</option>
+              <option value="dark">Dunkel</option>
+            </select>
           </div>
 
           <div className="tweak-row">

@@ -14,11 +14,24 @@ export interface OutletCtx {
   user: CurrentUser
 }
 
+/** Viewport-Breakpoint: unter 720px weicht die Sidebar der FloatingTabBar. */
+function useIsNarrow() {
+  const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 719px)').matches)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 719px)')
+    const onChange = () => setNarrow(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return narrow
+}
+
 export function AppShell() {
   const { t } = useTranslation()
   const [user, setUser] = useState<CurrentUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [tweaks] = useTweaks()
+  const isNarrow = useIsNarrow()
   const navigate = useNavigate()
 
   // Pull preferred language from DB after auth — runs once authUserId is known.
@@ -42,7 +55,7 @@ export function AppShell() {
     return null
   }
 
-  const isSidebar = tweaks.layout === 'sidebar'
+  const isSidebar = tweaks.layout === 'sidebar' && !isNarrow
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>

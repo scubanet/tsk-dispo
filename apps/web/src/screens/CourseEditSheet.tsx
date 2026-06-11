@@ -57,16 +57,6 @@ interface Props {
   courseId?: string | null
 }
 
-const inputStyle = {
-  padding: '8px 10px',
-  borderRadius: 8,
-  border: '0.5px solid var(--hairline)',
-  background: 'var(--surface-strong)',
-  color: 'var(--ink)',
-  font: 'inherit',
-  fontSize: 13.5,
-  width: '100%',
-}
 
 const STATUS_VALUES = ['tentative', 'confirmed', 'completed', 'cancelled'] as const
 
@@ -314,7 +304,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
       <div style={{ display: 'grid', gap: 14 }}>
         <div>
           <Label>{t('course_edit.label_type')}</Label>
-          <select value={typeId} onChange={(e) => setTypeId(e.target.value)} style={inputStyle}>
+          <select value={typeId} onChange={(e) => setTypeId(e.target.value)} className="atoll-form-field">
             <option value="">— {t('course_edit.choose')} —</option>
             {types.map((ct) => (
               <option key={ct.id} value={ct.id}>{ct.code} · {ct.label}</option>
@@ -328,7 +318,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={t('course_edit.title_placeholder')}
-            style={inputStyle}
+            className="atoll-form-field"
           />
         </div>
 
@@ -371,7 +361,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                     type="date"
                     value={d.date}
                     onChange={(e) => updateDate(i, { date: e.target.value })}
-                    style={inputStyle}
+                    className="atoll-form-field"
                   />
                   <TypeToggle label={`📚 ${t('course_edit.type_theory')}`} checked={d.has_theory} onChange={(v) => updateDate(i, { has_theory: v })} />
                   <TypeToggle label={`🏊 ${t('course_edit.type_pool')}`}   checked={d.has_pool}   onChange={(v) => updateDate(i, { has_pool: v })} />
@@ -429,7 +419,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                           pool_location: (e.target.value || null) as PoolLocation | null,
                         })
                       }
-                      style={{ ...inputStyle, flex: 1 }}
+                      className="atoll-form-field" style={{ flex: 1 }}
                     >
                       <option value="">{t('course_edit.pool_choose')}</option>
                       {POOL_LOCATIONS.map((p) => (
@@ -473,7 +463,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
             min={0}
             value={numParticipants}
             onChange={(e) => setNumParticipants(Math.max(0, Number(e.target.value) || 0))}
-            style={inputStyle}
+            className="atoll-form-field"
           />
         </div>
 
@@ -483,7 +473,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
             value={info}
             onChange={(e) => setInfo(e.target.value)}
             rows={2}
-            style={{ ...inputStyle, resize: 'vertical' }}
+            className="atoll-form-field"
           />
         </div>
 
@@ -493,7 +483,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
-            style={{ ...inputStyle, resize: 'vertical' }}
+            className="atoll-form-field"
           />
         </div>
 
@@ -501,7 +491,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           <>
             <div>
               <Label>{t('course_edit.label_haupt_instructor')}</Label>
-              <select value={haupt} onChange={(e) => setHaupt(e.target.value)} style={inputStyle}>
+              <select value={haupt} onChange={(e) => setHaupt(e.target.value)} className="atoll-form-field">
                 <option value="">— {t('course_edit.assign_later')} —</option>
                 {instructors.map((i) => (
                   <option key={i.id} value={i.id}>{i.name} ({i.padi_level})</option>

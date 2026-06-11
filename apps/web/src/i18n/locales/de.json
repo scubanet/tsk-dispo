@@ -951,6 +951,13 @@
   "settings": {
     "title": "Einstellungen",
     "subtitle": "Vergütungssätze · Kurs-Punkte · Import · User",
+    "appearance": {
+      "title": "Darstellung",
+      "subtitle": "Auto folgt der System-Einstellung. Wird lokal auf diesem Gerät gespeichert.",
+      "auto": "Auto",
+      "light": "Hell",
+      "dark": "Dunkel"
+    },
     "language": {
       "title": "Sprache",
       "subtitle": "Wirkt sofort und wird in deinem Profil gespeichert.",

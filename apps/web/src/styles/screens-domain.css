@@ -1739,3 +1739,28 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+
+/* ────────────────────────────────────────────────────────────────────
+   Premium-Look v2 — Formular-Pattern für Edit-Sheets (.atoll-form-field)
+   Ersetzt die lokalen `inputStyle`-Objekte der Sheets. POS-Focus-Ring.
+   ──────────────────────────────────────────────────────────────────── */
+
+.atoll-form-field {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--hairline);
+  background: var(--surface-strong);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.atoll-form-field:focus {
+  border-color: var(--brand-blue-100);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.atoll-form-field::placeholder { color: var(--ink-3); }
+textarea.atoll-form-field { resize: vertical; }

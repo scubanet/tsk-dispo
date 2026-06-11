@@ -951,6 +951,13 @@
   "settings": {
     "title": "Settings",
     "subtitle": "Pay rates · Course points · Import · Users",
+    "appearance": {
+      "title": "Appearance",
+      "subtitle": "Auto follows your system setting. Stored locally on this device.",
+      "auto": "Auto",
+      "light": "Light",
+      "dark": "Dark"
+    },
     "language": {
       "title": "Language",
       "subtitle": "Applies instantly and is saved to your profile.",
