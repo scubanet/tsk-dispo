@@ -1,27 +1,31 @@
 // AtollTalk Pro translation proxy.
 //
 // Keeps ANTHROPIC_API_KEY server-side. The app sends the StoreKit 2 signed
-// transaction (jwsRepresentation); we verify it with Apple's official
-// app-store-server-library (x5c chain anchored to Apple root CAs), enforce a
-// daily fair-use cap, then call Claude and return the translation.
+// transaction (jwsRepresentation); we verify it Deno-natively (JWS ES256
+// signature via `jose`, x5c chain anchored to Apple's root CAs via
+// `@peculiar/x509`), enforce a daily fair-use cap, then call Claude.
+//
+// Why not Apple's `app-store-server-library`? It verifies the cert chain with
+// Node's `crypto.X509Certificate.prototype.verify()`, which the Supabase Edge
+// (Deno) runtime does NOT implement (ERR_NOT_IMPLEMENTED) — so every JWS,
+// Sandbox or Production, failed verification. WebCrypto-based verification works.
 //
 // Required secrets (supabase secrets set ...):
 //   ANTHROPIC_API_KEY   - Claude key (never shipped in the app)
 //   ATOLLTALK_BUNDLE_ID - e.g. swiss.atoll.talk
-//   APP_APPLE_ID        - numeric App Store app id (needed for Production verify)
 // Provided automatically by Supabase: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 //
 // Deploy with JWT off (we do our own auth): supabase functions deploy translate --no-verify-jwt
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import {
-  SignedDataVerifier,
-  Environment,
-} from "https://esm.sh/@apple/app-store-server-library@1.4.0";
+import * as jose from "https://esm.sh/jose@5.9.6";
+import { cryptoProvider, X509Certificate } from "https://esm.sh/@peculiar/x509@1.12.3";
+
+// @peculiar/x509 needs a WebCrypto engine; Deno's global `crypto` provides one.
+cryptoProvider.set(crypto);
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
-const BUNDLE_ID = Deno.env.get("ATOLLTALK_BUNDLE_ID") ?? "swiss.atoll.talk";
-const APP_APPLE_ID = Number(Deno.env.get("APP_APPLE_ID") ?? "0") || undefined;
+const BUNDLE_ID = (Deno.env.get("ATOLLTALK_BUNDLE_ID") ?? "swiss.atoll.talk").trim();
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -52,31 +56,92 @@ async function loadAppleRoots(): Promise<Uint8Array[]> {
     "https://www.apple.com/certificateauthority/AppleRootCA-G2.cer",
     "https://www.apple.com/appleca/AppleIncRootCertificate.cer",
   ];
-  const certs = await Promise.all(
+  appleRoots = await Promise.all(
     urls.map(async (u) => new Uint8Array(await (await fetch(u)).arrayBuffer())),
   );
-  appleRoots = certs;
-  return certs;
+  return appleRoots;
 }
 
-// Verify the signed transaction, trying Production then Sandbox.
-async function verifyTransaction(jws: string) {
-  const roots = await loadAppleRoots();
-  for (const env of [Environment.PRODUCTION, Environment.SANDBOX]) {
-    try {
-      const verifier = new SignedDataVerifier(
-        roots,
-        false, // enableOnlineChecks off — avoids Sandbox OCSP flakiness
-        env,
-        BUNDLE_ID,
-        APP_APPLE_ID,
-      );
-      return await verifier.verifyAndDecodeTransaction(jws);
-    } catch (e) {
-      console.error(`verify failed env=${env}:`, (e as Error)?.message ?? e);
+function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+interface DecodedTx {
+  bundleId?: string;
+  productId?: string;
+  environment?: string;
+  expiresDate?: number; // ms epoch
+  revocationDate?: number; // ms epoch
+  originalTransactionId?: string;
+}
+
+// Verify the StoreKit 2 signed transaction (JWS) Deno-natively. Returns the
+// decoded payload on success, or { tx: null, error } describing why it failed.
+async function verifyTransaction(
+  jws: string,
+): Promise<{ tx: DecodedTx | null; error?: string }> {
+  try {
+    const roots = await loadAppleRoots();
+
+    const header = jose.decodeProtectedHeader(jws) as { alg?: string; x5c?: string[] };
+    if (header.alg !== "ES256") throw new Error(`unexpected alg ${header.alg}`);
+    if (!header.x5c?.length) throw new Error("missing x5c chain");
+
+    const chain = header.x5c.map((b64) => new X509Certificate(b64));
+
+    // 1. Each cert in the provided chain is signed by the next one up.
+    for (let i = 0; i < chain.length - 1; i++) {
+      const ok = await chain[i].verify({
+        publicKey: chain[i + 1].publicKey,
+        signatureOnly: true,
+      });
+      if (!ok) throw new Error(`chain link ${i} signature invalid`);
     }
+
+    // 2. Anchor the top of the chain to a TRUSTED Apple root we fetched
+    //    ourselves — never trust the root the x5c provides on its own. Apple
+    //    ships the root inside x5c, so it either equals one of ours or is
+    //    signed by one.
+    const rootCerts = roots.map((der) => new X509Certificate(der));
+    const top = chain[chain.length - 1];
+    const topRaw = new Uint8Array(top.rawData);
+    let anchored = false;
+    for (const r of rootCerts) {
+      if (bytesEqual(topRaw, new Uint8Array(r.rawData))) { anchored = true; break; }
+      if (await top.verify({ publicKey: r.publicKey, signatureOnly: true })) {
+        anchored = true;
+        break;
+      }
+    }
+    if (!anchored) throw new Error("chain not anchored to a trusted Apple root");
+
+    // 3. Every cert must be within its validity window.
+    const now = Date.now();
+    for (const c of chain) {
+      if (now < c.notBefore.getTime() || now > c.notAfter.getTime()) {
+        throw new Error("certificate outside validity window");
+      }
+    }
+
+    // 4. The JWS signature itself, against the leaf certificate's public key.
+    const leafKey = await jose.importX509(
+      `-----BEGIN CERTIFICATE-----\n${header.x5c[0]}\n-----END CERTIFICATE-----`,
+      "ES256",
+    );
+    const { payload } = await jose.compactVerify(jws, leafKey, { algorithms: ["ES256"] });
+    const tx = JSON.parse(new TextDecoder().decode(payload)) as DecodedTx;
+
+    // 5. Bundle id must match ours (Apple's library enforced this too).
+    if (tx.bundleId !== BUNDLE_ID) throw new Error(`bundleId mismatch ${tx.bundleId}`);
+
+    return { tx };
+  } catch (e) {
+    const error = (e as Error)?.message ?? String(e);
+    console.error("verifyTransaction failed:", error);
+    return { tx: null, error };
   }
-  return null;
 }
 
 Deno.serve(async (req) => {
@@ -96,14 +161,13 @@ Deno.serve(async (req) => {
   const { text, target, context = "", glossary = "", jws } = body;
   if (!text || !target || !jws) return json(400, { error: "missing_fields" });
 
-  // 1. Entitlement: verify the StoreKit 2 signed transaction.
-  const tx = await verifyTransaction(jws);
-  if (!tx) {
-    console.error("entitlement: verify returned null (JWS not Apple-verifiable)");
-    return json(403, { error: "verify_failed" });
-  }
-  console.log("entitlement: verified productId=", tx.productId, "env ok");
-  if (!PRODUCT_IDS.has(tx.productId)) {
+  // 1. Entitlement: verify the StoreKit 2 signed transaction. The reason for a
+  //    failure is logged server-side (verifyTransaction), not leaked to clients.
+  const { tx } = await verifyTransaction(jws);
+  if (!tx) return json(403, { error: "verify_failed" });
+
+  console.log("entitlement: verified productId=", tx.productId, "env=", tx.environment);
+  if (!tx.productId || !PRODUCT_IDS.has(tx.productId)) {
     return json(403, { error: "wrong_product", productId: tx.productId });
   }
   if (tx.revocationDate) return json(403, { error: "revoked" });
