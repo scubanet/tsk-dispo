@@ -15,6 +15,24 @@
             "value" : "%1$@ %2$@"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -32,6 +50,24 @@
           }
         },
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@%3$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@%3$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@%3$@"
+          }
+        },
+        "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ %2$@%3$@"
@@ -60,6 +96,24 @@
             "value" : "API Keys"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claves API"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clés API"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiavi API"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -81,6 +135,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "API keys missing — tap to enter"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faltan las claves API — toca para introducirlas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clés API manquantes — appuie pour les saisir"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiavi API mancanti — tocca per inserirle"
           }
         },
         "uk" : {
@@ -106,6 +178,24 @@
             "value" : "Cancel"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulla"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -122,6 +212,24 @@
             "value" : "Subscription"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suscripción"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abonnement"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbonamento"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -136,6 +244,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Subscriptions could not be loaded. Check your connection — or the products are not yet approved in App Store Connect."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudieron cargar las suscripciones. Comprueba la conexión — o los productos aún no están aprobados en App Store Connect."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de charger les abonnements. Vérifie ta connexion — ou les produits ne sont pas encore validés dans App Store Connect."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile caricare gli abbonamenti. Controlla la connessione — oppure i prodotti non sono ancora approvati in App Store Connect."
           }
         },
         "uk" : {
@@ -161,6 +287,24 @@
             "value" : "Delete all texts and translations"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar todos los textos y traducciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer tous les textes et traductions"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elimina tutti i testi e le traduzioni"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -172,6 +316,24 @@
     "AtollTalk Pro" : {
       "localizations" : {
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AtollTalk Pro"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AtollTalk Pro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AtollTalk Pro"
+          }
+        },
+        "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "AtollTalk Pro"
@@ -191,6 +353,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "AtollTalk sends your voice recordings and texts to cloud services (ElevenLabs, Anthropic) for recognition, translation, and speech synthesis. No processing occurs without your consent."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AtollTalk envía tus grabaciones de voz y tus textos a servicios en la nube (ElevenLabs, Anthropic) para el reconocimiento, la traducción y la síntesis de voz. Sin tu consentimiento no se realiza ningún procesamiento."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AtollTalk envoie tes enregistrements vocaux et tes textes à des services cloud (ElevenLabs, Anthropic) pour la reconnaissance, la traduction et la synthèse vocale. Aucun traitement n'a lieu sans ton consentement."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AtollTalk invia le tue registrazioni vocali e i tuoi testi a servizi cloud (ElevenLabs, Anthropic) per il riconoscimento, la traduzione e la sintesi vocale. Senza il tuo consenso non viene effettuato alcun trattamento."
           }
         },
         "uk" : {
@@ -216,6 +396,24 @@
             "value" : "Automatic"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automático"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatique"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatico"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -230,6 +428,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terms for the current language pair — applied verbatim during translation."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Términos para el par de idiomas actual — se aplican literalmente al traducir."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termes pour la paire de langues actuelle — appliqués tels quels lors de la traduction."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termini per la coppia di lingue attuale — applicati alla lettera durante la traduzione."
           }
         },
         "uk" : {
@@ -255,6 +471,24 @@
             "value" : "Claude model"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modelo Claude"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle Claude"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modello Claude"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -269,6 +503,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Data Processing"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tratamiento de datos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traitement des données"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trattamento dei dati"
           }
         },
         "uk" : {
@@ -293,6 +545,24 @@
             "value" : "Your Pro subscription has expired. Renew it to use Pro translation."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu suscripción Pro ha caducado. Renuévala para usar la traducción Pro."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ton abonnement Pro a expiré. Renouvelle-le pour utiliser la traduction Pro."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo abbonamento Pro è scaduto. Rinnovalo per usare la traduzione Pro."
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -313,6 +583,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your Pro subscription was revoked."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu suscripción Pro ha sido revocada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ton abonnement Pro a été révoqué."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo abbonamento Pro è stato revocato."
           }
         },
         "uk" : {
@@ -338,6 +626,24 @@
             "value" : "German"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alemán"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allemand"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tedesco"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -358,6 +664,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This action cannot be undone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta acción no se puede deshacer."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette action est irréversible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa azione non può essere annullata."
           }
         },
         "uk" : {
@@ -383,6 +707,24 @@
             "value" : "An error occurred: %@"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se ha producido un error: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une erreur s'est produite : %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si è verificato un errore: %@"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -397,6 +739,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "One-time — lifetime"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pago único — de por vida"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paiement unique — à vie"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una tantum — a vita"
           }
         },
         "uk" : {
@@ -422,6 +782,24 @@
             "value" : "Settings"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réglages"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impostazioni"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -443,6 +821,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ElevenLabs API key"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clave API de ElevenLabs"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clé API ElevenLabs"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiave API ElevenLabs"
           }
         },
         "uk" : {
@@ -468,6 +864,24 @@
             "value" : "Done"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminé"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fine"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -491,6 +905,24 @@
             "value" : "Glossary"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glosario"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glossaire"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glossario"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -511,6 +943,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Glossary %1$@ %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glosario %1$@ %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glossaire %1$@ %2$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glossario %1$@ %2$@"
           }
         },
         "uk" : {
@@ -536,6 +986,24 @@
             "value" : "Notice"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aviso"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remarque"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avviso"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -557,6 +1025,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Listening…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escuchando…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écoute…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In ascolto…"
           }
         },
         "uk" : {
@@ -582,6 +1068,24 @@
             "value" : "No recording detected — please try again."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se detectó ninguna grabación — inténtalo de nuevo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun enregistrement détecté — réessaie."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessuna registrazione rilevata — riprova."
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -605,6 +1109,24 @@
             "value" : "Context"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contexto"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contexte"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contesto"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -619,6 +1141,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Empty = default voice. Entries override per language."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vacío = voz predeterminada. Una entrada la sustituye por idioma."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vide = voix par défaut. Une entrée la remplace par langue."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vuoto = voce predefinita. Una voce sostituisce per lingua."
           }
         },
         "uk" : {
@@ -644,6 +1184,24 @@
             "value" : "Microphone is not available."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El micrófono no está disponible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le microphone n'est pas disponible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il microfono non è disponibile."
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -665,6 +1223,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Microphone access denied. Please allow it in iOS Settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay acceso al micrófono. Permítelo en los Ajustes de iOS."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès au microphone refusé. Autorise-le dans les Réglages iOS."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accesso al microfono negato. Consentilo nelle Impostazioni di iOS."
           }
         },
         "uk" : {
@@ -690,6 +1266,24 @@
             "value" : "Didn't catch that — please try again."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No te he entendido — vuelve a hablar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je n'ai pas compris — parle à nouveau."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non ho capito — riprova a parlare."
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -713,6 +1307,24 @@
             "value" : "OK"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -727,6 +1339,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Premium translation (Claude) + natural voices. All languages, incl. Tagalog & Bisaya."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traducción premium (Claude) + voces naturales. Todos los idiomas, incl. tagalo y bisaya."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduction premium (Claude) + voix naturelles. Toutes les langues, y compris le tagalog et le bisaya."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduzione premium (Claude) + voci naturali. Tutte le lingue, incl. tagalog e bisaya."
           }
         },
         "uk" : {
@@ -752,6 +1382,24 @@
             "value" : "Language not detected or not in the pair."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idioma no detectado o no incluido en el par."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Langue non détectée ou absente de la paire."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lingua non rilevata o non presente nella coppia."
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -775,6 +1423,24 @@
             "value" : "Speak"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hablar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parler"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parla"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -795,6 +1461,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Voices (ElevenLabs Voice IDs)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voces (Voice-IDs de ElevenLabs)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voix (Voice-IDs ElevenLabs)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voci (Voice-ID ElevenLabs)"
           }
         },
         "uk" : {
@@ -820,6 +1504,24 @@
             "value" : "Stop"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detener"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferma"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -842,6 +1544,24 @@
             "value" : "Daily limit for Pro translations reached. Please try again later."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Has alcanzado el límite diario de traducciones Pro. Inténtalo de nuevo más tarde."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite quotidienne de traductions Pro atteinte. Réessaie plus tard."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite giornaliero di traduzioni Pro raggiunto. Riprova più tardi."
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -856,6 +1576,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plan"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forfait"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piano"
           }
         },
         "uk" : {
@@ -878,6 +1616,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tap “Speak” to get started."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca «Hablar» para empezar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appuie sur « Parler » pour commencer."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocca «Parla» per iniziare."
           }
         },
         "uk" : {
@@ -903,6 +1659,24 @@
             "value" : "Delete history?"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Borrar el historial?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer l'historique ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminare la cronologia?"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -924,6 +1698,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Voice ID German"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voice-ID alemán"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voice-ID allemand"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voice-ID tedesco"
           }
         },
         "uk" : {
@@ -949,6 +1741,24 @@
             "value" : "Voice ID Ukrainian"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voice-ID ucraniano"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voice-ID ukrainien"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voice-ID ucraino"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -972,6 +1782,24 @@
             "value" : "Read aloud"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leer en voz alta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire à voix haute"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leggi ad alta voce"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -986,6 +1814,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Agree and start"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aceptar y empezar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accepter et démarrer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accetta e inizia"
           }
         },
         "uk" : {
@@ -1011,6 +1857,24 @@
             "value" : "Translating…"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduciendo…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduction…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduzione…"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1034,6 +1898,24 @@
             "value" : "Translation model"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modelo de traducción"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle de traduction"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modello di traduzione"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1055,6 +1937,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ukrainian"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ucraniano"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ukrainien"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ucraino"
           }
         },
         "uk" : {
