@@ -279,6 +279,50 @@
         }
       }
     },
+    "Dein Pro-Abo ist abgelaufen. Bitte erneuere es, um die Pro-Übersetzung zu nutzen." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Pro-Abo ist abgelaufen. Bitte erneuere es, um die Pro-Übersetzung zu nutzen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Pro subscription has expired. Renew it to use Pro translation."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Термін дії твоєї Pro-підписки минув. Понови її, щоб користуватися Pro-перекладом."
+          }
+        }
+      }
+    },
+    "Dein Pro-Abo wurde widerrufen." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Pro-Abo wurde widerrufen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Pro subscription was revoked."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Твою Pro-підписку було скасовано."
+          }
+        }
+      }
+    },
     "Deutsch" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -780,6 +824,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Стоп"
+          }
+        }
+      }
+    },
+    "Tageslimit für Pro-Übersetzungen erreicht. Bitte versuche es später erneut." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tageslimit für Pro-Übersetzungen erreicht. Bitte versuche es später erneut."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily limit for Pro translations reached. Please try again later."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Досягнуто денного ліміту Pro-перекладів. Спробуй пізніше, будь ласка."
           }
         }
       }
