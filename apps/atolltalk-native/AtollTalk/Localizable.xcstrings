@@ -532,6 +532,7 @@
       }
     },
     "Dein Pro-Abo ist abgelaufen. Bitte erneuere es, um die Pro-Übersetzung zu nutzen." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -572,6 +573,7 @@
       }
     },
     "Dein Pro-Abo wurde widerrufen." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1094,47 +1096,6 @@
         }
       }
     },
-    "Kontext" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kontext"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Context"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Contexto"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Contexte"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Contesto"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Контекст"
-          }
-        }
-      }
-    },
     "Leer = hinterlegte Standardstimme. Eintrag überschreibt pro Sprache." : {
       "localizations" : {
         "en" : {
@@ -1531,6 +1492,7 @@
       }
     },
     "Tageslimit für Pro-Übersetzungen erreicht. Bitte versuche es später erneut." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
