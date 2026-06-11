@@ -88,10 +88,6 @@ struct SettingsView: View {
         } footer: {
           Text("Begriffe für das aktuelle Sprach-Paar — wird beim Übersetzen fix angewendet.")
         }
-        Section("Kontext") {
-          TextEditor(text: $settings.context)
-            .frame(minHeight: 100)
-        }
       }
       .navigationTitle("Einstellungen")
       .toolbar {
