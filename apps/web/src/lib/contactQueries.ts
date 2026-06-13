@@ -599,7 +599,10 @@ export async function addRelationship(params: {
 export async function findPotentialDuplicates(
   contactId: string,
 ): Promise<Contact[]> {
-  const { data, error } = await supabase.rpc('find_contact_duplicates', {
+  // DB RPC is named find_potential_duplicates (see migration 0081). The old
+  // 'find_contact_duplicates' name 404'd, which broke the contact create/merge
+  // duplicate check.
+  const { data, error } = await supabase.rpc('find_potential_duplicates', {
     p_contact_id: contactId,
   })
   if (error) throw error

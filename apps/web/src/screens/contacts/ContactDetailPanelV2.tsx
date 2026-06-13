@@ -4,61 +4,62 @@
 // Layout: [ Liste in Parent ] [ Header + TimelineFeed ] [ PropertiesSidebar ]
 // Phase 3 Task 14: Sidebar collapse/expand-Toggle (localStorage-persistiert).
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { useQueryClient } from '@tanstack/react-query'
 import { ContactDetailHeader } from './ContactDetailHeader'
+import { ContactMoreMenu } from './ContactMoreMenu'
 import { TimelineFeed } from './timeline/TimelineFeed'
 import { PropertiesSidebar } from './sidebar/PropertiesSidebar'
 import { ContactEditSheet } from './ContactEditSheet'
 import { useSidebarToggle } from '@/hooks/useSidebarToggle'
-import type { ContactRole } from '@/types/contacts'
+import { useContactWithSidecars } from '@/hooks/useContactWithSidecars'
 
 interface Props {
   contactId: string
   onClose: () => void
 }
 
-interface ContactSummary {
-  id: string
-  display_name: string
-  roles: ContactRole[]
-}
-
 const SIDEBAR_KEY = 'contactDetail.sidebarOpen'
 
 export function ContactDetailPanelV2({ contactId, onClose }: Props) {
-  // Minimal contact-summary fetch — Phase 3 ersetzt das durch eine
-  // umfassendere Hook die alle Properties lädt. Für Phase 2 reicht Name + Roles.
-  const contact = useQuery({
-    queryKey: ['contact-summary', contactId],
-    queryFn: async (): Promise<ContactSummary> => {
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('id, display_name')
-        .eq('id', contactId)
-        .single()
-      if (error) throw new Error(error.message)
-      // Roles separat (Phase 3 in Sidebar-Section).
-      return { id: data.id, display_name: data.display_name, roles: [] }
-    },
-    enabled: !!contactId,
-  })
+  // Load the full contact (+ sidecars). Needed for real role pills AND for the
+  // ⋯ action menu (ContactMoreMenu), whose "Rollen verwalten" entry is the only
+  // way to set a contact's roles. The earlier summary-only fetch hardcoded
+  // roles to [] and never mounted the menu, so roles became unsettable.
+  const qc = useQueryClient()
+  const { data: contact } = useContactWithSidecars(contactId, true)
 
   const [sidebarOpen, toggleSidebar] = useSidebarToggle(SIDEBAR_KEY, true)
   const [editOpen, setEditOpen] = useState(false)
+  const [showMore, setShowMore] = useState(false)
+
+  // Refresh just this contact after a menu action (role change, archive, …).
+  function reload() {
+    qc.invalidateQueries({ queryKey: ['contact', 'withSidecars', contactId] })
+    qc.invalidateQueries({ queryKey: ['contacts'] })
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {/* Center: Header + Timeline */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          <ContactDetailHeader
-            contactId={contactId}
-            displayName={contact.data?.display_name ?? '…'}
-            roles={contact.data?.roles ?? []}
-            onEdit={() => setEditOpen(true)}
-            onClose={onClose}
-          />
+          <div style={{ position: 'relative' }}>
+            <ContactDetailHeader
+              contactId={contactId}
+              displayName={contact?.display_name ?? '…'}
+              roles={contact?.roles ?? []}
+              onEdit={() => setEditOpen(true)}
+              onMore={() => setShowMore(true)}
+              onClose={onClose}
+            />
+            {showMore && contact && (
+              <ContactMoreMenu
+                contact={contact}
+                onChanged={reload}
+                onClosed={() => setShowMore(false)}
+              />
+            )}
+          </div>
           <div style={{ flex: 1, minHeight: 0 }}>
             <TimelineFeed contactId={contactId} />
           </div>

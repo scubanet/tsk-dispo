@@ -15,9 +15,16 @@ interface Props {
   roles: ContactRole[]
   onEdit: () => void
   onClose: () => void
+  /**
+   * GL-004 fix: opens the ⋯ action menu (role manager, merge, vCard, archive,
+   * GDPR). Optional so the header still renders without it, but the V2 panel
+   * wires it so "Rollen verwalten" is reachable again — it was documented in the
+   * header layout but never implemented, which made roles unsettable.
+   */
+  onMore?: () => void
 }
 
-export function ContactDetailHeader({ contactId, displayName, roles, onEdit, onClose }: Props) {
+export function ContactDetailHeader({ contactId, displayName, roles, onEdit, onClose, onMore }: Props) {
   return (
     <header style={{
       display: 'flex', alignItems: 'center', gap: 12,
@@ -52,6 +59,17 @@ export function ContactDetailHeader({ contactId, displayName, roles, onEdit, onC
       >
         Bearbeiten
       </button>
+      {onMore && (
+        <button
+          type="button"
+          onClick={onMore}
+          aria-label="Mehr"
+          title="Mehr"
+          style={{ padding: '6px 10px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}
+        >
+          ⋯
+        </button>
+      )}
       <button
         type="button"
         onClick={onClose}
