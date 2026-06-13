@@ -53,6 +53,31 @@ describe('ContactDetailHeader', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
+  it('renders ⋯ button and calls onMore when provided', () => {
+    const onMore = vi.fn()
+    render(<ContactDetailHeader
+      contactId="c1"
+      displayName="Hugo"
+      roles={[]}
+      onEdit={vi.fn()}
+      onClose={vi.fn()}
+      onMore={onMore}
+    />)
+    fireEvent.click(screen.getByRole('button', { name: 'Mehr' }))
+    expect(onMore).toHaveBeenCalledOnce()
+  })
+
+  it('omits ⋯ button when onMore is not provided', () => {
+    render(<ContactDetailHeader
+      contactId="c1"
+      displayName="Hugo"
+      roles={[]}
+      onEdit={vi.fn()}
+      onClose={vi.fn()}
+    />)
+    expect(screen.queryByRole('button', { name: 'Mehr' })).toBeNull()
+  })
+
   it('rendert Avatar mit displayName als aria-label', () => {
     render(<ContactDetailHeader
       contactId="c1"

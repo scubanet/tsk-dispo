@@ -24,8 +24,9 @@ vi.mock('@/lib/supabase', () => {
       last_name: 'Eugster',
       birth_date: null,
       primary_email: null,
+      emails: [],
       phones: [], addresses: [], languages: [],
-      
+      roles: [],
       source: null,
       created_at: '2026-01-01T00:00:00Z',
       updated_at: '2026-05-27T00:00:00Z',
@@ -38,6 +39,8 @@ vi.mock('@/lib/supabase', () => {
     },
     error: null,
   })
+  // Sidecar fetches (getContactWithSidecars loads instructor/student/org).
+  const sidecarNull = vi.fn().mockResolvedValue({ data: null, error: null })
   // Timeline fetch:
   const builder: Record<string, unknown> = {}
   const limit = vi.fn().mockReturnValue(builder)
@@ -54,7 +57,14 @@ vi.mock('@/lib/supabase', () => {
     if (table === 'contacts') {
       return {
         select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({ single: singleContact }),
+          eq: vi.fn().mockReturnValue({ single: singleContact, maybeSingle: singleContact }),
+        }),
+      }
+    }
+    if (table === 'contact_instructor' || table === 'contact_student' || table === 'contact_organization') {
+      return {
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({ maybeSingle: sidecarNull }),
         }),
       }
     }
@@ -119,6 +129,19 @@ describe('ContactDetailPanelV2', () => {
     await waitFor(() => expect(screen.getByTestId('properties-sidebar')).toBeTruthy())
     const sidebar = screen.getByTestId('properties-sidebar')
     expect(sidebar.getAttribute('data-open')).toBe('false')
+  })
+
+  it('⋯-Menü ist erreichbar und öffnet den Rollen-Manager-Eintrag', async () => {
+    render(<ContactDetailPanelV2 contactId="c1" onClose={vi.fn()} />, { wrapper })
+    // ⋯-Trigger im Header (vorher fehlend → Rollen unsetzbar):
+    const moreBtn = await screen.findByRole('button', { name: 'Mehr' })
+    fireEvent.click(moreBtn)
+    // ContactMoreMenu erscheint …
+    expect(screen.getByRole('menu')).toBeTruthy()
+    // … inklusive "Rollen verwalten" (i18n-Key, da kein Provider im Test):
+    expect(
+      screen.getByRole('menuitem', { name: /action_manage_roles/i }),
+    ).toBeTruthy()
   })
 
   it('Klick auf Bearbeiten öffnet das ContactEditSheet', async () => {
