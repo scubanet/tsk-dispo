@@ -144,7 +144,6 @@ export function EnrollStudentSheet({
                s.email?.toLowerCase().includes(q) ||
                s.phone?.toLowerCase().includes(q)
       })
-      .slice(0, 50)
   }, [students, search, alreadyEnrolledStudentIds, isEdit, isProCourse])
 
   async function save() {
