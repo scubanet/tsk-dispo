@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
@@ -129,22 +129,37 @@ export function StudentEditSheet({
   const STAGES = STAGE_CODES.map((code) => ({ code, label: t(`student_edit.stage_${code}`) }))
   const [form, setForm] = useState<Form>(EMPTY)
   const [error, setError] = useState<string | null>(null)
+  // Tracks which record (studentId, or "__new__") the form has already been
+  // hydrated for, so hydration runs exactly once per opened record and never
+  // overwrites in-progress user input on later renders.
+  const hydratedKey = useRef<string | null>(null)
 
   const { data: orgs = [] } = useOrganizations(showCdFields && open)
   const { data: cws } = useContactWithSidecars(open && studentId ? studentId : null)
-  const { data: relationships = [] } = useContactRelationships(
+  const relationshipsQuery = useContactRelationships(
     showCdFields && open && studentId ? studentId : null,
   )
+  const relationships = relationshipsQuery.data ?? []
   const upsertMutation = useUpsertStudent()
   const deleteMutation = useDeleteContact()
   const saving = upsertMutation.isPending || deleteMutation.isPending
 
-  // Form hydration: re-runs whenever open/studentId or the loaded contact change.
+  // Form hydration: runs exactly once per opened record. The guard ref keyed on
+  // studentId stops this effect from re-running on later renders (e.g. when the
+  // `relationships` query result — defaulted to a fresh [] — changes identity),
+  // which would otherwise call setForm() mid-typing and revert the user's input.
   useEffect(() => {
-    if (!open) return
-    setError(null)
+    if (!open) {
+      hydratedKey.current = null
+      return
+    }
+
+    const key = studentId ?? '__new__'
+    if (hydratedKey.current === key) return
 
     if (!studentId) {
+      hydratedKey.current = key
+      setError(null)
       setForm({
         ...EMPTY,
         is_candidate: defaultIsCandidate,
@@ -154,6 +169,12 @@ export function StudentEditSheet({
     }
 
     if (!cws) return
+    // In CD mode the org link is derived from `relationships`; wait until that
+    // query has settled so the first hydration already includes it.
+    if (showCdFields && relationshipsQuery.isLoading) return
+
+    hydratedKey.current = key
+    setError(null)
 
     const phones = (cws.phones as Array<{ e164?: string; primary?: boolean }> | null) ?? []
     const primaryPhone = phones.find((p) => p.primary)?.e164 ?? phones[0]?.e164 ?? ''
@@ -194,7 +215,7 @@ export function StudentEditSheet({
       is_student:        (cws.roles ?? []).includes('student'),
       is_candidate:      cws.student?.is_candidate ?? false,
     })
-  }, [open, studentId, showCdFields, defaultIsCandidate, defaultPipelineStage, cws, relationships])
+  }, [open, studentId, showCdFields, defaultIsCandidate, defaultPipelineStage, cws, relationships, relationshipsQuery.isLoading])
 
   function set<K extends keyof Form>(k: K, v: Form[K]) {
     setForm((prev) => ({ ...prev, [k]: v }))

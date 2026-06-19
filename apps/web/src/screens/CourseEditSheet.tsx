@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
@@ -87,7 +87,8 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
     [instructorRows],
   )
   const { data: existingCourse } = useCourseForEdit(isEdit ? courseId : null)
-  const { data: existingDates = [] } = useCourseDatesForEdit(isEdit ? courseId : null)
+  const datesQuery = useCourseDatesForEdit(isEdit ? courseId : null)
+  const existingDates = datesQuery.data ?? []
 
   const createCourse = useCreateCourse()
   const updateCourse = useUpdateCourse()
@@ -108,10 +109,14 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
   const [haupt, setHaupt] = useState('')
 
   const [error, setError] = useState<string | null>(null)
+  // Tracks which course the form has been hydrated for, so edit-mode hydration
+  // runs once per opened course and never overwrites in-progress edits.
+  const hydratedCourseKey = useRef<string | null>(null)
 
   // Reset form state when opening the sheet in create mode.
   useEffect(() => {
     if (!open || courseId) return
+    hydratedCourseKey.current = null
     setError(null)
 
     setTypeId(''); setTitle(''); setStatus('tentative')
@@ -120,12 +125,21 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
     setInfo(''); setNotes(''); setHaupt('')
   }, [open, courseId])
 
-  // Hydrate form state when entering edit-mode / opening sheet.
+  // Hydrate form state once when entering edit-mode. The guard ref keyed on the
+  // course id stops this from re-running on later renders (e.g. when the
+  // defaulted `existingDates = []` changes identity or the query refetches),
+  // which would otherwise overwrite the user's in-progress edits.
   useEffect(() => {
-    if (!open || !courseId) return
-    setError(null)
-
+    if (!open || !courseId) {
+      if (!open) hydratedCourseKey.current = null
+      return
+    }
+    if (hydratedCourseKey.current === courseId) return
     if (!existingCourse) return
+    if (datesQuery.isLoading) return
+
+    hydratedCourseKey.current = courseId
+    setError(null)
 
     setTypeId(existingCourse.type_id)
     setTitle(existingCourse.title)
@@ -192,7 +206,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
     setDates(merged.length > 0 ? merged : [
       { date: existingCourse.start_date, type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false, theory_from: '', theory_to: '', pool_from: '', pool_to: '', lake_from: '', lake_to: '' },
     ])
-  }, [open, courseId, existingCourse, existingDates])
+  }, [open, courseId, existingCourse, existingDates, datesQuery.isLoading])
 
   // Conflict check — live useQuery driven by haupt + dates, gated to create mode.
   const conflictDates = useMemo(() => dates.map((d) => d.date).filter(Boolean), [dates])
