@@ -109,19 +109,21 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
 
   const [error, setError] = useState<string | null>(null)
 
-  // Hydrate form state when entering edit-mode / opening sheet.
+  // Reset form state when opening the sheet in create mode.
   useEffect(() => {
-    if (!open) return
+    if (!open || courseId) return
     setError(null)
 
-    if (!courseId) {
-      // Reset for create mode
-      setTypeId(''); setTitle(''); setStatus('tentative')
-      setDates([{ date: new Date().toISOString().slice(0, 10), type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false, theory_from: '', theory_to: '', pool_from: '', pool_to: '', lake_from: '', lake_to: '' }])
-      setNumParticipants(0)
-      setInfo(''); setNotes(''); setHaupt('')
-      return
-    }
+    setTypeId(''); setTitle(''); setStatus('tentative')
+    setDates([{ date: new Date().toISOString().slice(0, 10), type: 'theorie', has_theory: true, has_pool: false, has_lake: false, pool_location: null, pool_reserved: false, theory_from: '', theory_to: '', pool_from: '', pool_to: '', lake_from: '', lake_to: '' }])
+    setNumParticipants(0)
+    setInfo(''); setNotes(''); setHaupt('')
+  }, [open, courseId])
+
+  // Hydrate form state when entering edit-mode / opening sheet.
+  useEffect(() => {
+    if (!open || !courseId) return
+    setError(null)
 
     if (!existingCourse) return
 
