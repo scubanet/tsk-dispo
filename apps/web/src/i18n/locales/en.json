@@ -617,6 +617,8 @@
     "save_changes": "Save changes",
     "create": "Create",
     "confirm_delete": "Really delete this course completely?\n\n• All assignments (TL/DM) will be removed\n• All course dates + student enrolments will be removed\n• Pay records for this course will be deleted\n\nThis action is NOT reversible. If you only want to remove the course from planning, set it to \"CXL\" (cancelled) instead.",
+    "error_type_required": "Please choose a course type.",
+    "error_title_required": "Please enter a course title.",
     "error_at_least_one_date": "At least one date is required.",
     "error_save_dates": "Could not save date details: ",
     "error_delete": "Delete failed: ",

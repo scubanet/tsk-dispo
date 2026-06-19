@@ -240,7 +240,14 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
   }
 
   async function save() {
-    if (!typeId || !title) return
+    if (!typeId) {
+      setError(t('course_edit.error_type_required'))
+      return
+    }
+    if (!title.trim()) {
+      setError(t('course_edit.error_title_required'))
+      return
+    }
     const valid = dates.filter((d) => d.date)
     if (valid.length === 0) {
       setError(t('course_edit.error_at_least_one_date'))
@@ -550,7 +557,7 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
           <button
             className="btn"
             onClick={save}
-            disabled={saving || !typeId || !title || dates.filter((d) => d.date).length === 0}
+            disabled={saving}
             style={{ flex: 1 }}
           >
             {saving ? t('common.saving') : isEdit ? t('course_edit.save_changes') : t('course_edit.create')}

@@ -20,6 +20,7 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-4);
+  flex-wrap: wrap;
 }
 
 .atoll-pageheader__main {
@@ -45,9 +46,29 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
   flex-shrink: 0;
 }
 
 .atoll-pageheader__below {
   margin-top: var(--space-4);
+}
+
+@media (max-width: 600px) {
+  .atoll-pageheader {
+    padding: var(--space-4);
+  }
+
+  .atoll-pageheader__row,
+  .atoll-pageheader__actions {
+    width: 100%;
+  }
+
+  .atoll-pageheader__actions > * {
+    min-width: 0;
+  }
+
+  .atoll-pageheader__actions .atoll-search {
+    flex: 1 1 180px;
+  }
 }

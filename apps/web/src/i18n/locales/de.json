@@ -617,6 +617,8 @@
     "save_changes": "Änderungen speichern",
     "create": "Anlegen",
     "confirm_delete": "Kurs wirklich komplett löschen?\n\n• Alle Zuteilungen (TL/DM) werden entfernt\n• Alle Kursdaten + Schüler-Anmeldungen werden entfernt\n• Vergütungs-Buchungen zu diesem Kurs werden gelöscht\n\nDiese Aktion ist NICHT umkehrbar. Falls du den Kurs nur aus der Planung nehmen willst, setze ihn stattdessen auf \"CXL\" (abgesagt).",
+    "error_type_required": "Bitte wähle einen Kurstyp.",
+    "error_title_required": "Bitte gib einen Kurstitel ein.",
     "error_at_least_one_date": "Mindestens ein Datum erforderlich.",
     "error_save_dates": "Datums-Details konnten nicht gespeichert werden: ",
     "error_delete": "Fehler beim Löschen: ",
