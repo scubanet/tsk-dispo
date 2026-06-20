@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CHDateField } from '@/components/CHFields'
 import { Sheet } from '@/components/Sheet'
 import { useSaveAsset } from '@/hooks/useRental'
 import { useCurrentTenant } from '@/hooks/useRetail'
@@ -78,8 +79,8 @@ export function AssetEditSheet({ open, onClose, onSaved, item }: Props) {
           </select>
         </Field>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <Field label={t('rental.next_service')}><input style={inputStyle} type="date" value={nextServiceDue} onChange={(e) => setNextServiceDue(e.target.value)} /></Field>
-          <Field label={t('rental.cert_due')}><input style={inputStyle} type="date" value={certDue} onChange={(e) => setCertDue(e.target.value)} /></Field>
+          <Field label={t('rental.next_service')}><CHDateField style={inputStyle} value={nextServiceDue} onChange={setNextServiceDue} /></Field>
+          <Field label={t('rental.cert_due')}><CHDateField style={inputStyle} value={certDue} onChange={setCertDue} /></Field>
         </div>
 
         {error && <div className="chip chip-red">{error}</div>}

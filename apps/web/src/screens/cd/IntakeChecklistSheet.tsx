@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CHDateField } from '@/components/CHFields'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { useIntakeChecklist, useSaveIntakeChecklist } from '@/hooks/useIntakeChecklist'
@@ -220,7 +221,7 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
             <Toggle label={t('intake.toggle_medical_doctor_signed')} checked={form.medical_doctor_signed} onChange={(v) => set('medical_doctor_signed', v)} />
           </div>
           <Field label={t('intake.field_medical_signed_on')}>
-            <input type="date" value={form.medical_signed_on} onChange={(e) => set('medical_signed_on', e.target.value)} style={inputStyle} />
+            <CHDateField value={form.medical_signed_on} onChange={(v) => set('medical_signed_on', v)} style={inputStyle} />
           </Field>
           <Field label={t('intake.field_medical_notes')}>
             <textarea value={form.medical_notes} onChange={(e) => set('medical_notes', e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
@@ -229,7 +230,7 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
 
         <Section title={t('intake.section_4_diver_6mo')}>
           <Field label={t('intake.field_first_cert')}>
-            <input type="date" value={form.certified_diver_since} onChange={(e) => set('certified_diver_since', e.target.value)} style={inputStyle} />
+            <CHDateField value={form.certified_diver_since} onChange={(v) => set('certified_diver_since', v)} style={inputStyle} />
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 'var(--space-3)' }}>
             <Toggle label={t('intake.toggle_logbook_seen')} checked={form.logbook_seen} onChange={(v) => set('logbook_seen', v)} />
@@ -246,7 +247,7 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
             </select>
           </Field>
           <Field label={t('intake.field_efr_completed_on')}>
-            <input type="date" value={form.efr_completed_on} onChange={(e) => set('efr_completed_on', e.target.value)} style={inputStyle} />
+            <CHDateField value={form.efr_completed_on} onChange={(v) => set('efr_completed_on', v)} style={inputStyle} />
           </Field>
         </Section>
 
@@ -271,7 +272,7 @@ export function IntakeChecklistSheet({ open, onClose, onSaved, courseParticipant
             <textarea value={form.notes} onChange={(e) => set('notes', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
           </Field>
           <Field label={t('intake.field_checked_on')}>
-            <input type="date" value={form.checked_on} onChange={(e) => set('checked_on', e.target.value)} style={inputStyle} />
+            <CHDateField value={form.checked_on} onChange={(v) => set('checked_on', v)} style={inputStyle} />
           </Field>
         </Section>
 

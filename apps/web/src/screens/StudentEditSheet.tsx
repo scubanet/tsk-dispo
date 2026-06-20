@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
+import { CHDateField } from '@/components/CHFields'
 import { useContactWithSidecars } from '@/hooks/useContactWithSidecars'
 import { useContactRelationships } from '@/hooks/useContactTabs'
 import {
@@ -310,7 +311,7 @@ export function StudentEditSheet({
           </div>
 
           <Field label={t('student_edit.label_birthday')}>
-            <input type="date" value={form.birthday} onChange={(e) => set('birthday', e.target.value)} style={inputStyle} />
+            <CHDateField value={form.birthday} onChange={(v) => set('birthday', v)} style={inputStyle} />
           </Field>
 
           <Field label={t('student_edit.label_level')}>

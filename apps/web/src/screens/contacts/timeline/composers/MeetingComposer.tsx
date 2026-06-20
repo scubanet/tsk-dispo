@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CHDateField } from '@/components/CHFields'
 import { useInsertContactEvent } from '@/hooks/useEventComposer'
 
 interface Props {
@@ -62,10 +63,9 @@ export function MeetingComposer({ contactId, onDone }: Props) {
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <label style={{ fontSize: 13 }}>
           Datum
-          <input
-            type="date"
+          <CHDateField
             value={date}
-            onChange={e => setDate(e.target.value)}
+            onChange={setDate}
             style={{ marginLeft: 6, padding: 4 }}
           />
         </label>

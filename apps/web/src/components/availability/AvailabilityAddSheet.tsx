@@ -6,6 +6,7 @@
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CHDateField } from '@/components/CHFields'
 import { Sheet } from '@/components/Sheet'
 import { supabase } from '@/lib/supabase'
 
@@ -73,20 +74,18 @@ export function AvailabilityAddSheet({ open, onClose, onCreated, instructorId }:
 
         <div>
           <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{t('my_profile.label_from')}</div>
-          <input
-            type="date"
+          <CHDateField
             value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
+            onChange={setFromDate}
             style={sheetInputStyle}
           />
         </div>
 
         <div>
           <div className="caption-2" style={{ marginBottom: 'var(--space-1)' }}>{t('my_profile.label_to')}</div>
-          <input
-            type="date"
+          <CHDateField
             value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
+            onChange={setToDate}
             style={sheetInputStyle}
           />
         </div>

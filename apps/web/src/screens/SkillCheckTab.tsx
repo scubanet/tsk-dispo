@@ -12,6 +12,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CHDateField } from '@/components/CHFields'
 import { supabase } from '@/lib/supabase'
 import { PADI_OWD_SKILLS, SECTION_LABELS_DE, SECTION_LABELS_EN, type PadiSkillDef, type PadiSkillSection } from '@/lib/padiOwdSkills'
 import type { CourseParticipant, AssignmentRow, CourseDate } from '@/lib/queries'
@@ -174,10 +175,9 @@ function CellPopover({
           <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
             {t('padi_skill_check.label_date')}
           </span>
-          <input
-            type="date"
+          <CHDateField
             value={edit.date}
-            onChange={(e) => setEdit((s) => ({ ...s, date: e.target.value }))}
+            onChange={(v) => setEdit((s) => ({ ...s, date: v }))}
             style={{ fontSize: 13, background: '#FFFFFF', border: '1px solid var(--border-primary)', borderRadius: 6, padding: '6px 8px', color: 'var(--text-primary)', outline: 'none' }}
           />
         </label>

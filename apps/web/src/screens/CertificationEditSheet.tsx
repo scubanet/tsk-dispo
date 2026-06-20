@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CHDateField } from '@/components/CHFields'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import type { StudentCertification } from '@/lib/queries'
@@ -137,10 +138,9 @@ export function CertificationEditSheet({ open, onClose, onSaved, studentId, exis
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
           <div>
             <Label>{t('cert_edit.label_issued_date')}</Label>
-            <input
-              type="date"
+            <CHDateField
               value={issuedDate}
-              onChange={(e) => setIssuedDate(e.target.value)}
+              onChange={setIssuedDate}
               style={inputStyle}
             />
           </div>

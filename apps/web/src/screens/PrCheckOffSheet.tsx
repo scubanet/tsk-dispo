@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CHDateField } from '@/components/CHFields'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { useCoursePrRecords } from '@/hooks/useCoursePrRecords'
@@ -465,10 +466,9 @@ export function PrCheckOffSheet({
                   )}
 
                   <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 'var(--space-2)' }}>
-                    <input
-                      type="date"
+                    <CHDateField
                       value={row.assessed_on}
-                      onChange={(e) => update(c.student!.id, { assessed_on: e.target.value })}
+                      onChange={(v) => update(c.student!.id, { assessed_on: v })}
                       style={{
                         padding: '6px 10px',
                         borderRadius: 8,

@@ -21,6 +21,7 @@ import type { TimelineEvent, EventType } from '@/types/contactEvents'
 import { Icon, type IconName } from '@/foundation/primitives/Icon'
 import { Avatar } from '@/foundation/primitives/Avatar'
 import { avatarColor } from '@/foundation/lib/colors'
+import { formatDateTime } from '@/lib/datetime'
 
 interface Props {
   event: TimelineEvent
@@ -128,7 +129,7 @@ export function ActivityEventCard({ event, contactName }: Props) {
           </div>
         )}
         <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-tertiary, #888)' }}>
-          {new Date(event.occurred_at).toLocaleString()} · {event.source_table}
+          {formatDateTime(event.occurred_at)} · {event.source_table}
         </div>
       </div>
 

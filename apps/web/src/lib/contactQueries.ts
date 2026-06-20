@@ -404,14 +404,21 @@ export interface StudentRow {
 }
 
 export async function listStudents(): Promise<StudentRow[]> {
+  // Enrollable students are defined by the `student` role — the same definition
+  // the Adressbuch "Aktive Schüler" list uses — NOT by the presence of a
+  // contact_student sidecar. Use a LEFT join (no !inner) so role-students that
+  // never got a sidecar row still appear in the course enroll picker; with the
+  // old inner join they showed in the Adressbuch but were missing from courses.
+  // Sidecar fields (level/is_candidate/pipeline_stage) stay nullable.
   const { data, error } = await supabase
     .from('contacts')
     .select(
       'id, first_name, last_name, display_name, primary_email, phones, birth_date, ' +
         'notes, roles, archived_at, created_at, ' +
-        'student:contact_student!inner(level, is_candidate, pipeline_stage)',
+        'student:contact_student(level, is_candidate, pipeline_stage)',
     )
     .is('archived_at', null)
+    .contains('roles', ['student'])
     .order('last_name', { nullsFirst: false })
     .order('first_name', { nullsFirst: false })
   if (error) throw error

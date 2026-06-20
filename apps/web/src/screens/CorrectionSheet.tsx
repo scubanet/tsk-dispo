@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CHDateField } from '@/components/CHFields'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
 import { useActiveInstructors } from '@/hooks/useActiveInstructors'
@@ -164,10 +165,9 @@ export function CorrectionSheet({ open, onClose, onSaved, defaultInstructorId, m
 
         <div>
           <Label>{t('correction.label_date')}</Label>
-          <input
-            type="date"
+          <CHDateField
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={setDate}
             style={inputStyle}
           />
         </div>

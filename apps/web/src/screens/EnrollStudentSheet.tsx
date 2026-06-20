@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
+import { CHDateField } from '@/components/CHFields'
 import { type Student } from '@/lib/queries'
 import { useActiveInstructors } from '@/hooks/useActiveInstructors'
 import {
@@ -293,10 +294,9 @@ export function EnrollStudentSheet({
               </div>
               <div>
                 <Label>{t('enroll.label_certified_on')}</Label>
-                <input
-                  type="date"
+                <CHDateField
                   value={certifiedOn}
-                  onChange={(e) => setCertifiedOn(e.target.value)}
+                  onChange={setCertifiedOn}
                   style={inputStyle}
                 />
               </div>

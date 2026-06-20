@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CHDateField } from '@/components/CHFields'
 import { Sheet } from '@/components/Sheet'
 import { useRentalCheckout, useSearchPersons } from '@/hooks/useRental'
 import type { RentalAsset } from '@/lib/rentalQueries'
@@ -101,7 +102,7 @@ export function RentalCheckoutSheet({ open, onClose, onSaved, assets }: Props) {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <div><div className="caption-2" style={{ marginBottom: 4 }}>{t('rental.due_at').toUpperCase()}</div><input style={inputStyle} type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} /></div>
+          <div><div className="caption-2" style={{ marginBottom: 4 }}>{t('rental.due_at').toUpperCase()}</div><CHDateField style={inputStyle} value={dueAt} onChange={setDueAt} /></div>
           <div><div className="caption-2" style={{ marginBottom: 4 }}>{t('rental.deposit').toUpperCase()}</div><input style={inputStyle} type="number" min="0" step="1" value={deposit} onChange={(e) => setDeposit(e.target.value)} /></div>
         </div>
 

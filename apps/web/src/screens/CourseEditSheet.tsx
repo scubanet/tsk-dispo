@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '@/components/Sheet'
 import { Icon } from '@/components/Icon'
+import { CHDateField, CHTimeField } from '@/components/CHFields'
 import {
   POOL_LOCATIONS,
   type CourseDateType,
@@ -390,10 +391,9 @@ export function CourseEditSheet({ open, onClose, onSaved, courseId }: Props) {
                 style={{ padding: 10, borderRadius: 10, display: 'grid', gap: 6 }}
               >
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto 32px', gap: 6, alignItems: 'center' }}>
-                  <input
-                    type="date"
+                  <CHDateField
                     value={d.date}
-                    onChange={(e) => updateDate(i, { date: e.target.value })}
+                    onChange={(v) => updateDate(i, { date: v })}
                     style={inputStyle}
                   />
                   <TypeToggle label={`📚 ${t('course_edit.type_theory')}`} checked={d.has_theory} onChange={(v) => updateDate(i, { has_theory: v })} />
@@ -617,17 +617,17 @@ function TimeRange({
       title={label}
     >
       <span style={{ marginRight: 2 }}>{emoji}</span>
-      <input
-        type="time"
+      <CHTimeField
+        picker={false}
         value={from}
-        onChange={(e) => onFrom(e.target.value)}
+        onChange={onFrom}
         style={{ width: 70, border: 0, background: 'transparent', font: 'inherit', fontSize: 12, color: 'var(--ink)' }}
       />
       <span style={{ opacity: 0.5 }}>–</span>
-      <input
-        type="time"
+      <CHTimeField
+        picker={false}
         value={to}
-        onChange={(e) => onTo(e.target.value)}
+        onChange={onTo}
         style={{ width: 70, border: 0, background: 'transparent', font: 'inherit', fontSize: 12, color: 'var(--ink)' }}
       />
     </div>
