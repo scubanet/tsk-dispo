@@ -63,15 +63,20 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.INFOMANIAK_SSH_KEY }}
 
-      - name: Pin host key (avoid interactive prompt)
+      - name: Pin host key (best-effort; rsync uses accept-new as fallback)
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.INFOMANIAK_HOST }} >> ~/.ssh/known_hosts
+          # Non-fatal: newer ssh-keyscan exits 1 when the host can't be resolved/reached,
+          # which must not abort the deploy. The rsync step below pins the key on first
+          # connect via StrictHostKeyChecking=accept-new.
+          ssh-keyscan -H ${{ secrets.INFOMANIAK_HOST }} >> ~/.ssh/known_hosts 2>/dev/null \
+            || echo "::warning::ssh-keyscan could not pre-pin host — relying on StrictHostKeyChecking=accept-new"
 
       - name: Rsync dist/ to Infomaniak document root
         working-directory: apps/web
         run: |
           rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=20" \
             --exclude='.infomaniak-maintenance.html' \
             --exclude='.user.ini' \
             dist/ \

@@ -54,7 +54,7 @@ Open [http://localhost:5173/login](http://localhost:5173/login).
 - **Frontend**: React 18 + Vite + TypeScript, plain CSS (Liquid-Glass-Stil)
 - **Backend**: Supabase Managed (Postgres + Auth + Storage + Realtime + Edge Functions)
 - **Email**: Resend
-- **Hosting**: Vercel + Infomaniak (DNS)
+- **Hosting**: Infomaniak (static rsync deploy via GitHub Actions + DNS)
 
 ## Lizenz
 

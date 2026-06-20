@@ -21,7 +21,7 @@
          these tags are *static* — crawlers don't execute JS, so they see the
          same generic AtollCard preview for every card URL. Dynamic per-card OG
          (with the persona's name + theme image) is a Phase-7.5 roadmap item:
-         a Vercel Edge Function intercepting /c/* and rendering OG-only HTML
+         an edge/server function intercepting /c/* and rendering OG-only HTML
          server-side, similar to how Linktree / Bento do it. -->
     <meta property="og:type" content="profile" />
     <meta property="og:site_name" content="AtollCard" />
