@@ -140,7 +140,7 @@ describe('ContactDetailPanelV2', () => {
     expect(screen.getByRole('menu')).toBeTruthy()
     // … inklusive "Rollen verwalten" (i18n-Key, da kein Provider im Test):
     expect(
-      screen.getByRole('menuitem', { name: /action_manage_roles/i }),
+      screen.getByRole('menuitem', { name: /action_manage_roles|Manage roles|Rollen verwalten/i }),
     ).toBeTruthy()
   })
 

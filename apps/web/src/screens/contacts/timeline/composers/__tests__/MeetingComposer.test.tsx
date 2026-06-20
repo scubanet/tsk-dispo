@@ -18,7 +18,7 @@ describe('MeetingComposer', () => {
     render(<MeetingComposer contactId="c1" onDone={vi.fn()} />, { wrapper })
     fireEvent.change(screen.getByPlaceholderText(/Worum ging/i), { target: { value: 'Kaffee am See' } })
     fireEvent.change(screen.getByLabelText(/Dauer/), { target: { value: '60' } })
-    fireEvent.change(screen.getByLabelText(/Datum/), { target: { value: '2026-05-15' } })
+    fireEvent.change(screen.getByLabelText(/Datum/), { target: { value: '15.05.2026' } })
     fireEvent.click(screen.getByRole('button', { name: /Speichern/i }))
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({

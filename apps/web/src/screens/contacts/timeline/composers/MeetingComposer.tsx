@@ -61,14 +61,13 @@ export function MeetingComposer({ contactId, onDone }: Props) {
         style={{ padding: 8 }}
       />
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <label style={{ fontSize: 13 }}>
-          Datum
-          <CHDateField
-            value={date}
-            onChange={setDate}
-            style={{ marginLeft: 6, padding: 4 }}
-          />
-        </label>
+        <label htmlFor="meeting-date" style={{ fontSize: 13 }}>Datum</label>
+        <CHDateField
+          id="meeting-date"
+          value={date}
+          onChange={setDate}
+          style={{ marginLeft: 6, padding: 4 }}
+        />
         <label style={{ fontSize: 13 }}>
           Dauer
           <input

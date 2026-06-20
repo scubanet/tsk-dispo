@@ -96,7 +96,7 @@ describe('ContactEditSheet', () => {
     // also matched „contacts.section_master" ODER „Stammdaten".
     const sectionTitle = document.querySelector('.contact-section__title')
     expect(sectionTitle).not.toBeNull()
-    expect(sectionTitle?.textContent).toMatch(/section_master|Stammdaten/i)
+    expect(sectionTitle?.textContent).toMatch(/section_master|Stammdaten|Master data/i)
   })
 
   it('zeigt Loading-State, wenn contact noch nicht geladen ist', () => {
