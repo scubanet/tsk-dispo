@@ -20,6 +20,11 @@ import type { ContactKind, ContactRole, RelationshipKind } from '@/types/contact
 function invalidateContactWorld(qc: ReturnType<typeof useQueryClient>) {
   qc.invalidateQueries({ queryKey: ['contacts'] })
   qc.invalidateQueries({ queryKey: ['contact'] })
+  // Course enroll-picker lists (useStudents / useCandidates) are separate caches;
+  // invalidate them so a newly created student/candidate shows in the picker
+  // without a full page reload.
+  qc.invalidateQueries({ queryKey: ['students'] })
+  qc.invalidateQueries({ queryKey: ['candidates'] })
 }
 
 export interface SetRolesVars {

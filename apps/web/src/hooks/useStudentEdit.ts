@@ -35,6 +35,11 @@ function invalidateContactScope(
   qc.invalidateQueries({ queryKey: ['contact'] })
   // Pipeline kanban depends on student.pipeline_stage.
   qc.invalidateQueries({ queryKey: ['contacts', 'pipeline'] })
+  // Course enroll-picker lists (useStudents / useCandidates) live in their own
+  // cache namespaces — invalidate them too so a newly created or edited student
+  // appears in the picker immediately, without a full page reload.
+  qc.invalidateQueries({ queryKey: ['students'] })
+  qc.invalidateQueries({ queryKey: ['candidates'] })
   if (contactId) {
     qc.invalidateQueries({ queryKey: ['contact', 'withSidecars', contactId] })
   }
